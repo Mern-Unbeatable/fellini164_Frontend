@@ -1,27 +1,3 @@
-/**
- * SEO Utilities
- *
- * Comprehensive SEO toolkit for optimizing search engine rankings
- * - Automatic metadata generation
- * - Structured data (JSON-LD)
- * - Open Graph tags
- * - Twitter Cards
- * - Multi-language support
- */
-
-/**
- * Generate comprehensive metadata for a page
- * @param {Object} config - SEO configuration
- * @param {string} config.title - Page title
- * @param {string} config.description - Page description
- * @param {string[]} config.keywords - SEO keywords
- * @param {string} config.url - Canonical URL
- * @param {string} config.image - OG image URL
- * @param {string} config.type - OG type (website, article, etc.)
- * @param {string} config.locale - Language locale (en, fr, etc.)
- * @param {Object} config.author - Author information
- * @returns {Object} Metadata object for React Helmet or meta tags
- */
 export const generateMetadata = ({
   title,
   description,
