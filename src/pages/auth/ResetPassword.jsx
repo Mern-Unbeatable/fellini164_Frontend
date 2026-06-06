@@ -106,7 +106,7 @@ const ResetPassword = () => {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Confirm new password"
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 pr-12 focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none placeholder:text-white dark:placeholder:text-gray-500 dark:text-gray-200 dark:placeholder:text-gray-400 "
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 pr-12 focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none placeholder:text-white dark:placeholder:text-gray-500 dark:text-gray-200 "
               />
               <button
                 type="button"
