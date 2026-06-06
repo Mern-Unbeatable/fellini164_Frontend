@@ -26,6 +26,7 @@ createRoot(document.getElementById('root')).render(
   </StrictMode>
 );
 
+// eslint-disable-next-line react-refresh/only-export-components
 function ThemedToast() {
   const theme = useSelector(selectTheme);
   return (
