@@ -55,12 +55,7 @@ export const generateMetadata = ({
   };
 };
 
-/**
- * Generate structured data (JSON-LD) for better search engine understanding
- * @param {string} type - Schema type (Organization, WebSite, Article, Product, etc.)
- * @param {Object} data - Structured data
- * @returns {Object} JSON-LD script object
- */
+// Example usage:
 export const generateStructuredData = (type, data) => {
   const baseData = {
     '@context': 'https://schema.org',
