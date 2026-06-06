@@ -1,3 +1,4 @@
+// src/utils/errorHandler.js
 export const handleApiError = (error) => {
   console.log(error?.message || 'no found message!');
   if (error?.response) {
