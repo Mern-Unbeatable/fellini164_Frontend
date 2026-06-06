@@ -142,12 +142,7 @@ export const generateStructuredData = (type, data) => {
   }
 };
 
-/**
- * Generate language alternate tags for multi-language support
- * @param {string} basePath - Base path without language prefix
- * @param {string[]} languages - Available languages
- * @returns {Array} Array of alternate link objects
- */
+// Example usage:
 export const generateLanguageAlternates = (basePath, languages = ['en', 'fr']) => {
   return languages.map((lang) => ({
     hrefLang: lang,
