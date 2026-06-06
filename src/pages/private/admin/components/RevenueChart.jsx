@@ -21,7 +21,7 @@ const generateData = (days) => {
 };
 
 const RevenueChart = () => {
-    const [selectedRange, setSelectedRange] = useState('7');
+    const [selectedRange] = useState('7');
 
     const lineData = useMemo(() => generateData(Number(selectedRange)), [selectedRange]);
     return (

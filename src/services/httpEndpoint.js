@@ -12,4 +12,3 @@ export const ROUTES_CONFIG = {
     SETTINGS: '/settings',
   },
 };
-// Storage keys
