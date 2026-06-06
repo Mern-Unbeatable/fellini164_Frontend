@@ -1,26 +1,8 @@
-/**
- * Web Vitals Performance Monitoring
- *
- * Tracks Core Web Vitals and sends data to analytics
- * - LCP (Largest Contentful Paint)
- * - FCP (First Contentful Paint)
- * - CLS (Cumulative Layout Shift)
- * - INP (Interaction to Next Paint)
- * - TBT (Total Blocking Time)
- * - Speed Index
- *
- * These metrics are crucial for:
- * - Google Search Rankings
- * - User Experience
- * - Performance Budgets
- * - Real User Monitoring (RUM)
- */
+// Web Vitals performance monitoring and analytics integration
 
 import { onCLS, onFCP, onINP, onLCP, onTTFB } from 'web-vitals';
 
-/**
- * Performance budgets (targets for Lighthouse > 95)
- */
+
 const PERFORMANCE_BUDGETS = {
   LCP: 2500, // Largest Contentful Paint - must be < 2.5s
   FCP: 1800, // First Contentful Paint - must be < 1.8s
@@ -29,10 +11,7 @@ const PERFORMANCE_BUDGETS = {
   TTFB: 800, // Time to First Byte - must be < 800ms
 };
 
-/**
- * Send metric to analytics (Google Analytics, custom endpoint, etc.)
- * @param {Object} metric - Web Vitals metric object
- */
+// Send Web Vitals metrics to analytics
 const sendToAnalytics = (metric) => {
   const { name, value, rating, delta, id } = metric;
 
@@ -58,6 +37,7 @@ const sendToAnalytics = (metric) => {
 
   // Send to Google Analytics 4 (if available)
   if (typeof gtag !== 'undefined') {
+    // eslint-disable-next-line no-undef
     gtag('event', name, {
       event_category: 'Web Vitals',
       event_label: id,
@@ -74,10 +54,7 @@ const sendToAnalytics = (metric) => {
   sendToCustomEndpoint(metric);
 };
 
-/**
- * Send metric to custom analytics endpoint
- * @param {Object} metric - Web Vitals metric object
- */
+// Send Web Vitals metrics to a custom analytics endpoint
 const sendToCustomEndpoint = (metric) => {
   const endpoint = import.meta.env.VITE_ANALYTICS_ENDPOINT;
 
@@ -112,9 +89,7 @@ const sendToCustomEndpoint = (metric) => {
   }
 };
 
-/**
- * Report all Core Web Vitals
- */
+// Initialize Web Vitals reporting
 export const reportWebVitals = () => {
   // Largest Contentful Paint (LCP)
   onLCP(sendToAnalytics);
@@ -132,10 +107,7 @@ export const reportWebVitals = () => {
   onTTFB(sendToAnalytics);
 };
 
-/**
- * Monitor long tasks that block the main thread
- * Long tasks (>50ms) negatively impact INP and TBT
- */
+// Monitor long tasks that block the main thread
 export const monitorLongTasks = () => {
   if (!('PerformanceObserver' in window)) return;
 
@@ -151,6 +123,7 @@ export const monitorLongTasks = () => {
 
           // Send to analytics
           if (typeof gtag !== 'undefined') {
+            // eslint-disable-next-line no-undef
             gtag('event', 'long_task', {
               event_category: 'Performance',
               event_label: entry.name,
@@ -163,6 +136,7 @@ export const monitorLongTasks = () => {
     });
 
     observer.observe({ entryTypes: ['longtask'] });
+  // eslint-disable-next-line no-unused-vars
   } catch (error) {
     // Long tasks API not supported
     if (import.meta.env.DEV) {
@@ -171,10 +145,7 @@ export const monitorLongTasks = () => {
   }
 };
 
-/**
- * Monitor resource loading performance
- * Identifies slow-loading resources (images, scripts, etc.)
- */
+// Monitor resource loading performance
 export const monitorResourceTiming = () => {
   if (!('PerformanceObserver' in window)) return;
 
@@ -200,10 +171,7 @@ export const monitorResourceTiming = () => {
   }
 };
 
-/**
- * Get current performance metrics summary
- * @returns {Object} Performance metrics object
- */
+// Get current performance metrics (for manual logging or debugging)
 export const getPerformanceMetrics = () => {
   if (!('performance' in window)) return null;
 
@@ -235,9 +203,7 @@ export const getPerformanceMetrics = () => {
   };
 };
 
-/**
- * Log performance summary to console
- */
+// Log performance summary to console
 export const logPerformanceSummary = () => {
   const metrics = getPerformanceMetrics();
 
@@ -265,9 +231,7 @@ export const logPerformanceSummary = () => {
   console.groupEnd();
 };
 
-/**
- * Initialize all performance monitoring
- */
+// Initialize all performance monitoring
 export const initPerformanceMonitoring = () => {
   // Report Web Vitals
   reportWebVitals();
