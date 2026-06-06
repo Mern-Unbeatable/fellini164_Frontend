@@ -150,11 +150,7 @@ export const generateLanguageAlternates = (basePath, languages = ['en', 'fr']) =
   }));
 };
 
-/**
- * Generate meta tags for Twitter Card
- * @param {Object} config - Twitter card configuration
- * @returns {Array} Array of meta tag objects
- */
+// Example usage:
 export const generateTwitterCardTags = ({
   card = 'summary_large_image',
   site = '@fellini164',
@@ -171,11 +167,7 @@ export const generateTwitterCardTags = ({
   { name: 'twitter:image', content: image },
 ];
 
-/**
- * Generate Open Graph meta tags
- * @param {Object} config - Open Graph configuration
- * @returns {Array} Array of meta tag objects
- */
+// Example usage:
 export const generateOpenGraphTags = ({
   type = 'website',
   url,
@@ -194,10 +186,7 @@ export const generateOpenGraphTags = ({
   { property: 'og:locale', content: locale },
 ];
 
-/**
- * Update document head with meta tags dynamically
- * @param {Object} metadata - Metadata configuration
- */
+// Function to update document title and meta tags dynamically
 export const updateDocumentMeta = (metadata) => {
   // Update title
   if (metadata.title) {
