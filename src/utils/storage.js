@@ -1,10 +1,5 @@
 // LocalStorage utility functions
 
-/**
- * Save data to localStorage
- * @param {string} key - Storage key
- * @param {any} value - Value to store (will be JSON stringified)
- */
 export const setStorage = (key, value) => {
   try {
     const serializedValue = JSON.stringify(value);
@@ -14,11 +9,7 @@ export const setStorage = (key, value) => {
   }
 };
 
-/**
- * Get data from localStorage
- * @param {string} key - Storage key
- * @returns {any} Parsed value or null if not found
- */
+// Retrieve data from localStorage
 export const getStorage = (key) => {
   try {
     const serializedValue = localStorage.getItem(key);
@@ -38,10 +29,7 @@ export const getStorage = (key) => {
   }
 };
 
-/**
- * Remove data from localStorage
- * @param {string} key - Storage key
- */
+// Remove a specific key from localStorage
 export const removeStorage = (key) => {
   try {
     localStorage.removeItem(key);
@@ -50,9 +38,7 @@ export const removeStorage = (key) => {
   }
 };
 
-/**
- * Clear all localStorage data
- */
+// Clear all localStorage data
 export const clearStorage = () => {
   try {
     localStorage.clear();
@@ -61,11 +47,7 @@ export const clearStorage = () => {
   }
 };
 
-/**
- * Check if a key exists in localStorage
- * @param {string} key - Storage key
- * @returns {boolean}
- */
+// Check if a specific key exists in localStorage
 export const hasStorage = (key) => {
   return localStorage.getItem(key) !== null;
 };
