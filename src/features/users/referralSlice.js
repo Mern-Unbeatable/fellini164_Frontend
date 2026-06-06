@@ -111,7 +111,7 @@ const referralSlice = createSlice({
         state.error = null;
         state.success = false;
       })
-      .addCase(joinWaitlist.fulfilled, (state, action) => {
+      .addCase(joinWaitlist.fulfilled, (state) => {
         state.loading = false;
         state.success = true;
         state.error = null;
