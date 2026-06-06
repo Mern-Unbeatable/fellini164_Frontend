@@ -66,8 +66,8 @@ const router = createBrowserRouter(
       <Route
         element={
           <ProtectedRoute requiredRole="user">
-            <WorkInProgressView />
-            {/* <UserLayout /> */}
+            {/* <WorkInProgressView /> */}
+            {<UserLayout />}
           </ProtectedRoute>
         }
       >
