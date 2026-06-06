@@ -18,6 +18,7 @@ export const fetchProducts = createAsyncThunk(
       // Uncomment below when backend is ready:
       // const response = await GET(ROUTES_CONFIG.public.PRODUCTS);
       // return response;
+    // eslint-disable-next-line no-unreachable
     } catch (err) {
       return rejectWithValue(handleApiError(err));
     }
@@ -34,6 +35,7 @@ export const deleteProducts = createAsyncThunk(
       // Uncomment below when backend is ready:
       // const response = await DELETE(ROUTES_CONFIG.public.PRODUCTS);
       // return response;
+    // eslint-disable-next-line no-unreachable
     } catch (err) {
       return rejectWithValue(handleApiError(err));
     }

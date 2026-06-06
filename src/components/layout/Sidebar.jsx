@@ -1,7 +1,7 @@
 import { NavLink, Link } from 'react-router-dom';
 import { X, LogOut } from 'lucide-react';
 
-const Sidebar = ({ isOpen, onClose, menuItems, user, onLogout, userBadge }) => {
+const Sidebar = ({ isOpen, onClose, menuItems, onLogout }) => {
   return (
     <>
       {/* Mobile Overlay */}

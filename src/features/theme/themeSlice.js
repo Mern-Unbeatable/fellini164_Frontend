@@ -7,6 +7,7 @@ const getInitialTheme = () => {
     const prefersDark =
       window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
     return prefersDark ? 'dark' : 'light';
+  // eslint-disable-next-line no-unused-vars
   } catch (e) {
     return 'light';
   }
