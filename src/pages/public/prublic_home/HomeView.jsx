@@ -15,12 +15,12 @@ const HomeView = () => {
     <div className="w-full dark:bg-black dark:text-white">
       <HeroSection />
       <WhyStruggleSection />
-      {/* <SmartCoachSection /> */}
+      <SmartCoachSection />
       <HowItWorksSection />
-      {/* <FeaturesSection /> */}
-      {/* <PricingSection /> */}
-      {/* <TestimonialsSection /> */}
-      <WhatMakesItDiffrent/>
+      <FeaturesSection />
+      <PricingSection />
+      <TestimonialsSection />
+      <WhatMakesItDiffrent />
       <FAQSection />
       <CTASection />
     </div>
