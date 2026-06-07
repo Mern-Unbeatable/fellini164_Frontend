@@ -14,6 +14,7 @@ import FAQView from '../pages/public/prublic_faq/FAQView';
 import LoginView from '../pages/auth/LoginView';
 import RegisterView from '../pages/auth/RegisterView';
 import OTPVerifyView from '../pages/auth/OTPVerifyView';
+import OnboardingFlowView from '../pages/auth/OnboardingFlowView';
 import UserDashView from '../pages/private/user/UserDashView';
 import WorkInProgressView from '../pages/private/user/WorkInProgressView';
 import AdminDashView from '../pages/private/admin/AdminDashView';
@@ -66,6 +67,7 @@ const router = createBrowserRouter(
 
         <Route path="/signup" element={<RegisterView />} />
         <Route path="/verify-otp" element={<OTPVerifyView />} />
+        <Route path="/onboarding-setup" element={<OnboardingFlowView />} />
       </Route>
 
       {/* User Dashboard (Protected) */}

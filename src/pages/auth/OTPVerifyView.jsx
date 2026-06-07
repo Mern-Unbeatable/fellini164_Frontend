@@ -110,7 +110,7 @@ const OTPVerifyView = () => {
       if (user?.role === 'ADMIN') {
         navigate('/admin/dashboard', { replace: true });
       } else {
-        navigate('/dashboard', { replace: true });
+        navigate('/onboarding-setup', { replace: true });
       }
     }
   };
