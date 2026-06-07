@@ -141,9 +141,9 @@ const Brand = () => (
   </div>
 );
 
-/* ── Stepper — pixel-perfect active glow ── */
+/* ── Stepper — sits centered in navbar row ── */
 const Stepper = ({ step }) => (
-  <div className="mx-auto mt-6 mb-12 flex w-full max-w-[640px] items-start justify-between px-0 sm:mb-14">
+  <div className="flex w-[560px] items-start justify-between">
     {STEP_META.map((item, index) => {
       const number = index + 1;
       const active = number === step;
@@ -156,7 +156,7 @@ const Stepper = ({ step }) => (
             {/* Left connector */}
             {number > 1 && (
               <span
-                className={`absolute right-1/2 left-0 h-0.5 ${
+                className={`absolute right-1/2 left-0 h-px ${
                   completed || active ? 'bg-[#7A3DF2]' : 'bg-[#E0E0E0]'
                 }`}
               />
@@ -164,7 +164,7 @@ const Stepper = ({ step }) => (
             {/* Right connector */}
             {number < STEP_META.length && (
               <span
-                className={`absolute right-0 left-1/2 h-0.5 ${
+                className={`absolute right-0 left-1/2 h-px ${
                   completed ? 'bg-[#7A3DF2]' : 'bg-[#E0E0E0]'
                 }`}
               />
@@ -209,7 +209,7 @@ const Stepper = ({ step }) => (
 
           {/* Step title */}
           <p
-            className={`mt-2 text-sm font-medium ${
+            className={`mt-1.5 text-sm font-medium ${
               active || completed ? 'text-[#1f1f1f]' : 'text-[#9E9E9E]'
             }`}
           >
@@ -217,7 +217,7 @@ const Stepper = ({ step }) => (
           </p>
 
           {/* Step subtitle */}
-          <p className="hidden text-xs text-[#BBBBBB] sm:block">{item.subtitle}</p>
+          <p className="text-xs text-[#BBBBBB]">{item.subtitle}</p>
         </div>
       );
     })}
@@ -225,7 +225,17 @@ const Stepper = ({ step }) => (
 );
 
 const Glow = () => (
-  <div className="pointer-events-none absolute -bottom-15 left-1/2 h-44 w-[88vw] max-w-245 -translate-x-1/2 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(126,68,241,0.66)_0%,rgba(126,68,241,0.22)_45%,rgba(126,68,241,0)_72%)] blur-xl" />
+  <div
+    aria-hidden="true"
+    className="pointer-events-none absolute bottom-0 left-1/2 -translate-x-1/2"
+    style={{
+      width: '110vw',
+      height: '340px',
+      background:
+        'radial-gradient(ellipse 80% 55% at 50% 100%, rgba(112,48,232,0.55) 0%, rgba(112,48,232,0.22) 45%, rgba(112,48,232,0.06) 70%, transparent 85%)',
+      filter: 'blur(18px)',
+    }}
+  />
 );
 
 const OnboardingFlowView = () => {
@@ -312,17 +322,19 @@ const OnboardingFlowView = () => {
   }, [progress]);
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#EEEEEE] px-5 py-6 sm:px-8 sm:py-8">
+    <div className="relative min-h-screen overflow-hidden bg-white px-5 py-6 sm:px-8 sm:py-8">
       <div className="mx-auto max-w-7xl">
-        <div className="flex items-start justify-between">
+        {/* ── Top navbar: back | stepper centered | brand ── */}
+        <div className="relative flex items-center justify-between">
           <BackLink step={Math.min(step, 5)} onBack={onBack} />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+            <Stepper step={Math.min(step, 5)} />
+          </div>
           <Brand />
         </div>
 
-        <Stepper step={Math.min(step, 5)} />
-
         {!isGenerating && (
-          <div className="mx-auto flex max-w-190 flex-col items-center text-center">
+          <div className="mx-auto mt-20 flex max-w-190 flex-col items-center text-center">
             {step === 1 && (
               <>
                 <h1 className="font-['Inter'] text-[54px] leading-[1.3] font-bold text-[#1f1f1f] max-[480px]:text-[26px]">
@@ -543,7 +555,7 @@ const OnboardingFlowView = () => {
         )}
 
         {isGenerating && (
-          <div className="mx-auto flex max-w-190 flex-col items-center text-center">
+          <div className="mx-auto mt-20 flex max-w-190 flex-col items-center text-center">
             <h1 className="font-['Inter'] text-[54px] leading-tight font-bold text-[#1f1f1f] max-[480px]:text-[26px]">
               Creating your AI <span className="text-[#7A3DF2]">Plan</span>
               <span className="text-[#31D1B9]">...</span>
