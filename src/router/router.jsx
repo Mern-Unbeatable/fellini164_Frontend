@@ -8,6 +8,9 @@ import ProtectedRoute from './ProtectedRoute';
 import HomeView from '../pages/public/prublic_home/HomeView';
 import NotFoundView from '../pages/error/NotFoundView';
 import ServicesView from '../pages/public/public_services/ServicesView';
+import ContactView from '../pages/public/prublic_contact/ContactView';
+import PricingView from '../pages/public/prublic_pricing/PricingView';
+import FAQView from '../pages/public/prublic_faq/FAQView';
 import LoginView from '../pages/auth/LoginView';
 import RegisterView from '../pages/auth/RegisterView';
 import OTPVerifyView from '../pages/auth/OTPVerifyView';
@@ -46,6 +49,9 @@ const router = createBrowserRouter(
       {/* Public Routes */}
       <Route element={<PublicLayout />}>
         <Route path="/" element={<HomeView />} />
+        <Route path="/pricing" element={<PricingView />} />
+        <Route path="/faq" element={<FAQView />} />
+        <Route path="/contact" element={<ContactView />} />
         <Route path="/services" element={<ServicesView />} />
         <Route path="/early-access" element={<EarlyAccessView />} />
       </Route>
