@@ -10,6 +10,7 @@ import {
   Moon,
   Sparkles,
   Sun,
+  Zap,
   Users,
 } from 'lucide-react';
 
@@ -135,60 +136,87 @@ const BackLink = ({ step, onBack }) => {
 };
 
 const Brand = () => (
-  <div className="flex items-center gap-1.5">
-    <svg width="16" height="16" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="22" height="22" rx="6" fill="#6b39f4" />
-      <path
-        d="M6 16L11 6L16 16"
-        stroke="white"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path d="M8 13h6" stroke="white" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-    <span className="font-['Inter'] text-[30px] font-semibold tracking-tight text-[#1f1f1f] sm:text-[32px]">
-      Elyxa<span className="text-[#6B39F4]">.</span>Ai
-    </span>
+  <div className="flex items-center">
+    <img src="/logo.png" alt="Elyxa.Ai" className="h-10 w-auto" />
   </div>
 );
 
+/* ── Stepper — pixel-perfect active glow ── */
 const Stepper = ({ step }) => (
-  <div className="mx-auto mt-6 mb-12 flex w-full max-w-160 items-start justify-between px-0 sm:mb-14">
+  <div className="mx-auto mt-6 mb-12 flex w-full max-w-[640px] items-start justify-between px-0 sm:mb-14">
     {STEP_META.map((item, index) => {
       const number = index + 1;
       const active = number === step;
       const completed = number < step;
+
       return (
         <div key={item.key} className="flex min-w-0 flex-1 flex-col items-center">
+          {/* Connector lines + circle row */}
           <div className="relative flex w-full items-center justify-center">
+            {/* Left connector */}
             {number > 1 && (
               <span
-                className={`absolute right-1/2 left-0 h-0.5 ${completed || active ? 'bg-[#7A3DF2]' : 'bg-[#E0E0E0]'}`}
+                className={`absolute right-1/2 left-0 h-0.5 ${
+                  completed || active ? 'bg-[#7A3DF2]' : 'bg-[#E0E0E0]'
+                }`}
               />
             )}
+            {/* Right connector */}
             {number < STEP_META.length && (
               <span
-                className={`absolute right-0 left-1/2 h-0.5 ${completed ? 'bg-[#7A3DF2]' : 'bg-[#E0E0E0]'}`}
+                className={`absolute right-0 left-1/2 h-0.5 ${
+                  completed ? 'bg-[#7A3DF2]' : 'bg-[#E0E0E0]'
+                }`}
               />
             )}
-            <span
-              className={`relative z-10 flex h-7 w-7 items-center justify-center rounded-full border text-xs font-semibold ${
-                active
-                  ? 'border-[#7A3DF2] bg-white text-[#7A3DF2] shadow-[0_0_20px_rgba(122,61,242,0.45)]'
-                  : completed
-                    ? 'border-[#7A3DF2] bg-white text-[#7A3DF2]'
-                    : 'border-[#D9D9D9] bg-[#F0F0F0] text-[#B1B1B1]'
-              }`}
-            >
-              {number}
+
+            {/* Circle wrapper — holds glow + circle together */}
+            <span className="relative z-10 flex h-10 w-10 items-center justify-center">
+              {/* Radial glow blob — large soft lavender cloud, active only */}
+              {active && (
+                <span
+                  aria-hidden="true"
+                  style={{
+                    position: 'absolute',
+                    width: '80px',
+                    height: '80px',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    borderRadius: '50%',
+                    background:
+                      'radial-gradient(ellipse at center, rgba(162,118,245,0.85) 0%, rgba(162,118,245,0.45) 30%, rgba(162,118,245,0.15) 58%, transparent 75%)',
+                    filter: 'blur(10px)',
+                    pointerEvents: 'none',
+                  }}
+                />
+              )}
+
+              {/* Step circle */}
+              <span
+                className={`relative z-10 flex h-7 w-7 items-center justify-center rounded-full border text-xs font-semibold ${
+                  active
+                    ? 'border-[#C9A8F7] bg-white text-[#7A3DF2]'
+                    : completed
+                      ? 'border-[#7A3DF2] bg-white text-[#7A3DF2]'
+                      : 'border-[#D9D9D9] bg-[#F0F0F0] text-[#B1B1B1]'
+                }`}
+              >
+                {number}
+              </span>
             </span>
           </div>
+
+          {/* Step title */}
           <p
-            className={`mt-2 text-sm font-medium ${active || completed ? 'text-[#1f1f1f]' : 'text-[#9E9E9E]'}`}
+            className={`mt-2 text-sm font-medium ${
+              active || completed ? 'text-[#1f1f1f]' : 'text-[#9E9E9E]'
+            }`}
           >
             {item.title}
           </p>
+
+          {/* Step subtitle */}
           <p className="hidden text-xs text-[#BBBBBB] sm:block">{item.subtitle}</p>
         </div>
       );
@@ -297,7 +325,7 @@ const OnboardingFlowView = () => {
           <div className="mx-auto flex max-w-190 flex-col items-center text-center">
             {step === 1 && (
               <>
-                <h1 className="font-['Inter'] text-[44px] leading-[1.3] font-bold text-[#1f1f1f] max-[480px]:text-[26px] max-sm:text-[48px]">
+                <h1 className="font-['Inter'] text-[54px] leading-[1.3] font-bold text-[#1f1f1f] max-[480px]:text-[26px]">
                   Let&rsquo;s set up your personal <span className="text-[#7A3DF2]">AI</span>
                   <span className="text-[#31D1B9]">.</span>
                 </h1>
@@ -312,7 +340,10 @@ const OnboardingFlowView = () => {
                 >
                   Start Building My Plan
                 </button>
-                <p className="mt-3 text-sm text-[#B5B5B5]">Take less than a minute</p>
+                <p className="mt-3 inline-flex items-center gap-1.5 text-sm text-[#B5B5B5]">
+                  <Zap className="h-3.5 w-3.5" />
+                  Take less than a minute
+                </p>
               </>
             )}
 
@@ -485,8 +516,8 @@ const OnboardingFlowView = () => {
               </>
             )}
 
-            <div className="mt-8 flex items-center gap-6 max-[480px]:mt-10 max-[480px]:w-full max-[480px]:flex-col-reverse">
-              {step !== 1 && (
+            {step !== 1 && (
+              <div className="mt-8 flex items-center gap-6 max-[480px]:mt-10 max-[480px]:w-full max-[480px]:flex-col-reverse">
                 <button
                   type="button"
                   onClick={onBack}
@@ -494,20 +525,20 @@ const OnboardingFlowView = () => {
                 >
                   Skip for now
                 </button>
-              )}
-              <button
-                type="button"
-                onClick={onContinue}
-                disabled={!canContinue}
-                className={`h-11 rounded-lg px-9 text-base font-semibold transition max-[480px]:w-full ${
-                  canContinue
-                    ? 'bg-[#7A2FF0] text-white hover:bg-[#6921dd]'
-                    : 'cursor-not-allowed bg-[#E2E2E2] text-[#C3C3C3]'
-                }`}
-              >
-                {step === 5 ? 'Generate My Plan' : 'Continue'}
-              </button>
-            </div>
+                <button
+                  type="button"
+                  onClick={onContinue}
+                  disabled={!canContinue}
+                  className={`h-11 rounded-lg px-9 text-base font-semibold transition max-[480px]:w-full ${
+                    canContinue
+                      ? 'bg-[#7A2FF0] text-white hover:bg-[#6921dd]'
+                      : 'cursor-not-allowed bg-[#E2E2E2] text-[#C3C3C3]'
+                  }`}
+                >
+                  {step === 5 ? 'Generate My Plan' : 'Continue'}
+                </button>
+              </div>
+            )}
           </div>
         )}
 
