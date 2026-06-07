@@ -1,269 +1,274 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Mail, ArrowLeft, CheckCircle } from 'lucide-react';
-import { verifyOTP } from '../../features/auth/authAPI';
-import { POST } from '../../services/httpMethods';
-import { selectAuth } from '../../features/auth/authSlice';
-import { toast } from 'react-toastify';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Loader2, TriangleAlert } from 'lucide-react';
+import { clearError, selectAuth } from '../../features/auth/authSlice';
+import { verifyOTP, resendOtp } from '../../features/auth/authAPI';
+
+const RESEND_SECONDS = 30;
+const OTP_LENGTH = 6;
 
 const OTPVerifyView = () => {
-  const [otp, setOtp] = useState(['', '', '', '', '', '']);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [digits, setDigits] = useState(Array(OTP_LENGTH).fill(''));
+  const [countdown, setCountdown] = useState(RESEND_SECONDS);
+  const [canResend, setCanResend] = useState(false);
+  const [resending, setResending] = useState(false);
+  const inputRefs = useRef([]);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const { loading, error: authError } = useSelector(selectAuth);
-  const [localError, setLocalError] = useState('');
+  const { loading, error } = useSelector(selectAuth);
+
   const email = location.state?.email || '';
 
-  const handleChange = (index, value) => {
-    // If cleared
-    if (!value) {
-      const newOtp = [...otp];
-      newOtp[index] = '';
-      setOtp(newOtp);
+  // Countdown timer
+  useEffect(() => {
+    if (countdown <= 0) {
+      setCanResend(true);
       return;
     }
+    const timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [countdown]);
 
-    // Only accept the last character and ensure it's a digit
-    const char = value.slice(-1);
-    if (!/\d/.test(char)) return;
+  useEffect(() => {
+    return () => {
+      dispatch(clearError());
+    };
+  }, [dispatch]);
 
-    const newOtp = [...otp];
-    newOtp[index] = char;
-    setOtp(newOtp);
+  // Focus first input on mount
+  useEffect(() => {
+    inputRefs.current[0]?.focus();
+  }, []);
 
-    // Auto focus next input
-    if (index < 5) {
-      const nextInput = document.getElementById(`otp-${index + 1}`);
-      nextInput?.focus();
+  const handleChange = (index, value) => {
+    const digit = value.replace(/\D/g, '').slice(-1);
+    const next = [...digits];
+    next[index] = digit;
+    setDigits(next);
+    if (digit && index < OTP_LENGTH - 1) {
+      inputRefs.current[index + 1]?.focus();
     }
   };
 
   const handleKeyDown = (index, e) => {
-
-    if (e.key === 'Backspace' && !otp[index] && index > 0) {
-      const prevInput = document.getElementById(`otp-${index - 1}`);
-      prevInput?.focus();
+    if (e.key === 'Backspace') {
+      if (digits[index]) {
+        const next = [...digits];
+        next[index] = '';
+        setDigits(next);
+      } else if (index > 0) {
+        inputRefs.current[index - 1]?.focus();
+        const next = [...digits];
+        next[index - 1] = '';
+        setDigits(next);
+      }
+    } else if (e.key === 'ArrowLeft' && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    } else if (e.key === 'ArrowRight' && index < OTP_LENGTH - 1) {
+      inputRefs.current[index + 1]?.focus();
     }
   };
 
-  // Handle paste of full OTP (e.g., from email) and distribute across inputs
   const handlePaste = (e) => {
     e.preventDefault();
-    const paste = e.clipboardData?.getData('Text') || '';
-    const digits = paste.replace(/\D/g, '').slice(0, 6).split('');
-    if (digits.length === 0) return;
-    const newOtp = [...otp];
-    for (let i = 0; i < digits.length; i++) {
-      newOtp[i] = digits[i];
+    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, OTP_LENGTH);
+    if (!pasted) return;
+    const next = [...digits];
+    pasted.split('').forEach((ch, i) => {
+      next[i] = ch;
+    });
+    setDigits(next);
+    const focusIdx = Math.min(pasted.length, OTP_LENGTH - 1);
+    inputRefs.current[focusIdx]?.focus();
+  };
+
+  const handleResend = async () => {
+    if (!canResend || resending) return;
+    setResending(true);
+    dispatch(clearError());
+    try {
+      await dispatch(resendOtp({ email }));
+    } finally {
+      setResending(false);
+      setCanResend(false);
+      setCountdown(RESEND_SECONDS);
+      setDigits(Array(OTP_LENGTH).fill(''));
+      inputRefs.current[0]?.focus();
     }
-    setOtp(newOtp);
-    const focusIndex = Math.min(digits.length, 6) - 1;
-    const focusEl = document.getElementById(`otp-${focusIndex}`);
-    focusEl?.focus();
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const otpCode = otp.join('');
-
-    if (otpCode.length !== 6) {
-      setLocalError('Please enter all 6 digits');
-      return;
-    }
-
-    setLocalError('');
-
-    const result = await dispatch(verifyOTP({ email, otp: otpCode }));
-
-    // If OTP verification successful, show modal then navigate
+    const otp = digits.join('');
+    if (otp.length < OTP_LENGTH) return;
+    dispatch(clearError());
+    const result = await dispatch(verifyOTP({ email, otp }));
     if (result.type === 'auth/verifyOTP/fulfilled') {
-      setShowSuccessModal(true);
-
-      setTimeout(() => {
-        const user = result.payload.user;
-        if (user.role === 'ADMIN') {
-          navigate('/admin/dashboard', { replace: true });
-        } else {
-          navigate('/dashboard', { replace: true });
-        }
-      }, 2500);
-    }
-  };
-
-  const handleResendOTP = async () => {
-    setLocalError('');
-    try {
-      const response = await POST('/api/v1/auth/resend-otp', { email });
-      if (response?.success) {
-        toast.success(response.message || 'OTP sent to your email!');
+      const user = result.payload?.user;
+      if (user?.role === 'ADMIN') {
+        navigate('/admin/dashboard', { replace: true });
       } else {
-        const msg = response?.message || 'Failed to resend OTP.';
-        setLocalError(msg);
-        toast.error(msg);
+        navigate('/dashboard', { replace: true });
       }
-    } catch (err) {
-      console.error('Resend OTP error:', err);
-      const msg = err.response?.data?.message || err.message || 'Failed to resend OTP. Please try again.';
-      setLocalError(msg);
-      toast.error(msg);
     }
   };
 
-  // Show errors via toast instead of inline alert
-  useEffect(() => {
-    if (localError) {
-      toast.error(localError);
-    }
-  }, [localError]);
-
-  useEffect(() => {
-    if (authError) {
-      toast.error(authError);
-    }
-  }, [authError]);
+  const otpComplete = digits.every((d) => d !== '');
 
   return (
-    <div className="min-h-screen bg-[#EEEEEE] dark:bg-black flex items-center justify-center p-8">
-      <div className="w-full max-w-7xl flex shadow-2xl rounded-2xl overflow-hidden">
-        {/* Left Side - Image/Content */}
-        <div className="hidden lg:flex lg:w-1/2 bg-[#462A94] relative items-center justify-start p-12 pl-16">
-          <div className="relative z-10 text-white max-w-md">
-            <Link to="/">
-              <img src="/WhiteLogo.png" alt="Logo" className="h-10" />
-            </Link>
-            <div className="flex justify-start">
-              <div className="w-72 h-72">
-                <svg viewBox="0 0 200 200" className="w-full h-full">
-                  <g fill="none" stroke="#BCA4FF" strokeWidth="6">
-                    <ellipse cx="100" cy="100" rx="70" ry="25" />
-                    <ellipse cx="100" cy="100" rx="70" ry="25" transform="rotate(60 100 100)" />
-                    <ellipse cx="100" cy="100" rx="70" ry="25" transform="rotate(120 100 100)" />
-                  </g>
-                </svg>
+    <div className="min-h-screen bg-[#efefef] p-3 md:p-6">
+      <div className="mx-auto w-full max-w-345 rounded-[30px] bg-[#efefef] p-3 md:p-4">
+        <div className="grid min-h-[calc(100vh-3rem)] grid-cols-1 gap-4 rounded-3xl md:min-h-205 md:grid-cols-2 md:gap-5">
+          {/* ── Left Visual Panel ── */}
+          <div className="order-2 overflow-hidden rounded-[18px] bg-[#23206f] md:order-1">
+            <div className="relative h-full min-h-70 px-5 pt-5 pb-0 md:px-8 md:pt-7">
+              <div className="absolute -bottom-20 -left-16 h-56 w-56 rounded-full bg-[#7b56f4]/40 blur-3xl md:h-72 md:w-72" />
+              <div className="absolute -top-20 right-6 h-44 w-44 rounded-full bg-[#4f80ff]/30 blur-3xl" />
+
+              <div className="relative z-10 flex h-full flex-col">
+                <div className="flex items-center gap-2">
+                  <svg
+                    width="22"
+                    height="22"
+                    viewBox="0 0 22 22"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <rect width="22" height="22" rx="6" fill="#6b39f4" />
+                    <path
+                      d="M6 16L11 6L16 16"
+                      stroke="white"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path d="M8 13h6" stroke="white" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
+                  <span className="font-['Inter'] text-[15px] font-semibold tracking-tight text-white">
+                    Elyxa.Ai
+                  </span>
+                </div>
+
+                <div className="mt-10 max-w-107.5 md:mt-auto md:mb-7">
+                  <h1 className="font-['Inter'] text-[34px] leading-[1.1] font-semibold text-white md:text-[44px]">
+                    Design a life you&rsquo;re proud of
+                    <br />
+                    with AI that plans your <span className="text-[#30D6FB]">Day.</span>
+                  </h1>
+                  <p className="mt-3 font-['Inter'] text-sm text-white/85 md:text-[15px]">
+                    Plan your day with AI and build habits that stick
+                  </p>
+                </div>
+
+                <div className="mt-8 overflow-hidden rounded-t-2xl border border-white/15 bg-white/98 md:mt-auto">
+                  <img
+                    src="/images/Step1.png"
+                    alt="Elyxa planner preview"
+                    className="h-44 w-full object-cover object-top md:h-80"
+                  />
+                </div>
               </div>
             </div>
-            <h1 className="text-4xl font-bold mb-6 leading-tight da">Verify Your Email</h1>
-            <p className="text-purple-200 text-base">
-              We've sent a verification code to your email address. Please check your inbox.
-            </p>
           </div>
-        </div>
 
-        {/* Right Side - OTP Form */}
-        <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-white dark:bg-zinc-800">
-          <div className="w-full max-w-md">
-
-            <Link
-              to="/signup"
-              className="inline-flex items-center text-sm text-gray-600 hover:text-gray-800 dark:text-white dark:hover:text-white hover:no-underline mb-6"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Sign Up
-            </Link>
-
-            {/* Header */}
-            <div className="mb-8 text-center">
-              <div className="mx-auto w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4">
-                <Mail className="w-8 h-8 text-purple-600" />
+          {/* ── Right OTP Panel ── */}
+          <div className="order-1 flex items-center justify-center rounded-[18px] bg-[#efefef] px-5 py-8 md:order-2 md:px-10 md:py-10">
+            <div className="w-full max-w-107.5">
+              <div className="mb-8 text-center">
+                <h2 className="font-['Inter'] text-[32px] leading-tight font-semibold text-[#1f1f1f]">
+                  Check your <span className="text-[#6b39f4]">Email.</span>
+                </h2>
+                <p className="mt-2 font-['Inter'] text-sm text-[#4b4b4b]">
+                  We&rsquo;ve sent a code to{' '}
+                  <span className="font-medium text-[#1f1f1f]">{email || 'your email'}</span>
+                </p>
+                <p className="mt-1 font-['Inter'] text-sm text-[#4b4b4b]">
+                  Wrong email?{' '}
+                  <button
+                    type="button"
+                    onClick={() => navigate('/signup')}
+                    className="cursor-pointer border-none bg-transparent p-0 font-medium text-[#6b39f4] hover:text-[#5d2fea]"
+                  >
+                    Change it
+                  </button>
+                </p>
               </div>
-              <h2 className="text-3xl font-bold text-gray-800 dark:text-white">Check Your Email</h2>
-              <p className="text-gray-600 dark:text-white mt-2">
-                We sent a verification code to
-              </p>
-              <p className="text-purple-600 dark:text-purple-400 font-semibold">{email || 'your email'}</p>
-            </div>
 
-            {/* Errors will be shown via toast notifications */}
+              {error && (
+                <div className="mb-5 flex items-start rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  <TriangleAlert className="mt-0.5 mr-2 h-4 w-4 shrink-0" />
+                  <span>{error}</span>
+                </div>
+              )}
 
-            {/* OTP Form */}
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* OTP Input Fields */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-white mb-3 text-center">
-                  Enter Verification Code
-                </label>
-                <div className="flex gap-2 justify-center" onPaste={handlePaste}>
-                  {otp.map((digit, index) => (
+              <form onSubmit={handleSubmit}>
+                <p className="mb-3 font-['Inter'] text-xs font-medium text-[#2b2b2b]">
+                  Enter the 6-digit code
+                </p>
+
+                <div className="flex justify-between gap-2.5" onPaste={handlePaste}>
+                  {digits.map((digit, index) => (
                     <input
                       key={index}
-                      id={`otp-${index}`}
+                      ref={(el) => (inputRefs.current[index] = el)}
                       type="text"
-                      maxLength="1"
+                      inputMode="numeric"
+                      maxLength={1}
                       value={digit}
                       onChange={(e) => handleChange(index, e.target.value)}
                       onKeyDown={(e) => handleKeyDown(index, e)}
-                      className="w-12 h-14 text-center text-2xl font-bold border-2 border-gray-300 dark:border-gray-200 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
-                      required
+                      className={`h-14 w-full rounded-lg border bg-[#f6f6f6] text-center font-['Inter'] text-xl font-semibold text-[#1f1f1f] caret-transparent transition outline-none ${
+                        digit
+                          ? 'border-[#6b39f4] bg-white'
+                          : 'border-[#e5e5e5] focus:border-[#6b39f4]'
+                      }`}
+                      aria-label={`Digit ${index + 1}`}
                     />
                   ))}
                 </div>
-              </div>
 
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-[#7C3AED] text-white py-3 rounded-lg font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200 shadow-md hover:shadow-lg"
-              >
-                {loading ? (
-                  <span className="flex items-center justify-center">
-                    <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                        fill="none"
-                      />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      />
-                    </svg>
-                    Verifying...
-                  </span>
-                ) : (
-                  'Verify Email'
-                )}
-              </button>
-            </form>
+                <div className="mt-4 text-center">
+                  {canResend ? (
+                    <button
+                      type="button"
+                      onClick={handleResend}
+                      disabled={resending}
+                      className="cursor-pointer border-none bg-transparent p-0 font-['Inter'] text-sm font-medium text-[#6b39f4] hover:text-[#5d2fea] disabled:opacity-60"
+                    >
+                      {resending ? 'Sending...' : 'Resend code'}
+                    </button>
+                  ) : (
+                    <p className="font-['Inter'] text-sm text-[#b2b2b2]">
+                      Resend code in {countdown}s
+                    </p>
+                  )}
+                </div>
 
-            {/* Resend Code */}
-            <div className="mt-6 text-center">
-              <p className="text-gray-600 text-sm dark:text-white">
-                Didn't receive the code?{' '}
                 <button
-                  onClick={handleResendOTP}
-                  className="text-purple-600 hover:text-purple-700 font-semibold hover:underline"
+                  type="submit"
+                  disabled={loading || !otpComplete}
+                  className={`mt-6 flex h-11 w-full items-center justify-center rounded-lg font-['Inter'] text-sm font-semibold transition ${
+                    otpComplete && !loading
+                      ? 'cursor-pointer bg-[#6b39f4] text-white hover:bg-[#5d2fea]'
+                      : 'cursor-not-allowed bg-[#e7e7e7] text-[#bdbdbd]'
+                  }`}
                 >
-                  Resend Code
+                  {loading ? (
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Verifying...
+                    </span>
+                  ) : (
+                    'Verify Code'
+                  )}
                 </button>
-              </p>
+              </form>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Success Modal */}
-      {showSuccessModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 bg-opacity-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 text-center">
-            <div className="mx-auto w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6">
-              <CheckCircle className="w-12 h-12 text-green-600" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">You're on the Waitlist!</h2>
-            <p className="text-gray-600 text-base">
-              We'll notify you when early access opens.
-            </p>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

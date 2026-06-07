@@ -89,7 +89,9 @@ export const verifyResetOTP = createAsyncThunk(
       }
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message || error.message || 'An error occurred during reset OTP verification'
+        error.response?.data?.message ||
+          error.message ||
+          'An error occurred during reset OTP verification'
       );
     }
   }
@@ -163,6 +165,25 @@ export const createCheckout = createAsyncThunk(
     } catch (error) {
       console.log(error.response?.data);
       return rejectWithValue(error.response?.data?.message || error.message || 'Checkout error');
+    }
+  }
+);
+
+// Resend OTP
+export const resendOtp = createAsyncThunk(
+  'auth/resendOtp',
+  async ({ email }, { rejectWithValue }) => {
+    try {
+      const response = await POST('/api/v1/auth/resend-otp', { email });
+      if (response.success) {
+        return response.data;
+      } else {
+        return rejectWithValue(response.message || 'Failed to resend OTP');
+      }
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || error.message || 'Failed to resend OTP'
+      );
     }
   }
 );
