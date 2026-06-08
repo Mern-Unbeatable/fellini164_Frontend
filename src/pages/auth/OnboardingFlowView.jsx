@@ -188,7 +188,7 @@ const Stepper = ({ step }) => (
 const Glow = () => (
   <div
     aria-hidden="true"
-    className="pointer-events-none absolute bottom-0 left-1/2 h-44 w-[120vw] -translate-x-1/2 rounded-[9999px] bg-[linear-gradient(158deg,#8022FE_0%,white_100%)] opacity-70 shadow-[0_0_0_rgba(0,0,0,0)] blur-[42px] sm:top-207.5 sm:bottom-auto sm:left-10.75 sm:h-175 sm:w-458.5 sm:translate-x-0 sm:shadow-[97.86666870117188px_97.86666870117188px_97.86666870117188px_rgba(0,0,0,0)] sm:blur-[48.93px]"
+    className="pointer-events-none absolute -bottom-5 left-1/2 h-40 w-[140vw] -translate-x-1/2 scale-y-90 rounded-[9999px] bg-[linear-gradient(158deg,#8022FE_0%,white_100%)] opacity-80 blur-[60px] sm:top-207.5 sm:bottom-auto sm:left-10.75 sm:h-175 sm:w-458.5 sm:translate-x-0 sm:scale-y-100 sm:opacity-70 sm:shadow-[97.86666870117188px_97.86666870117188px_97.86666870117188px_rgba(0,0,0,0)] sm:blur-[48.93px]"
   />
 );
 
