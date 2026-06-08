@@ -155,14 +155,14 @@ const Brand = () => (
 );
 
 const Stepper = ({ step }) => (
-  <div className="flex items-start" style={{ gap: 20 }}>
+  <div className="flex items-start gap-20">
     {STEP_META.map((item, index) => {
       const number = index + 1;
       const active = number === step;
       const done = number < step;
 
       return (
-        <div key={item.key} className="flex flex-col items-center" style={{ width: 140 }}>
+        <div key={item.key} className="flex w-30 flex-col items-center">
           {/* Circle row with connectors */}
           <div className="relative flex w-full items-center justify-center" style={{ height: 36 }}>
             {/* Left connector */}
@@ -281,17 +281,7 @@ const Stepper = ({ step }) => (
 const Glow = () => (
   <div
     aria-hidden="true"
-    className="pointer-events-none absolute bottom-0 left-1/2 -translate-x-1/2"
-    style={{
-      width: '170vw',
-      maxWidth: 2200,
-      height: 560,
-      bottom: -300,
-      borderRadius: '50% / 100%',
-      background:
-        'radial-gradient(ellipse at 50% 100%, rgba(112,34,232,0.78) 0%, rgba(112,34,232,0.42) 32%, rgba(112,34,232,0.14) 60%, transparent 84%)',
-      filter: 'blur(30px)',
-    }}
+    className="pointer-events-none absolute top-207.5 left-10.75 h-175 w-458.5 rounded-[9999px] bg-[linear-gradient(158deg,#8022FE_0%,white_100%)] opacity-70 shadow-[97.86666870117188px_97.86666870117188px_97.86666870117188px_rgba(0,0,0,0)] blur-[48.93px]"
   />
 );
 
@@ -323,7 +313,7 @@ const Body = ({ children, maxWidth = 470 }) => (
       color: '#272727',
       textAlign: 'center',
       maxWidth,
-      marginTop: 16,
+      marginTop: 0,
     }}
   >
     {children}
@@ -591,37 +581,19 @@ const OnboardingFlowView = () => {
         </div>
 
         {!isGenerating && (
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              textAlign: 'center',
-              maxWidth: 860,
-              margin: '220px auto 0',
-            }}
-          >
+          <div className="absolute top-77.75 left-1/2 flex w-325 -translate-x-1/2 flex-col items-center gap-7.5 text-center">
             {step === 1 && (
               <>
                 <SectionHeading>
                   Let&rsquo;s set up your personal <Accent>AI</Accent>
                   <Dot />
                 </SectionHeading>
-                <Body>
+                <Body maxWidth={470}>
                   Answer a few quick questions so your AI can understand your goals and build a plan
                   around you
                 </Body>
 
-                <div
-                  className="max-sm:fixed max-sm:right-4 max-sm:bottom-8 max-sm:left-4 max-sm:z-20"
-                  style={{
-                    marginTop: 40,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: 14,
-                  }}
-                >
+                <div className="flex flex-col items-center gap-5">
                   <PrimaryBtn onClick={onContinue} fullWidthMobile>
                     Start Building My Plan
                   </PrimaryBtn>
@@ -649,7 +621,7 @@ const OnboardingFlowView = () => {
                   Where should your AI focus <Accent>First</Accent>
                   <span style={{ color: '#14F1D9' }}>?</span>
                 </SectionHeading>
-                <Body>Pick 2 focus areas, then choose your main priority</Body>
+                <Body maxWidth={470}>Pick 2 focus areas, then choose your main priority</Body>
 
                 <div
                   style={{
@@ -679,7 +651,9 @@ const OnboardingFlowView = () => {
                   How your day is <Accent>Structured</Accent>
                   <Dot />
                 </SectionHeading>
-                <Body>Your AI uses this to tailor your plan to your real daily routine.</Body>
+                <Body maxWidth={470}>
+                  Your AI uses this to tailor your plan to your real daily routine.
+                </Body>
 
                 <div
                   style={{
@@ -865,7 +839,7 @@ const OnboardingFlowView = () => {
                   How your AI should <Accent>Communicate</Accent>
                   <Dot />
                 </SectionHeading>
-                <Body>
+                <Body maxWidth={470}>
                   This changes how your AI guides and interacts with you. You can change it anytime.
                 </Body>
 
@@ -937,7 +911,7 @@ const OnboardingFlowView = () => {
               Creating your AI <Accent>Plan</Accent>
               <span style={{ color: '#14F1D9' }}>...</span>
             </SectionHeading>
-            <Body>Personalizing your AI to match your goals and routine</Body>
+            <Body maxWidth={470}>Personalizing your AI to match your goals and routine</Body>
 
             <div style={{ position: 'relative', width: 190, height: 190, marginTop: 32 }}>
               <svg
