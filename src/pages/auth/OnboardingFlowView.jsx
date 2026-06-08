@@ -114,48 +114,51 @@ const BackLink = ({ step, onBack }) => (
 ───────────────────────────────────────────── */
 const Brand = () => (
   <div className="flex shrink-0 items-center">
-    <img src="/logo.png" alt="Elyxa.Ai" className="h-12 w-auto" />
+    <img src="/logo.png" alt="Elyxa.Ai" className="h-9 w-auto sm:h-12" />
   </div>
 );
 
 const Stepper = ({ step }) => (
-  <div className="flex items-start gap-20">
+  <div className="flex w-full items-start justify-between gap-2 sm:w-auto sm:justify-start sm:gap-20">
     {STEP_META.map((item, index) => {
       const number = index + 1;
       const active = number === step;
       const done = number < step;
 
       return (
-        <div key={item.key} className="flex w-30 flex-col items-center">
+        <div
+          key={item.key}
+          className="flex min-w-0 flex-1 flex-col items-center sm:w-30 sm:flex-none"
+        >
           {/* Circle row with connectors */}
-          <div className="relative flex h-9 w-full items-center justify-center">
+          <div className="relative flex h-8 w-full items-center justify-center sm:h-9">
             {/* Left connector */}
             {number > 1 && (
               <span
-                className={`absolute top-1/2 right-1/2 -left-10 h-px -translate-y-1/2 ${done || active ? 'bg-[#8022FE]' : 'bg-[#E0E0E0]'}`}
+                className={`absolute top-1/2 right-1/2 -left-3 h-px -translate-y-1/2 sm:-left-10 ${done || active ? 'bg-[#8022FE]' : 'bg-[#E0E0E0]'}`}
               />
             )}
 
             {/* Right connector */}
             {number < STEP_META.length && (
               <span
-                className={`absolute top-1/2 -right-10 left-1/2 h-px -translate-y-1/2 ${done ? 'bg-[#8022FE]' : 'bg-[#E0E0E0]'}`}
+                className={`absolute top-1/2 -right-3 left-1/2 h-px -translate-y-1/2 sm:-right-10 ${done ? 'bg-[#8022FE]' : 'bg-[#E0E0E0]'}`}
               />
             )}
 
             {/* Circle + glow */}
-            <span className="relative z-10 flex h-9 w-9 items-center justify-center">
+            <span className="relative z-10 flex h-8 w-8 items-center justify-center sm:h-9 sm:w-9">
               {/* Glow halo — active only, matches Figma ellipse blur */}
               {active && (
                 <span
                   aria-hidden="true"
-                  className="pointer-events-none absolute top-1/2 left-1/2 h-20 w-20 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(128,34,254,0.75)_0%,rgba(128,34,254,0.40)_35%,rgba(128,34,254,0.12)_60%,transparent_78%)] blur-sm"
+                  className="pointer-events-none absolute top-1/2 left-1/2 h-14 w-14 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(128,34,254,0.75)_0%,rgba(128,34,254,0.40)_35%,rgba(128,34,254,0.12)_60%,transparent_78%)] blur-sm sm:h-20 sm:w-20"
                 />
               )}
 
               {/* Circle itself */}
               <span
-                className={`relative z-10 flex h-9 w-9 items-center justify-center rounded-full border-[1.5px] font-['Inter',sans-serif] text-[16px] leading-none ${active ? 'border-0 bg-[#8022FE] font-bold text-white' : done ? 'border-[#8022FE] bg-white font-semibold text-[#8022FE]' : 'border-[#D9D9D9] bg-[#F0F0F0] font-medium text-[#C2C2C2]'}`}
+                className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full border-[1.5px] font-['Inter',sans-serif] text-[14px] leading-none sm:h-9 sm:w-9 sm:text-[16px] ${active ? 'border-0 bg-[#8022FE] font-bold text-white' : done ? 'border-[#8022FE] bg-white font-semibold text-[#8022FE]' : 'border-[#D9D9D9] bg-[#F0F0F0] font-medium text-[#C2C2C2]'}`}
               >
                 {number}
               </span>
@@ -164,7 +167,7 @@ const Stepper = ({ step }) => (
 
           {/* Step title */}
           <p
-            className={`mt-2.5 text-center font-['Inter',sans-serif] text-[16px] leading-normal font-medium ${active || done ? 'text-[#181818]' : 'text-[#9E9E9E]'}`}
+            className={`mt-2 text-center font-['Inter',sans-serif] text-[14px] leading-normal font-medium sm:mt-2.5 sm:text-[16px] ${active || done ? 'text-[#181818]' : 'text-[#9E9E9E]'}`}
           >
             {item.title}
           </p>
@@ -346,21 +349,23 @@ const OnboardingFlowView = () => {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-white">
-      <div className="mx-auto max-w-480 px-7.5 pt-7">
-        <div className="relative flex items-start justify-between">
-          <div className="pt-2.5">
+      <div className="mx-auto max-w-480 px-4 pt-4 pb-8 sm:px-7 sm:pt-7">
+        <div className="flex flex-col gap-4 sm:relative sm:flex-row sm:items-start sm:justify-between sm:gap-0">
+          <div className="order-1 pt-1 sm:order-0 sm:pt-2.5">
             <BackLink step={Math.min(step, 4)} onBack={onBack} />
           </div>
 
-          <div className="absolute top-0 left-1/2 -translate-x-1/2">
+          <div className="order-3 sm:absolute sm:top-0 sm:left-1/2 sm:order-0 sm:-translate-x-1/2">
             <Stepper step={Math.min(step, 4)} />
           </div>
 
-          <Brand />
+          <div className="order-2 flex justify-end sm:order-0">
+            <Brand />
+          </div>
         </div>
 
         {!isGenerating && (
-          <div className="absolute top-77.75 left-77.5 inline-flex w-325 flex-col items-center justify-start gap-7.5 text-center">
+          <div className="relative mx-auto mt-10 flex w-full max-w-325 flex-col items-center justify-start gap-7.5 px-1 text-center sm:absolute sm:top-77.75 sm:left-77.5 sm:mt-0 sm:px-0">
             {step === 1 && (
               <>
                 <SectionHeading>
@@ -436,14 +441,14 @@ const OnboardingFlowView = () => {
                   When you start and end your <Accent>Day</Accent>
                   <Dot />
                 </SectionHeading>
-                <Body>
+                <Body maxWidth={470}>
                   Your AI uses this to plan your day around your energy. Adjust if needed.
                 </Body>
 
-                <div className="mt-8 box-border w-full max-w-160 rounded-2xl border-[1.5px] border-[#E2E2E2] bg-[#F2F2F2] p-6">
-                  <div className="grid grid-cols-2 gap-5 max-sm:grid-cols-1">
+                <div className="mt-8 box-border w-full max-w-160 rounded-2xl border-[1.5px] border-[#E2E2E2] bg-[#F2F2F2] p-4 sm:p-6">
+                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                     <div>
-                      <p className="mb-2 flex items-center gap-2 font-['Inter',sans-serif] text-[16px] font-medium text-[#1F1F1F]">
+                      <p className="mb-2 flex items-center gap-2 font-['Inter',sans-serif] text-[15px] font-medium text-[#1F1F1F] sm:text-[16px]">
                         <Sun className="h-4 w-4 text-[#8022FE]" />
                         Start Your Day
                       </p>
@@ -452,12 +457,12 @@ const OnboardingFlowView = () => {
                           value={startTime}
                           onChange={(e) => setStartTime(e.target.value)}
                           placeholder="00:00"
-                          className="flex-1 border-0 bg-transparent font-['Inter',sans-serif] text-[34px] font-semibold text-[#1F1F1F] outline-none"
+                          className="flex-1 border-0 bg-transparent font-['Inter',sans-serif] text-[26px] font-semibold text-[#1F1F1F] outline-none sm:text-[34px]"
                         />
                         <select
                           value={startMeridiem}
                           onChange={(e) => setStartMeridiem(e.target.value)}
-                          className="cursor-pointer border-0 bg-transparent font-['Inter',sans-serif] text-[34px] font-semibold text-[#B2B2B2] outline-none"
+                          className="cursor-pointer border-0 bg-transparent font-['Inter',sans-serif] text-[26px] font-semibold text-[#B2B2B2] outline-none sm:text-[34px]"
                         >
                           <option>AM</option>
                           <option>PM</option>
@@ -466,7 +471,7 @@ const OnboardingFlowView = () => {
                     </div>
 
                     <div>
-                      <p className="mb-2 flex items-center gap-2 font-['Inter',sans-serif] text-[16px] font-medium text-[#1F1F1F]">
+                      <p className="mb-2 flex items-center gap-2 font-['Inter',sans-serif] text-[15px] font-medium text-[#1F1F1F] sm:text-[16px]">
                         <Moon className="h-4 w-4 text-[#8022FE]" />
                         End Your Day
                       </p>
@@ -475,12 +480,12 @@ const OnboardingFlowView = () => {
                           value={endTime}
                           onChange={(e) => setEndTime(e.target.value)}
                           placeholder="00:00"
-                          className="flex-1 border-0 bg-transparent font-['Inter',sans-serif] text-[34px] font-semibold text-[#1F1F1F] outline-none"
+                          className="flex-1 border-0 bg-transparent font-['Inter',sans-serif] text-[26px] font-semibold text-[#1F1F1F] outline-none sm:text-[34px]"
                         />
                         <select
                           value={endMeridiem}
                           onChange={(e) => setEndMeridiem(e.target.value)}
-                          className="cursor-pointer border-0 bg-transparent font-['Inter',sans-serif] text-[34px] font-semibold text-[#B2B2B2] outline-none"
+                          className="cursor-pointer border-0 bg-transparent font-['Inter',sans-serif] text-[26px] font-semibold text-[#B2B2B2] outline-none sm:text-[34px]"
                         >
                           <option>AM</option>
                           <option>PM</option>
@@ -493,11 +498,11 @@ const OnboardingFlowView = () => {
             )}
 
             {step !== 1 && (
-              <div className="mt-8 flex items-center gap-6 max-sm:mt-10 max-sm:w-full max-sm:flex-col-reverse">
+              <div className="mt-8 flex w-full flex-col-reverse items-center gap-4 sm:mt-10 sm:flex-row sm:items-center sm:gap-6">
                 <button
                   type="button"
                   onClick={onBack}
-                  className="cursor-pointer border-0 bg-transparent p-0 font-['Inter',sans-serif] text-[16px] font-medium text-[#C5C5C5]"
+                  className="cursor-pointer border-0 bg-transparent p-0 font-['Inter',sans-serif] text-[15px] font-medium text-[#C5C5C5] sm:text-[16px]"
                 >
                   Skip for now
                 </button>
@@ -510,14 +515,14 @@ const OnboardingFlowView = () => {
         )}
 
         {isGenerating && (
-          <div className="mx-auto mt-20 flex max-w-190 flex-col items-center text-center">
+          <div className="mx-auto mt-14 flex max-w-190 flex-col items-center px-4 text-center sm:mt-20 sm:px-0">
             <SectionHeading>
               Creating your AI <Accent>Plan</Accent>
               <span className="text-[#14F1D9]">...</span>
             </SectionHeading>
             <Body maxWidth={470}>Personalizing your AI to match your goals and routine</Body>
 
-            <div className="relative mt-8 h-47.5 w-47.5">
+            <div className="relative mt-8 h-40 w-40 sm:h-47.5 sm:w-47.5">
               <svg className="h-full w-full -rotate-90" viewBox="0 0 200 200">
                 <circle cx="100" cy="100" r="88" stroke="#ECE5FA" strokeWidth="10" fill="none" />
                 <circle
@@ -534,16 +539,16 @@ const OnboardingFlowView = () => {
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <p className="m-0 font-['Inter',sans-serif] text-[49px] leading-none font-bold text-[#8022FE]">
+                <p className="m-0 font-['Inter',sans-serif] text-[40px] leading-none font-bold text-[#8022FE] sm:text-[49px]">
                   {progress}%
                 </p>
-                <p className="mt-1 font-['Inter',sans-serif] text-[13px] text-[#C7C7C7]">
+                <p className="mt-1 font-['Inter',sans-serif] text-[12px] text-[#C7C7C7] sm:text-[13px]">
                   Usually under a minute
                 </p>
               </div>
             </div>
 
-            <div className="mt-7 flex flex-col gap-3">
+            <div className="mt-7 flex max-w-100 flex-col gap-3 px-2 sm:px-0">
               {[
                 { text: 'Analyzing your inputs...', color: '#1f1f1f' },
                 { text: 'Setting up your AI behavior...', color: '#C2C2C2' },
@@ -552,7 +557,7 @@ const OnboardingFlowView = () => {
               ].map((line) => (
                 <p
                   key={line.text}
-                  className={`m-0 font-['Inter',sans-serif] text-[16px] ${line.color === '#1f1f1f' ? 'text-[#1f1f1f]' : line.color === '#C2C2C2' ? 'text-[#C2C2C2]' : line.color === '#D1D1D1' ? 'text-[#D1D1D1]' : 'text-[#DEDEDE]'}`}
+                  className={`m-0 font-['Inter',sans-serif] text-[14px] sm:text-[16px] ${line.color === '#1f1f1f' ? 'text-[#1f1f1f]' : line.color === '#C2C2C2' ? 'text-[#C2C2C2]' : line.color === '#D1D1D1' ? 'text-[#D1D1D1]' : 'text-[#DEDEDE]'}`}
                 >
                   {line.text}
                 </p>
