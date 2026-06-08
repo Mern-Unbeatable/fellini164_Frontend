@@ -159,7 +159,7 @@ const Stepper = ({ step }) => (
 
               {/* Circle itself */}
               <span
-                className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full font-['Inter',sans-serif] text-[14px] leading-none sm:h-9 sm:w-9 sm:text-[16px] ${active ? 'bg-[#B06CFF] font-bold text-white shadow-[0_0_14px_rgba(176,108,255,0.35)]' : done ? 'border-[1.5px] border-[#8022FE] font-semibold text-[#CDCDCD]' : 'border-[1.5px] border-[#E6E6E6] bg-[#F8F8F8] font-medium text-[#CDCDCD]'}`}
+                className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full font-['Inter',sans-serif] text-[14px] leading-none sm:h-9 sm:w-9 sm:text-[16px] ${active ? 'bg-[#B06CFF] font-bold text-white shadow-[0_0_14px_rgba(176,108,255,0.35)]' : done ? 'border-[1.5px] border-[#8022FE] bg-white font-semibold text-[#8022FE]' : 'border-[1.5px] border-[#E6E6E6] bg-[#F8F8F8] font-medium text-[#CDCDCD]'}`}
               >
                 {number}
               </span>
@@ -392,13 +392,15 @@ const OnboardingFlowView = () => {
 
             {step === 2 && (
               <>
-                <SectionHeading>
-                  Where should your AI focus <Accent>First</Accent>
-                  <span className="text-[#14F1D9]">?</span>
-                </SectionHeading>
-                <Body maxWidth={470}>Pick 2 focus areas, then choose your main priority</Body>
+                <div className="-mt-6">
+                  <SectionHeading>
+                    Where should your AI focus <Accent>First</Accent>
+                    <span className="text-[#14F1D9]">?</span>
+                  </SectionHeading>
+                  <Body maxWidth={470}>Pick 2 focus areas, then choose your main priority</Body>
+                </div>
 
-                <div className="mt-8 grid w-full grid-cols-2 gap-3 max-sm:grid-cols-1">
+                <div className="mt-8 grid w-full max-w-lg grid-cols-1 gap-3 sm:grid-cols-2">
                   {GOAL_OPTIONS.map((goal) => (
                     <GoalChip
                       key={goal}
@@ -499,7 +501,9 @@ const OnboardingFlowView = () => {
             )}
 
             {step !== 1 && (
-              <div className="mt-8 flex w-full flex-col-reverse items-center gap-4 sm:mt-10 sm:flex-row sm:items-center sm:gap-6">
+              <div
+                className={`mt-4 flex w-full flex-col-reverse items-center gap-4 sm:mt-5 sm:flex-row sm:gap-6 ${step === 2 ? 'sm:justify-center' : 'sm:items-center'}`}
+              >
                 <button
                   type="button"
                   onClick={onBack}
