@@ -143,7 +143,7 @@ const Brand = () => (
 
 /* ── Stepper — sits centered in navbar row ── */
 const Stepper = ({ step }) => (
-  <div className="flex w-[560px] items-start justify-between">
+  <div className="flex w-140 items-start justify-between">
     {STEP_META.map((item, index) => {
       const number = index + 1;
       const active = number === step;
@@ -262,6 +262,7 @@ const OnboardingFlowView = () => {
     if (!routine) return;
     const suggestion = ROUTINE_TIMES[routine];
     if (!suggestion) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setStartTime(suggestion.start);
     setStartMeridiem(suggestion.startMeridiem);
     setEndTime(suggestion.end);
