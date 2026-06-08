@@ -597,8 +597,8 @@ const OnboardingFlowView = () => {
               flexDirection: 'column',
               alignItems: 'center',
               textAlign: 'center',
-              maxWidth: 760,
-              margin: '92px auto 0',
+              maxWidth: 860,
+              margin: '112px auto 0',
             }}
           >
             {step === 1 && (
