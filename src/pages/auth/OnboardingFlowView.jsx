@@ -561,7 +561,7 @@ const OnboardingFlowView = () => {
         style={{
           maxWidth: 1920,
           margin: '0 auto',
-          padding: '16px 30px 0',
+          padding: '28px 30px 0',
         }}
       >
         <div
@@ -598,7 +598,7 @@ const OnboardingFlowView = () => {
               alignItems: 'center',
               textAlign: 'center',
               maxWidth: 760,
-              margin: '84px auto 0',
+              margin: '92px auto 0',
             }}
           >
             {step === 1 && (
