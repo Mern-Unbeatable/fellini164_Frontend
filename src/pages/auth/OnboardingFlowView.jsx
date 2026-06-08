@@ -155,14 +155,14 @@ const Brand = () => (
 );
 
 const Stepper = ({ step }) => (
-  <div className="flex items-start" style={{ gap: 0 }}>
+  <div className="flex items-start" style={{ gap: 20 }}>
     {STEP_META.map((item, index) => {
       const number = index + 1;
       const active = number === step;
       const done = number < step;
 
       return (
-        <div key={item.key} className="flex flex-col items-center" style={{ width: 120 }}>
+        <div key={item.key} className="flex flex-col items-center" style={{ width: 140 }}>
           {/* Circle row with connectors */}
           <div className="relative flex w-full items-center justify-center" style={{ height: 36 }}>
             {/* Left connector */}
@@ -598,7 +598,7 @@ const OnboardingFlowView = () => {
               alignItems: 'center',
               textAlign: 'center',
               maxWidth: 860,
-              margin: '112px auto 0',
+              margin: '220px auto 0',
             }}
           >
             {step === 1 && (
