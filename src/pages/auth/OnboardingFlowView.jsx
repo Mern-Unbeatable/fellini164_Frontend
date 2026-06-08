@@ -120,17 +120,14 @@ const Brand = () => (
 );
 
 const Stepper = ({ step }) => (
-  <div className="flex w-full items-start justify-between gap-2 sm:w-auto sm:justify-start sm:gap-20">
+  <div className="flex w-full items-start justify-between gap-3 sm:w-180 sm:gap-0">
     {STEP_META.map((item, index) => {
       const number = index + 1;
       const active = number === step;
       const done = number < step;
 
       return (
-        <div
-          key={item.key}
-          className="flex min-w-0 flex-1 flex-col items-center sm:w-30 sm:flex-none"
-        >
+        <div key={item.key} className="flex min-w-0 flex-1 flex-col items-center sm:min-w-28">
           {/* Circle row with connectors */}
           <div className="relative flex h-8 w-full items-center justify-center sm:h-9">
             {/* Left connector */}
@@ -378,7 +375,7 @@ const OnboardingFlowView = () => {
                   around you
                 </Body>
 
-                <div className="flex flex-col items-center gap-5">
+                <div className="mt-24 flex flex-col items-center gap-5 sm:mt-0">
                   <PrimaryBtn onClick={onContinue} fullWidthMobile>
                     Start Building My Plan
                   </PrimaryBtn>
