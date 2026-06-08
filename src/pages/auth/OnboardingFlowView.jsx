@@ -502,12 +502,12 @@ const OnboardingFlowView = () => {
 
             {step !== 1 && (
               <div
-                className={`mt-4 flex w-full flex-col-reverse items-center gap-4 sm:mt-5 sm:flex-row sm:gap-6 ${step === 2 ? 'sm:justify-center' : 'sm:items-center'}`}
+                className={`mt-4 flex w-full flex-col-reverse items-center gap-5 sm:mt-5 sm:flex-row sm:gap-5 ${step === 2 ? 'sm:justify-center' : 'sm:items-center'}`}
               >
                 <button
                   type="button"
                   onClick={onBack}
-                  className="cursor-pointer border-0 bg-transparent p-0 font-['Inter',sans-serif] text-[15px] font-medium text-[#C5C5C5] sm:text-[16px]"
+                  className="w-full cursor-pointer border-0 bg-transparent p-0 font-['Inter',sans-serif] text-[15px] font-medium text-[#C5C5C5] sm:w-45 sm:text-[16px]"
                 >
                   Skip for now
                 </button>
