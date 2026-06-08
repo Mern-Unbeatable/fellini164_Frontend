@@ -155,14 +155,14 @@ const Brand = () => (
 );
 
 const Stepper = ({ step }) => (
-  <div className="flex items-start gap-20">
+  <div className="flex items-start" style={{ gap: 80 }}>
     {STEP_META.map((item, index) => {
       const number = index + 1;
       const active = number === step;
       const done = number < step;
 
       return (
-        <div key={item.key} className="flex w-30 flex-col items-center">
+        <div key={item.key} className="flex flex-col items-center" style={{ width: 120 }}>
           {/* Circle row with connectors */}
           <div className="relative flex w-full items-center justify-center" style={{ height: 36 }}>
             {/* Left connector */}
@@ -281,40 +281,35 @@ const Stepper = ({ step }) => (
 const Glow = () => (
   <div
     aria-hidden="true"
-    className="pointer-events-none absolute top-207.5 left-10.75 h-175 w-458.5 rounded-[9999px] bg-[linear-gradient(158deg,#8022FE_0%,white_100%)] opacity-70 shadow-[97.86666870117188px_97.86666870117188px_97.86666870117188px_rgba(0,0,0,0)] blur-[48.93px]"
+    style={{
+      position: 'absolute',
+      width: 1834,
+      height: 700,
+      left: 43,
+      top: 830,
+      opacity: 0.7,
+      background: 'linear-gradient(158deg, #8022FE 0%, white 100%)',
+      boxShadow: '97.86666870117188px 97.86666870117188px 97.86666870117188px rgba(0,0,0,0)',
+      borderRadius: 9999,
+      filter: 'blur(48.93px)',
+      pointerEvents: 'none',
+    }}
   />
 );
 
 const SectionHeading = ({ children }) => (
-  <h1
-    style={{
-      fontFamily: 'Inter, sans-serif',
-      fontWeight: 700,
-      fontSize: 'clamp(28px, 4vw, 54px)',
-      lineHeight: 1.3,
-      color: '#181818',
-      textAlign: 'center',
-    }}
-  >
+  <h1 className="text-center font-['Inter',sans-serif] text-[clamp(28px,4vw,54px)] leading-[1.3] font-bold text-[#181818]">
     {children}
   </h1>
 );
 
-const Accent = ({ children }) => <span style={{ color: '#8022FE' }}>{children}</span>;
-const Dot = () => <span style={{ color: '#14F1D9' }}>.</span>;
+const Accent = ({ children }) => <span className="text-[#8022FE]">{children}</span>;
+const Dot = () => <span className="text-[#14F1D9]">.</span>;
 
 const Body = ({ children, maxWidth = 470 }) => (
   <p
-    style={{
-      fontFamily: 'Inter, sans-serif',
-      fontWeight: 500,
-      fontSize: 16,
-      lineHeight: 1.5,
-      color: '#272727',
-      textAlign: 'center',
-      maxWidth,
-      marginTop: 0,
-    }}
+    className="mx-auto text-center font-['Inter',sans-serif] text-[16px] leading-normal font-medium text-[#272727]"
+    style={{ maxWidth }}
   >
     {children}
   </p>
@@ -325,29 +320,7 @@ const PrimaryBtn = ({ onClick, disabled = false, children, fullWidthMobile = fal
     type="button"
     onClick={onClick}
     disabled={disabled}
-    className={fullWidthMobile ? 'w-full sm:w-auto' : ''}
-    style={{
-      height: 44,
-      padding: '0 40px',
-      borderRadius: 10,
-      background: disabled ? '#E2E2E2' : '#8022FE',
-      color: disabled ? '#C3C3C3' : '#ffffff',
-      fontFamily: 'Inter, sans-serif',
-      fontWeight: 600,
-      fontSize: 16,
-      lineHeight: 1,
-      border: 'none',
-      cursor: disabled ? 'not-allowed' : 'pointer',
-      transition: 'background 0.18s',
-      whiteSpace: 'nowrap',
-      width: fullWidthMobile ? undefined : undefined,
-    }}
-    onMouseEnter={(e) => {
-      if (!disabled) e.currentTarget.style.background = '#6B1BDB';
-    }}
-    onMouseLeave={(e) => {
-      if (!disabled) e.currentTarget.style.background = '#8022FE';
-    }}
+    className={`${fullWidthMobile ? 'w-full sm:w-auto' : ''} h-11 rounded-[10px] px-10 font-['Inter',sans-serif] text-[16px] leading-none font-semibold text-white transition-colors ${disabled ? 'cursor-not-allowed bg-[#E2E2E2] text-[#C3C3C3]' : 'bg-[#8022FE] hover:bg-[#6B1BDB]'}`}
   >
     {children}
   </button>
@@ -357,42 +330,17 @@ const OptionCard = ({ selected, onClick, icon, title, description }) => (
   <button
     type="button"
     onClick={onClick}
-    style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'flex-start',
-      padding: 16,
-      borderRadius: 12,
-      border: `1.5px solid ${selected ? '#8022FE' : '#E2E2E2'}`,
-      background: selected ? '#ffffff' : '#F2F2F2',
-      textAlign: 'left',
-      cursor: 'pointer',
-      transition: 'border-color 0.15s, background 0.15s',
-      width: '100%',
-    }}
+    className={`flex w-full flex-col items-start rounded-xl border-[1.5px] p-4 text-left transition-colors ${selected ? 'border-[#8022FE] bg-white' : 'border-[#E2E2E2] bg-[#F2F2F2]'}`}
   >
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-      {icon({ style: { width: 20, height: 20, color: selected ? '#8022FE' : '#181818' } })}
+    <div className="mb-1 flex items-center gap-2">
+      {icon({ className: `h-5 w-5 ${selected ? 'text-[#8022FE]' : 'text-[#181818]'}` })}
       <span
-        style={{
-          fontFamily: 'Inter, sans-serif',
-          fontWeight: 500,
-          fontSize: 16,
-          color: selected ? '#8022FE' : '#181818',
-        }}
+        className={`font-['Inter',sans-serif] text-[16px] font-medium ${selected ? 'text-[#8022FE]' : 'text-[#181818]'}`}
       >
         {title}
       </span>
     </div>
-    <p
-      style={{
-        fontFamily: 'Inter, sans-serif',
-        fontWeight: 400,
-        fontSize: 14,
-        color: '#B7B7B7',
-        margin: 0,
-      }}
-    >
+    <p className="m-0 font-['Inter',sans-serif] text-[14px] font-normal text-[#B7B7B7]">
       {description}
     </p>
   </button>
@@ -402,33 +350,10 @@ const GoalChip = ({ goal, selected, onClick }) => (
   <button
     type="button"
     onClick={onClick}
-    style={{
-      display: 'flex',
-      alignItems: 'center',
-      height: 56,
-      padding: '0 16px',
-      borderRadius: 12,
-      border: `1.5px solid ${selected ? '#8022FE' : '#E2E2E2'}`,
-      background: selected ? '#ffffff' : '#F2F2F2',
-      cursor: 'pointer',
-      transition: 'border-color 0.15s, background 0.15s',
-      textAlign: 'left',
-      width: '100%',
-      gap: 12,
-    }}
+    className={`flex h-14 w-full items-center gap-3 rounded-xl border-[1.5px] px-4 text-left transition-colors ${selected ? 'border-[#8022FE] bg-white' : 'border-[#E2E2E2] bg-[#F2F2F2]'}`}
   >
     <span
-      style={{
-        width: 20,
-        height: 20,
-        borderRadius: 6,
-        border: `1.5px solid ${selected ? '#8022FE' : '#D0D0D0'}`,
-        background: selected ? '#8022FE' : 'transparent',
-        flexShrink: 0,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
+      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-[1.5px] ${selected ? 'border-[#8022FE] bg-[#8022FE]' : 'border-[#D0D0D0] bg-transparent'}`}
     >
       {selected && (
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
@@ -443,12 +368,7 @@ const GoalChip = ({ goal, selected, onClick }) => (
       )}
     </span>
     <span
-      style={{
-        fontFamily: 'Inter, sans-serif',
-        fontWeight: 500,
-        fontSize: 16,
-        color: selected ? '#8022FE' : '#202020',
-      }}
+      className={`font-['Inter',sans-serif] text-[16px] font-medium ${selected ? 'text-[#8022FE]' : 'text-[#202020]'}`}
     >
       {goal}
     </span>
@@ -538,42 +458,14 @@ const OnboardingFlowView = () => {
   }, [progress]);
 
   return (
-    <div
-      style={{
-        position: 'relative',
-        minHeight: '100vh',
-        overflowX: 'hidden',
-        background: '#ffffff',
-        paddingBottom: 0,
-      }}
-    >
-      <div
-        style={{
-          maxWidth: 1920,
-          margin: '0 auto',
-          padding: '28px 30px 0',
-        }}
-      >
-        <div
-          style={{
-            position: 'relative',
-            display: 'flex',
-            alignItems: 'flex-start',
-            justifyContent: 'space-between',
-          }}
-        >
-          <div style={{ paddingTop: 10 }}>
+    <div className="relative min-h-screen overflow-hidden bg-white">
+      <div className="mx-auto max-w-480 px-7.5 pt-7">
+        <div className="relative flex items-start justify-between">
+          <div className="pt-2.5">
             <BackLink step={Math.min(step, 5)} onBack={onBack} />
           </div>
 
-          <div
-            style={{
-              position: 'absolute',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              top: 0,
-            }}
-          >
+          <div className="absolute top-0 left-1/2 -translate-x-1/2">
             <Stepper step={Math.min(step, 5)} />
           </div>
 
@@ -581,7 +473,7 @@ const OnboardingFlowView = () => {
         </div>
 
         {!isGenerating && (
-          <div className="absolute top-77.75 left-1/2 flex w-325 -translate-x-1/2 flex-col items-center gap-7.5 text-center">
+          <div className="absolute top-77.75 left-77.5 inline-flex w-325 flex-col items-center justify-start gap-7.5 text-center">
             {step === 1 && (
               <>
                 <SectionHeading>
@@ -597,17 +489,7 @@ const OnboardingFlowView = () => {
                   <PrimaryBtn onClick={onContinue} fullWidthMobile>
                     Start Building My Plan
                   </PrimaryBtn>
-                  <p
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      fontFamily: 'Inter, sans-serif',
-                      fontSize: 14,
-                      color: '#B5B5B5',
-                      margin: 0,
-                    }}
-                  >
+                  <p className="m-0 inline-flex items-center gap-1.5 font-['Inter',sans-serif] text-[14px] text-[#B5B5B5]">
                     <Zap style={{ width: 14, height: 14 }} />
                     Take less than a minute
                   </p>
@@ -623,16 +505,7 @@ const OnboardingFlowView = () => {
                 </SectionHeading>
                 <Body maxWidth={470}>Pick 2 focus areas, then choose your main priority</Body>
 
-                <div
-                  style={{
-                    marginTop: 32,
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(2, 1fr)',
-                    gap: 12,
-                    width: '100%',
-                  }}
-                  className="max-sm:grid-cols-1"
-                >
+                <div className="mt-8 grid w-full grid-cols-2 gap-3 max-sm:grid-cols-1">
                   {GOAL_OPTIONS.map((goal) => (
                     <GoalChip
                       key={goal}
@@ -655,16 +528,7 @@ const OnboardingFlowView = () => {
                   Your AI uses this to tailor your plan to your real daily routine.
                 </Body>
 
-                <div
-                  style={{
-                    marginTop: 32,
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(2, 1fr)',
-                    gap: 12,
-                    width: '100%',
-                  }}
-                  className="max-sm:grid-cols-1"
-                >
+                <div className="mt-8 grid w-full grid-cols-2 gap-3 max-sm:grid-cols-1">
                   {ROUTINE_OPTIONS.map((opt) => (
                     <OptionCard
                       key={opt.id}
@@ -689,77 +553,24 @@ const OnboardingFlowView = () => {
                   Your AI uses this to plan your day around your energy. Adjust if needed.
                 </Body>
 
-                <div
-                  style={{
-                    marginTop: 32,
-                    width: '100%',
-                    maxWidth: 640,
-                    borderRadius: 16,
-                    border: '1.5px solid #E2E2E2',
-                    background: '#F2F2F2',
-                    padding: '24px',
-                    boxSizing: 'border-box',
-                  }}
-                >
-                  <div
-                    style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}
-                    className="max-sm:grid-cols-1"
-                  >
+                <div className="mt-8 box-border w-full max-w-160 rounded-2xl border-[1.5px] border-[#E2E2E2] bg-[#F2F2F2] p-6">
+                  <div className="grid grid-cols-2 gap-5 max-sm:grid-cols-1">
                     <div>
-                      <p
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 8,
-                          fontFamily: 'Inter, sans-serif',
-                          fontSize: 16,
-                          fontWeight: 500,
-                          color: '#1F1F1F',
-                          marginBottom: 8,
-                        }}
-                      >
+                      <p className="mb-2 flex items-center gap-2 font-['Inter',sans-serif] text-[16px] font-medium text-[#1F1F1F]">
                         <Sun style={{ width: 16, height: 16, color: '#8022FE' }} />
                         Start Your Day
                       </p>
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 8,
-                          borderRadius: 12,
-                          border: '1.5px solid #E2E2E2',
-                          background: '#F7F7F7',
-                          padding: '8px 12px',
-                        }}
-                      >
+                      <div className="flex items-center gap-2 rounded-xl border-[1.5px] border-[#E2E2E2] bg-[#F7F7F7] px-3 py-2">
                         <input
                           value={startTime}
                           onChange={(e) => setStartTime(e.target.value)}
                           placeholder="00:00"
-                          style={{
-                            flex: 1,
-                            background: 'transparent',
-                            border: 'none',
-                            outline: 'none',
-                            fontFamily: 'Inter, sans-serif',
-                            fontSize: 34,
-                            fontWeight: 600,
-                            color: '#1F1F1F',
-                          }}
+                          className="flex-1 border-0 bg-transparent font-['Inter',sans-serif] text-[34px] font-semibold text-[#1F1F1F] outline-none"
                         />
                         <select
                           value={startMeridiem}
                           onChange={(e) => setStartMeridiem(e.target.value)}
-                          style={{
-                            background: 'transparent',
-                            border: 'none',
-                            outline: 'none',
-                            fontFamily: 'Inter, sans-serif',
-                            fontSize: 34,
-                            fontWeight: 600,
-                            color: '#B2B2B2',
-                            cursor: 'pointer',
-                          }}
+                          className="cursor-pointer border-0 bg-transparent font-['Inter',sans-serif] text-[34px] font-semibold text-[#B2B2B2] outline-none"
                         >
                           <option>AM</option>
                           <option>PM</option>
@@ -768,60 +579,21 @@ const OnboardingFlowView = () => {
                     </div>
 
                     <div>
-                      <p
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 8,
-                          fontFamily: 'Inter, sans-serif',
-                          fontSize: 16,
-                          fontWeight: 500,
-                          color: '#1F1F1F',
-                          marginBottom: 8,
-                        }}
-                      >
+                      <p className="mb-2 flex items-center gap-2 font-['Inter',sans-serif] text-[16px] font-medium text-[#1F1F1F]">
                         <Moon style={{ width: 16, height: 16, color: '#8022FE' }} />
                         End Your Day
                       </p>
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 8,
-                          borderRadius: 12,
-                          border: '1.5px solid #E2E2E2',
-                          background: '#F7F7F7',
-                          padding: '8px 12px',
-                        }}
-                      >
+                      <div className="flex items-center gap-2 rounded-xl border-[1.5px] border-[#E2E2E2] bg-[#F7F7F7] px-3 py-2">
                         <input
                           value={endTime}
                           onChange={(e) => setEndTime(e.target.value)}
                           placeholder="00:00"
-                          style={{
-                            flex: 1,
-                            background: 'transparent',
-                            border: 'none',
-                            outline: 'none',
-                            fontFamily: 'Inter, sans-serif',
-                            fontSize: 34,
-                            fontWeight: 600,
-                            color: '#1F1F1F',
-                          }}
+                          className="flex-1 border-0 bg-transparent font-['Inter',sans-serif] text-[34px] font-semibold text-[#1F1F1F] outline-none"
                         />
                         <select
                           value={endMeridiem}
                           onChange={(e) => setEndMeridiem(e.target.value)}
-                          style={{
-                            background: 'transparent',
-                            border: 'none',
-                            outline: 'none',
-                            fontFamily: 'Inter, sans-serif',
-                            fontSize: 34,
-                            fontWeight: 600,
-                            color: '#B2B2B2',
-                            cursor: 'pointer',
-                          }}
+                          className="cursor-pointer border-0 bg-transparent font-['Inter',sans-serif] text-[34px] font-semibold text-[#B2B2B2] outline-none"
                         >
                           <option>AM</option>
                           <option>PM</option>
@@ -843,16 +615,7 @@ const OnboardingFlowView = () => {
                   This changes how your AI guides and interacts with you. You can change it anytime.
                 </Body>
 
-                <div
-                  style={{
-                    marginTop: 32,
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(2, 1fr)',
-                    gap: 12,
-                    width: '100%',
-                  }}
-                  className="max-sm:grid-cols-1"
-                >
+                <div className="mt-8 grid w-full grid-cols-2 gap-3 max-sm:grid-cols-1">
                   {STYLE_OPTIONS.map((opt) => (
                     <OptionCard
                       key={opt.id}
@@ -868,23 +631,11 @@ const OnboardingFlowView = () => {
             )}
 
             {step !== 1 && (
-              <div
-                style={{ marginTop: 32, display: 'flex', alignItems: 'center', gap: 24 }}
-                className="max-sm:mt-10 max-sm:w-full max-sm:flex-col-reverse"
-              >
+              <div className="mt-8 flex items-center gap-6 max-sm:mt-10 max-sm:w-full max-sm:flex-col-reverse">
                 <button
                   type="button"
                   onClick={onBack}
-                  style={{
-                    fontFamily: 'Inter, sans-serif',
-                    fontSize: 16,
-                    fontWeight: 500,
-                    color: '#C5C5C5',
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    padding: 0,
-                  }}
+                  className="cursor-pointer border-0 bg-transparent p-0 font-['Inter',sans-serif] text-[16px] font-medium text-[#C5C5C5]"
                 >
                   Skip for now
                 </button>
@@ -897,27 +648,15 @@ const OnboardingFlowView = () => {
         )}
 
         {isGenerating && (
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              textAlign: 'center',
-              maxWidth: 760,
-              margin: '80px auto 0',
-            }}
-          >
+          <div className="mx-auto mt-20 flex max-w-190 flex-col items-center text-center">
             <SectionHeading>
               Creating your AI <Accent>Plan</Accent>
               <span style={{ color: '#14F1D9' }}>...</span>
             </SectionHeading>
             <Body maxWidth={470}>Personalizing your AI to match your goals and routine</Body>
 
-            <div style={{ position: 'relative', width: 190, height: 190, marginTop: 32 }}>
-              <svg
-                style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}
-                viewBox="0 0 200 200"
-              >
+            <div className="relative mt-8 h-47.5 w-47.5">
+              <svg className="h-full w-full -rotate-90" viewBox="0 0 200 200">
                 <circle cx="100" cy="100" r="88" stroke="#ECE5FA" strokeWidth="10" fill="none" />
                 <circle
                   cx="100"
@@ -929,45 +668,20 @@ const OnboardingFlowView = () => {
                   strokeLinecap="round"
                   strokeDasharray={2 * Math.PI * 88}
                   strokeDashoffset={progressStrokeOffset}
-                  style={{ transition: 'stroke-dashoffset 0.26s ease' }}
+                  className="transition-[stroke-dashoffset] duration-260 ease-out"
                 />
               </svg>
-              <div
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <p
-                  style={{
-                    fontFamily: 'Inter, sans-serif',
-                    fontSize: 49,
-                    fontWeight: 700,
-                    color: '#8022FE',
-                    lineHeight: 1,
-                    margin: 0,
-                  }}
-                >
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <p className="m-0 font-['Inter',sans-serif] text-[49px] leading-none font-bold text-[#8022FE]">
                   {progress}%
                 </p>
-                <p
-                  style={{
-                    fontFamily: 'Inter, sans-serif',
-                    fontSize: 13,
-                    color: '#C7C7C7',
-                    marginTop: 4,
-                  }}
-                >
+                <p className="mt-1 font-['Inter',sans-serif] text-[13px] text-[#C7C7C7]">
                   Usually under a minute
                 </p>
               </div>
             </div>
 
-            <div style={{ marginTop: 28, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div className="mt-7 flex flex-col gap-3">
               {[
                 { text: 'Analyzing your inputs...', color: '#1f1f1f' },
                 { text: 'Setting up your AI behavior...', color: '#C2C2C2' },
@@ -976,12 +690,8 @@ const OnboardingFlowView = () => {
               ].map((line) => (
                 <p
                   key={line.text}
-                  style={{
-                    fontFamily: 'Inter, sans-serif',
-                    fontSize: 16,
-                    color: line.color,
-                    margin: 0,
-                  }}
+                  className="m-0 font-['Inter',sans-serif] text-[16px]"
+                  style={{ color: line.color }}
                 >
                   {line.text}
                 </p>
