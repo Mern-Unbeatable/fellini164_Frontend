@@ -292,13 +292,186 @@ const Glow = () => (
     aria-hidden="true"
     className="pointer-events-none absolute bottom-0 left-1/2 -translate-x-1/2"
     style={{
-      width: '120vw',
-      height: 340,
+      width: '150vw',
+      maxWidth: 1720,
+      height: 420,
+      bottom: -180,
+      borderRadius: '50% / 100%',
       background:
-        'radial-gradient(ellipse 80% 55% at 50% 100%, rgba(112,34,232,0.60) 0%, rgba(112,34,232,0.25) 42%, rgba(112,34,232,0.07) 68%, transparent 85%)',
-      filter: 'blur(20px)',
+        'radial-gradient(ellipse at 50% 100%, rgba(112,34,232,0.72) 0%, rgba(112,34,232,0.38) 34%, rgba(112,34,232,0.12) 62%, transparent 82%)',
+      filter: 'blur(24px)',
     }}
   />
+);
+
+const SectionHeading = ({ children }) => (
+  <h1
+    style={{
+      fontFamily: 'Inter, sans-serif',
+      fontWeight: 700,
+      fontSize: 'clamp(28px, 4vw, 54px)',
+      lineHeight: 1.3,
+      color: '#181818',
+      textAlign: 'center',
+    }}
+  >
+    {children}
+  </h1>
+);
+
+const Accent = ({ children }) => <span style={{ color: '#8022FE' }}>{children}</span>;
+const Dot = () => <span style={{ color: '#14F1D9' }}>.</span>;
+
+const Body = ({ children, maxWidth = 470 }) => (
+  <p
+    style={{
+      fontFamily: 'Inter, sans-serif',
+      fontWeight: 500,
+      fontSize: 16,
+      lineHeight: 1.5,
+      color: '#272727',
+      textAlign: 'center',
+      maxWidth,
+      marginTop: 16,
+    }}
+  >
+    {children}
+  </p>
+);
+
+const PrimaryBtn = ({ onClick, disabled = false, children, fullWidthMobile = false }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    disabled={disabled}
+    className={fullWidthMobile ? 'w-full sm:w-auto' : ''}
+    style={{
+      height: 44,
+      padding: '0 40px',
+      borderRadius: 10,
+      background: disabled ? '#E2E2E2' : '#8022FE',
+      color: disabled ? '#C3C3C3' : '#ffffff',
+      fontFamily: 'Inter, sans-serif',
+      fontWeight: 600,
+      fontSize: 16,
+      lineHeight: 1,
+      border: 'none',
+      cursor: disabled ? 'not-allowed' : 'pointer',
+      transition: 'background 0.18s',
+      whiteSpace: 'nowrap',
+      width: fullWidthMobile ? undefined : undefined,
+    }}
+    onMouseEnter={(e) => {
+      if (!disabled) e.currentTarget.style.background = '#6B1BDB';
+    }}
+    onMouseLeave={(e) => {
+      if (!disabled) e.currentTarget.style.background = '#8022FE';
+    }}
+  >
+    {children}
+  </button>
+);
+
+const OptionCard = ({ selected, onClick, icon, title, description }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'flex-start',
+      padding: 16,
+      borderRadius: 12,
+      border: `1.5px solid ${selected ? '#8022FE' : '#E2E2E2'}`,
+      background: selected ? '#ffffff' : '#F2F2F2',
+      textAlign: 'left',
+      cursor: 'pointer',
+      transition: 'border-color 0.15s, background 0.15s',
+      width: '100%',
+    }}
+  >
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+      {icon({ style: { width: 20, height: 20, color: selected ? '#8022FE' : '#181818' } })}
+      <span
+        style={{
+          fontFamily: 'Inter, sans-serif',
+          fontWeight: 500,
+          fontSize: 16,
+          color: selected ? '#8022FE' : '#181818',
+        }}
+      >
+        {title}
+      </span>
+    </div>
+    <p
+      style={{
+        fontFamily: 'Inter, sans-serif',
+        fontWeight: 400,
+        fontSize: 14,
+        color: '#B7B7B7',
+        margin: 0,
+      }}
+    >
+      {description}
+    </p>
+  </button>
+);
+
+const GoalChip = ({ goal, selected, onClick }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    style={{
+      display: 'flex',
+      alignItems: 'center',
+      height: 56,
+      padding: '0 16px',
+      borderRadius: 12,
+      border: `1.5px solid ${selected ? '#8022FE' : '#E2E2E2'}`,
+      background: selected ? '#ffffff' : '#F2F2F2',
+      cursor: 'pointer',
+      transition: 'border-color 0.15s, background 0.15s',
+      textAlign: 'left',
+      width: '100%',
+      gap: 12,
+    }}
+  >
+    <span
+      style={{
+        width: 20,
+        height: 20,
+        borderRadius: 6,
+        border: `1.5px solid ${selected ? '#8022FE' : '#D0D0D0'}`,
+        background: selected ? '#8022FE' : 'transparent',
+        flexShrink: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      {selected && (
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <path
+            d="M2 6L5 9L10 3"
+            stroke="white"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      )}
+    </span>
+    <span
+      style={{
+        fontFamily: 'Inter, sans-serif',
+        fontWeight: 500,
+        fontSize: 16,
+        color: selected ? '#8022FE' : '#202020',
+      }}
+    >
+      {goal}
+    </span>
+  </button>
 );
 
 /* ─────────────────────────────────────────────
@@ -323,16 +496,6 @@ const OnboardingFlowView = () => {
     (step === 3 && Boolean(routine)) ||
     (step === 4 && Boolean(startTime) && Boolean(endTime)) ||
     (step === 5 && Boolean(style));
-
-  useEffect(() => {
-    if (!routine) return;
-    const s = ROUTINE_TIMES[routine];
-    if (!s) return;
-    setStartTime(s.start);
-    setStartMeridiem(s.startMeridiem);
-    setEndTime(s.end);
-    setEndMeridiem(s.endMeridiem);
-  }, [routine]);
 
   useEffect(() => {
     if (!isGenerating) return;
@@ -371,6 +534,16 @@ const OnboardingFlowView = () => {
     setStep((p) => p + 1);
   };
 
+  const onSelectRoutine = (id) => {
+    setRoutine(id);
+    const s = ROUTINE_TIMES[id];
+    if (!s) return;
+    setStartTime(s.start);
+    setStartMeridiem(s.startMeridiem);
+    setEndTime(s.end);
+    setEndMeridiem(s.endMeridiem);
+  };
+
   const toggleGoal = (goal) =>
     setSelectedGoals((prev) => {
       if (prev.includes(goal)) return prev.filter((g) => g !== goal);
@@ -383,182 +556,6 @@ const OnboardingFlowView = () => {
     return 2 * Math.PI * r - (progress / 100) * 2 * Math.PI * r;
   }, [progress]);
 
-  /* ── shared heading style ── */
-  const H1 = ({ children }) => (
-    <h1
-      style={{
-        fontFamily: 'Inter, sans-serif',
-        fontWeight: 700,
-        fontSize: 'clamp(28px, 4vw, 54px)',
-        lineHeight: 1.3,
-        color: '#181818',
-        textAlign: 'center',
-      }}
-    >
-      {children}
-    </h1>
-  );
-
-  const Accent = ({ children }) => <span style={{ color: '#8022FE' }}>{children}</span>;
-  const Dot = () => <span style={{ color: '#14F1D9' }}>.</span>;
-
-  /* ── shared body text ── */
-  const Body = ({ children, maxWidth = 470 }) => (
-    <p
-      style={{
-        fontFamily: 'Inter, sans-serif',
-        fontWeight: 500,
-        fontSize: 16,
-        lineHeight: 1.5,
-        color: '#272727',
-        textAlign: 'center',
-        maxWidth,
-        marginTop: 16,
-      }}
-    >
-      {children}
-    </p>
-  );
-
-  /* ── primary CTA button ── */
-  const PrimaryBtn = ({ onClick, disabled = false, children, fullWidthMobile = false }) => (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      className={fullWidthMobile ? 'w-full sm:w-auto' : ''}
-      style={{
-        height: 44,
-        padding: '0 40px',
-        borderRadius: 10,
-        background: disabled ? '#E2E2E2' : '#8022FE',
-        color: disabled ? '#C3C3C3' : '#ffffff',
-        fontFamily: 'Inter, sans-serif',
-        fontWeight: 600,
-        fontSize: 16,
-        lineHeight: 1,
-        border: 'none',
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        transition: 'background 0.18s',
-        whiteSpace: 'nowrap',
-        width: fullWidthMobile ? undefined : undefined,
-      }}
-      onMouseEnter={(e) => {
-        if (!disabled) e.currentTarget.style.background = '#6B1BDB';
-      }}
-      onMouseLeave={(e) => {
-        if (!disabled) e.currentTarget.style.background = '#8022FE';
-      }}
-    >
-      {children}
-    </button>
-  );
-
-  /* ── option card (routine / style) ── */
-  const OptionCard = ({ selected, onClick, icon: Icon, title, description }) => (
-    <button
-      type="button"
-      onClick={onClick}
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'flex-start',
-        padding: 16,
-        borderRadius: 12,
-        border: `1.5px solid ${selected ? '#8022FE' : '#E2E2E2'}`,
-        background: selected ? '#ffffff' : '#F2F2F2',
-        textAlign: 'left',
-        cursor: 'pointer',
-        transition: 'border-color 0.15s, background 0.15s',
-        width: '100%',
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-        <Icon style={{ width: 20, height: 20, color: selected ? '#8022FE' : '#181818' }} />
-        <span
-          style={{
-            fontFamily: 'Inter, sans-serif',
-            fontWeight: 500,
-            fontSize: 16,
-            color: selected ? '#8022FE' : '#181818',
-          }}
-        >
-          {title}
-        </span>
-      </div>
-      <p
-        style={{
-          fontFamily: 'Inter, sans-serif',
-          fontWeight: 400,
-          fontSize: 14,
-          color: '#B7B7B7',
-          margin: 0,
-        }}
-      >
-        {description}
-      </p>
-    </button>
-  );
-
-  /* ── goal chip ── */
-  const GoalChip = ({ goal, selected, onClick }) => (
-    <button
-      type="button"
-      onClick={onClick}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        height: 56,
-        padding: '0 16px',
-        borderRadius: 12,
-        border: `1.5px solid ${selected ? '#8022FE' : '#E2E2E2'}`,
-        background: selected ? '#ffffff' : '#F2F2F2',
-        cursor: 'pointer',
-        transition: 'border-color 0.15s, background 0.15s',
-        textAlign: 'left',
-        width: '100%',
-        gap: 12,
-      }}
-    >
-      {/* Checkbox */}
-      <span
-        style={{
-          width: 20,
-          height: 20,
-          borderRadius: 6,
-          border: `1.5px solid ${selected ? '#8022FE' : '#D0D0D0'}`,
-          background: selected ? '#8022FE' : 'transparent',
-          flexShrink: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        {selected && (
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-            <path
-              d="M2 6L5 9L10 3"
-              stroke="white"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        )}
-      </span>
-      <span
-        style={{
-          fontFamily: 'Inter, sans-serif',
-          fontWeight: 500,
-          fontSize: 16,
-          color: selected ? '#8022FE' : '#202020',
-        }}
-      >
-        {goal}
-      </span>
-    </button>
-  );
-
   return (
     <div
       style={{
@@ -569,15 +566,13 @@ const OnboardingFlowView = () => {
         paddingBottom: 0,
       }}
     >
-      {/* ── INNER WRAPPER ── */}
       <div
         style={{
           maxWidth: 1920,
           margin: '0 auto',
-          padding: '30px 30px 0',
+          padding: '20px 30px 0',
         }}
       >
-        {/* ── NAVBAR: back | stepper (centered) | brand ── */}
         <div
           style={{
             position: 'relative',
@@ -586,12 +581,10 @@ const OnboardingFlowView = () => {
             justifyContent: 'space-between',
           }}
         >
-          {/* Back */}
           <div style={{ paddingTop: 10 }}>
             <BackLink step={Math.min(step, 5)} onBack={onBack} />
           </div>
 
-          {/* Stepper — absolutely centered */}
           <div
             style={{
               position: 'absolute',
@@ -603,11 +596,9 @@ const OnboardingFlowView = () => {
             <Stepper step={Math.min(step, 5)} />
           </div>
 
-          {/* Brand */}
           <Brand />
         </div>
 
-        {/* ── STEP CONTENT ── */}
         {!isGenerating && (
           <div
             style={{
@@ -616,30 +607,28 @@ const OnboardingFlowView = () => {
               alignItems: 'center',
               textAlign: 'center',
               maxWidth: 760,
-              margin: '80px auto 0',
+              margin: '72px auto 0',
             }}
           >
-            {/* ── STEP 1 ── */}
             {step === 1 && (
               <>
-                <H1>
+                <SectionHeading>
                   Let&rsquo;s set up your personal <Accent>AI</Accent>
                   <Dot />
-                </H1>
+                </SectionHeading>
                 <Body>
                   Answer a few quick questions so your AI can understand your goals and build a plan
                   around you
                 </Body>
 
-                {/* Mobile: button pinned to bottom; desktop: inline */}
                 <div
                   className="max-sm:fixed max-sm:right-4 max-sm:bottom-8 max-sm:left-4 max-sm:z-20"
                   style={{
-                    marginTop: 32,
+                    marginTop: 40,
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    gap: 12,
+                    gap: 14,
                   }}
                 >
                   <PrimaryBtn onClick={onContinue} fullWidthMobile>
@@ -663,13 +652,12 @@ const OnboardingFlowView = () => {
               </>
             )}
 
-            {/* ── STEP 2: GOALS ── */}
             {step === 2 && (
               <>
-                <H1>
+                <SectionHeading>
                   Where should your AI focus <Accent>First</Accent>
                   <span style={{ color: '#14F1D9' }}>?</span>
-                </H1>
+                </SectionHeading>
                 <Body>Pick 2 focus areas, then choose your main priority</Body>
 
                 <div
@@ -694,13 +682,12 @@ const OnboardingFlowView = () => {
               </>
             )}
 
-            {/* ── STEP 3: ROUTINE ── */}
             {step === 3 && (
               <>
-                <H1>
+                <SectionHeading>
                   How your day is <Accent>Structured</Accent>
                   <Dot />
-                </H1>
+                </SectionHeading>
                 <Body>Your AI uses this to tailor your plan to your real daily routine.</Body>
 
                 <div
@@ -717,7 +704,7 @@ const OnboardingFlowView = () => {
                     <OptionCard
                       key={opt.id}
                       selected={routine === opt.id}
-                      onClick={() => setRoutine(opt.id)}
+                      onClick={() => onSelectRoutine(opt.id)}
                       icon={opt.icon}
                       title={opt.title}
                       description={opt.description}
@@ -727,13 +714,12 @@ const OnboardingFlowView = () => {
               </>
             )}
 
-            {/* ── STEP 4: SCHEDULE ── */}
             {step === 4 && (
               <>
-                <H1>
+                <SectionHeading>
                   When you start and end your <Accent>Day</Accent>
                   <Dot />
-                </H1>
+                </SectionHeading>
                 <Body>
                   Your AI uses this to plan your day around your energy. Adjust if needed.
                 </Body>
@@ -754,7 +740,6 @@ const OnboardingFlowView = () => {
                     style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}
                     className="max-sm:grid-cols-1"
                   >
-                    {/* Start */}
                     <div>
                       <p
                         style={{
@@ -817,7 +802,6 @@ const OnboardingFlowView = () => {
                       </div>
                     </div>
 
-                    {/* End */}
                     <div>
                       <p
                         style={{
@@ -884,13 +868,12 @@ const OnboardingFlowView = () => {
               </>
             )}
 
-            {/* ── STEP 5: STYLE ── */}
             {step === 5 && (
               <>
-                <H1>
+                <SectionHeading>
                   How your AI should <Accent>Communicate</Accent>
                   <Dot />
-                </H1>
+                </SectionHeading>
                 <Body>
                   This changes how your AI guides and interacts with you. You can change it anytime.
                 </Body>
@@ -919,7 +902,6 @@ const OnboardingFlowView = () => {
               </>
             )}
 
-            {/* ── STEP 2–5 ACTION ROW ── */}
             {step !== 1 && (
               <div
                 style={{ marginTop: 32, display: 'flex', alignItems: 'center', gap: 24 }}
@@ -949,7 +931,6 @@ const OnboardingFlowView = () => {
           </div>
         )}
 
-        {/* ── GENERATING SCREEN ── */}
         {isGenerating && (
           <div
             style={{
@@ -961,13 +942,12 @@ const OnboardingFlowView = () => {
               margin: '80px auto 0',
             }}
           >
-            <H1>
+            <SectionHeading>
               Creating your AI <Accent>Plan</Accent>
               <span style={{ color: '#14F1D9' }}>...</span>
-            </H1>
+            </SectionHeading>
             <Body>Personalizing your AI to match your goals and routine</Body>
 
-            {/* Progress ring */}
             <div style={{ position: 'relative', width: 190, height: 190, marginTop: 32 }}>
               <svg
                 style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}
@@ -1046,7 +1026,6 @@ const OnboardingFlowView = () => {
         )}
       </div>
 
-      {/* ── BOTTOM GLOW ── */}
       <Glow />
     </div>
   );
