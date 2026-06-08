@@ -120,27 +120,30 @@ const Brand = () => (
 );
 
 const Stepper = ({ step }) => (
-  <div className="flex w-full items-start justify-between gap-3 sm:w-180 sm:gap-0">
+  <div className="flex w-full items-start justify-between gap-3 sm:w-200 sm:gap-0">
     {STEP_META.map((item, index) => {
       const number = index + 1;
       const active = number === step;
       const done = number < step;
 
       return (
-        <div key={item.key} className="flex min-w-0 flex-1 flex-col items-center sm:min-w-28">
+        <div
+          key={item.key}
+          className="flex min-w-0 flex-1 flex-col items-center sm:w-40 sm:flex-none"
+        >
           {/* Circle row with connectors */}
           <div className="relative flex h-8 w-full items-center justify-center sm:h-9">
             {/* Left connector */}
             {number > 1 && (
               <span
-                className={`absolute top-1/2 right-1/2 -left-3 h-px -translate-y-1/2 sm:-left-10 ${done || active ? 'bg-[#8022FE]' : 'bg-[#ECECEC]'}`}
+                className={`absolute top-1/2 right-[calc(50%+16px)] left-0 h-px -translate-y-1/2 sm:right-[calc(50%+18px)] ${done || active ? 'bg-[#8022FE]' : 'bg-[#ECECEC]'}`}
               />
             )}
 
             {/* Right connector */}
             {number < STEP_META.length && (
               <span
-                className={`absolute top-1/2 -right-3 left-1/2 h-px -translate-y-1/2 sm:-right-10 ${done ? 'bg-[#8022FE]' : 'bg-[#ECECEC]'}`}
+                className={`absolute top-1/2 right-0 left-[calc(50%+16px)] h-px -translate-y-1/2 sm:left-[calc(50%+18px)] ${done ? 'bg-[#8022FE]' : 'bg-[#ECECEC]'}`}
               />
             )}
 
@@ -150,13 +153,13 @@ const Stepper = ({ step }) => (
               {active && (
                 <span
                   aria-hidden="true"
-                  className="pointer-events-none absolute top-1/2 left-1/2 h-14 w-14 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(128,34,254,0.75)_0%,rgba(128,34,254,0.40)_35%,rgba(128,34,254,0.12)_60%,transparent_78%)] blur-sm sm:h-20 sm:w-20"
+                  className="pointer-events-none absolute top-1/2 left-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(173,118,255,0.82)_0%,rgba(173,118,255,0.48)_32%,rgba(173,118,255,0.18)_58%,transparent_80%)] blur-md sm:h-20 sm:w-20"
                 />
               )}
 
               {/* Circle itself */}
               <span
-                className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full border-[1.5px] font-['Inter',sans-serif] text-[14px] leading-none sm:h-9 sm:w-9 sm:text-[16px] ${active ? 'border-0 bg-[#8022FE] font-bold text-white' : done ? 'border-[#8022FE] bg-white font-semibold text-[#8022FE]' : 'border-[#E6E6E6] bg-[#F8F8F8] font-medium text-[#CDCDCD]'}`}
+                className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full border-[1.5px] font-['Inter',sans-serif] text-[14px] leading-none sm:h-9 sm:w-9 sm:text-[16px] ${active ? 'border-0 bg-[#B06CFF] font-bold text-white shadow-[0_0_14px_rgba(176,108,255,0.35)]' : done ? 'border-[#8022FE] font-semibold text-[#CDCDCD]' : 'text-[#CDCDCD]'}`}
               >
                 {number}
               </span>
