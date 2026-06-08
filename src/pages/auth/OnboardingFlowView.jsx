@@ -159,7 +159,7 @@ const Stepper = ({ step }) => (
 
               {/* Circle itself */}
               <span
-                className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full border-[1.5px] font-['Inter',sans-serif] text-[14px] leading-none sm:h-9 sm:w-9 sm:text-[16px] ${active ? 'border-0 bg-[#B06CFF] font-bold text-white shadow-[0_0_14px_rgba(176,108,255,0.35)]' : done ? 'border-[#8022FE] font-semibold text-[#CDCDCD]' : 'text-[#CDCDCD]'}`}
+                className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full font-['Inter',sans-serif] text-[14px] leading-none sm:h-9 sm:w-9 sm:text-[16px] ${active ? 'bg-[#B06CFF] font-bold text-white shadow-[0_0_14px_rgba(176,108,255,0.35)]' : done ? 'border-[1.5px] border-[#8022FE] font-semibold text-[#CDCDCD]' : 'border-[1.5px] border-[#E6E6E6] bg-[#F8F8F8] font-medium text-[#CDCDCD]'}`}
               >
                 {number}
               </span>
@@ -383,7 +383,7 @@ const OnboardingFlowView = () => {
                     Start Building My Plan
                   </PrimaryBtn>
                   <p className="m-0 inline-flex items-center gap-1.5 font-['Inter',sans-serif] text-[14px] text-[#C2C2C2]">
-                    <Zap className="h-3.5 w-3.5 text-[#C2C2C2]" />
+                    <Zap className="h-3.5 w-3.5 text-[#8022FE]/40" />
                     Take less than a minute
                   </p>
                 </div>
