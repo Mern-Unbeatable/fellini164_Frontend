@@ -350,17 +350,17 @@ const OnboardingFlowView = () => {
   return (
     <div className="relative min-h-screen overflow-hidden bg-white">
       <div className="mx-auto max-w-480 px-4 pt-4 pb-8 sm:px-7 sm:pt-7">
-        <div className="flex flex-col gap-4 sm:relative sm:flex-row sm:items-start sm:justify-between sm:gap-0">
-          <div className="order-1 pt-1 sm:order-0 sm:pt-2.5">
-            <BackLink step={Math.min(step, 4)} onBack={onBack} />
-          </div>
+        <div className="sm:relative">
+          <div className="flex items-center justify-between gap-3">
+            <div className="pt-1 sm:pt-2.5">
+              <BackLink step={Math.min(step, 4)} onBack={onBack} />
+            </div>
 
-          <div className="order-3 sm:absolute sm:top-0 sm:left-1/2 sm:order-0 sm:-translate-x-1/2">
-            <Stepper step={Math.min(step, 4)} />
-          </div>
-
-          <div className="order-2 flex justify-end sm:order-0">
             <Brand />
+          </div>
+
+          <div className="mt-4 sm:absolute sm:top-0 sm:left-1/2 sm:mt-0 sm:-translate-x-1/2">
+            <Stepper step={Math.min(step, 4)} />
           </div>
         </div>
 
