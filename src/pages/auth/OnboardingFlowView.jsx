@@ -20,6 +20,7 @@ const STEP_META = [
   { key: 'goals', title: 'Goals', subtitle: 'Focus areas' },
   { key: 'routine', title: 'Routine', subtitle: 'Your daily life' },
   { key: 'schedule', title: 'Schedule', subtitle: 'Your day timing' },
+  { key: 'style', title: 'Style', subtitle: 'AI communication' },
 ];
 
 const GOAL_OPTIONS = [
@@ -135,14 +136,14 @@ const Stepper = ({ step }) => (
             {/* Left connector */}
             {number > 1 && (
               <span
-                className={`absolute top-1/2 right-1/2 -left-3 h-px -translate-y-1/2 sm:-left-10 ${done || active ? 'bg-[#8022FE]' : 'bg-[#E0E0E0]'}`}
+                className={`absolute top-1/2 right-1/2 -left-3 h-px -translate-y-1/2 sm:-left-10 ${done || active ? 'bg-[#8022FE]' : 'bg-[#ECECEC]'}`}
               />
             )}
 
             {/* Right connector */}
             {number < STEP_META.length && (
               <span
-                className={`absolute top-1/2 -right-3 left-1/2 h-px -translate-y-1/2 sm:-right-10 ${done ? 'bg-[#8022FE]' : 'bg-[#E0E0E0]'}`}
+                className={`absolute top-1/2 -right-3 left-1/2 h-px -translate-y-1/2 sm:-right-10 ${done ? 'bg-[#8022FE]' : 'bg-[#ECECEC]'}`}
               />
             )}
 
@@ -158,7 +159,7 @@ const Stepper = ({ step }) => (
 
               {/* Circle itself */}
               <span
-                className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full border-[1.5px] font-['Inter',sans-serif] text-[14px] leading-none sm:h-9 sm:w-9 sm:text-[16px] ${active ? 'border-0 bg-[#8022FE] font-bold text-white' : done ? 'border-[#8022FE] bg-white font-semibold text-[#8022FE]' : 'border-[#D9D9D9] bg-[#F0F0F0] font-medium text-[#C2C2C2]'}`}
+                className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full border-[1.5px] font-['Inter',sans-serif] text-[14px] leading-none sm:h-9 sm:w-9 sm:text-[16px] ${active ? 'border-0 bg-[#8022FE] font-bold text-white' : done ? 'border-[#8022FE] bg-white font-semibold text-[#8022FE]' : 'border-[#E6E6E6] bg-[#F8F8F8] font-medium text-[#CDCDCD]'}`}
               >
                 {number}
               </span>
@@ -167,7 +168,7 @@ const Stepper = ({ step }) => (
 
           {/* Step title */}
           <p
-            className={`mt-2 text-center font-['Inter',sans-serif] text-[14px] leading-normal font-medium sm:mt-2.5 sm:text-[16px] ${active || done ? 'text-[#181818]' : 'text-[#9E9E9E]'}`}
+            className={`mt-2 text-center font-['Inter',sans-serif] text-[14px] leading-normal font-medium sm:mt-2.5 sm:text-[16px] ${active || done ? 'text-[#181818]' : 'text-[#AFAFAF]'}`}
           >
             {item.title}
           </p>
@@ -360,12 +361,12 @@ const OnboardingFlowView = () => {
           </div>
 
           <div className="mt-4 sm:absolute sm:top-0 sm:left-1/2 sm:mt-0 sm:-translate-x-1/2">
-            <Stepper step={Math.min(step, 4)} />
+            <Stepper step={Math.min(step, 5)} />
           </div>
         </div>
 
         {!isGenerating && (
-          <div className="relative mx-auto mt-10 flex w-full max-w-325 flex-col items-center justify-start gap-7.5 px-1 text-center sm:absolute sm:top-77.75 sm:left-77.5 sm:mt-0 sm:px-0">
+          <div className="relative mx-auto mt-10 flex w-full max-w-325 flex-col items-center justify-start gap-7.5 px-1 pb-22 text-center sm:absolute sm:top-77.75 sm:left-77.5 sm:mt-0 sm:px-0 sm:pb-0">
             {step === 1 && (
               <>
                 <SectionHeading>
@@ -381,8 +382,8 @@ const OnboardingFlowView = () => {
                   <PrimaryBtn onClick={onContinue} fullWidthMobile>
                     Start Building My Plan
                   </PrimaryBtn>
-                  <p className="m-0 inline-flex items-center gap-1.5 font-['Inter',sans-serif] text-[14px] text-[#B5B5B5]">
-                    <Zap className="h-3.5 w-3.5" />
+                  <p className="m-0 inline-flex items-center gap-1.5 font-['Inter',sans-serif] text-[14px] text-[#C2C2C2]">
+                    <Zap className="h-3.5 w-3.5 text-[#C2C2C2]" />
                     Take less than a minute
                   </p>
                 </div>
