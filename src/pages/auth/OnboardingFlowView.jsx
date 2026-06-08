@@ -154,15 +154,6 @@ const Brand = () => (
   </div>
 );
 
-/* ─────────────────────────────────────────────
-   STEPPER
-   Figma spec:
-   - Active circle: 36×36, filled #8022FE, white number, large radial glow halo
-   - Inactive circle: 36×36, fill #F0F0F0, border #D9D9D9, gray number #C2C2C2
-   - Connector line: 1px, #E0E0E0 (inactive), #8022FE (completed)
-   - Title: 16px Medium #181818 (active/done) | #9E9E9E (inactive)
-   - Subtitle: 14px Regular #C2C2C2 (all, hidden on mobile)
-───────────────────────────────────────────── */
 const Stepper = ({ step }) => (
   <div className="flex items-start" style={{ gap: 0 }}>
     {STEP_META.map((item, index) => {
@@ -292,14 +283,14 @@ const Glow = () => (
     aria-hidden="true"
     className="pointer-events-none absolute bottom-0 left-1/2 -translate-x-1/2"
     style={{
-      width: '150vw',
-      maxWidth: 1720,
-      height: 420,
-      bottom: -180,
+      width: '170vw',
+      maxWidth: 2200,
+      height: 560,
+      bottom: -300,
       borderRadius: '50% / 100%',
       background:
-        'radial-gradient(ellipse at 50% 100%, rgba(112,34,232,0.72) 0%, rgba(112,34,232,0.38) 34%, rgba(112,34,232,0.12) 62%, transparent 82%)',
-      filter: 'blur(24px)',
+        'radial-gradient(ellipse at 50% 100%, rgba(112,34,232,0.78) 0%, rgba(112,34,232,0.42) 32%, rgba(112,34,232,0.14) 60%, transparent 84%)',
+      filter: 'blur(30px)',
     }}
   />
 );
@@ -570,7 +561,7 @@ const OnboardingFlowView = () => {
         style={{
           maxWidth: 1920,
           margin: '0 auto',
-          padding: '20px 30px 0',
+          padding: '16px 30px 0',
         }}
       >
         <div
@@ -607,7 +598,7 @@ const OnboardingFlowView = () => {
               alignItems: 'center',
               textAlign: 'center',
               maxWidth: 760,
-              margin: '72px auto 0',
+              margin: '84px auto 0',
             }}
           >
             {step === 1 && (
