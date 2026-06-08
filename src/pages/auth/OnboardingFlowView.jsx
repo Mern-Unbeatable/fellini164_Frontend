@@ -14,6 +14,9 @@ import {
   Users,
 } from 'lucide-react';
 
+/* ─────────────────────────────────────────────
+   CONSTANTS
+───────────────────────────────────────────── */
 const STEP_META = [
   { key: 'start', title: 'Start', subtitle: 'Quick setup' },
   { key: 'goals', title: 'Goals', subtitle: 'Focus areas' },
@@ -111,96 +114,136 @@ const ROUTINE_TIMES = {
   'stay-at-home-parent': { start: '06:00', startMeridiem: 'AM', end: '10:00', endMeridiem: 'PM' },
 };
 
-const BackLink = ({ step, onBack }) => {
-  const label =
-    step === 1
-      ? 'Back to Website'
-      : step === 2
-        ? 'Back to Start'
-        : step === 3
-          ? 'Back to Goals'
-          : step === 4
-            ? 'Back to Routine'
-            : 'Back to Schedule';
+/* ─────────────────────────────────────────────
+   BACK LINK
+───────────────────────────────────────────── */
+const BACK_LABELS = [
+  'Back to Website',
+  'Back to Start',
+  'Back to Goals',
+  'Back to Routine',
+  'Back to Schedule',
+];
 
-  return (
-    <button
-      type="button"
-      onClick={onBack}
-      className="inline-flex items-center gap-2 text-sm text-[#A7A7A7] transition hover:text-[#7A7A7A]"
-    >
-      <span className="text-base">←</span>
-      {label}
-    </button>
-  );
-};
+const BackLink = ({ step, onBack }) => (
+  <button
+    type="button"
+    onClick={onBack}
+    className="inline-flex items-center gap-1.5 text-sm text-[#A7A7A7] transition-colors hover:text-[#7A7A7A]"
+  >
+    {/* Arrow — matches Figma exactly */}
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M10 12L6 8L10 4"
+        stroke="#A7A7A7"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+    <span>{BACK_LABELS[Math.min(step - 1, 4)]}</span>
+  </button>
+);
 
+/* ─────────────────────────────────────────────
+   BRAND
+───────────────────────────────────────────── */
 const Brand = () => (
-  <div className="flex items-center">
-    <img src="/logo.png" alt="Elyxa.Ai" className="h-10 w-auto" />
+  <div className="flex shrink-0 items-center">
+    <img src="/logo.png" alt="Elyxa.Ai" className="h-8 w-auto" />
   </div>
 );
 
-/* ── Stepper — sits centered in navbar row ── */
+/* ─────────────────────────────────────────────
+   STEPPER
+   Figma spec:
+   - Active circle: 36×36, filled #8022FE, white number, large radial glow halo
+   - Inactive circle: 36×36, fill #F0F0F0, border #D9D9D9, gray number #C2C2C2
+   - Connector line: 1px, #E0E0E0 (inactive), #8022FE (completed)
+   - Title: 16px Medium #181818 (active/done) | #9E9E9E (inactive)
+   - Subtitle: 14px Regular #C2C2C2 (all, hidden on mobile)
+───────────────────────────────────────────── */
 const Stepper = ({ step }) => (
-  <div className="flex w-140 items-start justify-between">
+  <div className="flex items-start" style={{ gap: 0 }}>
     {STEP_META.map((item, index) => {
       const number = index + 1;
       const active = number === step;
-      const completed = number < step;
+      const done = number < step;
 
       return (
-        <div key={item.key} className="flex min-w-0 flex-1 flex-col items-center">
-          {/* Connector lines + circle row */}
-          <div className="relative flex w-full items-center justify-center">
+        <div key={item.key} className="flex flex-col items-center" style={{ width: 120 }}>
+          {/* Circle row with connectors */}
+          <div className="relative flex w-full items-center justify-center" style={{ height: 36 }}>
             {/* Left connector */}
             {number > 1 && (
               <span
-                className={`absolute right-1/2 left-0 h-px ${
-                  completed || active ? 'bg-[#7A3DF2]' : 'bg-[#E0E0E0]'
-                }`}
-              />
-            )}
-            {/* Right connector */}
-            {number < STEP_META.length && (
-              <span
-                className={`absolute right-0 left-1/2 h-px ${
-                  completed ? 'bg-[#7A3DF2]' : 'bg-[#E0E0E0]'
-                }`}
+                className="absolute top-1/2 -translate-y-1/2"
+                style={{
+                  left: 0,
+                  right: '50%',
+                  height: 1,
+                  background: done || active ? '#8022FE' : '#E0E0E0',
+                }}
               />
             )}
 
-            {/* Circle wrapper — holds glow + circle together */}
-            <span className="relative z-10 flex h-10 w-10 items-center justify-center">
-              {/* Radial glow blob — large soft lavender cloud, active only */}
+            {/* Right connector */}
+            {number < STEP_META.length && (
+              <span
+                className="absolute top-1/2 -translate-y-1/2"
+                style={{
+                  left: '50%',
+                  right: 0,
+                  height: 1,
+                  background: done ? '#8022FE' : '#E0E0E0',
+                }}
+              />
+            )}
+
+            {/* Circle + glow */}
+            <span
+              className="relative z-10 flex items-center justify-center"
+              style={{ width: 36, height: 36 }}
+            >
+              {/* Glow halo — active only, matches Figma ellipse blur */}
               {active && (
                 <span
                   aria-hidden="true"
                   style={{
                     position: 'absolute',
-                    width: '80px',
-                    height: '80px',
+                    width: 80,
+                    height: 80,
                     top: '50%',
                     left: '50%',
                     transform: 'translate(-50%, -50%)',
                     borderRadius: '50%',
                     background:
-                      'radial-gradient(ellipse at center, rgba(162,118,245,0.85) 0%, rgba(162,118,245,0.45) 30%, rgba(162,118,245,0.15) 58%, transparent 75%)',
-                    filter: 'blur(10px)',
+                      'radial-gradient(ellipse at center, rgba(128,34,254,0.75) 0%, rgba(128,34,254,0.40) 35%, rgba(128,34,254,0.12) 60%, transparent 78%)',
+                    filter: 'blur(8px)',
                     pointerEvents: 'none',
                   }}
                 />
               )}
 
-              {/* Step circle */}
+              {/* Circle itself */}
               <span
-                className={`relative z-10 flex h-7 w-7 items-center justify-center rounded-full border text-xs font-semibold ${
-                  active
-                    ? 'border-[#C9A8F7] bg-white text-[#7A3DF2]'
-                    : completed
-                      ? 'border-[#7A3DF2] bg-white text-[#7A3DF2]'
-                      : 'border-[#D9D9D9] bg-[#F0F0F0] text-[#B1B1B1]'
-                }`}
+                style={{
+                  position: 'relative',
+                  zIndex: 10,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: 36,
+                  height: 36,
+                  borderRadius: '50%',
+                  background: active ? '#8022FE' : done ? '#ffffff' : '#F0F0F0',
+                  border: active ? 'none' : done ? '1.5px solid #8022FE' : '1.5px solid #D9D9D9',
+                  fontSize: 16,
+                  fontWeight: active ? 700 : done ? 600 : 500,
+                  fontFamily: 'Inter, sans-serif',
+                  color: active ? '#ffffff' : done ? '#8022FE' : '#C2C2C2',
+                  lineHeight: 1,
+                }}
               >
                 {number}
               </span>
@@ -209,35 +252,58 @@ const Stepper = ({ step }) => (
 
           {/* Step title */}
           <p
-            className={`mt-1.5 text-sm font-medium ${
-              active || completed ? 'text-[#1f1f1f]' : 'text-[#9E9E9E]'
-            }`}
+            className="mt-2.5 text-center"
+            style={{
+              fontSize: 16,
+              fontWeight: 500,
+              fontFamily: 'Inter, sans-serif',
+              color: active || done ? '#181818' : '#9E9E9E',
+              lineHeight: 1.5,
+            }}
           >
             {item.title}
           </p>
 
-          {/* Step subtitle */}
-          <p className="text-xs text-[#BBBBBB]">{item.subtitle}</p>
+          {/* Subtitle — hidden on mobile */}
+          <p
+            className="hidden text-center sm:block"
+            style={{
+              fontSize: 14,
+              fontWeight: 400,
+              fontFamily: 'Inter, sans-serif',
+              color: '#C2C2C2',
+              lineHeight: 1,
+              marginTop: 2,
+            }}
+          >
+            {item.subtitle}
+          </p>
         </div>
       );
     })}
   </div>
 );
 
+/* ─────────────────────────────────────────────
+   BOTTOM GLOW — matches Figma ellipse exactly
+───────────────────────────────────────────── */
 const Glow = () => (
   <div
     aria-hidden="true"
     className="pointer-events-none absolute bottom-0 left-1/2 -translate-x-1/2"
     style={{
-      width: '110vw',
-      height: '340px',
+      width: '120vw',
+      height: 340,
       background:
-        'radial-gradient(ellipse 80% 55% at 50% 100%, rgba(112,48,232,0.55) 0%, rgba(112,48,232,0.22) 45%, rgba(112,48,232,0.06) 70%, transparent 85%)',
-      filter: 'blur(18px)',
+        'radial-gradient(ellipse 80% 55% at 50% 100%, rgba(112,34,232,0.60) 0%, rgba(112,34,232,0.25) 42%, rgba(112,34,232,0.07) 68%, transparent 85%)',
+      filter: 'blur(20px)',
     }}
   />
 );
 
+/* ─────────────────────────────────────────────
+   MAIN COMPONENT
+───────────────────────────────────────────── */
 const OnboardingFlowView = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
@@ -260,24 +326,23 @@ const OnboardingFlowView = () => {
 
   useEffect(() => {
     if (!routine) return;
-    const suggestion = ROUTINE_TIMES[routine];
-    if (!suggestion) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setStartTime(suggestion.start);
-    setStartMeridiem(suggestion.startMeridiem);
-    setEndTime(suggestion.end);
-    setEndMeridiem(suggestion.endMeridiem);
+    const s = ROUTINE_TIMES[routine];
+    if (!s) return;
+    setStartTime(s.start);
+    setStartMeridiem(s.startMeridiem);
+    setEndTime(s.end);
+    setEndMeridiem(s.endMeridiem);
   }, [routine]);
 
   useEffect(() => {
     if (!isGenerating) return;
     const id = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
+      setProgress((p) => {
+        if (p >= 100) {
           clearInterval(id);
           return 100;
         }
-        return Math.min(prev + 7, 100);
+        return Math.min(p + 7, 100);
       });
     }, 260);
     return () => clearInterval(id);
@@ -285,10 +350,8 @@ const OnboardingFlowView = () => {
 
   useEffect(() => {
     if (progress < 100 || !isGenerating) return;
-    const timeoutId = setTimeout(() => {
-      navigate('/dashboard', { replace: true });
-    }, 650);
-    return () => clearTimeout(timeoutId);
+    const t = setTimeout(() => navigate('/dashboard', { replace: true }), 650);
+    return () => clearTimeout(t);
   }, [progress, isGenerating, navigate]);
 
   const onBack = () => {
@@ -296,7 +359,7 @@ const OnboardingFlowView = () => {
       navigate('/', { replace: true });
       return;
     }
-    setStep((prev) => Math.max(1, prev - 1));
+    setStep((p) => Math.max(1, p - 1));
   };
 
   const onContinue = () => {
@@ -305,160 +368,448 @@ const OnboardingFlowView = () => {
       setIsGenerating(true);
       return;
     }
-    setStep((prev) => prev + 1);
+    setStep((p) => p + 1);
   };
 
-  const toggleGoal = (goal) => {
+  const toggleGoal = (goal) =>
     setSelectedGoals((prev) => {
-      if (prev.includes(goal)) return prev.filter((item) => item !== goal);
+      if (prev.includes(goal)) return prev.filter((g) => g !== goal);
       if (prev.length >= 2) return [prev[1], goal];
       return [...prev, goal];
     });
-  };
 
   const progressStrokeOffset = useMemo(() => {
-    const radius = 88;
-    const circumference = 2 * Math.PI * radius;
-    return circumference - (progress / 100) * circumference;
+    const r = 88;
+    return 2 * Math.PI * r - (progress / 100) * 2 * Math.PI * r;
   }, [progress]);
 
+  /* ── shared heading style ── */
+  const H1 = ({ children }) => (
+    <h1
+      style={{
+        fontFamily: 'Inter, sans-serif',
+        fontWeight: 700,
+        fontSize: 'clamp(28px, 4vw, 54px)',
+        lineHeight: 1.3,
+        color: '#181818',
+        textAlign: 'center',
+      }}
+    >
+      {children}
+    </h1>
+  );
+
+  const Accent = ({ children }) => <span style={{ color: '#8022FE' }}>{children}</span>;
+  const Dot = () => <span style={{ color: '#14F1D9' }}>.</span>;
+
+  /* ── shared body text ── */
+  const Body = ({ children, maxWidth = 470 }) => (
+    <p
+      style={{
+        fontFamily: 'Inter, sans-serif',
+        fontWeight: 500,
+        fontSize: 16,
+        lineHeight: 1.5,
+        color: '#272727',
+        textAlign: 'center',
+        maxWidth,
+        marginTop: 16,
+      }}
+    >
+      {children}
+    </p>
+  );
+
+  /* ── primary CTA button ── */
+  const PrimaryBtn = ({ onClick, disabled = false, children, fullWidthMobile = false }) => (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={fullWidthMobile ? 'w-full sm:w-auto' : ''}
+      style={{
+        height: 44,
+        padding: '0 40px',
+        borderRadius: 10,
+        background: disabled ? '#E2E2E2' : '#8022FE',
+        color: disabled ? '#C3C3C3' : '#ffffff',
+        fontFamily: 'Inter, sans-serif',
+        fontWeight: 600,
+        fontSize: 16,
+        lineHeight: 1,
+        border: 'none',
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        transition: 'background 0.18s',
+        whiteSpace: 'nowrap',
+        width: fullWidthMobile ? undefined : undefined,
+      }}
+      onMouseEnter={(e) => {
+        if (!disabled) e.currentTarget.style.background = '#6B1BDB';
+      }}
+      onMouseLeave={(e) => {
+        if (!disabled) e.currentTarget.style.background = '#8022FE';
+      }}
+    >
+      {children}
+    </button>
+  );
+
+  /* ── option card (routine / style) ── */
+  const OptionCard = ({ selected, onClick, icon: Icon, title, description }) => (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        padding: 16,
+        borderRadius: 12,
+        border: `1.5px solid ${selected ? '#8022FE' : '#E2E2E2'}`,
+        background: selected ? '#ffffff' : '#F2F2F2',
+        textAlign: 'left',
+        cursor: 'pointer',
+        transition: 'border-color 0.15s, background 0.15s',
+        width: '100%',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+        <Icon style={{ width: 20, height: 20, color: selected ? '#8022FE' : '#181818' }} />
+        <span
+          style={{
+            fontFamily: 'Inter, sans-serif',
+            fontWeight: 500,
+            fontSize: 16,
+            color: selected ? '#8022FE' : '#181818',
+          }}
+        >
+          {title}
+        </span>
+      </div>
+      <p
+        style={{
+          fontFamily: 'Inter, sans-serif',
+          fontWeight: 400,
+          fontSize: 14,
+          color: '#B7B7B7',
+          margin: 0,
+        }}
+      >
+        {description}
+      </p>
+    </button>
+  );
+
+  /* ── goal chip ── */
+  const GoalChip = ({ goal, selected, onClick }) => (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        height: 56,
+        padding: '0 16px',
+        borderRadius: 12,
+        border: `1.5px solid ${selected ? '#8022FE' : '#E2E2E2'}`,
+        background: selected ? '#ffffff' : '#F2F2F2',
+        cursor: 'pointer',
+        transition: 'border-color 0.15s, background 0.15s',
+        textAlign: 'left',
+        width: '100%',
+        gap: 12,
+      }}
+    >
+      {/* Checkbox */}
+      <span
+        style={{
+          width: 20,
+          height: 20,
+          borderRadius: 6,
+          border: `1.5px solid ${selected ? '#8022FE' : '#D0D0D0'}`,
+          background: selected ? '#8022FE' : 'transparent',
+          flexShrink: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        {selected && (
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path
+              d="M2 6L5 9L10 3"
+              stroke="white"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        )}
+      </span>
+      <span
+        style={{
+          fontFamily: 'Inter, sans-serif',
+          fontWeight: 500,
+          fontSize: 16,
+          color: selected ? '#8022FE' : '#202020',
+        }}
+      >
+        {goal}
+      </span>
+    </button>
+  );
+
   return (
-    <div className="relative min-h-screen overflow-hidden bg-white px-5 py-6 sm:px-8 sm:py-8">
-      <div className="mx-auto max-w-7xl">
-        {/* ── Top navbar: back | stepper centered | brand ── */}
-        <div className="relative flex items-center justify-between">
-          <BackLink step={Math.min(step, 5)} onBack={onBack} />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+    <div
+      style={{
+        position: 'relative',
+        minHeight: '100vh',
+        overflowX: 'hidden',
+        background: '#ffffff',
+        paddingBottom: 0,
+      }}
+    >
+      {/* ── INNER WRAPPER ── */}
+      <div
+        style={{
+          maxWidth: 1920,
+          margin: '0 auto',
+          padding: '30px 30px 0',
+        }}
+      >
+        {/* ── NAVBAR: back | stepper (centered) | brand ── */}
+        <div
+          style={{
+            position: 'relative',
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'space-between',
+          }}
+        >
+          {/* Back */}
+          <div style={{ paddingTop: 10 }}>
+            <BackLink step={Math.min(step, 5)} onBack={onBack} />
+          </div>
+
+          {/* Stepper — absolutely centered */}
+          <div
+            style={{
+              position: 'absolute',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              top: 0,
+            }}
+          >
             <Stepper step={Math.min(step, 5)} />
           </div>
+
+          {/* Brand */}
           <Brand />
         </div>
 
+        {/* ── STEP CONTENT ── */}
         {!isGenerating && (
-          <div className="mx-auto mt-20 flex max-w-190 flex-col items-center text-center">
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              textAlign: 'center',
+              maxWidth: 760,
+              margin: '80px auto 0',
+            }}
+          >
+            {/* ── STEP 1 ── */}
             {step === 1 && (
               <>
-                <h1 className="font-['Inter'] text-[54px] leading-[1.3] font-bold text-[#1f1f1f] max-[480px]:text-[26px]">
-                  Let&rsquo;s set up your personal <span className="text-[#7A3DF2]">AI</span>
-                  <span className="text-[#31D1B9]">.</span>
-                </h1>
-                <p className="mt-4 max-w-130 text-base font-medium text-[#272727] max-[480px]:text-[14px]">
+                <H1>
+                  Let&rsquo;s set up your personal <Accent>AI</Accent>
+                  <Dot />
+                </H1>
+                <Body>
                   Answer a few quick questions so your AI can understand your goals and build a plan
                   around you
-                </p>
-                <button
-                  type="button"
-                  onClick={onContinue}
-                  className="mt-8 h-11 rounded-lg bg-[#7A2FF0] px-10 text-base font-semibold text-white transition hover:bg-[#6921dd] max-[480px]:mt-[48vh] max-[480px]:w-full"
+                </Body>
+
+                {/* Mobile: button pinned to bottom; desktop: inline */}
+                <div
+                  className="max-sm:fixed max-sm:right-4 max-sm:bottom-8 max-sm:left-4 max-sm:z-20"
+                  style={{
+                    marginTop: 32,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: 12,
+                  }}
                 >
-                  Start Building My Plan
-                </button>
-                <p className="mt-3 inline-flex items-center gap-1.5 text-sm text-[#B5B5B5]">
-                  <Zap className="h-3.5 w-3.5" />
-                  Take less than a minute
-                </p>
+                  <PrimaryBtn onClick={onContinue} fullWidthMobile>
+                    Start Building My Plan
+                  </PrimaryBtn>
+                  <p
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      fontFamily: 'Inter, sans-serif',
+                      fontSize: 14,
+                      color: '#B5B5B5',
+                      margin: 0,
+                    }}
+                  >
+                    <Zap style={{ width: 14, height: 14 }} />
+                    Take less than a minute
+                  </p>
+                </div>
               </>
             )}
 
+            {/* ── STEP 2: GOALS ── */}
             {step === 2 && (
               <>
-                <h1 className="font-['Inter'] text-[54px] leading-tight font-bold text-[#1f1f1f] max-[480px]:text-[26px]">
-                  Where should your AI focus <span className="text-[#7A3DF2]">First</span>
-                  <span className="text-[#31D1B9]">?</span>
-                </h1>
-                <p className="mt-4 text-base font-medium text-[#272727] max-[480px]:text-[14px] max-[480px]:leading-normal">
-                  Pick 2 focus areas, then choose your main priority
-                </p>
+                <H1>
+                  Where should your AI focus <Accent>First</Accent>
+                  <span style={{ color: '#14F1D9' }}>?</span>
+                </H1>
+                <Body>Pick 2 focus areas, then choose your main priority</Body>
 
-                <div className="mt-8 grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
-                  {GOAL_OPTIONS.map((goal) => {
-                    const selected = selectedGoals.includes(goal);
-                    return (
-                      <button
-                        key={goal}
-                        type="button"
-                        onClick={() => toggleGoal(goal)}
-                        className={`flex h-14 items-center rounded-xl border px-4 text-left text-[31px] max-[480px]:text-[32px] sm:text-[20px] ${
-                          selected
-                            ? 'border-[#7A3DF2] bg-white text-[#6B39F4]'
-                            : 'border-[#E2E2E2] bg-[#F2F2F2] text-[#202020]'
-                        }`}
-                      >
-                        <span
-                          className={`mr-3 h-5 w-5 rounded-md border ${selected ? 'border-[#7A3DF2] bg-[#7A3DF2]' : 'border-[#D0D0D0] bg-transparent'}`}
-                        />
-                        {goal}
-                      </button>
-                    );
-                  })}
+                <div
+                  style={{
+                    marginTop: 32,
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(2, 1fr)',
+                    gap: 12,
+                    width: '100%',
+                  }}
+                  className="max-sm:grid-cols-1"
+                >
+                  {GOAL_OPTIONS.map((goal) => (
+                    <GoalChip
+                      key={goal}
+                      goal={goal}
+                      selected={selectedGoals.includes(goal)}
+                      onClick={() => toggleGoal(goal)}
+                    />
+                  ))}
                 </div>
               </>
             )}
 
+            {/* ── STEP 3: ROUTINE ── */}
             {step === 3 && (
               <>
-                <h1 className="font-['Inter'] text-[54px] leading-tight font-bold text-[#1f1f1f] max-[480px]:text-[26px]">
-                  How your day is <span className="text-[#7A3DF2]">Structured</span>
-                  <span className="text-[#31D1B9]">.</span>
-                </h1>
-                <p className="mt-4 text-base font-medium text-[#272727] max-[480px]:text-[14px]">
-                  Your AI uses this to tailor your plan to your real daily routine.
-                </p>
+                <H1>
+                  How your day is <Accent>Structured</Accent>
+                  <Dot />
+                </H1>
+                <Body>Your AI uses this to tailor your plan to your real daily routine.</Body>
 
-                <div className="mt-8 grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
-                  {ROUTINE_OPTIONS.map((option) => {
-                    const Icon = option.icon;
-                    const selected = routine === option.id;
-                    return (
-                      <button
-                        key={option.id}
-                        type="button"
-                        onClick={() => setRoutine(option.id)}
-                        className={`rounded-xl border p-4 text-left ${
-                          selected ? 'border-[#7A3DF2] bg-white' : 'border-[#E2E2E2] bg-[#F2F2F2]'
-                        }`}
-                      >
-                        <div
-                          className={`mb-1 flex items-center gap-2 text-[20px] sm:text-[20px] ${selected ? 'text-[#6B39F4]' : 'text-[#1f1f1f]'}`}
-                        >
-                          <Icon className="h-5 w-5" />
-                          <span className="font-medium">{option.title}</span>
-                        </div>
-                        <p className="text-[14px] text-[#B7B7B7]">{option.description}</p>
-                      </button>
-                    );
-                  })}
+                <div
+                  style={{
+                    marginTop: 32,
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(2, 1fr)',
+                    gap: 12,
+                    width: '100%',
+                  }}
+                  className="max-sm:grid-cols-1"
+                >
+                  {ROUTINE_OPTIONS.map((opt) => (
+                    <OptionCard
+                      key={opt.id}
+                      selected={routine === opt.id}
+                      onClick={() => setRoutine(opt.id)}
+                      icon={opt.icon}
+                      title={opt.title}
+                      description={opt.description}
+                    />
+                  ))}
                 </div>
               </>
             )}
 
+            {/* ── STEP 4: SCHEDULE ── */}
             {step === 4 && (
               <>
-                <h1 className="font-['Inter'] text-[54px] leading-tight font-bold text-[#1f1f1f] max-[480px]:text-[26px]">
-                  When you start and end your <span className="text-[#7A3DF2]">Day</span>
-                  <span className="text-[#31D1B9]">.</span>
-                </h1>
-                <p className="mt-4 text-base font-medium text-[#272727] max-[480px]:text-[14px]">
+                <H1>
+                  When you start and end your <Accent>Day</Accent>
+                  <Dot />
+                </H1>
+                <Body>
                   Your AI uses this to plan your day around your energy. Adjust if needed.
-                </p>
+                </Body>
 
-                <div className="mt-8 w-full max-w-160 rounded-2xl border border-[#E2E2E2] bg-[#F2F2F2] p-4 sm:p-6">
-                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <div
+                  style={{
+                    marginTop: 32,
+                    width: '100%',
+                    maxWidth: 640,
+                    borderRadius: 16,
+                    border: '1.5px solid #E2E2E2',
+                    background: '#F2F2F2',
+                    padding: '24px',
+                    boxSizing: 'border-box',
+                  }}
+                >
+                  <div
+                    style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}
+                    className="max-sm:grid-cols-1"
+                  >
+                    {/* Start */}
                     <div>
-                      <p className="mb-2 flex items-center gap-2 text-lg font-medium text-[#1F1F1F]">
-                        <Sun className="h-4 w-4 text-[#7A3DF2]" /> Start Your Day
+                      <p
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 8,
+                          fontFamily: 'Inter, sans-serif',
+                          fontSize: 16,
+                          fontWeight: 500,
+                          color: '#1F1F1F',
+                          marginBottom: 8,
+                        }}
+                      >
+                        <Sun style={{ width: 16, height: 16, color: '#8022FE' }} />
+                        Start Your Day
                       </p>
-                      <div className="flex items-center gap-2 rounded-xl border border-[#E2E2E2] bg-[#F7F7F7] px-3 py-2">
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 8,
+                          borderRadius: 12,
+                          border: '1.5px solid #E2E2E2',
+                          background: '#F7F7F7',
+                          padding: '8px 12px',
+                        }}
+                      >
                         <input
                           value={startTime}
                           onChange={(e) => setStartTime(e.target.value)}
-                          placeholder="Time"
-                          className="w-full bg-transparent text-[40px] font-semibold text-[#1F1F1F] outline-none sm:text-[34px]"
+                          placeholder="00:00"
+                          style={{
+                            flex: 1,
+                            background: 'transparent',
+                            border: 'none',
+                            outline: 'none',
+                            fontFamily: 'Inter, sans-serif',
+                            fontSize: 34,
+                            fontWeight: 600,
+                            color: '#1F1F1F',
+                          }}
                         />
                         <select
                           value={startMeridiem}
                           onChange={(e) => setStartMeridiem(e.target.value)}
-                          className="bg-transparent text-[40px] font-semibold text-[#B2B2B2] outline-none sm:text-[34px]"
+                          style={{
+                            background: 'transparent',
+                            border: 'none',
+                            outline: 'none',
+                            fontFamily: 'Inter, sans-serif',
+                            fontSize: 34,
+                            fontWeight: 600,
+                            color: '#B2B2B2',
+                            cursor: 'pointer',
+                          }}
                         >
                           <option>AM</option>
                           <option>PM</option>
@@ -466,21 +817,62 @@ const OnboardingFlowView = () => {
                       </div>
                     </div>
 
+                    {/* End */}
                     <div>
-                      <p className="mb-2 flex items-center gap-2 text-lg font-medium text-[#1F1F1F]">
-                        <Moon className="h-4 w-4 text-[#7A3DF2]" /> End Your Day
+                      <p
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 8,
+                          fontFamily: 'Inter, sans-serif',
+                          fontSize: 16,
+                          fontWeight: 500,
+                          color: '#1F1F1F',
+                          marginBottom: 8,
+                        }}
+                      >
+                        <Moon style={{ width: 16, height: 16, color: '#8022FE' }} />
+                        End Your Day
                       </p>
-                      <div className="flex items-center gap-2 rounded-xl border border-[#E2E2E2] bg-[#F7F7F7] px-3 py-2">
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 8,
+                          borderRadius: 12,
+                          border: '1.5px solid #E2E2E2',
+                          background: '#F7F7F7',
+                          padding: '8px 12px',
+                        }}
+                      >
                         <input
                           value={endTime}
                           onChange={(e) => setEndTime(e.target.value)}
-                          placeholder="Time"
-                          className="w-full bg-transparent text-[40px] font-semibold text-[#1F1F1F] outline-none sm:text-[34px]"
+                          placeholder="00:00"
+                          style={{
+                            flex: 1,
+                            background: 'transparent',
+                            border: 'none',
+                            outline: 'none',
+                            fontFamily: 'Inter, sans-serif',
+                            fontSize: 34,
+                            fontWeight: 600,
+                            color: '#1F1F1F',
+                          }}
                         />
                         <select
                           value={endMeridiem}
                           onChange={(e) => setEndMeridiem(e.target.value)}
-                          className="bg-transparent text-[40px] font-semibold text-[#B2B2B2] outline-none sm:text-[34px]"
+                          style={{
+                            background: 'transparent',
+                            border: 'none',
+                            outline: 'none',
+                            fontFamily: 'Inter, sans-serif',
+                            fontSize: 34,
+                            fontWeight: 600,
+                            color: '#B2B2B2',
+                            cursor: 'pointer',
+                          }}
                         >
                           <option>AM</option>
                           <option>PM</option>
@@ -492,110 +884,169 @@ const OnboardingFlowView = () => {
               </>
             )}
 
+            {/* ── STEP 5: STYLE ── */}
             {step === 5 && (
               <>
-                <h1 className="font-['Inter'] text-[54px] leading-tight font-bold text-[#1f1f1f] max-[480px]:text-[26px]">
-                  How your AI should <span className="text-[#7A3DF2]">Communicate</span>
-                  <span className="text-[#31D1B9]">.</span>
-                </h1>
-                <p className="mt-4 text-base font-medium text-[#272727] max-[480px]:text-[14px]">
+                <H1>
+                  How your AI should <Accent>Communicate</Accent>
+                  <Dot />
+                </H1>
+                <Body>
                   This changes how your AI guides and interacts with you. You can change it anytime.
-                </p>
+                </Body>
 
-                <div className="mt-8 grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
-                  {STYLE_OPTIONS.map((option) => {
-                    const Icon = option.icon;
-                    const selected = style === option.id;
-                    return (
-                      <button
-                        key={option.id}
-                        type="button"
-                        onClick={() => setStyle(option.id)}
-                        className={`rounded-xl border p-4 text-left ${
-                          selected ? 'border-[#7A3DF2] bg-white' : 'border-[#E2E2E2] bg-[#F2F2F2]'
-                        }`}
-                      >
-                        <div
-                          className={`mb-1 flex items-center gap-2 text-[20px] sm:text-[20px] ${selected ? 'text-[#6B39F4]' : 'text-[#1f1f1f]'}`}
-                        >
-                          <Icon className="h-5 w-5" />
-                          <span className="font-medium">{option.title}</span>
-                        </div>
-                        <p className="text-[14px] text-[#B7B7B7]">{option.description}</p>
-                      </button>
-                    );
-                  })}
+                <div
+                  style={{
+                    marginTop: 32,
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(2, 1fr)',
+                    gap: 12,
+                    width: '100%',
+                  }}
+                  className="max-sm:grid-cols-1"
+                >
+                  {STYLE_OPTIONS.map((opt) => (
+                    <OptionCard
+                      key={opt.id}
+                      selected={style === opt.id}
+                      onClick={() => setStyle(opt.id)}
+                      icon={opt.icon}
+                      title={opt.title}
+                      description={opt.description}
+                    />
+                  ))}
                 </div>
               </>
             )}
 
+            {/* ── STEP 2–5 ACTION ROW ── */}
             {step !== 1 && (
-              <div className="mt-8 flex items-center gap-6 max-[480px]:mt-10 max-[480px]:w-full max-[480px]:flex-col-reverse">
+              <div
+                style={{ marginTop: 32, display: 'flex', alignItems: 'center', gap: 24 }}
+                className="max-sm:mt-10 max-sm:w-full max-sm:flex-col-reverse"
+              >
                 <button
                   type="button"
                   onClick={onBack}
-                  className="text-base font-medium text-[#C5C5C5]"
+                  style={{
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: 16,
+                    fontWeight: 500,
+                    color: '#C5C5C5',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: 0,
+                  }}
                 >
                   Skip for now
                 </button>
-                <button
-                  type="button"
-                  onClick={onContinue}
-                  disabled={!canContinue}
-                  className={`h-11 rounded-lg px-9 text-base font-semibold transition max-[480px]:w-full ${
-                    canContinue
-                      ? 'bg-[#7A2FF0] text-white hover:bg-[#6921dd]'
-                      : 'cursor-not-allowed bg-[#E2E2E2] text-[#C3C3C3]'
-                  }`}
-                >
+                <PrimaryBtn onClick={onContinue} disabled={!canContinue} fullWidthMobile>
                   {step === 5 ? 'Generate My Plan' : 'Continue'}
-                </button>
+                </PrimaryBtn>
               </div>
             )}
           </div>
         )}
 
+        {/* ── GENERATING SCREEN ── */}
         {isGenerating && (
-          <div className="mx-auto mt-20 flex max-w-190 flex-col items-center text-center">
-            <h1 className="font-['Inter'] text-[54px] leading-tight font-bold text-[#1f1f1f] max-[480px]:text-[26px]">
-              Creating your AI <span className="text-[#7A3DF2]">Plan</span>
-              <span className="text-[#31D1B9]">...</span>
-            </h1>
-            <p className="mt-4 text-base font-medium text-[#272727] max-[480px]:text-[14px]">
-              Personalizing your AI to match your goals and routine
-            </p>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              textAlign: 'center',
+              maxWidth: 760,
+              margin: '80px auto 0',
+            }}
+          >
+            <H1>
+              Creating your AI <Accent>Plan</Accent>
+              <span style={{ color: '#14F1D9' }}>...</span>
+            </H1>
+            <Body>Personalizing your AI to match your goals and routine</Body>
 
-            <div className="relative mt-8 h-47.5 w-47.5">
-              <svg className="h-full w-full -rotate-90" viewBox="0 0 200 200">
+            {/* Progress ring */}
+            <div style={{ position: 'relative', width: 190, height: 190, marginTop: 32 }}>
+              <svg
+                style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}
+                viewBox="0 0 200 200"
+              >
                 <circle cx="100" cy="100" r="88" stroke="#ECE5FA" strokeWidth="10" fill="none" />
                 <circle
                   cx="100"
                   cy="100"
                   r="88"
-                  stroke="#7A2FF0"
+                  stroke="#8022FE"
                   strokeWidth="10"
                   fill="none"
                   strokeLinecap="round"
                   strokeDasharray={2 * Math.PI * 88}
                   strokeDashoffset={progressStrokeOffset}
+                  style={{ transition: 'stroke-dashoffset 0.26s ease' }}
                 />
               </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <p className="text-[49px] font-bold text-[#7A2FF0]">{progress}%</p>
-                <p className="text-sm text-[#C7C7C7]">Usually under a minute</p>
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <p
+                  style={{
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: 49,
+                    fontWeight: 700,
+                    color: '#8022FE',
+                    lineHeight: 1,
+                    margin: 0,
+                  }}
+                >
+                  {progress}%
+                </p>
+                <p
+                  style={{
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: 13,
+                    color: '#C7C7C7',
+                    marginTop: 4,
+                  }}
+                >
+                  Usually under a minute
+                </p>
               </div>
             </div>
 
-            <div className="mt-7 space-y-3 text-base">
-              <p className="text-[#1f1f1f]">Analyzing your inputs...</p>
-              <p className="text-[#C2C2C2]">Setting up your AI behavior...</p>
-              <p className="text-[#D1D1D1]">Personalizing your experience...</p>
-              <p className="text-[#DEDEDE]">Calibrating your focus and energy patterns...</p>
+            <div style={{ marginTop: 28, display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {[
+                { text: 'Analyzing your inputs...', color: '#1f1f1f' },
+                { text: 'Setting up your AI behavior...', color: '#C2C2C2' },
+                { text: 'Personalizing your experience...', color: '#D1D1D1' },
+                { text: 'Calibrating your focus and energy patterns...', color: '#DEDEDE' },
+              ].map((line) => (
+                <p
+                  key={line.text}
+                  style={{
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: 16,
+                    color: line.color,
+                    margin: 0,
+                  }}
+                >
+                  {line.text}
+                </p>
+              ))}
             </div>
           </div>
         )}
       </div>
 
+      {/* ── BOTTOM GLOW ── */}
       <Glow />
     </div>
   );

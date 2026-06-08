@@ -19,6 +19,7 @@ const RegisterView = () => {
 
   useEffect(() => {
     const refCode = searchParams.get('ref');
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (refCode) setReferralCode(refCode);
   }, [searchParams]);
 
@@ -69,11 +70,11 @@ const RegisterView = () => {
 
   return (
     <div className="min-h-screen bg-[#efefef] p-3 md:p-6">
-      <div className="mx-auto w-full max-w-[1380px] rounded-[30px] bg-[#efefef] p-3 md:p-4">
-        <div className="grid min-h-[calc(100vh-3rem)] grid-cols-1 gap-4 rounded-3xl md:min-h-[820px] md:grid-cols-2 md:gap-5">
+      <div className="mx-auto w-full max-w-345 rounded-[30px] bg-[#efefef] p-3 md:p-4">
+        <div className="grid min-h-[calc(100vh-3rem)] grid-cols-1 gap-4 rounded-3xl md:min-h-205grid-cols-2 md:gap-5">
           {/* ── Left Visual Panel ── */}
           <div className="order-2 overflow-hidden rounded-[18px] bg-[#23206f] md:order-1">
-            <div className="relative h-full min-h-[280px] px-5 pt-5 pb-0 md:px-8 md:pt-7">
+            <div className="relative h-full min-h-70 px-5 pt-5 pb-0 md:px-8 md:pt-7">
               {/* Glow blobs */}
               <div className="absolute -bottom-20 -left-16 h-56 w-56 rounded-full bg-[#7b56f4]/40 blur-3xl md:h-72 md:w-72" />
               <div className="absolute -top-20 right-6 h-44 w-44 rounded-full bg-[#4f80ff]/30 blur-3xl" />
@@ -105,7 +106,7 @@ const RegisterView = () => {
                 </div>
 
                 {/* Hero copy */}
-                <div className="mt-10 max-w-[430px] md:mt-auto md:mb-7">
+                <div className="mt-10 max-w-107.5 md:mt-auto md:mb-7">
                   <h1 className="font-['Inter'] text-[34px] leading-[1.1] font-semibold text-white md:text-[44px]">
                     Design a life you&rsquo;re proud of
                     <br />
@@ -121,7 +122,7 @@ const RegisterView = () => {
                   <img
                     src="/images/Step1.png"
                     alt="Elyxa planner preview"
-                    className="h-44 w-full object-cover object-top md:h-[320px]"
+                    className="h-44 w-full object-cover object-top md:h-80"
                   />
                 </div>
               </div>
@@ -130,7 +131,7 @@ const RegisterView = () => {
 
           {/* ── Right Form Panel ── */}
           <div className="order-1 flex items-center justify-center rounded-[18px] bg-[#efefef] px-5 py-8 md:order-2 md:px-10 md:py-10">
-            <div className="w-full max-w-[430px]">
+            <div className="w-full max-w-107.5">
               {/* Back link + heading */}
               <div className="mb-8 text-center">
                 <Link
@@ -195,7 +196,7 @@ const RegisterView = () => {
                   type="button"
                   className="flex h-11 w-full items-center justify-center gap-2.5 rounded-lg border border-[#e8e8e8] bg-[#f4f4f4] font-['Inter'] text-sm text-[#4d4d4d] transition hover:bg-[#ececec]"
                 >
-                  <Apple className="h-[17px] w-[17px]" />
+                  <Apple className="h-4.25 w-4.25" />
                   Continue with Apple
                 </button>
               </div>
