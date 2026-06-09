@@ -43,12 +43,12 @@ const PrimaryBtn = ({ onClick, disabled = false, children, fullWidthMobile = fal
 
 const Step1 = ({ onContinue }) => (
   <div className="flex h-full flex-col">
-    <div className="flex flex-grow flex-col items-center justify-center text-center">
+    <div className="flex grow flex-col items-center justify-center text-center">
       <SectionHeading>
         Let&rsquo;s set up your <br className="sm:hidden" /> personal <Accent>AI</Accent>
         <Dot />
       </SectionHeading>
-      <Body className="mt-4 max-w-[470px]">
+      <Body className="mt-4 max-w-117.5">
         Answer a few quick questions so your AI can understand <br /> your goals and build a plan
         around you
       </Body>
