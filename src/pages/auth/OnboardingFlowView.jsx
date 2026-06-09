@@ -235,9 +235,7 @@ const OnboardingFlowView = () => {
             )}
 
             {step !== 1 && (
-              <div
-                className={`mt-4 flex w-full flex-col-reverse items-center gap-5 sm:mt-5 sm:flex-row sm:gap-5 ${step === 2 ? 'sm:justify-center' : 'sm:items-center'}`}
-              >
+              <div className="fixed right-0 bottom-0 left-0 z-10 flex flex-col-reverse items-center gap-4 px-5 pt-4 pb-6 sm:static sm:mt-5 sm:flex-row sm:gap-5 sm:px-0 sm:pt-0 sm:pb-0">
                 <button
                   type="button"
                   onClick={onBack}
