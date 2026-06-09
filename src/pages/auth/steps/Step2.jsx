@@ -1,12 +1,5 @@
 import { GOAL_OPTIONS } from '../../../constants';
 
-/* ═══════════════════════════════════════════════════════════════════
-   STEP 2 - INDEPENDENT UI COMPONENTS
-   ───────────────────────────────────────────────────────────────────
-   These components are isolated to Step2 only. Changes here will NOT
-   affect Step1, Step3, Step4, or GeneratingPlan components.
-   ═══════════════════════════════════════════════════════════════════ */
-
 const Accent = ({ children }) => <span className="text-[#8022FE]">{children}</span>;
 
 const SectionHeading = ({ children }) => (
@@ -63,9 +56,9 @@ const Step2 = ({ selectedGoals, toggleGoal }) => (
       Where should your AI focus <Accent>First</Accent>
       <span className="text-[#14f1e6]">?</span>
     </SectionHeading>
-    <Body className="mt-4 max-w-117.5">Pick 2 focus areas, then choose your main priority</Body>
+    <Body>Pick 2 focus areas, then choose your main priority</Body>
 
-    <div className="mt-8 grid w-full max-w-lg grid-cols-1 gap-3 sm:grid-cols-2">
+    <div className="mt-6 grid w-full max-w-137.5 grid-cols-1 gap-4 sm:grid-cols-2">
       {GOAL_OPTIONS.map((goal) => (
         <GoalChip
           key={goal}
