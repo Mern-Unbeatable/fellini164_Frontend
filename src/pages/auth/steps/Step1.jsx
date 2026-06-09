@@ -42,19 +42,19 @@ const PrimaryBtn = ({ onClick, disabled = false, children, fullWidthMobile = fal
    ═══════════════════════════════════════════════════════════════════ */
 
 const Step1 = ({ onContinue }) => (
-  <>
-    <div className="flex flex-col items-center text-center">
+  <div className="flex h-full flex-col">
+    <div className="flex flex-grow flex-col items-center justify-center text-center">
       <SectionHeading>
-        Let&rsquo;s set up your personal <Accent>AI</Accent>
+        Let&rsquo;s set up your <br className="sm:hidden" /> personal <Accent>AI</Accent>
         <Dot />
       </SectionHeading>
-      <Body className="mt-4 max-w-117.5">
+      <Body className="mt-4 max-w-[470px]">
         Answer a few quick questions so your AI can understand <br /> your goals and build a plan
         around you
       </Body>
     </div>
 
-    <div className="mt-12 flex flex-col items-center gap-5 sm:mt-16">
+    <div className="mt-12 flex flex-col items-center gap-5 pb-4 sm:mt-16">
       <PrimaryBtn onClick={onContinue} fullWidthMobile>
         Start Building My Plan
       </PrimaryBtn>
@@ -63,7 +63,7 @@ const Step1 = ({ onContinue }) => (
         Take less than a minute
       </p>
     </div>
-  </>
+  </div>
 );
 
 export default Step1;
