@@ -2,36 +2,29 @@ import { GOAL_OPTIONS } from '../../../constants';
 
 const Accent = ({ children }) => <span className="text-[#8022FE]">{children}</span>;
 
-const SectionHeading = ({ children }) => (
-  <h1 className="text-center font-['Inter',sans-serif] text-[clamp(28px,4vw,54px)] leading-[1.3] font-bold text-[#181818]">
-    {children}
-  </h1>
-);
-
-const Body = ({ children, maxWidth = '100%' }) => (
-  <p
-    className="mx-auto text-center font-['Inter',sans-serif] text-[16px] leading-normal font-medium text-[#272727] sm:whitespace-nowrap"
-    style={{ maxWidth }}
-  >
-    {children}
-  </p>
-);
-
 const GoalChip = ({ goal, selected, onClick }) => (
   <button
     type="button"
     onClick={onClick}
-    className={`flex h-14 w-full items-center gap-3 rounded-xl border-[1.5px] px-4 text-left transition-colors ${selected ? 'border-[#8022FE] bg-white' : 'border-[#E2E2E2]/50 bg-gray-50'}`}
+    className={[
+      'flex w-full items-center gap-2 rounded-[10px] border px-3 py-2.5 text-left transition-colors md:gap-3 md:rounded-[12px] md:px-[16px] md:py-[12px]',
+      selected
+        ? 'border-[#8022FE] bg-white'
+        : 'border-[#F2F2F2] bg-[#FCFCFC] hover:border-[#D0D0D0]',
+    ].join(' ')}
   >
     <span
-      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-[1.5px] ${selected ? 'border-[#8022FE] bg-[#8022FE]' : 'border-[#D0D0D0] bg-transparent'}`}
+      className={[
+        'flex size-[16px] shrink-0 items-center justify-center rounded-[5px] border transition-colors md:size-[20px] md:rounded-[6px]',
+        selected ? 'border-[#8022FE] bg-[#8022FE]' : 'border-[#C2C2C2] bg-transparent',
+      ].join(' ')}
     >
       {selected && (
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
           <path
-            d="M2 6L5 9L10 3"
+            d="M1.5 5L4 7.5L8.5 2.5"
             stroke="white"
-            strokeWidth="1.8"
+            strokeWidth="1.6"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
@@ -39,26 +32,29 @@ const GoalChip = ({ goal, selected, onClick }) => (
       )}
     </span>
     <span
-      className={`font-['Inter',sans-serif] text-[16px] font-medium ${selected ? 'text-[#8022FE]' : 'text-[#202020]'}`}
+      className={[
+        "font-['Inter',sans-serif] text-[14px] leading-[1.5] font-medium md:text-[20px]",
+        selected ? 'text-[#8022FE]' : 'text-[#181818]',
+      ].join(' ')}
     >
       {goal}
     </span>
   </button>
 );
 
-/* ═══════════════════════════════════════════════════════════════════
-   STEP 2 - MAIN COMPONENT
-   ═══════════════════════════════════════════════════════════════════ */
-
 const Step2 = ({ selectedGoals, toggleGoal }) => (
-  <>
-    <SectionHeading>
-      Where should your AI focus <Accent>First</Accent>
-      <span className="text-[#14f1e6]">?</span>
-    </SectionHeading>
-    <Body>Pick 2 focus areas, then choose your main priority</Body>
+  <div className="flex w-full flex-col gap-[30px] px-[20px] md:items-center md:px-0">
+    <div className="flex flex-col items-center gap-[10px] text-center">
+      <h1 className="w-full text-center font-['Inter',sans-serif] text-[26px] leading-[1.3] font-bold text-[#181818] md:text-[54px]">
+        Where should your AI focus <Accent>First</Accent>
+        <span className="text-[#14F1D9]">?</span>
+      </h1>
+      <p className="text-center font-['Inter',sans-serif] text-[14px] leading-[1.5] font-medium text-[#272727] md:text-base">
+        Pick 2 focus areas, then choose your main priority
+      </p>
+    </div>
 
-    <div className="mt-6 grid w-full max-w-137.5 grid-cols-1 gap-4 sm:grid-cols-2">
+    <div className="grid w-full grid-cols-1 gap-[10px] md:max-w-[720px] md:grid-cols-2 md:gap-[20px]">
       {GOAL_OPTIONS.map((goal) => (
         <GoalChip
           key={goal}
@@ -68,7 +64,7 @@ const Step2 = ({ selectedGoals, toggleGoal }) => (
         />
       ))}
     </div>
-  </>
+  </div>
 );
 
 export default Step2;
