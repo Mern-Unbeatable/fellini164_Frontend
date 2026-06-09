@@ -48,13 +48,13 @@ const Step1 = ({ onContinue }) => (
         Let&rsquo;s set up your <br className="sm:hidden" /> personal <Accent>AI</Accent>
         <Dot />
       </SectionHeading>
-      <Body className="mt-4 max-w-117.5">
-        Answer a few quick questions so your AI can understand <br /> your goals and build a plan
-        around you
+      <Body className="mt-4 max-w-75 sm:max-w-117.5">
+        Answer a few quick questions so your AI can understand
+        <br className="hidden sm:inline" /> your goals and build a plan around you
       </Body>
     </div>
 
-    <div className="mt-12 flex flex-col items-center gap-5 pb-4 sm:mt-16">
+    <div className="mt-auto flex flex-col items-center gap-5 pt-12 pb-4 sm:mt-16 sm:pt-0">
       <PrimaryBtn onClick={onContinue} fullWidthMobile>
         Start Building My Plan
       </PrimaryBtn>
