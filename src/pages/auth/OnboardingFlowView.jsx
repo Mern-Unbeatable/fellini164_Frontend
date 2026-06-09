@@ -189,7 +189,7 @@ const Stepper = ({ step }) => (
 const Glow = () => (
   <div
     aria-hidden="true"
-    className="pointer-events-none absolute -bottom-20 left-1/2 h-40 w-[140vw] -translate-x-1/2 rounded-[9999px] bg-[radial-gradient(ellipse_at_center,rgba(128,34,254,0.45)_0%,rgba(128,34,254,0)_70%)] sm:-bottom-28 sm:h-60"
+    className="pointer-events-none absolute -bottom-20 left-1/2 h-40 w-[140vw] -translate-x-1/2 rounded-[9999px] bg-[radial-gradient(ellipse_at_center,rgba(128,34,254,0.45)_0%,rgba(128,34,254,0)_70%)] sm:top-207.5 sm:left-10.75 sm:h-175 sm:w-458.5 sm:translate-x-0 sm:rounded-[9999px] sm:bg-[linear-gradient(158deg,#8022FE_0%,white_100%)] sm:opacity-70 sm:blur-[48.93px]"
   />
 );
 
