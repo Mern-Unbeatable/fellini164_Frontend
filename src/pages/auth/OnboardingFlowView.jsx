@@ -217,7 +217,7 @@ const OnboardingFlowView = () => {
         </div>
 
         {!isGenerating && (
-          <div className="relative mx-auto mt-10 flex w-full max-w-325 flex-col items-center justify-start gap-7.5 px-1 pb-22 text-center sm:absolute sm:top-1/2 sm:left-1/2 sm:w-[1300px] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:gap-[50px] sm:px-0 sm:pb-0">
+          <div className="relative mx-auto mt-10 flex w-full max-w-325 flex-col items-center justify-start gap-7.5 px-1 pb-22 text-center sm:absolute sm:top-1/2 sm:left-1/2 sm:w-325 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:gap-12.5 sm:px-0 sm:pb-0">
             {step === 1 && <Step1 onContinue={onContinue} />}
             {step === 2 && <Step2 selectedGoals={selectedGoals} toggleGoal={toggleGoal} />}
             {step === 3 && <Step3 routine={routine} onSelectRoutine={onSelectRoutine} />}

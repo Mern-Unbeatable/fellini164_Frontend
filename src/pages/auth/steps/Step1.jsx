@@ -17,9 +17,9 @@ const SectionHeading = ({ children }) => (
   </h1>
 );
 
-const Body = ({ children, maxWidth = '100%' }) => (
+const Body = ({ children, className, maxWidth = '100%' }) => (
   <p
-    className="mx-auto text-center font-['Inter',sans-serif] text-[16px] leading-normal font-medium text-[#272727] sm:whitespace-nowrap"
+    className={`mx-auto text-center font-['Inter',sans-serif] text-base leading-normal font-medium text-[#272727] ${className}`}
     style={{ maxWidth }}
   >
     {children}
@@ -31,7 +31,7 @@ const PrimaryBtn = ({ onClick, disabled = false, children, fullWidthMobile = fal
     type="button"
     onClick={onClick}
     disabled={disabled}
-    className={`${fullWidthMobile ? 'w-full sm:w-auto' : ''} h-11 rounded-[10px] px-10 font-['Inter',sans-serif] text-[16px] leading-none font-semibold text-white transition-colors ${disabled ? 'cursor-not-allowed bg-[#E2E2E2] text-[#C3C3C3]' : 'bg-[#8022FE] hover:bg-[#6B1BDB]'}`}
+    className={`${fullWidthMobile ? 'w-full sm:w-auto' : ''} h-11 rounded-[10px] px-10 font-['Inter',sans-serif] text-base leading-none font-semibold text-white transition-colors ${disabled ? 'cursor-not-allowed bg-[#E2E2E2] text-[#C3C3C3]' : 'bg-[#8022FE] hover:bg-[#6B1BDB]'}`}
   >
     {children}
   </button>
@@ -43,19 +43,22 @@ const PrimaryBtn = ({ onClick, disabled = false, children, fullWidthMobile = fal
 
 const Step1 = ({ onContinue }) => (
   <>
-    <SectionHeading>
-      Let&rsquo;s set up your personal <Accent>AI</Accent>
-      <Dot />
-    </SectionHeading>
-    <Body maxWidth={470}>
-      Answer a few quick questions so your AI can understand your goals and build a plan around you
-    </Body>
+    <div className="flex flex-col items-center text-center">
+      <SectionHeading>
+        Let&rsquo;s set up your personal <Accent>AI</Accent>
+        <Dot />
+      </SectionHeading>
+      <Body className="mt-4 max-w-117.5">
+        Answer a few quick questions so your AI can understand <br /> your goals and build a plan
+        around you
+      </Body>
+    </div>
 
-    <div className="mt-24 flex flex-col items-center gap-5 sm:mt-0">
+    <div className="mt-12 flex flex-col items-center gap-5 sm:mt-16">
       <PrimaryBtn onClick={onContinue} fullWidthMobile>
         Start Building My Plan
       </PrimaryBtn>
-      <p className="m-0 inline-flex items-center gap-1.5 font-['Inter',sans-serif] text-[14px] text-[#C2C2C2]">
+      <p className="m-0 inline-flex items-center gap-1.5 font-['Inter',sans-serif] text-sm text-[#C2C2C2]">
         <Zap className="h-3.5 w-3.5 text-[#8022FE]/40" />
         Take less than a minute
       </p>
