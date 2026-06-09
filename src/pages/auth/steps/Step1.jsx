@@ -1,5 +1,5 @@
 import { Zap } from 'lucide-react';
-import { Accent, Body, Dot, PrimaryBtn, SectionHeading } from '../common';
+import { Accent, Body, Dot, PrimaryBtn, SectionHeading } from './common';
 
 const Step1 = ({ onContinue }) => (
   <>

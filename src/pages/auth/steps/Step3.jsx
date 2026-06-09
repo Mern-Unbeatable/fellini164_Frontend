@@ -1,5 +1,5 @@
 import { ROUTINE_OPTIONS } from '../../../constants';
-import { Accent, Body, Dot, OptionCard, SectionHeading } from '../common';
+import { Accent, Body, Dot, OptionCard, SectionHeading } from './common';
 
 const Step3 = ({ routine, onSelectRoutine }) => (
   <>

@@ -1,3 +1,5 @@
+import { Briefcase, Compass, Crown, GraduationCap, Laptop, Users } from 'lucide-react';
+
 export const STEP_META = [
   { key: 'start', title: 'Start', subtitle: 'Quick setup' },
   { key: 'goals', title: 'Goals', subtitle: 'Focus areas' },
@@ -20,37 +22,37 @@ export const ROUTINE_OPTIONS = [
     id: 'corporate-professional',
     title: 'Corporate Professional',
     description: 'Fixed schedule, structured workdays',
-    icon: 'Briefcase',
+    icon: Briefcase,
   },
   {
     id: 'remote-freelancer',
     title: 'Remote Freelancer',
     description: 'Flexible hours, self-managed work',
-    icon: 'Laptop',
+    icon: Laptop,
   },
   {
     id: 'full-time-student',
     title: 'Full-time Student',
     description: 'Study-focused with changing routines',
-    icon: 'GraduationCap',
+    icon: GraduationCap,
   },
   {
     id: 'entrepreneur',
     title: 'Entrepreneur',
     description: 'Unpredictable schedule, high workload',
-    icon: 'Crown',
+    icon: Crown,
   },
   {
     id: 'creative-artist',
     title: 'Creative Artist',
     description: 'Non-linear workflow, flexible structure',
-    icon: 'Compass',
+    icon: Compass,
   },
   {
     id: 'stay-at-home-parent',
     title: 'Stay-at-home Parent',
     description: 'Interrupted schedule, variable availability',
-    icon: 'Users',
+    icon: Users,
   },
 ];
 

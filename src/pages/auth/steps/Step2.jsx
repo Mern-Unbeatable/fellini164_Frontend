@@ -1,12 +1,12 @@
 import { GOAL_OPTIONS } from '../../../constants';
-import { Accent, Body, GoalChip, SectionHeading } from '../common';
+import { Accent, Body, GoalChip, SectionHeading } from './common';
 
 const Step2 = ({ selectedGoals, toggleGoal }) => (
   <>
     <div className="-mt-6">
       <SectionHeading>
         Where should your AI focus <Accent>First</Accent>
-        <span className="text-[#14F1D9]">?</span>
+        <span className="text-[#f11495]">?</span>
       </SectionHeading>
       <Body maxWidth={470}>Pick 2 focus areas, then choose your main priority</Body>
     </div>

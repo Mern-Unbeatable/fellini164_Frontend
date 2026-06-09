@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Accent, Body, SectionHeading } from '../common';
+import { Accent, Body, SectionHeading } from './common';
 
 const GeneratingPlan = ({ progress }) => {
   const progressStrokeOffset = useMemo(() => {

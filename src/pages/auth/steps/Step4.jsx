@@ -1,5 +1,5 @@
 import { Moon, Sun } from 'lucide-react';
-import { Accent, Body, Dot, SectionHeading } from '../common';
+import { Accent, Body, Dot, SectionHeading } from './common';
 
 const Step4 = ({
   startTime,
