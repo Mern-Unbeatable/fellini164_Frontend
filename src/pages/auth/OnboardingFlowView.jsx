@@ -106,7 +106,7 @@ const BackLink = ({ step, onBack }) => (
         strokeLinejoin="round"
       />
     </svg>
-    <span>{BACK_LABELS[Math.min(step - 1, 3)]}</span>
+    <span>{BACK_LABELS[step - 1]}</span>
   </button>
 );
 
@@ -219,14 +219,14 @@ const PrimaryBtn = ({ onClick, disabled = false, children, fullWidthMobile = fal
   </button>
 );
 
-const OptionCard = ({ selected, onClick, icon, title, description }) => (
+const OptionCard = ({ selected, onClick, icon: Icon, title, description }) => (
   <button
     type="button"
     onClick={onClick}
     className={`flex w-full flex-col items-start rounded-xl border-[1.5px] p-4 text-left transition-colors ${selected ? 'border-[#8022FE] bg-white' : 'border-[#E2E2E2] bg-[#F2F2F2]'}`}
   >
     <div className="mb-1 flex items-center gap-2">
-      {icon({ className: `h-5 w-5 ${selected ? 'text-[#8022FE]' : 'text-[#181818]'}` })}
+      {Icon && <Icon className={`h-5 w-5 ${selected ? 'text-[#8022FE]' : 'text-[#181818]'}`} />}
       <span
         className={`font-['Inter',sans-serif] text-[16px] font-medium ${selected ? 'text-[#8022FE]' : 'text-[#181818]'}`}
       >
@@ -354,14 +354,14 @@ const OnboardingFlowView = () => {
         <div className="sm:relative">
           <div className="flex items-center justify-between gap-3">
             <div className="pt-1 sm:pt-2.5">
-              <BackLink step={Math.min(step, 4)} onBack={onBack} />
+              <BackLink step={step} onBack={onBack} />
             </div>
 
             <Brand />
           </div>
 
           <div className="mt-4 sm:absolute sm:top-0 sm:left-1/2 sm:mt-0 sm:-translate-x-1/2">
-            <Stepper step={Math.min(step, 5)} />
+            <Stepper step={step} />
           </div>
         </div>
 
