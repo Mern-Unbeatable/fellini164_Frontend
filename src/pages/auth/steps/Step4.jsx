@@ -1,5 +1,34 @@
 import { Moon, Sun } from 'lucide-react';
-import { Accent, Body, Dot, SectionHeading } from './common';
+
+/* ═══════════════════════════════════════════════════════════════════
+   STEP 4 - INDEPENDENT UI COMPONENTS
+   ───────────────────────────────────────────────────────────────────
+   These components are isolated to Step4 only. Changes here will NOT
+   affect Step1, Step2, Step3, or GeneratingPlan components.
+   ═══════════════════════════════════════════════════════════════════ */
+
+const Accent = ({ children }) => <span className="text-[#8022FE]">{children}</span>;
+
+const Dot = () => <span className="text-[#14F1D9]">.</span>;
+
+const SectionHeading = ({ children }) => (
+  <h1 className="text-center font-['Inter',sans-serif] text-[clamp(28px,4vw,54px)] leading-[1.3] font-bold text-[#181818]">
+    {children}
+  </h1>
+);
+
+const Body = ({ children, maxWidth = '100%' }) => (
+  <p
+    className="mx-auto text-center font-['Inter',sans-serif] text-[16px] leading-normal font-medium text-[#272727] sm:whitespace-nowrap"
+    style={{ maxWidth }}
+  >
+    {children}
+  </p>
+);
+
+/* ═══════════════════════════════════════════════════════════════════
+   STEP 4 - MAIN COMPONENT
+   ═══════════════════════════════════════════════════════════════════ */
 
 const Step4 = ({
   startTime,

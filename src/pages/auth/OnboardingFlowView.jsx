@@ -7,7 +7,24 @@ import Step2 from './steps/Step2';
 import Step3 from './steps/Step3';
 import Step4 from './steps/Step4';
 import GeneratingPlan from './steps/GeneratingPlan';
-import { PrimaryBtn } from './steps/common';
+
+/* ═══════════════════════════════════════════════════════════════════
+   ONBOARDING FLOW - INDEPENDENT UI COMPONENTS
+   ───────────────────────────────────────────────────────────────────
+   PrimaryBtn is isolated to OnboardingFlowView only. This ensures
+   changes to step components do not affect the main flow controls.
+   ═══════════════════════════════════════════════════════════════════ */
+
+const PrimaryBtn = ({ onClick, disabled = false, children, fullWidthMobile = false }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    disabled={disabled}
+    className={`${fullWidthMobile ? 'w-full sm:w-auto' : ''} h-11 rounded-[10px] px-10 font-['Inter',sans-serif] text-[16px] leading-none font-semibold text-white transition-colors ${disabled ? 'cursor-not-allowed bg-[#E2E2E2] text-[#C3C3C3]' : 'bg-[#8022FE] hover:bg-[#6B1BDB]'}`}
+  >
+    {children}
+  </button>
+);
 
 /* ─────────────────────────────────────────────
    BACK LINK

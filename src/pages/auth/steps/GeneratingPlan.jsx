@@ -1,5 +1,32 @@
 import { useMemo } from 'react';
-import { Accent, Body, SectionHeading } from './common';
+
+/* ═══════════════════════════════════════════════════════════════════
+   GENERATING PLAN - INDEPENDENT UI COMPONENTS
+   ───────────────────────────────────────────────────────────────────
+   These components are isolated to GeneratingPlan only. Changes here
+   will NOT affect Step1, Step2, Step3, or Step4 components.
+   ═══════════════════════════════════════════════════════════════════ */
+
+const Accent = ({ children }) => <span className="text-[#8022FE]">{children}</span>;
+
+const SectionHeading = ({ children }) => (
+  <h1 className="text-center font-['Inter',sans-serif] text-[clamp(28px,4vw,54px)] leading-[1.3] font-bold text-[#181818]">
+    {children}
+  </h1>
+);
+
+const Body = ({ children, maxWidth = '100%' }) => (
+  <p
+    className="mx-auto text-center font-['Inter',sans-serif] text-[16px] leading-normal font-medium text-[#272727] sm:whitespace-nowrap"
+    style={{ maxWidth }}
+  >
+    {children}
+  </p>
+);
+
+/* ═══════════════════════════════════════════════════════════════════
+   GENERATING PLAN - MAIN COMPONENT
+   ═══════════════════════════════════════════════════════════════════ */
 
 const GeneratingPlan = ({ progress }) => {
   const progressStrokeOffset = useMemo(() => {
