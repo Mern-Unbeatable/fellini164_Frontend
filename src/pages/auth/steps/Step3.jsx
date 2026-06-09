@@ -3,13 +3,15 @@ import { Accent, Body, Dot, OptionCard, SectionHeading } from './common';
 
 const Step3 = ({ routine, onSelectRoutine }) => (
   <>
-    <SectionHeading>
-      How your day is <Accent>Structured</Accent>
-      <Dot />
-    </SectionHeading>
-    <Body maxWidth={470}>Your AI uses this to tailor your plan to your real daily routine.</Body>
+    <div className="flex flex-col items-center gap-[30px]">
+      <SectionHeading>
+        How your day is <Accent>Structured</Accent>
+        <Dot />
+      </SectionHeading>
+      <Body>Your AI uses this to tailor your plan to your real daily routine.</Body>
+    </div>
 
-    <div className="mt-8 grid w-full grid-cols-2 gap-3 max-sm:grid-cols-1">
+    <div className="mt-8 grid w-full max-w-[720px] grid-cols-1 gap-5 sm:grid-cols-2">
       {ROUTINE_OPTIONS.map((opt) => (
         <OptionCard
           key={opt.id}

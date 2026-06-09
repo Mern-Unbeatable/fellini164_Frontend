@@ -7,9 +7,9 @@ export const SectionHeading = ({ children }) => (
   </h1>
 );
 
-export const Body = ({ children, maxWidth = 470 }) => (
+export const Body = ({ children, maxWidth = '100%' }) => (
   <p
-    className="mx-auto text-center font-['Inter',sans-serif] text-[16px] leading-normal font-medium text-[#272727]"
+    className="mx-auto text-center font-['Inter',sans-serif] text-[16px] leading-normal font-medium text-[#272727] sm:whitespace-nowrap"
     style={{ maxWidth }}
   >
     {children}
@@ -31,17 +31,23 @@ export const OptionCard = ({ selected, onClick, icon: Icon, title, description }
   <button
     type="button"
     onClick={onClick}
-    className={`flex w-full flex-col items-start rounded-xl border-[1.5px] p-4 text-left transition-colors ${selected ? 'border-[#8022FE] bg-white' : 'border-[#E2E2E2] bg-[#F2F2F2]'}`}
+    className={`flex w-full flex-col items-start gap-1.5 rounded-xl border border-solid p-3 text-left transition-colors ${selected ? 'border-purple-600 bg-white' : 'border-gray-200 bg-gray-50'}`}
   >
-    <div className="mb-1 flex items-center gap-2">
-      {Icon && <Icon className={`h-5 w-5 ${selected ? 'text-[#8022FE]' : 'text-[#181818]'}`} />}
+    <div className="flex h-8.5 items-center gap-2.5">
+      {Icon && (
+        <div
+          className={`flex h-8.5 w-8.5 items-center justify-center rounded-lg ${selected ? 'bg-purple-50' : 'bg-purple-50'}`}
+        >
+          <Icon className={`h-5 w-5 ${selected ? 'text-purple-600' : 'text-gray-800'}`} />
+        </div>
+      )}
       <span
-        className={`font-['Inter',sans-serif] text-[16px] font-medium ${selected ? 'text-[#8022FE]' : 'text-[#181818]'}`}
+        className={`font-['Inter',sans-serif] text-[20px] font-medium ${selected ? 'text-purple-600' : 'text-gray-800'}`}
       >
         {title}
       </span>
     </div>
-    <p className="m-0 font-['Inter',sans-serif] text-[14px] font-normal text-[#B7B7B7]">
+    <p className="m-0 font-['Inter',sans-serif] text-[14px] font-medium text-gray-400">
       {description}
     </p>
   </button>
