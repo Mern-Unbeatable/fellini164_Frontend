@@ -71,7 +71,7 @@ const RegisterView = () => {
   return (
     <div className="min-h-screen bg-[#efefef] p-3 md:p-6">
       <div className="mx-auto w-full max-w-345 rounded-[30px] bg-[#efefef] p-3 md:p-4">
-        <div className="grid min-h-[calc(100vh-3rem)] grid-cols-1 gap-4 rounded-3xl md:min-h-205grid-cols-2 md:gap-5">
+        <div className="grid min-h-[calc(100vh-3rem)] grid-cols-1 gap-4 rounded-3xl md:min-h-205 md:grid-cols-2 md:gap-5">
           {/* ── Left Visual Panel ── */}
           <div className="order-2 overflow-hidden rounded-[18px] bg-[#23206f] md:order-1">
             <div className="relative h-full min-h-70 px-5 pt-5 pb-0 md:px-8 md:pt-7">
