@@ -7,7 +7,7 @@ const GoalChip = ({ goal, selected, onClick }) => (
     type="button"
     onClick={onClick}
     className={[
-      'flex w-full items-center gap-2 rounded-[10px] border px-3 py-2.5 text-left transition-colors md:gap-3 md:rounded-[12px] md:px-[16px] md:py-[12px]',
+      'flex w-full items-center gap-2 rounded-[10px] border px-3 py-[10px] text-left transition-colors md:gap-[12px] md:rounded-[12px] md:px-[16px] md:py-[12px]',
       selected
         ? 'border-[#8022FE] bg-white'
         : 'border-[#F2F2F2] bg-[#FCFCFC] hover:border-[#D0D0D0]',

@@ -235,17 +235,19 @@ const OnboardingFlowView = () => {
             )}
 
             {step !== 1 && (
-              <div className="fixed right-0 bottom-0 left-0 z-10 flex flex-col-reverse items-center gap-4 px-5 pt-4 pb-6 sm:static sm:mt-5 sm:flex-row sm:gap-5 sm:px-0 sm:pt-0 sm:pb-0">
-                <button
-                  type="button"
-                  onClick={onBack}
-                  className="w-full cursor-pointer border-0 bg-transparent p-0 font-['Inter',sans-serif] text-[15px] font-medium text-[#C5C5C5] sm:w-45 sm:text-[16px]"
-                >
-                  Skip for now
-                </button>
+              <div
+                className={`fixed right-0 bottom-0 left-0 z-10 flex flex-col items-center gap-4 px-5 pt-3 pb-28 md:static md:mt-5 md:flex-row md:gap-5 md:px-0 md:pt-0 md:pb-0 ${step === 2 ? 'md:justify-center' : 'md:items-center'}`}
+              >
                 <PrimaryBtn onClick={onContinue} disabled={!canContinue} fullWidthMobile>
                   {step === 4 ? 'Generate My Plan' : 'Continue'}
                 </PrimaryBtn>
+                <button
+                  type="button"
+                  onClick={onBack}
+                  className="w-full cursor-pointer border-0 bg-transparent p-0 font-['Inter',sans-serif] text-[15px] font-medium text-[#C5C5C5] md:w-45 md:text-[16px]"
+                >
+                  Skip for now
+                </button>
               </div>
             )}
           </div>
