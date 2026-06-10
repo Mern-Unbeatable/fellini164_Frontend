@@ -2,6 +2,29 @@ import { GOAL_OPTIONS } from '../../../constants';
 
 const Accent = ({ children }) => <span className="text-[#8022FE]">{children}</span>;
 
+const PrimaryBtn = ({ onClick, disabled, children }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    disabled={disabled}
+    className={`w-full rounded-[10px] h-11 px-10 font-['Inter',sans-serif] text-[16px] leading-none font-semibold text-white transition-colors md:w-auto ${
+      disabled ? 'cursor-not-allowed bg-[#E2E2E2] text-[#C3C3C3]' : 'bg-[#8022FE] hover:bg-[#6B1BDB]'
+    }`}
+  >
+    {children}
+  </button>
+);
+
+const SkipBtn = ({ onClick }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className="w-full cursor-pointer border-0 bg-transparent p-0 text-center font-['Inter',sans-serif] text-[14px] font-semibold text-[#C5C5C5] md:w-45 md:text-[16px] md:font-medium"
+  >
+    Skip for now
+  </button>
+);
+
 const GoalChip = ({ goal, selected, onClick }) => (
   <button
     type="button"
@@ -42,7 +65,7 @@ const GoalChip = ({ goal, selected, onClick }) => (
   </button>
 );
 
-const Step2 = ({ selectedGoals, toggleGoal }) => (
+const Step2 = ({ selectedGoals, toggleGoal, onContinue, onBack, canContinue }) => (
   <div className="flex w-full flex-col gap-7.5 px-5 md:items-center md:px-0">
     <div className="flex flex-col items-center gap-2.5 text-center">
       <h1 className="w-full text-center font-['Inter',sans-serif] text-[26px] leading-[1.3] font-bold text-[#181818] md:text-[54px]">
@@ -63,6 +86,11 @@ const Step2 = ({ selectedGoals, toggleGoal }) => (
           onClick={() => toggleGoal(goal)}
         />
       ))}
+    </div>
+
+    <div className="flex w-full flex-col items-center gap-4 pb-6 md:w-auto md:flex-row-reverse md:justify-center md:gap-5 md:pb-0">
+      <PrimaryBtn onClick={onContinue} disabled={!canContinue}>Continue</PrimaryBtn>
+      <SkipBtn onClick={onBack} />
     </div>
   </div>
 );

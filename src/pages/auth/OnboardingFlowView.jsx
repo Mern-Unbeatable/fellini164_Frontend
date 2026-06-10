@@ -8,28 +8,6 @@ import Step3 from './steps/Step3';
 import Step4 from './steps/Step4';
 import GeneratingPlan from './steps/GeneratingPlan';
 
-/* ═══════════════════════════════════════════════════════════════════
-   ONBOARDING FLOW - INDEPENDENT UI COMPONENTS
-   ───────────────────────────────────────────────────────────────────
-   PrimaryBtn is isolated to OnboardingFlowView only. This ensures
-   changes to step components do not affect the main flow controls.
-   ═══════════════════════════════════════════════════════════════════ */
-
-const PrimaryBtn = ({ onClick, disabled = false, children, fullWidthMobile = false }) => (
-  <button
-    type="button"
-    onClick={onClick}
-    disabled={disabled}
-    className={`${fullWidthMobile ? 'w-full md:w-auto' : ''} h-11 rounded-[10px] px-10 font-['Inter',sans-serif] text-[16px] leading-none font-semibold text-white transition-colors ${disabled ? 'cursor-not-allowed bg-[#E2E2E2] text-[#C3C3C3]' : 'bg-[#8022FE] hover:bg-[#6B1BDB]'}`}
-  >
-    {children}
-  </button>
-);
-
-/* ─────────────────────────────────────────────
-   BACK LINK
-───────────────────────────────────────────── */
-
 const BackLink = ({ step, onBack }) => (
   <button
     type="button"
@@ -41,9 +19,6 @@ const BackLink = ({ step, onBack }) => (
   </button>
 );
 
-/* ─────────────────────────────────────────────
-   BRAND
-───────────────────────────────────────────── */
 const Brand = () => (
   <div className="flex shrink-0 items-center">
     <img src="/logo.png" alt="Elyxa.Ai" className="h-9 w-auto sm:h-12" />
@@ -62,33 +37,24 @@ const Stepper = ({ step }) => (
           key={item.key}
           className="flex min-w-0 flex-1 flex-col items-center sm:w-40 sm:flex-none"
         >
-          {/* Circle row with connectors */}
           <div className="relative flex h-8 w-full items-center justify-center sm:h-9">
-            {/* Left connector */}
             {number > 1 && (
               <span
                 className={`absolute top-1/2 right-[calc(50%+16px)] left-0 h-px -translate-y-1/2 sm:right-[calc(50%+18px)] ${done || active ? 'bg-[#8022FE]' : 'bg-[#ECECEC]'}`}
               />
             )}
-
-            {/* Right connector */}
             {number < STEP_META.length && (
               <span
                 className={`absolute top-1/2 right-0 left-[calc(50%+16px)] h-px -translate-y-1/2 sm:left-[calc(50%+18px)] ${done ? 'bg-[#8022FE]' : 'bg-[#ECECEC]'}`}
               />
             )}
-
-            {/* Circle + glow */}
             <span className="relative z-10 flex h-8 w-8 items-center justify-center sm:h-9 sm:w-9">
-              {/* Glow halo — active only, matches Figma ellipse blur */}
               {active && (
                 <span
                   aria-hidden="true"
                   className="pointer-events-none absolute top-1/2 left-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(173,118,255,0.82)_0%,rgba(173,118,255,0.48)_32%,rgba(173,118,255,0.18)_58%,transparent_80%)] blur-md sm:h-20 sm:w-20"
                 />
               )}
-
-              {/* Circle itself */}
               <span
                 className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full font-['Inter',sans-serif] text-[14px] leading-none sm:h-9 sm:w-9 sm:text-[16px] ${active ? 'bg-[#B06CFF] font-bold text-white shadow-[0_0_14px_rgba(176,108,255,0.35)]' : done ? 'border-[1.5px] border-[#8022FE] bg-white font-semibold text-[#8022FE]' : 'border-[1.5px] border-[#E6E6E6] bg-[#F8F8F8] font-medium text-[#CDCDCD]'}`}
               >
@@ -96,15 +62,11 @@ const Stepper = ({ step }) => (
               </span>
             </span>
           </div>
-
-          {/* Step title */}
           <p
             className={`mt-2 text-center font-['Inter',sans-serif] text-[14px] leading-normal font-medium sm:mt-2.5 sm:text-[16px] ${active || done ? 'text-[#181818]' : 'text-[#AFAFAF]'}`}
           >
             {item.title}
           </p>
-
-          {/* Subtitle — hidden on mobile */}
           <p className="mt-0.5 hidden text-center font-['Inter',sans-serif] text-[14px] leading-none font-normal text-[#C2C2C2] sm:block">
             {item.subtitle}
           </p>
@@ -114,9 +76,6 @@ const Stepper = ({ step }) => (
   </div>
 );
 
-/* ─────────────────────────────────────────────
-   BOTTOM GLOW — matches Figma ellipse exactly
-───────────────────────────────────────────── */
 const Glow = () => (
   <div
     aria-hidden="true"
@@ -124,9 +83,6 @@ const Glow = () => (
   />
 );
 
-/* ─────────────────────────────────────────────
-   MAIN COMPONENT
-───────────────────────────────────────────── */
 const OnboardingFlowView = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
@@ -207,10 +163,8 @@ const OnboardingFlowView = () => {
             <div className="pt-1 sm:pt-2.5">
               <BackLink step={step} onBack={onBack} />
             </div>
-
             <Brand />
           </div>
-
           <div className="mt-4 sm:absolute sm:top-0 sm:left-1/2 sm:mt-0 sm:-translate-x-1/2">
             <Stepper step={step} />
           </div>
@@ -219,8 +173,24 @@ const OnboardingFlowView = () => {
         {!isGenerating && (
           <div className="relative mx-auto mt-10 flex w-full max-w-325 flex-col items-center justify-start gap-7.5 px-1 text-center sm:absolute sm:top-1/2 sm:left-1/2 sm:w-325 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:gap-12.5 sm:px-0 sm:pb-0">
             {step === 1 && <Step1 onContinue={onContinue} />}
-            {step === 2 && <Step2 selectedGoals={selectedGoals} toggleGoal={toggleGoal} />}
-            {step === 3 && <Step3 routine={routine} onSelectRoutine={onSelectRoutine} />}
+            {step === 2 && (
+              <Step2
+                selectedGoals={selectedGoals}
+                toggleGoal={toggleGoal}
+                onContinue={onContinue}
+                onBack={onBack}
+                canContinue={canContinue}
+              />
+            )}
+            {step === 3 && (
+              <Step3
+                routine={routine}
+                onSelectRoutine={onSelectRoutine}
+                onContinue={onContinue}
+                onBack={onBack}
+                canContinue={canContinue}
+              />
+            )}
             {step === 4 && (
               <Step4
                 startTime={startTime}
@@ -231,24 +201,10 @@ const OnboardingFlowView = () => {
                 setEndTime={setEndTime}
                 endMeridiem={endMeridiem}
                 setEndMeridiem={setEndMeridiem}
+                onContinue={onContinue}
+                onBack={onBack}
+                canContinue={canContinue}
               />
-            )}
-
-            {step !== 1 && (
-              <div
-                className={`flex w-full flex-col items-center gap-4 px-5 pt-4 pb-10 md:w-auto md:mt-5 md:flex-row-reverse md:gap-5 md:px-0 md:pt-0 md:pb-0 ${step === 2 ? 'md:justify-center' : 'md:items-center'}`}
-              >
-                <PrimaryBtn onClick={onContinue} disabled={!canContinue} fullWidthMobile>
-                  {step === 4 ? 'Generate My Plan' : 'Continue'}
-                </PrimaryBtn>
-                <button
-                  type="button"
-                  onClick={onBack}
-                  className="w-full cursor-pointer border-0 bg-transparent p-0 text-center font-['Inter',sans-serif] text-[14px] font-semibold text-[#C5C5C5] md:w-45 md:text-[16px] md:font-medium"
-                >
-                  Skip for now
-                </button>
-              </div>
             )}
           </div>
         )}
