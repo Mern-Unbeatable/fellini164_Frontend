@@ -4,6 +4,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Loader2, ArrowLeft, TriangleAlert, Apple, Eye, EyeOff } from 'lucide-react';
 import { registerUser } from '../../features/auth/authAPI';
 import { clearError, selectAuth } from '../../features/auth/authSlice';
+import { FcGoogle } from 'react-icons/fc';
 
 const RegisterView = () => {
   const [searchParams] = useSearchParams();
@@ -73,61 +74,7 @@ const RegisterView = () => {
       <div className="mx-auto w-full max-w-345 rounded-[30px] bg-[#efefef] p-3 md:p-4">
         <div className="grid min-h-[calc(100vh-3rem)] grid-cols-1 gap-4 rounded-3xl md:min-h-205 md:grid-cols-2 md:gap-5">
           {/* ── Left Visual Panel ── */}
-          <div className="order-2 overflow-hidden rounded-[18px] bg-[#23206f] md:order-1">
-            <div className="relative h-full min-h-70 px-5 pt-5 pb-0 md:px-8 md:pt-7">
-              {/* Glow blobs */}
-              <div className="absolute -bottom-20 -left-16 h-56 w-56 rounded-full bg-[#7b56f4]/40 blur-3xl md:h-72 md:w-72" />
-              <div className="absolute -top-20 right-6 h-44 w-44 rounded-full bg-[#4f80ff]/30 blur-3xl" />
-
-              <div className="relative z-10 flex h-full flex-col">
-                {/* Logo */}
-                <div className="flex items-center gap-2">
-                  {/* Inline SVG logo mark — replace with <img src="/WhiteLogo.png" /> if asset exists */}
-                  <svg
-                    width="22"
-                    height="22"
-                    viewBox="0 0 22 22"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <rect width="22" height="22" rx="6" fill="#6b39f4" />
-                    <path
-                      d="M6 16L11 6L16 16"
-                      stroke="white"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    <path d="M8 13h6" stroke="white" strokeWidth="2" strokeLinecap="round" />
-                  </svg>
-                  <span className="font-['Inter'] text-[15px] font-semibold tracking-tight text-white">
-                    Elyxa.Ai
-                  </span>
-                </div>
-
-                {/* Hero copy */}
-                <div className="mt-10 max-w-107.5 md:mt-auto md:mb-7">
-                  <h1 className="font-['Inter'] text-[34px] leading-[1.1] font-semibold text-white md:text-[44px]">
-                    Design a life you&rsquo;re proud of
-                    <br />
-                    with AI that plans your <span className="text-[#30D6FB]">Day.</span>
-                  </h1>
-                  <p className="mt-3 font-['Inter'] text-sm text-white/85 md:text-[15px]">
-                    Plan your day with AI and build habits that stick
-                  </p>
-                </div>
-
-                {/* App preview card — flush to bottom */}
-                <div className="mt-8 overflow-hidden rounded-t-2xl border border-white/15 bg-white/98 md:mt-auto">
-                  <img
-                    src="/images/Step1.png"
-                    alt="Elyxa planner preview"
-                    className="h-44 w-full object-cover object-top md:h-80"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
+          <img src="/images/SignUp.png" alt="Auth Visual" />
 
           {/* ── Right Form Panel ── */}
           <div className="order-1 flex items-center justify-center rounded-[18px] bg-[#efefef] px-5 py-8 md:order-2 md:px-10 md:py-10">
@@ -165,30 +112,7 @@ const RegisterView = () => {
                   className="flex h-11 w-full items-center justify-center gap-2.5 rounded-lg border border-[#e8e8e8] bg-[#f4f4f4] font-['Inter'] text-sm text-[#4d4d4d] transition hover:bg-[#ececec]"
                 >
                   {/* Google "G" icon */}
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 18 18"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"
-                      fill="#4285F4"
-                    />
-                    <path
-                      d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"
-                      fill="#34A853"
-                    />
-                    <path
-                      d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"
-                      fill="#FBBC05"
-                    />
-                    <path
-                      d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"
-                      fill="#EA4335"
-                    />
-                  </svg>
+                  <FcGoogle className="h-4.25 w-4.25" />
                   Continue with Google
                 </button>
 
