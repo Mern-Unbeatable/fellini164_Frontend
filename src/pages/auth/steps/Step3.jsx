@@ -82,7 +82,7 @@ const Step3 = ({ routine, onSelectRoutine, onContinue, onBack, canContinue }) =>
       ))}
     </div>
 
-    <div className="flex w-full flex-col items-center gap-4 pb-6 md:w-auto md:flex-row-reverse md:items-center md:gap-5 md:pb-0">
+    <div className="flex w-full flex-col items-center gap-4 pb-16 md:w-auto md:flex-row-reverse md:items-center md:gap-5 md:pb-0">
       <PrimaryBtn onClick={onContinue} disabled={!canContinue}>Continue</PrimaryBtn>
       <SkipBtn onClick={onBack} />
     </div>
