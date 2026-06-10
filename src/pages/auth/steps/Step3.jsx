@@ -58,8 +58,8 @@ const OptionCard = ({ selected, onClick, icon, title, description }) => {
 };
 
 const Step3 = ({ routine, onSelectRoutine, onContinue, onBack, canContinue }) => (
-  <div className="flex w-full flex-col items-center gap-7.5 sm:gap-12.5">
-    <div className="flex w-full flex-col items-center gap-2.5 text-center sm:gap-7.5">
+  <div className="flex w-full flex-col items-center gap-7.5">
+    <div className="flex w-full flex-col items-center gap-2.5 text-center">
       <h1 className="font-['Inter',sans-serif] text-[26px] font-bold leading-[1.3] text-[#181818] sm:text-[clamp(32px,4vw,54px)]">
         How your day is <Accent>Structured</Accent>
         <Dot />
