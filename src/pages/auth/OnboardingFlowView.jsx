@@ -6,6 +6,7 @@ import Step1 from './steps/Step1';
 import Step2 from './steps/Step2';
 import Step3 from './steps/Step3';
 import Step4 from './steps/Step4';
+import Step5 from './steps/Step5';
 import GeneratingPlan from './steps/GeneratingPlan';
 
 const BackLink = ({ step, onBack }) => (
@@ -15,7 +16,7 @@ const BackLink = ({ step, onBack }) => (
     className="inline-flex items-center gap-1.5 text-sm text-[#A7A7A7] transition-colors hover:text-[#7A7A7A]"
   >
     <ChevronLeft className="h-4 w-4" />
-    <span>{BACK_LABELS[step - 1]}</span>
+    <span>{BACK_LABELS[step - 1] ?? 'Back to Schedule'}</span>
   </button>
 );
 
@@ -92,6 +93,7 @@ const OnboardingFlowView = () => {
   const [startMeridiem, setStartMeridiem] = useState('AM');
   const [endTime, setEndTime] = useState('11:00');
   const [endMeridiem, setEndMeridiem] = useState('PM');
+  const [style, setStyle] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(17);
 
@@ -99,7 +101,8 @@ const OnboardingFlowView = () => {
     step === 1 ||
     (step === 2 && selectedGoals.length > 0) ||
     (step === 3 && Boolean(routine)) ||
-    (step === 4 && Boolean(startTime) && Boolean(endTime));
+    (step === 4 && Boolean(startTime) && Boolean(endTime)) ||
+    (step === 5 && Boolean(style));
 
   useEffect(() => {
     if (!isGenerating) return;
@@ -131,12 +134,14 @@ const OnboardingFlowView = () => {
 
   const onContinue = () => {
     if (!canContinue) return;
-    if (step === 4) {
+    if (step === 5) {
       setIsGenerating(true);
       return;
     }
     setStep((p) => p + 1);
   };
+
+  const onSelectStyle = (id) => setStyle(id);
 
   const onSelectRoutine = (id) => {
     setRoutine(id);
@@ -203,6 +208,14 @@ const OnboardingFlowView = () => {
                 setEndMeridiem={setEndMeridiem}
                 onContinue={onContinue}
                 onBack={onBack}
+                canContinue={canContinue}
+              />
+            )}
+            {step === 5 && (
+              <Step5
+                style={style}
+                onSelectStyle={onSelectStyle}
+                onContinue={onContinue}
                 canContinue={canContinue}
               />
             )}

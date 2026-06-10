@@ -1,50 +1,44 @@
 import { useMemo } from 'react';
 
-/* ═══════════════════════════════════════════════════════════════════
-   GENERATING PLAN - INDEPENDENT UI COMPONENTS
-   ───────────────────────────────────────────────────────────────────
-   These components are isolated to GeneratingPlan only. Changes here
-   will NOT affect Step1, Step2, Step3, or Step4 components.
-   ═══════════════════════════════════════════════════════════════════ */
-
 const Accent = ({ children }) => <span className="text-[#8022FE]">{children}</span>;
 
-const SectionHeading = ({ children }) => (
-  <h1 className="text-center font-['Inter',sans-serif] text-[clamp(28px,4vw,54px)] leading-[1.3] font-bold text-[#181818]">
-    {children}
-  </h1>
-);
-
-const Body = ({ children, maxWidth = '100%' }) => (
-  <p
-    className="mx-auto text-center font-['Inter',sans-serif] text-[16px] leading-normal font-medium text-[#272727] sm:whitespace-nowrap"
-    style={{ maxWidth }}
-  >
-    {children}
-  </p>
-);
-
-/* ═══════════════════════════════════════════════════════════════════
-   GENERATING PLAN - MAIN COMPONENT
-   ═══════════════════════════════════════════════════════════════════ */
+const MESSAGES = [
+  { text: 'Analyzing your inputs…',                      mobile: 'text-[14px]', desktop: 'sm:text-[16px]', color: 'text-[#181818]' },
+  { text: 'Setting up your AI behavior…',                mobile: 'text-[12px]', desktop: 'sm:text-[14px]', color: 'text-[#5D5D5D]' },
+  { text: 'Personalizing your experience…',              mobile: 'text-[10px]', desktop: 'sm:text-[12px]', color: 'text-[#A3A3A3]' },
+  { text: 'Calibrating your focus and energy patterns…', mobile: 'text-[8px]',  desktop: 'sm:text-[10px]', color: 'text-[#C2C2C2]' },
+  { text: 'Preparing your AI guidance style…',           mobile: 'text-[6px]',  desktop: 'sm:text-[8px]',  color: 'text-[#F2F2F2]' },
+];
 
 const GeneratingPlan = ({ progress }) => {
-  const progressStrokeOffset = useMemo(() => {
-    const r = 88;
-    return 2 * Math.PI * r - (progress / 100) * 2 * Math.PI * r;
-  }, [progress]);
+  const circumference = 2 * Math.PI * 88;
+  const strokeDashoffset = useMemo(
+    () => circumference - (progress / 100) * circumference,
+    [progress, circumference],
+  );
+
+  // Active message index based on progress (0–4)
+  const activeIdx = Math.min(Math.floor(progress / 20), 4);
 
   return (
-    <div className="mx-auto mt-14 flex max-w-190 flex-col items-center px-4 text-center sm:mt-20 sm:px-0">
-      <SectionHeading>
-        Creating your AI <Accent>Plan</Accent>
-        <span className="text-[#14F1D9]">...</span>
-      </SectionHeading>
-      <Body maxWidth={470}>Personalizing your AI to match your goals and routine</Body>
+    <div className="mx-auto mt-10 flex w-full max-w-325 flex-col items-center gap-7.5 px-4 text-center sm:mt-0 sm:gap-12.5 sm:px-0">
+      {/* Title */}
+      <div className="flex flex-col items-center gap-2.5 sm:gap-7.5">
+        <h1 className="font-['Inter',sans-serif] text-[26px] font-bold leading-[1.3] text-[#181818] sm:text-[clamp(32px,4vw,54px)]">
+          Creating your AI <Accent>Plan</Accent>
+          <span className="text-[#14F1D9]">...</span>
+        </h1>
+        <p className="font-['Inter',sans-serif] text-[14px] font-medium leading-normal text-[#272727] sm:text-[16px] sm:whitespace-nowrap">
+          Personalizing your AI to match your goals and routine
+        </p>
+      </div>
 
-      <div className="relative mt-8 h-40 w-40 sm:h-47.5 sm:w-47.5">
+      {/* Progress ring */}
+      <div className="relative h-42.5 w-42.5 sm:h-55 sm:w-55">
         <svg className="h-full w-full -rotate-90" viewBox="0 0 200 200">
+          {/* Track */}
           <circle cx="100" cy="100" r="88" stroke="#ECE5FA" strokeWidth="10" fill="none" />
+          {/* Progress arc */}
           <circle
             cx="100"
             cy="100"
@@ -53,35 +47,37 @@ const GeneratingPlan = ({ progress }) => {
             strokeWidth="10"
             fill="none"
             strokeLinecap="round"
-            strokeDasharray={2 * Math.PI * 88}
-            strokeDashoffset={progressStrokeOffset}
+            strokeDasharray={circumference}
+            strokeDashoffset={strokeDashoffset}
             className="transition-[stroke-dashoffset] duration-260 ease-out"
           />
         </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <p className="m-0 font-['Inter',sans-serif] text-[40px] leading-none font-bold text-[#8022FE] sm:text-[49px]">
+        {/* Center text */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
+          <p className="font-['Inter',sans-serif] text-[34px] font-bold leading-none text-[#8022FE] sm:text-[54px]">
             {progress}%
           </p>
-          <p className="mt-1 font-['Inter',sans-serif] text-[12px] text-[#C7C7C7] sm:text-[13px]">
+          <p className="font-['Inter',sans-serif] text-[10px] font-medium leading-normal text-[#C2C2C2] sm:text-[12px]">
             Usually under a minute
           </p>
         </div>
       </div>
 
-      <div className="mt-7 flex max-w-100 flex-col gap-3 px-2 sm:px-0">
-        {[
-          { text: 'Analyzing your inputs...', color: '#1f1f1f' },
-          { text: 'Setting up your AI behavior...', color: '#C2C2C2' },
-          { text: 'Personalizing your experience...', color: '#D1D1D1' },
-          { text: 'Calibrating your focus and energy patterns...', color: '#DEDEDE' },
-        ].map((line) => (
-          <p
-            key={line.text}
-            className={`m-0 font-['Inter',sans-serif] text-[14px] sm:text-[16px] ${line.color === '#1f1f1f' ? 'text-[#1f1f1f]' : line.color === '#C2C2C2' ? 'text-[#C2C2C2]' : line.color === '#D1D1D1' ? 'text-[#D1D1D1]' : 'text-[#DEDEDE]'}`}
-          >
-            {line.text}
-          </p>
-        ))}
+      {/* Fading messages — active at top, cascading below */}
+      <div className="flex flex-col items-center gap-4">
+        {MESSAGES.map((msg, i) => {
+          const rank = i - activeIdx;
+          if (rank < 0 || rank >= MESSAGES.length) return null;
+          const style = MESSAGES[rank];
+          return (
+            <p
+              key={msg.text}
+              className={`font-['Inter',sans-serif] font-medium leading-normal transition-all duration-500 ${style.mobile} ${style.desktop} ${style.color}`}
+            >
+              {msg.text}
+            </p>
+          );
+        })}
       </div>
     </div>
   );
