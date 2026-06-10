@@ -238,9 +238,6 @@ const OnboardingFlowView = () => {
               <div
                 className={`fixed right-0 bottom-0 left-0 z-10 flex flex-col items-center gap-4 px-5 pt-3 pb-28 md:static md:mt-5 md:flex-row md:gap-5 md:px-0 md:pt-0 md:pb-0 ${step === 2 ? 'md:justify-center' : 'md:items-center'}`}
               >
-                <PrimaryBtn onClick={onContinue} disabled={!canContinue} fullWidthMobile>
-                  {step === 4 ? 'Generate My Plan' : 'Continue'}
-                </PrimaryBtn>
                 <button
                   type="button"
                   onClick={onBack}
@@ -248,6 +245,9 @@ const OnboardingFlowView = () => {
                 >
                   Skip for now
                 </button>
+                <PrimaryBtn onClick={onContinue} disabled={!canContinue} fullWidthMobile>
+                  {step === 4 ? 'Generate My Plan' : 'Continue'}
+                </PrimaryBtn>
               </div>
             )}
           </div>
