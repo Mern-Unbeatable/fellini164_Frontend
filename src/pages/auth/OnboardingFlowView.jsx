@@ -20,7 +20,7 @@ const PrimaryBtn = ({ onClick, disabled = false, children, fullWidthMobile = fal
     type="button"
     onClick={onClick}
     disabled={disabled}
-    className={`${fullWidthMobile ? 'w-full sm:w-auto' : ''} h-11 rounded-[10px] px-10 font-['Inter',sans-serif] text-[16px] leading-none font-semibold text-white transition-colors ${disabled ? 'cursor-not-allowed bg-[#E2E2E2] text-[#C3C3C3]' : 'bg-[#8022FE] hover:bg-[#6B1BDB]'}`}
+    className={`${fullWidthMobile ? 'w-full md:w-auto' : ''} h-11 rounded-[10px] px-10 font-['Inter',sans-serif] text-[16px] leading-none font-semibold text-white transition-colors ${disabled ? 'cursor-not-allowed bg-[#E2E2E2] text-[#C3C3C3]' : 'bg-[#8022FE] hover:bg-[#6B1BDB]'}`}
   >
     {children}
   </button>
@@ -217,7 +217,7 @@ const OnboardingFlowView = () => {
         </div>
 
         {!isGenerating && (
-          <div className="relative mx-auto mt-10 flex w-full max-w-325 flex-col items-center justify-start gap-7.5 px-1 pb-22 text-center sm:absolute sm:top-1/2 sm:left-1/2 sm:w-325 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:gap-12.5 sm:px-0 sm:pb-0">
+          <div className="relative mx-auto mt-10 flex w-full max-w-325 flex-col items-center justify-start gap-7.5 px-1 text-center sm:absolute sm:top-1/2 sm:left-1/2 sm:w-325 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:gap-12.5 sm:px-0 sm:pb-0">
             {step === 1 && <Step1 onContinue={onContinue} />}
             {step === 2 && <Step2 selectedGoals={selectedGoals} toggleGoal={toggleGoal} />}
             {step === 3 && <Step3 routine={routine} onSelectRoutine={onSelectRoutine} />}
@@ -236,7 +236,7 @@ const OnboardingFlowView = () => {
 
             {step !== 1 && (
               <div
-                className={`fixed right-0 bottom-0 left-0 z-10 flex flex-col items-center gap-4 px-5 pt-3 pb-28 md:static md:mt-5 md:flex-row-reverse md:gap-5 md:px-0 md:pt-0 md:pb-0 ${step === 2 ? 'md:justify-center' : 'md:items-center'}`}
+                className={`flex w-full flex-col items-center gap-4 px-5 pt-4 pb-10 md:w-auto md:mt-5 md:flex-row-reverse md:gap-5 md:px-0 md:pt-0 md:pb-0 ${step === 2 ? 'md:justify-center' : 'md:items-center'}`}
               >
                 <PrimaryBtn onClick={onContinue} disabled={!canContinue} fullWidthMobile>
                   {step === 4 ? 'Generate My Plan' : 'Continue'}
@@ -244,7 +244,7 @@ const OnboardingFlowView = () => {
                 <button
                   type="button"
                   onClick={onBack}
-                  className="w-full cursor-pointer border-0 bg-transparent p-0 font-['Inter',sans-serif] text-[15px] font-medium text-[#C5C5C5] md:w-45 md:text-[16px]"
+                  className="w-full cursor-pointer border-0 bg-transparent p-0 text-center font-['Inter',sans-serif] text-[14px] font-semibold text-[#C5C5C5] md:w-45 md:text-[16px] md:font-medium"
                 >
                   Skip for now
                 </button>
