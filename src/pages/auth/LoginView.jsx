@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Apple, Eye, EyeOff, TriangleAlert, Loader2 } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff, TriangleAlert, Loader2 } from 'lucide-react';
 import { loginUser } from '../../features/auth/authAPI';
 import { clearError, selectAuth } from '../../features/auth/authSlice';
 import { toast } from 'react-toastify';
@@ -47,158 +47,186 @@ const LoginView = () => {
   const isFormValid = email.trim() && password.trim();
 
   return (
-    <div className="min-h-screen bg-[#efefef] p-3 md:p-6">
-      <div className="mx-auto w-full max-w-345 rounded-[30px] bg-[#efefef] p-3 md:p-4">
-        <div className="grid min-h-[calc(100vh-3rem)] grid-cols-1 gap-4 rounded-3xl md:min-h-205 md:grid-cols-2 md:gap-5">
-          {/* ── Left Visual Panel ── */}
-          <img src="/images/SignUp.png" alt="Auth Visual" />
+    <div className="flex min-h-screen flex-col bg-white md:h-screen md:flex-row md:gap-5 md:overflow-hidden md:p-5">
 
-          {/* ── Right Form Panel ── */}
-          <div className="order-1 flex items-center justify-center rounded-[18px] bg-[#efefef] px-5 py-8 md:order-2 md:px-10 md:py-10">
-            <div className="w-full max-w-107.5">
-              {/* Back link */}
-              <div className="mb-8 text-center">
-                <Link
-                  to="/"
-                  className="mb-9 inline-flex items-center gap-1.5 text-xs text-gray-400 no-underline hover:text-gray-500"
-                >
-                  <ArrowLeft className="h-3.5 w-3.5" />
-                  Back to Home
-                </Link>
+      {/* ── Left Visual Panel — bottom on mobile, left on desktop ── */}
+      <div className="order-2 p-2 md:order-1 md:flex-1 md:p-0">
+        <img
+          src="/images/SignUp.png"
+          alt="Auth Visual"
+          className="h-auto w-full rounded-[20px] object-cover md:h-full md:rounded-[30px]"
+        />
+      </div>
 
-                {/* Heading */}
-                <h2 className="font-['Inter'] text-[32px] leading-tight font-semibold text-[#1f1f1f]">
-                  Welcome <span className="text-[#6b39f4]">Back.</span>
-                </h2>
-                <p className="mt-2 font-['Inter'] text-sm text-[#4b4b4b]">Log In to your account</p>
+      {/* ── Form Panel — top on mobile, right on desktop ── */}
+      <div className="order-1 flex flex-col gap-12.5 px-5 py-10 md:order-2 md:flex-1 md:gap-8 md:overflow-hidden md:px-0 md:py-7.5">
+
+        {/* Back link */}
+        <Link
+          to="/"
+          className="inline-flex items-center justify-center gap-2.5 font-['Inter',sans-serif] text-[12px] text-[#a3a3a3] no-underline transition-colors hover:text-[#7a7a7a] md:text-[14px]"
+        >
+          <ArrowLeft className="h-3.5 w-3.5 md:h-4 md:w-4" />
+          Back to Home
+        </Link>
+
+        {/* Form content — max 530px, centered on desktop */}
+        <div className="flex w-full flex-col gap-7.5 md:mx-auto md:max-w-132.5 md:gap-7.5">
+
+          {/* Heading */}
+          <div className="flex flex-col items-center gap-3.5 text-center md:gap-3.5">
+            <p className="font-['Inter',sans-serif] text-[22px] font-bold leading-[1.3] text-[#181818] md:text-[34px]">
+              {'Welcome '}
+              <span className="text-[#8022fe]">Back</span>
+              <span className="text-[#14f1d9]">.</span>
+            </p>
+            <p className="font-['Inter',sans-serif] text-[14px] font-medium leading-normal text-[#181818] md:text-[16px]">
+              Log In to your account
+            </p>
+          </div>
+
+          {/* Social + divider + form */}
+          <div className="flex flex-col gap-7.5 md:gap-7.5">
+
+            {/* Social buttons */}
+            <div className="flex flex-col gap-2.5 md:gap-3">
+              <button
+                type="button"
+                className="flex items-center justify-center gap-2 rounded-[10px] border border-[#f2f2f2] bg-[#fcfcfc] px-3 py-2.5 font-['Inter',sans-serif] text-[14px] font-medium leading-normal text-[#5d5d5d] transition-colors hover:bg-[#f5f5f5] md:text-[16px]"
+              >
+                <FcGoogle className="h-3.75 w-3.75 shrink-0 md:h-4.5 md:w-4.5" />
+                Continue with Google
+              </button>
+              <button
+                type="button"
+                className="flex items-center justify-center gap-2 rounded-[10px] border border-[#f2f2f2] bg-[#fcfcfc] px-3 py-2.5 font-['Inter',sans-serif] text-[14px] font-medium leading-normal text-[#5d5d5d] transition-colors hover:bg-[#f5f5f5] md:text-[16px]"
+              >
+                <FaApple className="h-4.25 w-3.5 shrink-0 md:h-5 md:w-3.75" />
+                Continue with Apple
+              </button>
+            </div>
+
+            {/* Divider */}
+            <div className="flex items-center gap-5">
+              <div className="h-px flex-1 bg-[#f2f2f2]" />
+              <span className="whitespace-nowrap font-['Inter',sans-serif] text-[12px] text-[#c2c2c2] md:text-[14px]">
+                Or continue with email
+              </span>
+              <div className="h-px flex-1 bg-[#f2f2f2]" />
+            </div>
+
+            {/* API error banner */}
+            {error && (
+              <div className="flex items-start gap-2 rounded-[10px] border border-red-300 bg-red-50 px-4 py-3">
+                <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-red-600" />
+                <span className="font-['Inter',sans-serif] text-[12px] text-red-700 md:text-[14px]">
+                  {error}
+                </span>
               </div>
+            )}
 
-              {/* API error banner */}
-              {error && (
-                <div className="mb-5 flex items-start rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
-                  <TriangleAlert className="mt-0.5 mr-2 h-4 w-4 shrink-0" />
-                  <span>{error}</span>
-                </div>
-              )}
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="flex flex-col gap-7.5 md:gap-8">
 
-              {/* OAuth buttons */}
-              <div className="space-y-3">
-                <button
-                  type="button"
-                  className="flex h-11 w-full items-center justify-center gap-2.5 rounded-lg border border-[#e8e8e8] bg-[#f4f4f4] font-['Inter'] text-sm text-[#4d4d4d] transition hover:bg-[#ececec]"
-                >
-                  <FcGoogle className="h-4 w-4" />
-                  Continue with Google
-                </button>
+              {/* Input fields */}
+              <div className="flex flex-col gap-5 md:gap-5">
 
-                <button
-                  type="button"
-                  className="flex h-11 w-full items-center justify-center gap-2.5 rounded-lg border border-[#e8e8e8] bg-[#f4f4f4] font-['Inter'] text-sm text-[#4d4d4d] transition hover:bg-[#ececec]"
-                >
-                  <FaApple className="h-4 w-4" />
-                  Continue with Apple
-                </button>
-              </div>
-
-              {/* Divider */}
-              <div className="my-5 flex items-center">
-                <span className="h-px flex-1 bg-[#e7e7e7]" />
-                <span className="px-3 text-xs text-[#b6b6b6]">Or continue with email</span>
-                <span className="h-px flex-1 bg-[#e7e7e7]" />
-              </div>
-
-              {/* Form */}
-              <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Email */}
-                <div>
-                  <label
-                    htmlFor="email"
-                    className="mb-1.5 block font-['Inter'] text-xs font-medium text-[#2b2b2b]"
-                  >
+                <div className="flex flex-col gap-2 md:gap-2.5">
+                  <label className="font-['Inter',sans-serif] text-[12px] font-medium leading-normal text-[#181818] md:text-[14px]">
                     Email
                   </label>
-                  <input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="You@example.com"
-                    className="h-11 w-full rounded-lg border border-[#e5e5e5] bg-[#f6f6f6] px-3 text-sm text-[#202020] transition outline-none placeholder:text-[#a8a8a8] focus:border-[#cacaca]"
-                    required
-                  />
+                  <div className="flex items-center rounded-[10px] border border-[#f2f2f2] bg-white px-4 py-3">
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="You@example.com"
+                      className="min-w-0 flex-1 bg-transparent font-['Inter',sans-serif] text-[14px] font-medium leading-normal text-[#181818] outline-none placeholder:text-[#c2c2c2] md:text-[16px]"
+                      required
+                    />
+                  </div>
                 </div>
 
                 {/* Password */}
-                <div>
-                  <label
-                    htmlFor="password"
-                    className="mb-1.5 block font-['Inter'] text-xs font-medium text-[#2b2b2b]"
-                  >
+                <div className="flex flex-col gap-2 md:gap-2.5">
+                  <label className="font-['Inter',sans-serif] text-[12px] font-medium leading-normal text-[#181818] md:text-[14px]">
                     Password
                   </label>
-                  <div className="relative">
+                  <div className="flex items-center justify-between rounded-[10px] border border-[#8022fe] bg-white px-4 py-3">
                     <input
-                      id="password"
                       type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Enter your password"
-                      className="h-11 w-full rounded-lg border border-[#e5e5e5] bg-[#f6f6f6] px-3 pr-11 text-sm text-[#202020] transition outline-none placeholder:text-[#a8a8a8] focus:border-[#cacaca]"
+                      className="min-w-0 flex-1 bg-transparent font-['Inter',sans-serif] text-[14px] font-medium leading-normal text-[#181818] outline-none placeholder:text-[#c2c2c2] md:text-[16px]"
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword((v) => !v)}
-                      className="absolute inset-y-0 right-3 flex items-center text-[#9b9b9b] hover:text-[#6b6b6b]"
+                      className="ml-2 shrink-0 text-[#c2c2c2] transition-colors hover:text-[#8022fe]"
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
                     >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      {showPassword
+                        ? <EyeOff className="h-4.5 w-4.5 md:h-5 md:w-5" />
+                        : <Eye className="h-4.5 w-4.5 md:h-5 md:w-5" />
+                      }
                     </button>
                   </div>
-
-                  {/* Forgot password — right aligned */}
-                  <div className="mt-1.5 flex justify-end">
+                  <div className="flex justify-end">
                     <Link
                       to="/forgot-password"
-                      className="text-xs font-medium text-[#6b39f4] hover:text-[#5d2fea] hover:no-underline"
+                      className="font-['Inter',sans-serif] text-[12px] font-medium text-[#8022fe] no-underline hover:underline md:text-[14px]"
                     >
                       Forgot password?
                     </Link>
                   </div>
                 </div>
 
-                {/* Submit */}
-                <button
-                  type="submit"
-                  disabled={loading || !isFormValid}
-                  className={`mt-1 flex h-11 w-full items-center justify-center rounded-lg font-['Inter'] text-sm font-semibold transition ${
-                    isFormValid && !loading
-                      ? 'cursor-pointer bg-[#6b39f4] text-white hover:bg-[#5d2fea]'
-                      : 'cursor-not-allowed bg-[#e7e7e7] text-[#bdbdbd]'
-                  }`}
-                >
-                  {loading ? (
-                    <span className="flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Signing in...
-                    </span>
-                  ) : (
-                    'Log In'
-                  )}
-                </button>
-              </form>
+              </div>
 
-              {/* Sign up link */}
-              <p className="mt-6 text-center text-sm text-[#3d3d3d]">
-                Don&rsquo;t have an account?{' '}
-                <Link
-                  to="/signup"
-                  className="font-medium text-[#6b39f4] hover:text-[#5d2fea] hover:no-underline"
-                >
-                  Sign Up
-                </Link>
-              </p>
-            </div>
+              {/* Submit + sign up + terms */}
+              <div className="flex flex-col gap-5 md:gap-5">
+                <div className="flex flex-col items-center gap-5">
+                  <button
+                    type="submit"
+                    disabled={loading || !isFormValid}
+                    className={`w-full rounded-[10px] px-5 py-3 font-['Inter',sans-serif] text-[14px] font-semibold leading-none transition-colors md:text-[16px] ${
+                      isFormValid && !loading
+                        ? 'cursor-pointer bg-[#8022fe] text-white hover:bg-[#6b1bdb]'
+                        : 'cursor-not-allowed bg-[#f1f1f1] text-[#dedede]'
+                    }`}
+                  >
+                    {loading ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Signing in...
+                      </span>
+                    ) : (
+                      'Log In'
+                    )}
+                  </button>
+                  <p className="text-center font-['Inter',sans-serif] text-[14px] font-medium leading-normal text-[#181818] md:text-[16px]">
+                    Don&rsquo;t have an account?{' '}
+                    <Link
+                      to="/signup"
+                      onClick={() => dispatch(clearError())}
+                      className="text-[#8022fe] no-underline hover:underline"
+                    >
+                      Sign Up
+                    </Link>
+                  </p>
+                </div>
+                <p className="text-center font-['Inter',sans-serif] text-[10px] font-medium leading-normal text-[#c2c2c2] md:text-[12px]">
+                  By signing in, you agree to our{' '}
+                  <span className="cursor-pointer underline">Terms</span>
+                  {' and '}
+                  <span className="cursor-pointer underline">Privacy Policy</span>
+                </p>
+              </div>
+
+            </form>
           </div>
         </div>
       </div>
