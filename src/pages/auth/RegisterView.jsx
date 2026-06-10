@@ -5,6 +5,8 @@ import { Loader2, ArrowLeft, TriangleAlert, Apple, Eye, EyeOff } from 'lucide-re
 import { registerUser } from '../../features/auth/authAPI';
 import { clearError, selectAuth } from '../../features/auth/authSlice';
 import { FcGoogle } from 'react-icons/fc';
+import { FaApple } from 'react-icons/fa';
+
 
 const RegisterView = () => {
   const [searchParams] = useSearchParams();
@@ -112,7 +114,7 @@ const RegisterView = () => {
                   className="flex h-11 w-full items-center justify-center gap-2.5 rounded-lg border border-[#e8e8e8] bg-[#f4f4f4] font-['Inter'] text-sm text-[#4d4d4d] transition hover:bg-[#ececec]"
                 >
                   {/* Google "G" icon */}
-                  <FcGoogle className="h-4.25 w-4.25" />
+                  <FcGoogle className="h-4 w-4" />
                   Continue with Google
                 </button>
 
@@ -120,7 +122,7 @@ const RegisterView = () => {
                   type="button"
                   className="flex h-11 w-full items-center justify-center gap-2.5 rounded-lg border border-[#e8e8e8] bg-[#f4f4f4] font-['Inter'] text-sm text-[#4d4d4d] transition hover:bg-[#ececec]"
                 >
-                  <Apple className="h-4.25 w-4.25" />
+                  <FaApple className="h-4 w-4" />
                   Continue with Apple
                 </button>
               </div>
