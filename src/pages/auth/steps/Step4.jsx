@@ -26,6 +26,36 @@ const SkipBtn = ({ onClick }) => (
   </button>
 );
 
+const handleTimeChange = (e, setter) => {
+  // Strip non-digits, auto-insert colon after 2 hour digits
+  const digits = e.target.value.replace(/\D/g, '').slice(0, 4);
+  const formatted = digits.length > 2
+    ? digits.slice(0, 2) + ':' + digits.slice(2)
+    : digits;
+  setter(formatted);
+};
+
+const TimeBox = ({ time, setTime, meridiem, setMeridiem }) => (
+  <div className="flex w-35 items-center justify-between rounded-xl border border-[#F2F2F2] bg-white px-3.5 py-2.5 sm:w-52.5 sm:rounded-2xl sm:px-5">
+    <input
+      type="text"
+      inputMode="numeric"
+      value={time}
+      onChange={(e) => handleTimeChange(e, setTime)}
+      placeholder="Time"
+      maxLength={5}
+      className="min-w-0 flex-1 border-0 bg-transparent font-['Inter',sans-serif] text-[22px] font-bold leading-[1.3] text-[#181818] outline-none placeholder:font-bold placeholder:text-[#E2E2E2] sm:text-[34px]"
+    />
+    <button
+      type="button"
+      onClick={() => setMeridiem(meridiem === 'AM' ? 'PM' : 'AM')}
+      className="shrink-0 cursor-pointer border-0 bg-transparent font-['Inter',sans-serif] text-[22px] font-bold leading-[1.3] text-[#C2C2C2] transition-colors hover:text-[#8022FE] sm:text-[34px]"
+    >
+      {meridiem}
+    </button>
+  </div>
+);
+
 const Step4 = ({
   startTime,
   setStartTime,
@@ -57,7 +87,7 @@ const Step4 = ({
       <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-center sm:gap-12.5">
 
         {/* Start Your Day */}
-        <div className="flex flex-col items-center gap-4 sm:gap-5">
+        <div className="flex flex-col items-center gap-4">
           <div className="flex items-center justify-center gap-2.5">
             <div className="flex size-7.5 shrink-0 items-center justify-center rounded-lg bg-[#F9F4FF] sm:size-8.5">
               <Sun className="h-4 w-4 text-[#8022FE]" />
@@ -66,22 +96,12 @@ const Step4 = ({
               Start Your Day
             </span>
           </div>
-          <div className="flex w-35 items-center justify-between rounded-xl border border-[#F2F2F2] bg-white px-3.5 py-2.5 sm:w-52.5 sm:rounded-2xl sm:px-5">
-            <input
-              value={startTime}
-              onChange={(e) => setStartTime(e.target.value)}
-              placeholder="07:00"
-              className="w-0 min-w-0 flex-1 border-0 bg-transparent font-['Inter',sans-serif] text-[22px] font-bold leading-[1.3] text-[#181818] outline-none sm:text-[34px]"
-            />
-            <select
-              value={startMeridiem}
-              onChange={(e) => setStartMeridiem(e.target.value)}
-              className="cursor-pointer border-0 bg-transparent font-['Inter',sans-serif] text-[22px] font-bold leading-[1.3] text-[#C2C2C2] outline-none sm:text-[34px]"
-            >
-              <option>AM</option>
-              <option>PM</option>
-            </select>
-          </div>
+          <TimeBox
+            time={startTime}
+            setTime={setStartTime}
+            meridiem={startMeridiem}
+            setMeridiem={setStartMeridiem}
+          />
         </div>
 
         {/* Divider — horizontal on mobile, vertical on desktop */}
@@ -94,7 +114,7 @@ const Step4 = ({
         </div>
 
         {/* End Your Day */}
-        <div className="flex flex-col items-center gap-4 sm:gap-5">
+        <div className="flex flex-col items-center gap-4">
           <div className="flex items-center justify-center gap-2.5">
             <div className="flex size-7.5 shrink-0 items-center justify-center rounded-lg bg-[#F9F4FF] sm:size-8.5">
               <Moon className="h-4 w-4 text-[#8022FE]" />
@@ -103,22 +123,12 @@ const Step4 = ({
               End Your Day
             </span>
           </div>
-          <div className="flex w-35 items-center justify-between rounded-xl border border-[#F2F2F2] bg-white px-3.5 py-2.5 sm:w-52.5 sm:rounded-2xl sm:px-5">
-            <input
-              value={endTime}
-              onChange={(e) => setEndTime(e.target.value)}
-              placeholder="11:00"
-              className="w-0 min-w-0 flex-1 border-0 bg-transparent font-['Inter',sans-serif] text-[22px] font-bold leading-[1.3] text-[#181818] outline-none sm:text-[34px]"
-            />
-            <select
-              value={endMeridiem}
-              onChange={(e) => setEndMeridiem(e.target.value)}
-              className="cursor-pointer border-0 bg-transparent font-['Inter',sans-serif] text-[22px] font-bold leading-[1.3] text-[#C2C2C2] outline-none sm:text-[34px]"
-            >
-              <option>AM</option>
-              <option>PM</option>
-            </select>
-          </div>
+          <TimeBox
+            time={endTime}
+            setTime={setEndTime}
+            meridiem={endMeridiem}
+            setMeridiem={setEndMeridiem}
+          />
         </div>
 
       </div>
