@@ -69,12 +69,12 @@ const RegisterView = () => {
         <img
           src="/images/SignUp.png"
           alt="Auth Visual"
-          className="h-auto w-full rounded-[20px] md:h-full md:rounded-[30px]"
+          className="h-auto w-full  rounded-[20px] md:h-full md:rounded-[30px]"
         />
       </div>
 
       {/* ── Form Panel — top on mobile, right on desktop ── */}
-      <div className="order-1 flex flex-col gap-12.5 px-5 py-10 md:order-2 md:flex-1 md:gap-8 md:overflow-hidden md:px-0 md:py-7.5">
+      <div className="order-1 flex flex-col gap-12.5 px-5 py-10 md:order-2 md:flex-1 md:justify-center md:gap-8 md:overflow-hidden md:px-0 md:py-7.5">
         {/* Back link */}
         <Link
           to="/"
