@@ -8,7 +8,7 @@ const PrimaryBtn = ({ onClick, disabled, children }) => (
     type="button"
     onClick={onClick}
     disabled={disabled}
-    className={`w-full rounded-[10px] h-11 px-10 font-['Inter',sans-serif] text-[16px] leading-none font-semibold text-white transition-colors md:w-auto ${
+    className={`h-11 w-full rounded-[10px] px-10 font-['Inter',sans-serif] text-[14px] leading-none font-semibold text-white transition-colors sm:text-[16px] md:w-auto ${
       disabled ? 'cursor-not-allowed bg-[#E2E2E2] text-[#C3C3C3]' : 'bg-[#8022FE] hover:bg-[#6B1BDB]'
     }`}
   >
@@ -39,35 +39,44 @@ const Step4 = ({
   onBack,
   canContinue,
 }) => (
-  <div className="flex w-full flex-col items-center gap-7.5 text-center sm:gap-12.5">
-    <div className="flex w-full flex-col items-center gap-4 sm:gap-7.5">
-      <h1 className="text-center font-['Inter',sans-serif] text-[clamp(28px,4vw,54px)] leading-[1.3] font-bold text-[#181818]">
+  <div className="flex w-full flex-col items-center gap-7.5 sm:gap-12.5">
+    {/* Heading */}
+    <div className="flex w-full flex-col items-center gap-2.5 text-center sm:gap-7.5">
+      <h1 className="font-['Inter',sans-serif] text-[26px] font-bold leading-[1.3] text-[#181818] sm:text-[clamp(32px,4vw,54px)]">
         When you start and end your <Accent>Day</Accent>
         <Dot />
       </h1>
-      <p className="mx-auto text-center font-['Inter',sans-serif] text-[16px] leading-normal font-medium text-[#272727] sm:whitespace-nowrap">
+      <p className="font-['Inter',sans-serif] text-[14px] font-medium leading-normal text-[#272727] sm:text-[16px] sm:whitespace-nowrap">
         Your AI uses this to plan your day around your energy. Adjust if needed.
       </p>
     </div>
 
-    <div className="box-border w-full max-w-160 rounded-2xl border-[1.5px] border-[#E2E2E2] bg-[#F2F2F2] p-4 sm:p-6">
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-        <div>
-          <p className="mb-2 flex items-center gap-2 font-['Inter',sans-serif] text-[15px] font-medium text-[#1F1F1F] sm:text-[16px]">
-            <Sun className="h-4 w-4 text-[#8022FE]" />
-            Start Your Day
-          </p>
-          <div className="flex items-center gap-2 rounded-xl border-[1.5px] border-[#E2E2E2] bg-[#F7F7F7] px-3 py-2">
+    {/* Time card */}
+    <div className="mx-auto w-full rounded-2xl border border-[#F2F2F2] bg-[#FCFCFC] p-5 sm:w-143.25 sm:rounded-[20px] sm:p-7.5">
+      {/* Mobile: column; Desktop: row */}
+      <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-center sm:gap-12.5">
+
+        {/* Start Your Day */}
+        <div className="flex flex-col items-center gap-4 sm:gap-5">
+          <div className="flex items-center justify-center gap-2.5">
+            <div className="flex size-7.5 shrink-0 items-center justify-center rounded-lg bg-[#F9F4FF] sm:size-8.5">
+              <Sun className="h-4 w-4 text-[#8022FE]" />
+            </div>
+            <span className="font-['Inter',sans-serif] text-[16px] font-medium leading-normal text-[#181818] sm:text-[20px]">
+              Start Your Day
+            </span>
+          </div>
+          <div className="flex w-35 items-center justify-between rounded-xl border border-[#F2F2F2] bg-white px-3.5 py-2.5 sm:w-52.5 sm:rounded-2xl sm:px-5">
             <input
               value={startTime}
               onChange={(e) => setStartTime(e.target.value)}
-              placeholder="00:00"
-              className="flex-1 border-0 bg-transparent font-['Inter',sans-serif] text-[26px] font-semibold text-[#1F1F1F] outline-none sm:text-[34px]"
+              placeholder="07:00"
+              className="w-0 min-w-0 flex-1 border-0 bg-transparent font-['Inter',sans-serif] text-[22px] font-bold leading-[1.3] text-[#181818] outline-none sm:text-[34px]"
             />
             <select
               value={startMeridiem}
               onChange={(e) => setStartMeridiem(e.target.value)}
-              className="cursor-pointer border-0 bg-transparent font-['Inter',sans-serif] text-[26px] font-semibold text-[#B2B2B2] outline-none sm:text-[34px]"
+              className="cursor-pointer border-0 bg-transparent font-['Inter',sans-serif] text-[22px] font-bold leading-[1.3] text-[#C2C2C2] outline-none sm:text-[34px]"
             >
               <option>AM</option>
               <option>PM</option>
@@ -75,33 +84,51 @@ const Step4 = ({
           </div>
         </div>
 
-        <div>
-          <p className="mb-2 flex items-center gap-2 font-['Inter',sans-serif] text-[15px] font-medium text-[#1F1F1F] sm:text-[16px]">
-            <Moon className="h-4 w-4 text-[#8022FE]" />
-            End Your Day
-          </p>
-          <div className="flex items-center gap-2 rounded-xl border-[1.5px] border-[#E2E2E2] bg-[#F7F7F7] px-3 py-2">
+        {/* Divider — horizontal on mobile, vertical on desktop */}
+        <div className="flex flex-row items-center gap-5 sm:flex-col sm:self-stretch sm:gap-4">
+          <div className="h-px flex-1 bg-[#F2F2F2] sm:h-auto sm:w-px" />
+          <span className="shrink-0 font-['Inter',sans-serif] text-[12px] font-normal text-[#C2C2C2] sm:text-[14px]">
+            To
+          </span>
+          <div className="h-px flex-1 bg-[#F2F2F2] sm:h-auto sm:w-px" />
+        </div>
+
+        {/* End Your Day */}
+        <div className="flex flex-col items-center gap-4 sm:gap-5">
+          <div className="flex items-center justify-center gap-2.5">
+            <div className="flex size-7.5 shrink-0 items-center justify-center rounded-lg bg-[#F9F4FF] sm:size-8.5">
+              <Moon className="h-4 w-4 text-[#8022FE]" />
+            </div>
+            <span className="font-['Inter',sans-serif] text-[16px] font-medium leading-normal text-[#181818] sm:text-[20px]">
+              End Your Day
+            </span>
+          </div>
+          <div className="flex w-35 items-center justify-between rounded-xl border border-[#F2F2F2] bg-white px-3.5 py-2.5 sm:w-52.5 sm:rounded-2xl sm:px-5">
             <input
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
-              placeholder="00:00"
-              className="flex-1 border-0 bg-transparent font-['Inter',sans-serif] text-[26px] font-semibold text-[#1F1F1F] outline-none sm:text-[34px]"
+              placeholder="11:00"
+              className="w-0 min-w-0 flex-1 border-0 bg-transparent font-['Inter',sans-serif] text-[22px] font-bold leading-[1.3] text-[#181818] outline-none sm:text-[34px]"
             />
             <select
               value={endMeridiem}
               onChange={(e) => setEndMeridiem(e.target.value)}
-              className="cursor-pointer border-0 bg-transparent font-['Inter',sans-serif] text-[26px] font-semibold text-[#B2B2B2] outline-none sm:text-[34px]"
+              className="cursor-pointer border-0 bg-transparent font-['Inter',sans-serif] text-[22px] font-bold leading-[1.3] text-[#C2C2C2] outline-none sm:text-[34px]"
             >
               <option>AM</option>
               <option>PM</option>
             </select>
           </div>
         </div>
+
       </div>
     </div>
 
-    <div className="flex w-full flex-col items-center gap-4 pb-6 md:w-auto md:flex-row-reverse md:items-center md:gap-5 md:pb-0">
-      <PrimaryBtn onClick={onContinue} disabled={!canContinue}>Generate My Plan</PrimaryBtn>
+    {/* Buttons */}
+    <div className="flex w-full flex-col items-center gap-4 pb-16 md:w-auto md:flex-row-reverse md:items-center md:gap-5 md:pb-0">
+      <PrimaryBtn onClick={onContinue} disabled={!canContinue}>
+        Continue
+      </PrimaryBtn>
       <SkipBtn onClick={onBack} />
     </div>
   </div>
