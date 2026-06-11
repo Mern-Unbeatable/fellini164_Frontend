@@ -154,7 +154,7 @@ const PublicNavbar = () => {
 
           {/* Mobile dropdown — absolute card below the nav pill */}
           {isMobileMenuOpen && (
-            <div className="absolute top-[calc(100%+4px)] -right-px -left-px z-50 overflow-hidden rounded-[14px] border border-[#f2f2f2] bg-[#fcfcfc] shadow-[0px_5.667px_11.334px_rgba(0,0,0,0.05)] lg:hidden">
+            <div className="absolute top-[calc(100%+10px)] -right-px -left-px z-50 overflow-hidden rounded-[14px] border border-[#f2f2f2] bg-[#fcfcfc] shadow-[0px_5.667px_11.334px_rgba(0,0,0,0.05)] lg:hidden">
               <div className="flex flex-col items-center gap-7.5 p-5">
                 {NAV_LINKS.map((link) => (
                   <a
