@@ -1,7 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { Menu, X } from 'lucide-react';
 import { selectIsAuthenticated, selectUser, logout } from '../../../features/auth/authSlice';
+
+const NAV_LINKS = [
+  { label: 'Pricing', href: '/pricing', path: '/pricing' },
+  { label: 'How It Works', href: '/#how-it-works', path: '/', hash: '#how-it-works' },
+  { label: 'FAQ', href: '/faq', path: '/faq' },
+  { label: 'Contact Us', href: '/contact', path: '/contact' },
+];
 
 const PublicNavbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -15,16 +23,17 @@ const PublicNavbar = () => {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setActiveHash(window.location.hash);
-    const handleHashChange = () => {
-      setActiveHash(window.location.hash);
-    };
+    const handleHashChange = () => setActiveHash(window.location.hash);
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, [location]);
 
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
+
+  const toggleMobileMenu = () => setIsMobileMenuOpen((v) => !v);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -32,216 +41,166 @@ const PublicNavbar = () => {
     setIsMobileMenuOpen(false);
   };
 
-  const getDashboardPath = () => {
-    return user?.role === 'admin' ? '/admin/dashboard' : '/dashboard';
+  const getDashboardPath = () =>
+    user?.role === 'admin' ? '/admin/dashboard' : '/dashboard';
+
+  const isActive = (link) => {
+    if (link.hash) return location.pathname === link.path && activeHash === link.hash;
+    return location.pathname === link.path;
   };
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-gray-200 bg-[#f5f5f5]">
-      <div className="relative container mx-auto px-4 sm:px-6 lg:px-20">
-        <div className="flex items-center justify-between py-3 md:py-4">
-          {/* Logo */}
-          <a href="/" className="flex items-center no-underline hover:no-underline">
-            <img src="/logo.png" alt="Elyxa.Ai" className="h-8 md:h-9" />
-          </a>
+    <>
+      {/* Mobile overlay */}
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-[rgba(24,24,24,0.5)] lg:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
 
-          {/* Desktop Navigation */}
-          <div className="hidden items-center justify-start gap-10 lg:flex xl:gap-16">
-            <div className="flex items-center justify-start gap-6 xl:gap-8">
-              <a
-                href="/pricing"
-                className={`cursor-pointer font-['Inter'] text-sm no-underline transition-colors hover:text-violet-600 hover:no-underline lg:text-base ${
-                  location.pathname === '/pricing'
-                    ? 'font-semibold text-violet-600'
-                    : 'font-normal text-black'
-                }`}
-              >
-                Pricing
-              </a>
-              <a
-                href="/#how-it-works"
-                className={`cursor-pointer font-['Inter'] text-sm no-underline transition-colors hover:text-violet-600 hover:no-underline lg:text-base ${
-                  location.pathname === '/' && activeHash === '#how-it-works'
-                    ? 'font-semibold text-violet-600'
-                    : 'font-normal text-black'
-                }`}
-              >
-                How it Works
-              </a>
-              <a
-                href="/faq"
-                className={`cursor-pointer font-['Inter'] text-sm no-underline transition-colors hover:text-violet-600 hover:no-underline lg:text-base ${
-                  location.pathname === '/faq'
-                    ? 'font-semibold text-violet-600'
-                    : 'font-normal text-black'
-                }`}
-              >
-                FAQ
-              </a>
-              <a
-                href="/contact"
-                className={`cursor-pointer font-['Inter'] text-sm no-underline transition-colors hover:text-violet-600 hover:no-underline lg:text-base ${
-                  location.pathname === '/contact'
-                    ? 'font-semibold text-violet-600'
-                    : 'font-normal text-black'
-                }`}
-              >
-                Contact Us
-              </a>
-            </div>
-            {!isAuthenticated ? (
-              <>
+      <div className="sticky top-0 z-50">
+        <div className="px-5 pt-5">
+          {/* Navbar bar */}
+          <nav className="relative flex items-center justify-between rounded-[12px] border border-[#f2f2f2] bg-[#fcfcfc] px-2 py-1.5 shadow-[0px_5px_12.5px_rgba(0,0,0,0.05)] lg:h-[53px] lg:rounded-[16px] lg:px-8 lg:py-0">
+            {/* Logo */}
+            <a href="/" className="flex shrink-0 items-center no-underline hover:no-underline">
+              <img src="/logo.png" alt="Elyxa.Ai" className="h-[26px] w-auto lg:h-[33px]" />
+            </a>
+
+            {/* Desktop nav links */}
+            <div className="hidden items-center gap-[50px] lg:flex">
+              {NAV_LINKS.map((link) => (
                 <a
-                  href="/signup"
-                  className="flex cursor-pointer items-center justify-center rounded-lg bg-violet-600 px-6 py-2.5 no-underline transition-colors hover:bg-violet-700 hover:no-underline"
-                >
-                  <span className="font-['Inter'] text-sm font-medium text-white lg:text-base">
-                    Sign Up
-                  </span>
-                </a>
-                <a
-                  href="/login"
-                  className={`cursor-pointer font-['Inter'] text-sm no-underline transition-colors hover:text-violet-600 hover:no-underline lg:text-base ${
-                    location.pathname === '/login'
-                      ? 'font-semibold text-violet-600'
-                      : 'font-normal text-black'
+                  key={link.label}
+                  href={link.href}
+                  className={`font-['Inter',sans-serif] text-[14px] font-semibold no-underline transition-colors hover:text-[#8022fe] hover:no-underline ${
+                    isActive(link) ? 'text-[#8022fe]' : 'text-[#181818]'
                   }`}
                 >
-                  Log In
+                  {link.label}
                 </a>
-              </>
-            ) : (
-              <>
-                <a
-                  href={getDashboardPath()}
-                  className="cursor-pointer font-['Inter'] text-sm font-medium text-black no-underline hover:text-violet-600 hover:no-underline lg:text-base"
-                >
-                  Dashboard
-                </a>
-                <button
-                  onClick={handleLogout}
-                  className="flex cursor-pointer items-center justify-center rounded-lg bg-violet-600 px-6 py-2.5 transition-colors hover:bg-violet-700"
-                >
-                  <span className="font-['Inter'] text-sm font-medium text-white lg:text-base">
-                    Logout
-                  </span>
-                </button>
-              </>
-            )}
-          </div>
+              ))}
+            </div>
 
-          {/* Mobile Menu Button */}
-          <div className="flex items-center gap-3 lg:hidden">
-            <button
-              onClick={toggleMobileMenu}
-              className="relative flex h-6 w-6 flex-col justify-center gap-1.5"
-              aria-label="Toggle menu"
-            >
-              {isMobileMenuOpen ? (
+            {/* Desktop action links */}
+            <div className="hidden items-center gap-[30px] lg:flex">
+              {!isAuthenticated ? (
                 <>
-                  <span className="absolute h-0.5 w-6 rotate-45 transform bg-black"></span>
-                  <span className="absolute h-0.5 w-6 -rotate-45 transform bg-black"></span>
+                  <a
+                    href="/signup"
+                    className="flex items-center justify-center rounded-[8px] bg-[#8022fe] px-[16px] py-[8px] font-['Inter',sans-serif] text-[14px] font-semibold text-white no-underline transition-colors hover:bg-[#6b1bdb] hover:no-underline"
+                  >
+                    Sign Up
+                  </a>
+                  <a
+                    href="/login"
+                    className={`font-['Inter',sans-serif] text-[14px] font-semibold no-underline transition-colors hover:text-[#8022fe] hover:no-underline ${
+                      location.pathname === '/login' ? 'text-[#8022fe]' : 'text-[#181818]'
+                    }`}
+                  >
+                    Log In
+                  </a>
                 </>
               ) : (
                 <>
-                  <span className="h-0.5 w-6 bg-black"></span>
-                  <span className="h-0.5 w-6 bg-black"></span>
-                  <span className="h-0.5 w-6 bg-black"></span>
+                  <a
+                    href={getDashboardPath()}
+                    className="font-['Inter',sans-serif] text-[14px] font-semibold text-[#181818] no-underline hover:text-[#8022fe] hover:no-underline"
+                  >
+                    Dashboard
+                  </a>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center justify-center rounded-[8px] bg-[#8022fe] px-[16px] py-[8px] font-['Inter',sans-serif] text-[14px] font-semibold text-white transition-colors hover:bg-[#6b1bdb]"
+                  >
+                    Logout
+                  </button>
                 </>
               )}
-            </button>
-          </div>
-        </div>
+            </div>
 
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <div className="absolute top-full right-0 left-0 flex flex-col gap-4 border-t border-gray-100 bg-white p-6 shadow-lg lg:hidden">
-            <a
-              href="/pricing"
-              className={`cursor-pointer font-['Inter'] text-base no-underline transition-colors hover:text-violet-600 hover:no-underline ${
-                location.pathname === '/pricing'
-                  ? 'font-semibold text-violet-600'
-                  : 'font-normal text-black'
-              }`}
-              onClick={toggleMobileMenu}
-            >
-              Pricing
-            </a>
-            <a
-              href="/#how-it-works"
-              className={`cursor-pointer font-['Inter'] text-base no-underline transition-colors hover:text-violet-600 hover:no-underline ${
-                location.pathname === '/' && activeHash === '#how-it-works'
-                  ? 'font-semibold text-violet-600'
-                  : 'font-normal text-black'
-              }`}
-              onClick={toggleMobileMenu}
-            >
-              How it Works
-            </a>
-            <a
-              href="/faq"
-              className={`cursor-pointer font-['Inter'] text-base no-underline transition-colors hover:text-violet-600 hover:no-underline ${
-                location.pathname === '/faq'
-                  ? 'font-semibold text-violet-600'
-                  : 'font-normal text-black'
-              }`}
-              onClick={toggleMobileMenu}
-            >
-              FAQ
-            </a>
-            <a
-              href="/contact"
-              className={`cursor-pointer font-['Inter'] text-base no-underline transition-colors hover:text-violet-600 hover:no-underline ${
-                location.pathname === '/contact'
-                  ? 'font-semibold text-violet-600'
-                  : 'font-normal text-black'
-              }`}
-              onClick={toggleMobileMenu}
-            >
-              Contact Us
-            </a>
-            {!isAuthenticated ? (
-              <>
-                <a
-                  href="/signup"
-                  className="flex cursor-pointer items-center justify-center rounded-lg bg-violet-600 px-6 py-3 no-underline transition-colors hover:bg-violet-700 hover:no-underline"
-                  onClick={toggleMobileMenu}
-                >
-                  <span className="font-['Inter'] text-sm font-medium text-white">Sign Up</span>
-                </a>
-                <a
-                  href="/login"
-                  className={`cursor-pointer font-['Inter'] text-base no-underline transition-colors hover:text-violet-600 hover:no-underline ${
-                    location.pathname === '/login'
-                      ? 'font-semibold text-violet-600'
-                      : 'font-normal text-black'
-                  }`}
-                  onClick={toggleMobileMenu}
-                >
-                  Log In
-                </a>
-              </>
-            ) : (
-              <>
-                <a
-                  href={getDashboardPath()}
-                  className="cursor-pointer font-['Inter'] text-base font-medium text-black no-underline hover:text-violet-600 hover:no-underline"
-                  onClick={toggleMobileMenu}
-                >
-                  Dashboard
-                </a>
-                <button
-                  onClick={handleLogout}
-                  className="flex cursor-pointer items-center justify-center rounded-lg bg-violet-600 px-6 py-3 transition-colors hover:bg-violet-700"
-                >
-                  <span className="font-['Inter'] text-sm font-medium text-white">Logout</span>
-                </button>
-              </>
+            {/* Mobile right side */}
+            <div className="flex items-center gap-[30px] lg:hidden">
+              {!isAuthenticated && (
+                <div className="flex items-center gap-[20px]">
+                  <a
+                    href="/signup"
+                    className="flex items-center justify-center rounded-[6px] bg-[#8022fe] px-[12px] py-[6px] font-['Inter',sans-serif] text-[12px] font-semibold text-white no-underline transition-colors hover:bg-[#6b1bdb] hover:no-underline"
+                  >
+                    Sign Up
+                  </a>
+                  <a
+                    href="/login"
+                    className="font-['Inter',sans-serif] text-[12px] font-semibold text-[#181818] no-underline hover:text-[#8022fe] hover:no-underline"
+                  >
+                    Log In
+                  </a>
+                </div>
+              )}
+              <button
+                onClick={toggleMobileMenu}
+                className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-[8px] bg-[#f9f4ff] transition-colors hover:bg-[#f0e8ff]"
+                aria-label="Toggle menu"
+              >
+                {isMobileMenuOpen ? (
+                  <X className="h-4 w-4 text-[#8022fe]" />
+                ) : (
+                  <Menu className="h-4 w-4 text-[#8022fe]" />
+                )}
+              </button>
+            </div>
+
+            {/* Mobile dropdown */}
+            {isMobileMenuOpen && (
+              <div className="absolute left-[-1px] right-[-1px] top-[calc(100%+4px)] z-50 overflow-hidden rounded-[14px] border border-[#f2f2f2] bg-[#fcfcfc] shadow-[0px_5.667px_11.334px_rgba(0,0,0,0.05)] lg:hidden">
+                <div className="flex flex-col items-center gap-[30px] p-[20px]">
+                  {NAV_LINKS.map((link) => (
+                    <a
+                      key={link.label}
+                      href={link.href}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={`font-['Inter',sans-serif] text-[14px] font-semibold no-underline transition-colors hover:text-[#8022fe] hover:no-underline ${
+                        isActive(link) ? 'text-[#8022fe]' : 'text-[#181818]'
+                      }`}
+                    >
+                      {link.label}
+                    </a>
+                  ))}
+                </div>
+                <div className="border-t border-[#f2f2f2] p-[16px]">
+                  {!isAuthenticated ? (
+                    <a
+                      href="/signup"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex w-full items-center justify-center rounded-[10px] border-2 border-[#8022fe] px-[20px] py-[12px] font-['Inter',sans-serif] text-[14px] font-semibold text-[#8022fe] no-underline transition-colors hover:bg-[#f9f4ff] hover:no-underline"
+                    >
+                      Get Your First Plan
+                    </a>
+                  ) : (
+                    <div className="flex flex-col gap-3">
+                      <a
+                        href={getDashboardPath()}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="flex w-full items-center justify-center rounded-[10px] bg-[#8022fe] px-[20px] py-[12px] font-['Inter',sans-serif] text-[14px] font-semibold text-white no-underline hover:bg-[#6b1bdb] hover:no-underline"
+                      >
+                        Dashboard
+                      </a>
+                      <button
+                        onClick={handleLogout}
+                        className="flex w-full items-center justify-center rounded-[10px] border-2 border-[#8022fe] px-[20px] py-[12px] font-['Inter',sans-serif] text-[14px] font-semibold text-[#8022fe] transition-colors hover:bg-[#f9f4ff]"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
             )}
-          </div>
-        )}
+          </nav>
+        </div>
       </div>
-    </nav>
+    </>
   );
 };
 
