@@ -41,8 +41,7 @@ const PublicNavbar = () => {
     setIsMobileMenuOpen(false);
   };
 
-  const getDashboardPath = () =>
-    user?.role === 'admin' ? '/admin/dashboard' : '/dashboard';
+  const getDashboardPath = () => (user?.role === 'admin' ? '/admin/dashboard' : '/dashboard');
 
   const isActive = (link) => {
     if (link.hash) return location.pathname === link.path && activeHash === link.hash;
@@ -62,8 +61,8 @@ const PublicNavbar = () => {
       <div className="sticky top-0 z-50 mx-5 pt-5">
         {/* Navbar bar — full width of the mx-5 area */}
         <nav className="relative rounded-xl border border-[#f2f2f2] bg-[#fcfcfc] shadow-[0px_5px_12.5px_rgba(0,0,0,0.05)] lg:rounded-2xl">
-          {/* Content constrained by container */}
-          <div className="container mx-auto flex h-11 items-center justify-between px-4 sm:px-6 lg:h-13.25 lg:px-20">
+          {/* Header row — full width, no container max-width override */}
+          <div className="flex h-11 w-full items-center justify-between px-4 lg:h-13.25 lg:px-8">
             {/* Logo */}
             <a href="/" className="flex shrink-0 items-center no-underline hover:no-underline">
               <img src="/logo.png" alt="Elyxa.Ai" className="h-[26px] w-auto lg:h-[33px]" />
@@ -122,12 +121,12 @@ const PublicNavbar = () => {
             </div>
 
             {/* Mobile right side */}
-            <div className="flex items-center gap-[30px] lg:hidden">
+            <div className="flex items-center gap-5 lg:hidden">
               {!isAuthenticated && (
-                <div className="flex items-center gap-[20px]">
+                <div className="flex items-center gap-4">
                   <a
                     href="/signup"
-                    className="flex items-center justify-center rounded-[6px] bg-[#8022fe] px-[12px] py-[6px] font-['Inter',sans-serif] text-[12px] font-semibold text-white no-underline transition-colors hover:bg-[#6b1bdb] hover:no-underline"
+                    className="flex items-center justify-center rounded-[6px] bg-[#8022fe] px-3 py-1.5 font-['Inter',sans-serif] text-[12px] font-semibold text-white no-underline transition-colors hover:bg-[#6b1bdb] hover:no-underline"
                   >
                     Sign Up
                   </a>
@@ -153,9 +152,9 @@ const PublicNavbar = () => {
             </div>
           </div>
 
-          {/* Mobile dropdown */}
+          {/* Mobile dropdown — absolute card below the nav pill */}
           {isMobileMenuOpen && (
-            <div className="overflow-hidden border-t border-[#f2f2f2] lg:hidden">
+            <div className="absolute top-[calc(100%+4px)] -right-px -left-px z-50 overflow-hidden rounded-[14px] border border-[#f2f2f2] bg-[#fcfcfc] shadow-[0px_5.667px_11.334px_rgba(0,0,0,0.05)] lg:hidden">
               <div className="flex flex-col items-center gap-7.5 p-5">
                 {NAV_LINKS.map((link) => (
                   <a
