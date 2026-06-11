@@ -62,7 +62,7 @@ const PublicNavbar = () => {
         {/* Navbar bar — full width of the mx-5 area */}
         <nav className="relative rounded-xl border border-[#f2f2f2] bg-[#fcfcfc] shadow-[0px_5px_12.5px_rgba(0,0,0,0.05)] lg:rounded-2xl">
           {/* Header row — full width, no container max-width override */}
-          <div className="flex h-11 w-full items-center justify-between px-4 lg:h-13.25 lg:px-8">
+          <div className="container mx-auto flex h-11 items-center justify-between px-4 sm:px-6 lg:h-13.25 lg:px-20">
             {/* Logo */}
             <a href="/" className="flex shrink-0 items-center no-underline hover:no-underline">
               <img src="/logo.png" alt="Elyxa.Ai" className="h-[26px] w-auto lg:h-[33px]" />
