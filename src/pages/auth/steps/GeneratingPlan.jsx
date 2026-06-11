@@ -21,7 +21,7 @@ const GeneratingPlan = ({ progress }) => {
   const activeIdx = Math.min(Math.floor(progress / 20), 4);
 
   return (
-    <div className="mx-auto mt-10 flex w-full max-w-325 flex-col items-center gap-7.5 px-4 text-center sm:mt-0 sm:gap-12.5 sm:px-0">
+    <div className="mx-auto mt-10 flex w-full max-w-325 flex-col items-center gap-7.5 px-4 text-center sm:mt-16 sm:gap-12.5 sm:px-0">
       {/* Title */}
       <div className="flex flex-col items-center gap-2.5 sm:gap-7.5">
         <h1 className="font-['Inter',sans-serif] text-[26px] font-bold leading-[1.3] text-[#181818] sm:text-[clamp(32px,4vw,54px)]">
