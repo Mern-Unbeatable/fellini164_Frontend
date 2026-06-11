@@ -59,10 +59,11 @@ const PublicNavbar = () => {
         />
       )}
 
-      <div className="sticky top-0 z-50">
-        <div className="px-5 pt-5">
-          {/* Navbar bar */}
-          <nav className="relative flex items-center justify-between rounded-[12px] border border-[#f2f2f2] bg-[#fcfcfc] px-2 py-1.5 shadow-[0px_5px_12.5px_rgba(0,0,0,0.05)] lg:h-[53px] lg:rounded-[16px] lg:px-8 lg:py-0">
+      <div className="sticky top-0 z-50 mx-5 pt-5">
+        {/* Navbar bar — full width of the mx-5 area */}
+        <nav className="relative rounded-xl border border-[#f2f2f2] bg-[#fcfcfc] shadow-[0px_5px_12.5px_rgba(0,0,0,0.05)] lg:rounded-2xl">
+          {/* Content constrained by container */}
+          <div className="container mx-auto flex h-11 items-center justify-between px-4 sm:px-6 lg:h-13.25 lg:px-20">
             {/* Logo */}
             <a href="/" className="flex shrink-0 items-center no-underline hover:no-underline">
               <img src="/logo.png" alt="Elyxa.Ai" className="h-[26px] w-auto lg:h-[33px]" />
@@ -150,55 +151,55 @@ const PublicNavbar = () => {
                 )}
               </button>
             </div>
+          </div>
 
-            {/* Mobile dropdown */}
-            {isMobileMenuOpen && (
-              <div className="absolute left-[-1px] right-[-1px] top-[calc(100%+4px)] z-50 overflow-hidden rounded-[14px] border border-[#f2f2f2] bg-[#fcfcfc] shadow-[0px_5.667px_11.334px_rgba(0,0,0,0.05)] lg:hidden">
-                <div className="flex flex-col items-center gap-[30px] p-[20px]">
-                  {NAV_LINKS.map((link) => (
-                    <a
-                      key={link.label}
-                      href={link.href}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className={`font-['Inter',sans-serif] text-[14px] font-semibold no-underline transition-colors hover:text-[#8022fe] hover:no-underline ${
-                        isActive(link) ? 'text-[#8022fe]' : 'text-[#181818]'
-                      }`}
-                    >
-                      {link.label}
-                    </a>
-                  ))}
-                </div>
-                <div className="border-t border-[#f2f2f2] p-[16px]">
-                  {!isAuthenticated ? (
-                    <a
-                      href="/signup"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="flex w-full items-center justify-center rounded-[10px] border-2 border-[#8022fe] px-[20px] py-[12px] font-['Inter',sans-serif] text-[14px] font-semibold text-[#8022fe] no-underline transition-colors hover:bg-[#f9f4ff] hover:no-underline"
-                    >
-                      Get Your First Plan
-                    </a>
-                  ) : (
-                    <div className="flex flex-col gap-3">
-                      <a
-                        href={getDashboardPath()}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className="flex w-full items-center justify-center rounded-[10px] bg-[#8022fe] px-[20px] py-[12px] font-['Inter',sans-serif] text-[14px] font-semibold text-white no-underline hover:bg-[#6b1bdb] hover:no-underline"
-                      >
-                        Dashboard
-                      </a>
-                      <button
-                        onClick={handleLogout}
-                        className="flex w-full items-center justify-center rounded-[10px] border-2 border-[#8022fe] px-[20px] py-[12px] font-['Inter',sans-serif] text-[14px] font-semibold text-[#8022fe] transition-colors hover:bg-[#f9f4ff]"
-                      >
-                        Logout
-                      </button>
-                    </div>
-                  )}
-                </div>
+          {/* Mobile dropdown */}
+          {isMobileMenuOpen && (
+            <div className="overflow-hidden border-t border-[#f2f2f2] lg:hidden">
+              <div className="flex flex-col items-center gap-7.5 p-5">
+                {NAV_LINKS.map((link) => (
+                  <a
+                    key={link.label}
+                    href={link.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={`font-['Inter',sans-serif] text-[14px] font-semibold no-underline transition-colors hover:text-[#8022fe] hover:no-underline ${
+                      isActive(link) ? 'text-[#8022fe]' : 'text-[#181818]'
+                    }`}
+                  >
+                    {link.label}
+                  </a>
+                ))}
               </div>
-            )}
-          </nav>
-        </div>
+              <div className="border-t border-[#f2f2f2] p-4">
+                {!isAuthenticated ? (
+                  <a
+                    href="/signup"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex w-full items-center justify-center rounded-[10px] border-2 border-[#8022fe] px-5 py-3 font-['Inter',sans-serif] text-[14px] font-semibold text-[#8022fe] no-underline transition-colors hover:bg-[#f9f4ff] hover:no-underline"
+                  >
+                    Get Your First Plan
+                  </a>
+                ) : (
+                  <div className="flex flex-col gap-3">
+                    <a
+                      href={getDashboardPath()}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex w-full items-center justify-center rounded-[10px] bg-[#8022fe] px-5 py-3 font-['Inter',sans-serif] text-[14px] font-semibold text-white no-underline hover:bg-[#6b1bdb] hover:no-underline"
+                    >
+                      Dashboard
+                    </a>
+                    <button
+                      onClick={handleLogout}
+                      className="flex w-full items-center justify-center rounded-[10px] border-2 border-[#8022fe] px-5 py-3 font-['Inter',sans-serif] text-[14px] font-semibold text-[#8022fe] transition-colors hover:bg-[#f9f4ff]"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </nav>
       </div>
     </>
   );
