@@ -65,11 +65,11 @@ const PublicNavbar = () => {
           <div className="container mx-auto flex h-11 items-center justify-between px-4 sm:px-6 lg:h-13.25 lg:px-20">
             {/* Logo */}
             <a href="/" className="flex shrink-0 items-center no-underline hover:no-underline">
-              <img src="/logo.png" alt="Elyxa.Ai" className="h-[26px] w-auto lg:h-[33px]" />
+              <img src="/logo.png" alt="Elyxa.Ai" className="h-6.5 w-auto lg:h-8.25" />
             </a>
 
             {/* Desktop nav links */}
-            <div className="hidden items-center gap-[50px] lg:flex">
+            <div className="hidden items-center gap-12.5 lg:flex">
               {NAV_LINKS.map((link) => (
                 <a
                   key={link.label}
@@ -84,12 +84,12 @@ const PublicNavbar = () => {
             </div>
 
             {/* Desktop action links */}
-            <div className="hidden items-center gap-[30px] lg:flex">
+            <div className="hidden items-center gap-7.5 lg:flex">
               {!isAuthenticated ? (
                 <>
                   <a
                     href="/signup"
-                    className="flex items-center justify-center rounded-[8px] bg-[#8022fe] px-[16px] py-[8px] font-['Inter',sans-serif] text-[14px] font-semibold text-white no-underline transition-colors hover:bg-[#6b1bdb] hover:no-underline"
+                    className="flex items-center justify-center rounded-lg bg-[#8022fe] px-4 py-2 font-['Inter',sans-serif] text-[14px] font-semibold text-white no-underline transition-colors hover:bg-[#6b1bdb] hover:no-underline"
                   >
                     Sign Up
                   </a>
@@ -112,7 +112,7 @@ const PublicNavbar = () => {
                   </a>
                   <button
                     onClick={handleLogout}
-                    className="flex items-center justify-center rounded-[8px] bg-[#8022fe] px-[16px] py-[8px] font-['Inter',sans-serif] text-[14px] font-semibold text-white transition-colors hover:bg-[#6b1bdb]"
+                    className="flex items-center justify-center rounded-lg bg-[#8022fe] px-4 py-2 font-['Inter',sans-serif] text-[14px] font-semibold text-white transition-colors hover:bg-[#6b1bdb]"
                   >
                     Logout
                   </button>
@@ -126,7 +126,7 @@ const PublicNavbar = () => {
                 <div className="flex items-center gap-4">
                   <a
                     href="/signup"
-                    className="flex items-center justify-center rounded-[6px] bg-[#8022fe] px-3 py-1.5 font-['Inter',sans-serif] text-[12px] font-semibold text-white no-underline transition-colors hover:bg-[#6b1bdb] hover:no-underline"
+                    className="flex items-center justify-center rounded-md bg-[#8022fe] px-3 py-1.5 font-['Inter',sans-serif] text-[12px] font-semibold text-white no-underline transition-colors hover:bg-[#6b1bdb] hover:no-underline"
                   >
                     Sign Up
                   </a>
@@ -140,7 +140,7 @@ const PublicNavbar = () => {
               )}
               <button
                 onClick={toggleMobileMenu}
-                className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-[8px] bg-[#f9f4ff] transition-colors hover:bg-[#f0e8ff]"
+                className="flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded-lg bg-[#f9f4ff] transition-colors hover:bg-[#f0e8ff]"
                 aria-label="Toggle menu"
               >
                 {isMobileMenuOpen ? (
