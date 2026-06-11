@@ -69,7 +69,7 @@ const RegisterView = () => {
         <img
           src="/images/SignUp.png"
           alt="Auth Visual"
-          className="h-auto w-full  rounded-[20px] md:h-full md:rounded-[30px]"
+          className="h-auto w-full rounded-[20px] md:h-full md:rounded-[30px]"
         />
       </div>
 
