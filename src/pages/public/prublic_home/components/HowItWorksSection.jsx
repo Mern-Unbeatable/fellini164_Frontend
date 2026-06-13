@@ -88,18 +88,33 @@ const FAQS = [
 
 // ─── Section 1: Hero ──────────────────────────────────────────────────────────
 
+const BenefitTrackIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" className="shrink-0">
+    <path d="M9 1.5L10.5 6H15L11.5 8.5L13 13.5L9 11L5 13.5L6.5 8.5L3 6H7.5L9 1.5Z" stroke="#A3A3A3" strokeWidth="1.2" strokeLinejoin="round" />
+  </svg>
+);
+
+const BenefitInfinityIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" className="shrink-0">
+    <path d="M4.5 9C4.5 6.5 6 5 7.5 5C9 5 10.5 6.5 10.5 9C10.5 11.5 12 13 13.5 13C15 13 16.5 11.5 16.5 9C16.5 6.5 15 5 13.5 5" stroke="#A3A3A3" strokeWidth="1.3" strokeLinecap="round" />
+    <path d="M1.5 9C1.5 11.5 3 13 4.5 13C6 13 7.5 11.5 7.5 9C7.5 6.5 6 5 4.5 5C3 5 1.5 6.5 1.5 9Z" stroke="#A3A3A3" strokeWidth="1.3" strokeLinecap="round" />
+  </svg>
+);
+
+const BenefitChecklistIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" className="shrink-0">
+    <rect x="2.5" y="2.5" width="13" height="13" rx="2" stroke="#A3A3A3" strokeWidth="1.2" />
+    <path d="M5.5 9L7.5 11L12.5 6" stroke="#A3A3A3" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
 const HeroHIW = () => {
   const secRef = useRef(null);
   const h1Ref = useRef(null);
   const subRef = useRef(null);
   const ctaRef = useRef(null);
   const bensRef = useRef(null);
-  const glowRef = useRef(null);
-  const waveRef = useRef(null);
-  const lCard0 = useRef(null);
-  const lCard1 = useRef(null);
-  const lCard2 = useRef(null);
-  const rPanelRef = useRef(null);
+  const visualRef = useRef(null);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -108,178 +123,79 @@ const HeroHIW = () => {
         .from(subRef.current, { opacity: 0, y: 18, duration: 0.4 }, '-=0.1')
         .from(Array.from(ctaRef.current?.children ?? []), { opacity: 0, y: 12, duration: 0.35, stagger: 0.1 }, '-=0.05')
         .from(bensRef.current, { opacity: 0, y: 10, duration: 0.3 }, '-=0.05')
-        .from(glowRef.current, { opacity: 0, scale: 0.85, duration: 0.65 }, '-=0.15')
-        .from(waveRef.current, { opacity: 0, duration: 0.45 }, '-=0.35')
-        .from(lCard0.current, { opacity: 0, y: 16, duration: 0.4 }, '-=0.25')
-        .from(lCard1.current, { opacity: 0, y: 16, duration: 0.4 }, '-=0.2')
-        .from(lCard2.current, { opacity: 0, y: 16, duration: 0.4 }, '-=0.2')
-        .from(rPanelRef.current, { opacity: 0, y: 16, duration: 0.5 }, '-=0.3');
+        .from(visualRef.current, { opacity: 0, y: 20, duration: 0.6 }, '-=0.2');
     }, secRef);
     return () => ctx.revert();
   }, []);
 
   return (
-    <section ref={secRef} className="relative w-full overflow-hidden bg-white pt-16 pb-0">
-      {/* Text block */}
-      <div className="relative z-10 flex flex-col items-center gap-6 px-6 text-center">
-        <h1
-          ref={h1Ref}
-          className="font-['Inter',sans-serif] text-[36px] font-bold leading-[1.2] text-[#181818] sm:text-[46px] lg:text-[56px]"
-        >
-          Your plans should adapt to your{' '}
-          <span className="text-[#8022fe]">Life</span>.<br />
-          Not the other way <span className="text-[#8022fe]">Around</span>.
-        </h1>
+    <section ref={secRef} className="relative w-full overflow-hidden bg-white pb-[90px] pt-[50px]">
+      <div className="mx-auto flex max-w-[1300px] flex-col gap-10 px-5 lg:gap-20 lg:px-6 xl:px-0">
+        {/* Header */}
+        <div className="flex flex-col items-center gap-8 lg:gap-10">
+          <div className="flex w-full flex-col items-center gap-6 lg:gap-[30px]">
+            <div className="flex w-full flex-col items-center gap-6 lg:gap-[30px]">
+              <h1
+                ref={h1Ref}
+                className="text-center font-['Inter',sans-serif] text-[32px] font-bold leading-[1.3] text-[#181818] sm:text-[42px] lg:text-[54px]"
+              >
+                Your plans should adapt to your{' '}
+                <span className="text-[#8022fe]">Life</span>
+                <span className="text-[#14f1d9]">.</span>
+                <br />
+                Not the other way{' '}
+                <span className="text-[#8022fe]">Around</span>
+                <span className="text-[#14f1d9]">.</span>
+              </h1>
 
-        <p
-          ref={subRef}
-          className="max-w-[500px] font-['Inter',sans-serif] text-[15px] font-medium leading-relaxed text-[#888]"
-        >
-          Elyxa AI automatically adjusts your day when plans break —<br className="hidden sm:block" />
-          so you always know what to do next.
-        </p>
-
-        <div ref={ctaRef} className="flex flex-wrap items-center justify-center gap-3">
-          <Link to="/signup">
-            <button className="rounded-xl bg-[#8022fe] px-7 py-3 font-['Inter',sans-serif] text-[14px] font-semibold text-white shadow-[0_6px_20px_rgba(128,34,254,0.35)] transition-colors hover:bg-[#6b1bdb]">
-              Get Your First Plan
-            </button>
-          </Link>
-          <button className="rounded-xl border border-[#e5e5e5] px-7 py-3 font-['Inter',sans-serif] text-[14px] font-semibold text-[#181818] transition-colors hover:bg-[#f8f8f8]">
-            See How It Works
-          </button>
-        </div>
-
-        <div
-          ref={bensRef}
-          className="flex flex-wrap items-center justify-center gap-6 font-['Inter',sans-serif] text-[13px] font-medium text-[#aaa]"
-        >
-          {[
-            'Stay on track even when life gets shaky',
-            'Never wonder what to do next again',
-            'Know exactly what to do in any situation',
-          ].map((b) => (
-            <span key={b} className="flex items-center gap-1.5">
-              <PlanCheckIcon />
-              {b}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {/* Visual area */}
-      <div className="relative mt-10 h-[500px] w-full sm:h-[560px]">
-        {/* Glow */}
-        <div
-          ref={glowRef}
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
-          style={{
-            width: 340,
-            height: 340,
-            background: 'radial-gradient(circle, rgba(128,34,254,0.55) 0%, rgba(128,34,254,0.22) 45%, rgba(128,34,254,0.05) 70%, transparent 100%)',
-            filter: 'blur(18px)',
-          }}
-        />
-        {/* AI label */}
-        <div className="pointer-events-none absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 select-none font-['Inter',sans-serif] text-[24px] font-bold text-[#8022fe] opacity-60">
-          AI
-        </div>
-
-        {/* Wave lines */}
-        <svg
-          ref={waveRef}
-          className="pointer-events-none absolute inset-0 h-full w-full"
-          viewBox="0 0 1200 560"
-          preserveAspectRatio="xMidYMid meet"
-          fill="none"
-        >
-          <path d="M 280 255 C 360 215 440 295 520 255 C 575 228 615 265 640 258" stroke="#c9a8ff" strokeWidth="1.5" opacity="0.65" />
-          <path d="M 280 280 C 360 320 440 240 520 280 C 575 310 615 282 640 290" stroke="#c9a8ff" strokeWidth="1.5" opacity="0.4" />
-          <path d="M 660 260 C 700 245 760 272 820 256 C 880 240 940 268 1000 252" stroke="#c9a8ff" strokeWidth="1.5" opacity="0.65" />
-          <path d="M 660 292 C 700 308 760 278 820 294 C 880 310 940 282 1000 298" stroke="#c9a8ff" strokeWidth="1.5" opacity="0.4" />
-        </svg>
-
-        {/* Left floating kanban cards */}
-        <div className="absolute top-1/2 -translate-y-1/2" style={{ left: '6%' }}>
-          <div
-            ref={lCard0}
-            className="absolute rounded-2xl border border-[#f0f0f0] bg-white px-4 py-3 shadow-[0_4px_20px_rgba(0,0,0,0.08)]"
-            style={{ width: 172, transform: 'rotate(-17deg)', top: -55, left: 25 }}
-          >
-            <p className="font-['Inter',sans-serif] text-[11px] font-semibold text-[#181818]">Review Goals</p>
-            <p className="mt-0.5 font-['Inter',sans-serif] text-[9px] text-[#c2c2c2]">Tue, Dec 14 · 09:00</p>
-          </div>
-          <div
-            ref={lCard1}
-            className="absolute rounded-2xl border border-[#f0f0f0] bg-white px-4 py-3 shadow-[0_4px_20px_rgba(0,0,0,0.08)]"
-            style={{ width: 190, transform: 'rotate(-6deg)', top: 22, left: 0 }}
-          >
-            <p className="font-['Inter',sans-serif] text-[11px] font-semibold text-[#181818]">Maintain Fitness for Health</p>
-            <p className="mt-0.5 font-['Inter',sans-serif] text-[9px] text-[#c2c2c2]">11:00 AM</p>
-          </div>
-          <div
-            ref={lCard2}
-            className="absolute rounded-2xl border border-[#f0f0f0] bg-white px-4 py-3 shadow-[0_4px_20px_rgba(0,0,0,0.08)]"
-            style={{ width: 165, transform: 'rotate(6deg)', top: 115, left: 10 }}
-          >
-            <p className="font-['Inter',sans-serif] text-[11px] font-semibold text-[#181818]">Review</p>
-            <p className="mt-0.5 font-['Inter',sans-serif] text-[9px] text-[#c2c2c2]">2:00 PM</p>
-          </div>
-        </div>
-
-        {/* Right panel — To Do + Schedule */}
-        <div
-          ref={rPanelRef}
-          className="absolute top-1/2 -translate-y-1/2 flex flex-col gap-2.5"
-          style={{ right: '5%', width: 280 }}
-        >
-          {/* To Do card */}
-          <div className="rounded-2xl border border-[#f0f0f0] bg-white p-4 shadow-[0_4px_20px_rgba(0,0,0,0.06)]">
-            <div className="mb-3 flex items-center justify-between">
-              <p className="font-['Inter',sans-serif] text-[12px] font-bold text-[#181818]">To Do</p>
-              <div className="flex gap-1">
-                <div className="h-4 w-4 rounded-full bg-[#f5f5f5]" />
-                <div className="h-4 w-4 rounded-full bg-[#8022fe] opacity-25" />
-              </div>
+              <p
+                ref={subRef}
+                className="max-w-[470px] text-center font-['Inter',sans-serif] text-[14px] font-medium leading-normal text-[#181818] lg:text-[16px]"
+              >
+                Elyxa<span className="text-[#8022fe]">.Ai</span> automatically adjusts your day when plans break — so you always know what to do next
+              </p>
             </div>
-            {[
-              { name: 'Review Goals', time: 'Tue, Dec 14', done: true },
-              { name: 'User Testing', time: 'Tue, Dec 14', done: false },
-            ].map((t) => (
-              <div key={t.name} className="flex items-center gap-2 border-b border-[#f5f5f5] py-2 last:border-0">
-                <div className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${t.done ? 'border-[#8022fe] bg-[#8022fe]' : 'border-[#d9d9d9]'}`}>
-                  {t.done && (
-                    <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
-                      <path d="M1.5 4L3 5.5L6.5 2" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
-                    </svg>
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className={`truncate font-['Inter',sans-serif] text-[11px] font-medium ${t.done ? 'text-[#c2c2c2] line-through' : 'text-[#181818]'}`}>{t.name}</p>
-                  <p className="font-['Inter',sans-serif] text-[10px] text-[#c2c2c2]">{t.time}</p>
-                </div>
-              </div>
-            ))}
-            <button className="mt-2 flex items-center gap-1 font-['Inter',sans-serif] text-[11px] font-medium text-[#8022fe]">
-              <span className="text-base leading-none">+</span> Add Card
-            </button>
+
+            <div ref={ctaRef} className="flex flex-wrap items-center justify-center gap-4 lg:gap-5">
+              <Link to="/signup">
+                <button className="rounded-[10px] bg-[#8022fe] px-5 py-3 font-['Inter',sans-serif] text-[14px] font-semibold text-white transition-colors hover:bg-[#6b1bdb] lg:text-[16px]">
+                  Get Your First Plan
+                </button>
+              </Link>
+              <button className="rounded-[10px] border-2 border-[#8022fe] bg-[rgba(128,34,254,0.05)] px-5 py-3 font-['Inter',sans-serif] text-[14px] font-semibold text-[#8022fe] transition-colors hover:bg-[rgba(128,34,254,0.1)] lg:text-[16px]">
+                See How It Works
+              </button>
+            </div>
           </div>
 
-          {/* Schedule card */}
-          <div className="rounded-2xl border border-[#f0f0f0] bg-white p-4 shadow-[0_4px_20px_rgba(0,0,0,0.06)]">
-            <p className="mb-2 font-['Inter',sans-serif] text-[12px] font-bold text-[#181818]">Schedule</p>
+          <div
+            ref={bensRef}
+            className="flex w-full flex-col items-center gap-4 border-t border-[#f2f2f2] pt-6 sm:flex-row sm:flex-wrap sm:justify-center sm:gap-8 lg:gap-[70px] lg:pt-[30px]"
+          >
             {[
-              { time: '9:00 AM', task: 'Morning Mindfulness', tag: 'Health' },
-              { time: '10:30 AM', task: 'Team Standup', tag: 'Work' },
-              { time: '2:00 PM', task: 'Focus Block', tag: 'Deep Work' },
-            ].map((r) => (
-              <div key={r.time} className="flex items-center gap-2 border-b border-[#f5f5f5] py-1.5 last:border-0">
-                <p className="w-16 shrink-0 font-['Inter',sans-serif] text-[10px] font-medium text-[#c2c2c2]">{r.time}</p>
-                <p className="flex-1 truncate font-['Inter',sans-serif] text-[11px] font-medium text-[#181818]">{r.task}</p>
-                <span className="shrink-0 rounded-full bg-[#f0e8ff] px-2 py-0.5 font-['Inter',sans-serif] text-[9px] font-medium text-[#8022fe]">{r.tag}</span>
-              </div>
+              { icon: <BenefitTrackIcon />, text: 'Stay on track even when life gets messy' },
+              { icon: <BenefitInfinityIcon />, text: 'Never restart your plans again' },
+              { icon: <BenefitChecklistIcon />, text: 'Know exactly what to do next' },
+            ].map(({ icon, text }) => (
+              <span key={text} className="flex items-center gap-2 font-['Inter',sans-serif] text-[13px] font-normal text-[#a3a3a3] lg:text-[14px]">
+                {icon}
+                {text}
+              </span>
             ))}
           </div>
+        </div>
+
+        {/* Hero visual — Figma export for pixel-perfect match */}
+        <div
+          ref={visualRef}
+          className="relative mx-auto h-[280px] w-full max-w-[1300px] sm:h-[400px] lg:h-[600px]"
+        >
+          <img
+            src="/images/how-it-works/hiw-hero-visual.png"
+            alt="Elyxa AI transforms scattered tasks into an organized daily schedule"
+            className="h-full w-full object-contain object-center"
+            draggable={false}
+          />
         </div>
       </div>
     </section>
@@ -501,8 +417,8 @@ const ConflictSchedule = () => (
   </div>
 );
 
-const AdaptedScheduleMockup = () => (
-  <div className="mt-4 flex overflow-hidden rounded-xl border border-[#f0f0f0] shadow-sm" style={{ height: 255 }}>
+const AdaptedScheduleMockup = ({ className = '', style }) => (
+  <div className={`flex overflow-hidden rounded-xl border border-[#f0f0f0] shadow-sm ${className}`} style={style ?? { height: 255 }}>
     <div className="flex w-7 shrink-0 flex-col items-center gap-2 bg-[#181818] py-2">
       <div className="flex h-4 w-4 items-center justify-center rounded bg-[#8022fe]">
         <span style={{ fontSize: 6, color: 'white', fontWeight: 700 }}>E</span>
@@ -557,6 +473,84 @@ const AdaptedScheduleMockup = () => (
   </div>
 );
 
+const PlanDayVisual = () => (
+  <div className="flex h-[280px] w-[520px] overflow-hidden rounded-2xl bg-[#f3f4f6] shadow-[-16px_0_16px_rgba(0,0,0,0.05)] sm:h-[320px] sm:w-[580px] lg:h-[292px] lg:w-[520px]">
+    <AppSidebar />
+    <DailyEmpty />
+  </div>
+);
+
+const LifeHappensVisual = () => (
+  <div className="h-[280px] w-[520px] overflow-hidden rounded-2xl bg-white p-4 shadow-[-16px_0_16px_rgba(0,0,0,0.05)] sm:h-[320px] sm:w-[580px] lg:h-[292px] lg:w-[520px]">
+    <ConflictSchedule />
+  </div>
+);
+
+const HIWStepCard = ({ cardRef, number, title, body, variant, visual }) => {
+  const isAdaptCard = variant === '03';
+
+  return (
+    <div
+      ref={cardRef}
+      className={`relative overflow-hidden border border-[#f2f2f2] bg-[#fcfcfc] ${
+        isAdaptCard
+          ? 'flex flex-col rounded-2xl px-5 pb-[350px] pt-5 lg:h-[720px] lg:rounded-[20px] lg:p-[30px]'
+          : 'h-[300px] rounded-2xl p-5 lg:h-[350px] lg:rounded-[20px] lg:p-[30px]'
+      }`}
+    >
+      {/* Header row */}
+      <div className={`relative z-10 flex items-start gap-6 lg:gap-[50px] ${isAdaptCard ? 'lg:mb-5' : ''}`}>
+        <div className={`flex flex-1 flex-col gap-1.5 lg:gap-2.5 ${!isAdaptCard ? 'lg:h-full lg:max-w-[230px] lg:justify-between' : ''}`}>
+          <div className="flex flex-col gap-1.5 lg:gap-2.5">
+            <h3 className="font-['Inter',sans-serif] text-[18px] font-semibold leading-[1.3] text-[#181818] lg:text-[24px]">
+              {title}
+            </h3>
+            <p className="font-['Inter',sans-serif] text-[14px] font-medium leading-[1.5] text-[#181818] lg:text-[16px]">
+              {body}
+            </p>
+          </div>
+
+          {isAdaptCard && (
+            <Link to="/signup" className="mt-3 lg:mt-0">
+              <button className="w-full rounded-[10px] bg-[#8022fe] px-5 py-3 font-['Inter',sans-serif] text-[14px] font-semibold text-white transition-colors hover:bg-[#6b1bdb] lg:w-auto lg:px-5 lg:py-3 lg:text-[16px]">
+                Get Your First Plan
+              </button>
+            </Link>
+          )}
+
+          {!isAdaptCard && (
+            <p className="hidden select-none font-['Inter',sans-serif] text-[54px] font-bold leading-[1.3] text-[#f2f2f2] lg:block">
+              {number}
+            </p>
+          )}
+        </div>
+
+        <p className="select-none font-['Inter',sans-serif] text-[40px] font-bold leading-[1.3] text-[#f2f2f2] lg:hidden">
+          {number}
+        </p>
+      </div>
+
+      {/* Card 03 desktop number — top-right */}
+      {isAdaptCard && (
+        <p className="absolute right-[30px] top-[30px] hidden select-none font-['Inter',sans-serif] text-[54px] font-bold leading-[1.3] text-[#f2f2f2] lg:block">
+          {number}
+        </p>
+      )}
+
+      {/* Visual mockup */}
+      <div
+        className={
+          isAdaptCard
+            ? 'absolute bottom-0 left-5 right-5 lg:relative lg:mt-auto lg:flex lg:flex-1 lg:flex-col'
+            : 'absolute left-5 top-[110px] lg:left-auto lg:right-[-40%] lg:top-[29px] xl:right-[-53%]'
+        }
+      >
+        {visual}
+      </div>
+    </div>
+  );
+};
+
 const AdaptsSection = () => {
   const secRef = useRef(null);
   const headRef = useRef(null);
@@ -581,77 +575,46 @@ const AdaptsSection = () => {
   }, []);
 
   return (
-    <section ref={secRef} className="w-full bg-[#fcfcfc] px-6 py-20 lg:px-24">
+    <section ref={secRef} className="w-full bg-white px-5 py-[50px] lg:px-6 lg:py-[90px] xl:px-24">
       <div className="mx-auto max-w-[1300px]">
-        <div ref={headRef} className="mb-10">
-          <h2 className="font-['Inter',sans-serif] text-[28px] font-bold leading-tight text-[#181818] sm:text-[36px] lg:text-[42px]">
+        <div ref={headRef} className="mb-6 flex flex-col gap-3.5 lg:mb-10 lg:gap-5">
+          <h2 className="font-['Inter',sans-serif] text-[22px] font-bold leading-[1.3] text-[#181818] lg:text-[34px]">
             How Elyxa adapts to your <span className="text-[#8022fe]">Life</span>
             <span className="text-[#14f1d9]">.</span>
           </h2>
-          <p className="mt-3 font-['Inter',sans-serif] text-[15px] font-medium text-[#888]">
+          <p className="font-['Inter',sans-serif] text-[14px] font-medium leading-[1.5] text-[#181818] lg:text-[16px]">
             Your plan updates itself when things don't go as expected.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-          {/* Left column: two stacked cards */}
+        <div className="flex flex-col gap-5 lg:grid lg:grid-cols-2 lg:items-start">
           <div className="flex flex-col gap-5">
-            {/* Card 01 */}
-            <div ref={c1Ref} className="relative overflow-hidden rounded-2xl border border-[#f0f0f0] bg-white shadow-[0_2px_16px_rgba(0,0,0,0.04)]" style={{ minHeight: 220 }}>
-              <div className="flex h-full">
-                <div className="flex flex-col justify-between p-7 pr-4" style={{ flex: '0 0 44%' }}>
-                  <div>
-                    <h3 className="mb-2 font-['Inter',sans-serif] text-[20px] font-bold text-[#181818]">Plan your day</h3>
-                    <p className="font-['Inter',sans-serif] text-[14px] font-medium leading-relaxed text-[#888]">
-                      Add tasks and plan your day in seconds.
-                    </p>
-                  </div>
-                  <p className="select-none font-['Inter',sans-serif] text-[48px] font-bold leading-none text-[#f0f0f0]">01</p>
-                </div>
-                <div className="flex flex-1 overflow-hidden rounded-r-2xl border-l border-[#f0f0f0]">
-                  <AppSidebar />
-                  <DailyEmpty />
-                </div>
-              </div>
-            </div>
-
-            {/* Card 02 */}
-            <div ref={c2Ref} className="relative overflow-hidden rounded-2xl border border-[#f0f0f0] bg-white shadow-[0_2px_16px_rgba(0,0,0,0.04)]" style={{ minHeight: 220 }}>
-              <div className="flex h-full">
-                <div className="flex flex-col justify-between p-7 pr-4" style={{ flex: '0 0 44%' }}>
-                  <div>
-                    <h3 className="mb-2 font-['Inter',sans-serif] text-[20px] font-bold text-[#181818]">Life happens</h3>
-                    <p className="font-['Inter',sans-serif] text-[14px] font-medium leading-relaxed text-[#888]">
-                      Meetings run late. Plans shift. Things break.
-                    </p>
-                  </div>
-                  <p className="select-none font-['Inter',sans-serif] text-[48px] font-bold leading-none text-[#f0f0f0]">02</p>
-                </div>
-                <div className="flex flex-1 items-center overflow-hidden rounded-r-2xl border-l border-[#f0f0f0] p-4">
-                  <ConflictSchedule />
-                </div>
-              </div>
-            </div>
+            <HIWStepCard
+              cardRef={c1Ref}
+              number="01"
+              title="Plan your day"
+              body="Add tasks and plan your day in seconds."
+              variant="01"
+              visual={<PlanDayVisual />}
+            />
+            <HIWStepCard
+              cardRef={c2Ref}
+              number="02"
+              title="Life happens"
+              body="Meetings run late. Plans shift. Things break."
+              variant="02"
+              visual={<LifeHappensVisual />}
+            />
           </div>
 
-          {/* Card 03 — tall right card */}
-          <div ref={c3Ref} className="relative overflow-hidden rounded-2xl border border-[#f0f0f0] bg-white p-7 shadow-[0_2px_16px_rgba(0,0,0,0.04)]">
-            <div className="flex items-start justify-between">
-              <div>
-                <h3 className="mb-2 font-['Inter',sans-serif] text-[22px] font-bold text-[#181818]">Elyxa adapts</h3>
-                <p className="mb-5 max-w-[300px] font-['Inter',sans-serif] text-[14px] font-medium leading-relaxed text-[#888]">
-                  Your schedule updates automatically — no manual fixes.
-                </p>
-                <Link to="/signup">
-                  <button className="rounded-xl bg-[#8022fe] px-6 py-2.5 font-['Inter',sans-serif] text-[14px] font-semibold text-white shadow-[0_4px_14px_rgba(128,34,254,0.3)] transition-colors hover:bg-[#6b1bdb]">
-                    Get Your First Plan
-                  </button>
-                </Link>
-              </div>
-              <p className="select-none font-['Inter',sans-serif] text-[48px] font-bold leading-none text-[#f0f0f0]">03</p>
-            </div>
-            <AdaptedScheduleMockup />
-          </div>
+          <HIWStepCard
+            cardRef={c3Ref}
+            number="03"
+            title="Elyxa adapts"
+            body="Your schedule updates automatically — no manual fixes."
+            variant="03"
+            visual={<AdaptedScheduleMockup className="h-[280px] w-full lg:h-[calc(100%-140px)] lg:min-h-[480px]" />}
+          />
         </div>
       </div>
     </section>
