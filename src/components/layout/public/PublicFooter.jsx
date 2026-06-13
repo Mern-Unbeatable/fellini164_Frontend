@@ -69,7 +69,7 @@ const ApplePayIcon = () => (
 const PublicFooter = () => {
   return (
     <footer className="w-full border-t border-[#f0f0f0] bg-[#fcfcfc]">
-      <div className="mx-auto max-w-325 px-6 py-14 lg:px-24">
+      <div className="container mx-auto px-4 py-14 sm:px-6 lg:px-20">
         <div className="flex flex-col gap-12 lg:flex-row lg:items-start lg:gap-20">
 
           {/* Left: Logo + copyright + payment icons */}
