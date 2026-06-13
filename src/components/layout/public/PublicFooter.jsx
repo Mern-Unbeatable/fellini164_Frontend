@@ -39,68 +39,78 @@ const COLUMNS = [
   },
 ];
 
+/* Stripe "S" icon — circle with stylised S path */
 const StripeIcon = () => (
-  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#f0f0f0]">
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path
-        d="M7.2 5.4C7.2 4.96 7.56 4.68 8.12 4.68C9.04 4.68 9.96 5.04 10.76 5.64L11.64 3.6C10.76 3 9.56 2.6 8.12 2.6C5.96 2.6 4.44 3.84 4.44 5.56C4.44 8.76 8.96 8.24 8.96 9.68C8.96 10.2 8.52 10.48 7.88 10.48C6.84 10.48 5.72 10.04 4.84 9.32L3.92 11.36C4.88 12.12 6.24 12.6 7.8 12.6C10.08 12.6 11.68 11.4 11.68 9.6C11.72 6.12 7.2 6.76 7.2 5.4Z"
-        fill="#635BFF"
-      />
-    </svg>
-  </div>
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect width="20" height="20" rx="4" fill="#F0EFFF" />
+    <path
+      d="M9.74 8.57c-1.54-.4-2.04-.8-2.04-1.43 0-.72.67-1.22 1.79-1.22 1.18 0 1.62.56 1.66 1.39h1.47c-.05-1.14-.74-2.18-2.13-2.52V3.33H9.07v1.44C7.78 5.04 6.75 5.87 6.75 7.16c0 1.54 1.27 2.3 3.13 2.75 1.7.4 2.04.99 2.04 1.6 0 .46-.33 1.19-1.79 1.19-1.37 0-1.9-.61-1.98-1.39H6.68c.09 1.45 1.17 2.26 2.39 2.52v1.44h1.46v-1.42c1.3-.25 2.32-1 2.32-2.36 0-1.89-1.61-2.53-3.11-2.92z"
+      fill="#635BFF"
+    />
+  </svg>
 );
 
+/* Apple Pay — apple logo + "Pay" text */
 const ApplePayIcon = () => (
   <div className="flex items-center gap-1">
-    <svg width="18" height="22" viewBox="0 0 18 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="14" height="17" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path
-        d="M14.5 11.4C14.5 9.3 15.9 8.2 16 8.1C15 6.7 13.5 6.5 12.9 6.5C11.6 6.4 10.4 7.3 9.7 7.3C9 7.3 8 6.5 6.9 6.5C5.4 6.5 4 7.4 3.2 8.8C1.6 11.6 2.8 15.6 4.3 17.8C5.1 18.9 6 20.1 7.3 20C8.6 19.9 9.1 19.2 10.4 19.2C11.7 19.2 12.2 20 13.5 20C14.8 20 15.6 18.9 16.4 17.8C17.1 16.8 17.4 15.8 17.4 15.7C17.4 15.7 14.5 14.6 14.5 11.4Z"
-        fill="#181818"
-      />
-      <path
-        d="M12 4.8C12.7 3.9 13.1 2.8 13 1.6C12 1.7 10.8 2.3 10 3.2C9.3 4 8.8 5.1 8.9 6.2C9.9 6.3 11 5.7 12 4.8Z"
+        d="M11.56 8.78c-.02-1.78 1.46-2.64 1.52-2.68-0.83-1.21-2.12-1.38-2.57-1.4-1.09-.11-2.13.64-2.69.64-.56 0-1.42-.63-2.34-.61-1.2.02-2.31.7-2.93 1.77C1.1 8.68 1.9 12.3 3.3 14.27c.69.99 1.51 2.1 2.59 2.06 1.04-.04 1.43-.67 2.69-.67 1.26 0 1.61.67 2.7.65 1.12-.02 1.83-1.01 2.51-2 .8-1.14 1.12-2.25 1.14-2.31-.03-.01-2.35-.9-2.37-3.22zM9.7 3.12c.57-.69.95-1.65.85-2.61-.82.03-1.81.55-2.4 1.23-.52.6-.99 1.57-.86 2.5.91.07 1.85-.46 2.41-1.12z"
         fill="#181818"
       />
     </svg>
-    <span className="font-['Inter',sans-serif] text-[14px] font-semibold text-[#181818]">Pay</span>
+    <span
+      className="font-['Inter',sans-serif] text-[14px] font-semibold leading-none text-[#181818]"
+    >
+      Pay
+    </span>
   </div>
 );
 
 const PublicFooter = () => {
   return (
-    <footer className="w-full border-t border-[#f0f0f0] bg-[#fcfcfc]">
+    <footer className="w-full border-t border-[#f2f2f2] bg-[#fcfcfc]">
       <div className="container mx-auto px-4 py-14 sm:px-6 lg:px-20">
-        <div className="flex flex-col gap-12 lg:flex-row lg:items-start lg:gap-20">
 
-          {/* Left: Logo + copyright + payment icons */}
-          <div className="flex flex-col gap-6 lg:w-60 lg:shrink-0">
-            <a href="/" className="inline-flex items-center no-underline">
-              <img src="/logo.png" alt="Elyxa.Ai" className="h-8 w-auto" />
-            </a>
+        {/* Main row: left brand block + right columns */}
+        <div className="flex flex-col gap-12 lg:flex-row lg:items-stretch lg:justify-between">
 
-            <p className="font-['Inter',sans-serif] text-[13px] font-medium leading-[1.7] text-[#c2c2c2]">
-              © 2026 Elyxa AI LLC.<br />All rights reserved.
-            </p>
+          {/* ── Left: logo top, payment bottom ── */}
+          <div className="flex flex-col items-start justify-between gap-8 lg:gap-0">
+            {/* Logo + copyright */}
+            <div className="flex flex-col gap-5">
+              <a href="/" className="inline-flex items-center no-underline">
+                <img src="/logo.png" alt="Elyxa.Ai" className="h-8.25 w-auto" />
+              </a>
+              <p className="font-['Inter',sans-serif] text-[14px] font-normal leading-normal text-[#c2c2c2]">
+                © 2026 Elyxa AI LLC.{' '}
+                <br />
+                All rights reserved.
+              </p>
+            </div>
 
+            {/* Payment icons */}
             <div className="flex items-center gap-3">
               <StripeIcon />
               <ApplePayIcon />
             </div>
           </div>
 
-          {/* Right: 4 link columns */}
-          <div className="grid flex-1 grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-4">
+          {/* ── Right: 4 link columns ── */}
+          <div className="grid grid-cols-2 gap-x-10 gap-y-10 sm:flex sm:flex-row sm:gap-15 lg:gap-25">
             {COLUMNS.map((col) => (
-              <div key={col.heading} className="flex flex-col gap-4">
-                <p className="font-['Inter',sans-serif] text-[12px] font-semibold uppercase tracking-[0.06em] text-[#c2c2c2]">
+              <div key={col.heading} className="flex flex-col gap-7.5">
+                {/* Column heading */}
+                <p className="font-['Inter',sans-serif] text-[14px] font-normal leading-none text-[#c2c2c2]">
                   {col.heading}
                 </p>
-                <div className="flex flex-col gap-3">
+                {/* Links */}
+                <div className="flex flex-col gap-5">
                   {col.links.map((link) => (
                     <a
                       key={link.label}
                       href={link.href}
-                      className={`font-['Inter',sans-serif] text-[14px] font-medium no-underline transition-colors hover:text-[#8022fe] hover:no-underline ${
+                      className={`font-['Inter',sans-serif] text-[14px] font-semibold leading-none no-underline transition-colors hover:text-[#8022fe] hover:no-underline ${
                         link.purple ? 'text-[#8022fe]' : 'text-[#181818]'
                       }`}
                     >
