@@ -277,7 +277,7 @@ const PricingCard = ({ plan }) => {
 };
 
 const PricingSection = () => {
-  const [billing, setBilling] = useState('monthly');
+  const [billing, setBilling] = useState('yearly');
   const plans = billing === 'yearly' ? YEARLY_PLANS : MONTHLY_PLANS;
 
   return (

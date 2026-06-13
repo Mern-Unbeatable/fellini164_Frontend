@@ -6,6 +6,7 @@ import UserLayout from '../components/layout/user/UserLayout';
 import AuthLayout from '../components/layout/auth/AuthLayout';
 import ProtectedRoute from './ProtectedRoute';
 import HomeView from '../pages/public/prublic_home/HomeView';
+import HowItWorksSection from '../pages/public/prublic_home/components/HowItWorksSection';
 import NotFoundView from '../pages/error/NotFoundView';
 import ServicesView from '../pages/public/public_services/ServicesView';
 import ContactView from '../pages/public/prublic_contact/ContactView';
@@ -50,6 +51,7 @@ const router = createBrowserRouter(
       {/* Public Routes */}
       <Route element={<PublicLayout />}>
         <Route path="/" element={<HomeView />} />
+        <Route path="/how-it-works" element={<HowItWorksSection />} />
         <Route path="/pricing" element={<PricingView />} />
         <Route path="/faq" element={<FAQView />} />
         <Route path="/contact" element={<ContactView />} />

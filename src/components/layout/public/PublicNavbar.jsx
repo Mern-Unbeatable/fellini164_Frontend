@@ -6,7 +6,7 @@ import { selectIsAuthenticated, selectUser, logout } from '../../../features/aut
 
 const NAV_LINKS = [
   { label: 'Pricing', href: '/pricing', path: '/pricing' },
-  { label: 'How It Works', href: '/#how-it-works', path: '/', hash: '#how-it-works' },
+  { label: 'How It Works', href: '/how-it-works', path: '/how-it-works' },
   { label: 'FAQ', href: '/faq', path: '/faq' },
   { label: 'Contact Us', href: '/contact', path: '/contact' },
 ];
