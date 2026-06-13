@@ -7,7 +7,7 @@ const COLUMNS = [
       { label: 'Features', href: '/features' },
       { label: 'Pricing', href: '/pricing' },
       { label: 'How It Works', href: '/how-it-works' },
-      { label: 'Roadmap', href: '/roadmap', purple: true },
+      { label: 'Roadmap', href: '/roadmap' },
       { label: 'Early Access', href: '/early-access' },
     ],
   },
@@ -80,7 +80,7 @@ const PublicFooter = () => {
             {/* Logo + copyright */}
             <div className="flex flex-col gap-5">
               <a href="/" className="inline-flex items-center no-underline">
-                <img src="/logo.png" alt="Elyxa.Ai" className="h-8.25 w-auto" />
+                <img src="/logo.png" alt="Elyxa.Ai" className="h-11 w-auto" />
               </a>
               <p className="font-['Inter',sans-serif] text-[14px] font-normal leading-normal text-[#c2c2c2]">
                 © 2026 Elyxa AI LLC.{' '}
@@ -110,9 +110,7 @@ const PublicFooter = () => {
                     <a
                       key={link.label}
                       href={link.href}
-                      className={`font-['Inter',sans-serif] text-[14px] font-semibold leading-none no-underline transition-colors hover:text-[#8022fe] hover:no-underline ${
-                        link.purple ? 'text-[#8022fe]' : 'text-[#181818]'
-                      }`}
+                      className="font-['Inter',sans-serif] text-[14px] font-semibold leading-none text-[#181818] no-underline transition-colors hover:text-[#8022fe] hover:no-underline"
                     >
                       {link.label}
                     </a>
