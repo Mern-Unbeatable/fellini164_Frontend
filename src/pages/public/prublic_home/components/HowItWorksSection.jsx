@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Link } from 'react-router-dom';
+import { PiCompass, PiInfinity } from 'react-icons/pi';
+import { MdChecklist } from 'react-icons/md';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -229,51 +231,10 @@ const FAQS = [
 
 // ─── Section 1: Hero ──────────────────────────────────────────────────────────
 
-const BenefitTrackIcon = ({ size = 18 }) => (
-  <svg width={size} height={size} viewBox="0 0 18 18" fill="none" className="shrink-0">
-    <path
-      d="M9 1.5L10.5 6H15L11.5 8.5L13 13.5L9 11L5 13.5L6.5 8.5L3 6H7.5L9 1.5Z"
-      stroke="#A3A3A3"
-      strokeWidth="1.2"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-
-const BenefitInfinityIcon = ({ size = 18 }) => (
-  <svg width={size} height={size} viewBox="0 0 18 18" fill="none" className="shrink-0">
-    <path
-      d="M4.5 9C4.5 6.5 6 5 7.5 5C9 5 10.5 6.5 10.5 9C10.5 11.5 12 13 13.5 13C15 13 16.5 11.5 16.5 9C16.5 6.5 15 5 13.5 5"
-      stroke="#A3A3A3"
-      strokeWidth="1.3"
-      strokeLinecap="round"
-    />
-    <path
-      d="M1.5 9C1.5 11.5 3 13 4.5 13C6 13 7.5 11.5 7.5 9C7.5 6.5 6 5 4.5 5C3 5 1.5 6.5 1.5 9Z"
-      stroke="#A3A3A3"
-      strokeWidth="1.3"
-      strokeLinecap="round"
-    />
-  </svg>
-);
-
-const BenefitChecklistIcon = ({ size = 18 }) => (
-  <svg width={size} height={size} viewBox="0 0 18 18" fill="none" className="shrink-0">
-    <rect x="2.5" y="2.5" width="13" height="13" rx="2" stroke="#A3A3A3" strokeWidth="1.2" />
-    <path
-      d="M5.5 9L7.5 11L12.5 6"
-      stroke="#A3A3A3"
-      strokeWidth="1.2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-
 const HERO_BENEFITS = [
-  { icon: BenefitTrackIcon, text: 'Stay on track even when life gets messy' },
-  { icon: BenefitInfinityIcon, text: 'Never restart your plans again' },
-  { icon: BenefitChecklistIcon, text: 'Know exactly what to do next' },
+  { icon: PiCompass, text: 'Stay on track even when life gets messy' },
+  { icon: PiInfinity, text: 'Never restart your plans again' },
+  { icon: MdChecklist, text: 'Know exactly what to do next' },
 ];
 
 const HeroHIW = () => {
@@ -365,7 +326,7 @@ const HeroHIW = () => {
                   <BenefitIcon size={16} />
                 </span>
                 <span className="hidden lg:inline">
-                  <BenefitIcon size={18} />
+                  <BenefitIcon size={18} className="text-purple-300" />
                 </span>
                 {text}
               </span>
