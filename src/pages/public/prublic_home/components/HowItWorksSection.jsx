@@ -323,10 +323,10 @@ const HeroHIW = () => {
                 className="flex items-center gap-1.5 font-['Inter',sans-serif] text-[12px] font-normal text-[#a3a3a3] lg:gap-2 lg:text-[14px]"
               >
                 <span className="lg:hidden">
-                  <BenefitIcon size={16} />
+                  <BenefitIcon size={16} className="text-[#8022fe]" />
                 </span>
                 <span className="hidden lg:inline">
-                  <BenefitIcon size={18} className="text-purple-300" />
+                  <BenefitIcon size={18} className="text-[#8022fe]" />
                 </span>
                 {text}
               </span>
