@@ -1038,7 +1038,7 @@ const HabitWorkflowIcon = () => <HiArrowPathRoundedSquare className="h-6 w-6 tex
 const NotesWorkflowIcon = () => <PiFileDuotone className="h-6 w-6 text-purple-600" />;
 
 const WorkflowSolutionIcon = () => (
-  <img src="/images/how-it-works/Arrow.png" alt="Workflow Solution Icon"  />
+  <img src="/images/how-it-works/Arrow.png" alt="Workflow Solution Icon" />
 );
 
 const MISSING_ROWS = [
@@ -1324,7 +1324,14 @@ const FINAL_CTA_SHADOW =
   'shadow-[0px_171px_48px_0px_rgba(0,0,0,0),0px_109px_44px_0px_rgba(0,0,0,0),0px_61px_37px_0px_rgba(0,0,0,0.01),0px_27px_27px_0px_rgba(0,0,0,0.02),0px_7px_15px_0px_rgba(0,0,0,0.02)]';
 
 const SparkleIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true" className="shrink-0">
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 18 18"
+    fill="none"
+    aria-hidden="true"
+    className="shrink-0"
+  >
     <path
       d="M9 1.5L10.5 6H15L11.25 8.625L12.75 13.5L9 10.875L5.25 13.5L6.75 8.625L3 6H7.5L9 1.5Z"
       stroke="#5D5D5D"
@@ -1361,15 +1368,18 @@ export const FinalCTASection = () => {
   return (
     <div ref={cardRef} className="relative z-20 w-full">
       <div
-        className={`relative overflow-hidden rounded-[20px] bg-[#181818] px-5 pb-[190px] pt-5 lg:h-[319px] lg:rounded-[30px] lg:p-[50px] lg:pb-[50px] ${FINAL_CTA_SHADOW}`}
+        className={`relative overflow-hidden rounded-[20px] bg-[#181818] px-5 pt-5 pb-[190px] lg:h-[319px] lg:rounded-[30px] lg:p-[50px] lg:pb-[50px] ${FINAL_CTA_SHADOW}`}
       >
-        <div ref={textRef} className="relative z-10 flex w-full flex-col gap-5 lg:max-w-[640px] lg:gap-[50px]">
+        <div
+          ref={textRef}
+          className="relative z-10 flex w-full flex-col gap-5 lg:max-w-[640px] lg:gap-[50px]"
+        >
           <div className="flex flex-col gap-3.5 lg:gap-5">
-            <h2 className="font-['Inter',sans-serif] text-[22px] font-bold leading-[1.3] text-white lg:text-[34px]">
+            <h2 className="font-['Inter',sans-serif] text-[22px] leading-[1.3] font-bold text-white lg:text-[34px]">
               Your plans should adapt to <span className="text-[#8022fe]">You</span>
               <span className="text-[#14f1d9]">.</span>
             </h2>
-            <p className="font-['Inter',sans-serif] text-sm font-medium leading-normal text-white lg:text-base">
+            <p className="font-['Inter',sans-serif] text-sm leading-normal font-medium text-white lg:text-base">
               Elyxa adjusts your day as things change — so you always know what to do next.
             </p>
           </div>
@@ -1385,14 +1395,14 @@ export const FinalCTASection = () => {
             </Link>
             <div className="flex items-center gap-1">
               <SparkleIcon />
-              <p className="font-['Inter',sans-serif] text-xs font-normal leading-none text-[#5d5d5d] lg:text-sm">
+              <p className="font-['Inter',sans-serif] text-xs leading-none font-normal text-[#5d5d5d] lg:text-sm">
                 Takes less than a minute
               </p>
             </div>
           </div>
         </div>
 
-        <div className="pointer-events-none absolute bottom-0 left-1/2 w-[320px] max-w-none -translate-x-1/2 overflow-hidden rounded-[15.6px] drop-shadow-[-8px_0px_14.39px_rgba(255,255,255,0.05)] lg:bottom-auto lg:left-auto lg:right-[-99px] lg:top-[50px] lg:w-[650px] lg:translate-x-0">
+        <div className="pointer-events-none absolute bottom-0 left-1/2 w-[320px] max-w-none -translate-x-1/2 overflow-hidden rounded-[15.6px] drop-shadow-[-8px_0px_14.39px_rgba(255,255,255,0.05)] lg:top-[50px] lg:right-[-99px] lg:bottom-auto lg:left-auto lg:w-[650px] lg:translate-x-0">
           <img
             src="/images/how-it-works/hiw-final-cta-dashboard.png"
             alt=""

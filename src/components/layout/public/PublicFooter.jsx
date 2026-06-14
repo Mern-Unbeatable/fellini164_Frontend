@@ -74,7 +74,7 @@ const PublicFooter = () => {
                   className="h-[18px] w-auto"
                 />
               </div>
-              <p className="font-['Inter',sans-serif] text-xs font-normal leading-none text-[#c2c2c2]">
+              <p className="font-['Inter',sans-serif] text-xs leading-none font-normal text-[#c2c2c2]">
                 © 2026 Elyxa AI LLC.
                 <br />
                 All rights reserved.
@@ -84,7 +84,7 @@ const PublicFooter = () => {
             <div className="flex flex-wrap gap-x-[50px] gap-y-[30px]">
               {COLUMNS.map((col) => (
                 <div key={col.heading} className="w-[120px]">
-                  <p className="mb-5 font-['Inter',sans-serif] text-xs font-normal leading-none text-[#c2c2c2]">
+                  <p className="mb-5 font-['Inter',sans-serif] text-xs leading-none font-normal text-[#c2c2c2]">
                     {col.heading}
                   </p>
                   <div className="flex flex-col gap-4">
@@ -92,7 +92,7 @@ const PublicFooter = () => {
                       <a
                         key={link.label}
                         href={link.href}
-                        className={`font-['Inter',sans-serif] text-xs font-semibold leading-none text-[#181818] no-underline transition-colors hover:text-[#8022fe] ${
+                        className={`font-['Inter',sans-serif] text-xs leading-none font-semibold text-[#181818] no-underline transition-colors hover:text-[#8022fe] ${
                           link.accent ? 'lg:text-[#8022fe]' : ''
                         }`}
                       >
@@ -112,7 +112,7 @@ const PublicFooter = () => {
                 <a href="/" className="inline-flex no-underline">
                   <img src="/logo.png" alt="Elyxa.Ai" className="h-[33px] w-auto" />
                 </a>
-                <p className="font-['Inter',sans-serif] text-sm font-normal leading-none text-[#c2c2c2]">
+                <p className="font-['Inter',sans-serif] text-sm leading-none font-normal text-[#c2c2c2]">
                   © 2026 Elyxa AI LLC.
                   <br />
                   All rights reserved.
@@ -128,7 +128,7 @@ const PublicFooter = () => {
             <div className="flex gap-[100px]">
               {COLUMNS.map((col) => (
                 <div key={col.heading} className="flex flex-col gap-[30px]">
-                  <p className="font-['Inter',sans-serif] text-sm font-normal leading-none text-[#c2c2c2]">
+                  <p className="font-['Inter',sans-serif] text-sm leading-none font-normal text-[#c2c2c2]">
                     {col.heading}
                   </p>
                   <div className="flex flex-col gap-5">
@@ -136,7 +136,7 @@ const PublicFooter = () => {
                       <a
                         key={link.label}
                         href={link.href}
-                        className={`font-['Inter',sans-serif] text-sm font-semibold leading-none no-underline transition-colors hover:text-[#8022fe] ${
+                        className={`font-['Inter',sans-serif] text-sm leading-none font-semibold no-underline transition-colors hover:text-[#8022fe] ${
                           link.accent ? 'text-[#8022fe]' : 'text-[#181818]'
                         }`}
                       >
