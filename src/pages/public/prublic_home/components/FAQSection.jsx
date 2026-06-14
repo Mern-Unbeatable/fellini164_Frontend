@@ -58,7 +58,7 @@ const FAQSection = () => {
             {faqs.map((faq, index) => (
               <div key={index} className="w-full">
                 <div
-                  className="flex w-full cursor-pointer items-center justify-between rounded bg-gray-50 dark:bg-zinc-800 p-4 outline outline-1 outline-offset-[-1px] outline-gray-100 dark:outline-zinc-700 md:p-6"
+                  className="flex w-full cursor-pointer items-center justify-between rounded bg-gray-50 dark:bg-zinc-800 p-4 outline -outline-offset-1 outline-gray-100 dark:outline-zinc-700 md:p-6"
                   onClick={() => toggleFAQ(index)}
                 >
                   <div className="justify-start text-left font-['Inter'] text-base font-medium text-black dark:text-white md:text-lg lg:text-xl">

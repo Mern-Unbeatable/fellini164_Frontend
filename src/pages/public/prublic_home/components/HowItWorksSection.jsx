@@ -342,11 +342,11 @@ const HeroHIW = () => {
               className="flex w-full flex-col gap-2.5 lg:w-auto lg:flex-row lg:items-center lg:justify-center lg:gap-5"
             >
               <Link to="/signup" className="block w-full shrink-0 lg:w-auto">
-                <button className="w-full whitespace-nowrap rounded-[10px] bg-[#8022fe] px-5 py-3 font-['Inter',sans-serif] text-[14px] font-semibold text-white transition-colors hover:bg-[#6b1bdb] lg:w-auto lg:px-5 lg:py-3 lg:text-[16px]">
+                <button className="w-full rounded-[10px] bg-[#8022fe] px-5 py-3 font-['Inter',sans-serif] text-[14px] font-semibold whitespace-nowrap text-white transition-colors hover:bg-[#6b1bdb] lg:w-auto lg:px-5 lg:py-3 lg:text-[16px]">
                   Get Your First Plan
                 </button>
               </Link>
-              <button className="w-full shrink-0 whitespace-nowrap rounded-[10px] border-2 border-[#8022fe] bg-transparent px-5 py-3 font-['Inter',sans-serif] text-[14px] font-semibold text-[#8022fe] transition-colors hover:bg-[rgba(128,34,254,0.05)] lg:w-auto lg:bg-[rgba(128,34,254,0.05)] lg:text-[16px]">
+              <button className="w-full shrink-0 rounded-[10px] border-2 border-[#8022fe] bg-transparent px-5 py-3 font-['Inter',sans-serif] text-[14px] font-semibold whitespace-nowrap text-[#8022fe] transition-colors hover:bg-[rgba(128,34,254,0.05)] lg:w-auto lg:bg-[rgba(128,34,254,0.05)] lg:text-[16px]">
                 See How It Works
               </button>
             </div>
@@ -354,7 +354,7 @@ const HeroHIW = () => {
 
           <div
             ref={bensRef}
-            className="flex w-full flex-col items-center gap-4 border-t border-[#f2f2f2] pt-5 lg:flex-row lg:flex-wrap lg:justify-center lg:gap-[70px] lg:pt-[30px]"
+            className="relative flex w-full flex-col items-center gap-4 pt-5 before:absolute before:top-0 before:left-1/2 before:h-px before:w-[800px] before:-translate-x-1/2 before:bg-[#f2f2f2] lg:flex-row lg:flex-wrap lg:justify-center lg:gap-[70px] lg:pt-[30px]"
           >
             {HERO_BENEFITS.map(({ icon: BenefitIcon, text }) => (
               <span
@@ -820,7 +820,7 @@ const HIWStepCard = ({ cardRef, number, title, body, variant, visual }) => {
             <h3 className="font-['Inter',sans-serif] text-[18px] leading-[1.3] font-semibold text-[#181818] lg:text-[24px]">
               {title}
             </h3>
-            <p className="font-['Inter',sans-serif] text-[14px] leading-[1.5] font-medium text-[#181818] lg:text-[16px]">
+            <p className="font-['Inter',sans-serif] text-[14px] leading-normal font-medium text-[#181818] lg:text-[16px]">
               {body}
             </p>
           </div>
@@ -900,7 +900,7 @@ const AdaptsSection = () => {
             How Elyxa adapts to your <span className="text-[#8022fe]">Life</span>
             <span className="text-[#14f1d9]">.</span>
           </h2>
-          <p className="font-['Inter',sans-serif] text-[14px] leading-[1.5] font-medium text-[#181818] lg:text-[16px]">
+          <p className="font-['Inter',sans-serif] text-[14px] leading-normal font-medium text-[#181818] lg:text-[16px]">
             Your plan updates itself when things don't go as expected.
           </p>
         </div>
