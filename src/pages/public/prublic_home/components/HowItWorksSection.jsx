@@ -465,7 +465,8 @@ const BreakingSection = () => {
               </h3>
             </div>
             <p className="font-['Inter',sans-serif] text-[15px] leading-relaxed font-medium text-[#888]">
-              Most planning tools work — until something changes. Then everything falls apart.
+              Most planning tools work — until something changes. Then everything falls <br />{' '}
+              apart.
             </p>
           </div>
 
@@ -483,7 +484,8 @@ const BreakingSection = () => {
               </h3>
             </div>
             <p className="font-['Inter',sans-serif] text-[15px] leading-relaxed font-medium text-[#888]">
-              One delay, one unexpected event — and your day turns into a list of overdue tasks.
+              One delay, one unexpected event — and your day turns into a list of overdue <br />{' '}
+              tasks.
             </p>
           </div>
 
@@ -533,8 +535,8 @@ const BreakingSection = () => {
               </h3>
             </div>
             <p className="font-['Inter',sans-serif] text-[15px] leading-relaxed font-medium text-[#888]">
-              You don't feel organized — you feel behind. And most days end in either catching up or
-              giving up.
+              You don't feel organized — you feel behind. And most days end in either <br />{' '}
+              catching up or giving up.
             </p>
           </div>
         </div>
