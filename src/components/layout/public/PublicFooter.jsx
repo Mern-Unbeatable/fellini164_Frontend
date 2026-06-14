@@ -1,4 +1,6 @@
 import React from 'react';
+import { useLocation } from 'react-router-dom';
+import { FinalCTASection } from '../../../pages/public/prublic_home/components/HowItWorksSection';
 
 const COLUMNS = [
   {
@@ -7,7 +9,7 @@ const COLUMNS = [
       { label: 'Features', href: '/features' },
       { label: 'Pricing', href: '/pricing' },
       { label: 'How It Works', href: '/how-it-works' },
-      { label: 'Roadmap', href: '/roadmap' },
+      { label: 'Roadmap', href: '/roadmap', accent: true },
       { label: 'Early Access', href: '/early-access' },
     ],
   },
@@ -39,90 +41,116 @@ const COLUMNS = [
   },
 ];
 
-/* Stripe "S" icon — circle with stylised S path */
-const StripeIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect width="20" height="20" rx="4" fill="#F0EFFF" />
-    <path
-      d="M9.74 8.57c-1.54-.4-2.04-.8-2.04-1.43 0-.72.67-1.22 1.79-1.22 1.18 0 1.62.56 1.66 1.39h1.47c-.05-1.14-.74-2.18-2.13-2.52V3.33H9.07v1.44C7.78 5.04 6.75 5.87 6.75 7.16c0 1.54 1.27 2.3 3.13 2.75 1.7.4 2.04.99 2.04 1.6 0 .46-.33 1.19-1.79 1.19-1.37 0-1.9-.61-1.98-1.39H6.68c.09 1.45 1.17 2.26 2.39 2.52v1.44h1.46v-1.42c1.3-.25 2.32-1 2.32-2.36 0-1.89-1.61-2.53-3.11-2.92z"
-      fill="#635BFF"
-    />
-  </svg>
-);
-
-/* Apple Pay — apple logo + "Pay" text */
-const ApplePayIcon = () => (
-  <div className="flex items-center gap-1">
-    <svg width="14" height="17" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path
-        d="M11.56 8.78c-.02-1.78 1.46-2.64 1.52-2.68-0.83-1.21-2.12-1.38-2.57-1.4-1.09-.11-2.13.64-2.69.64-.56 0-1.42-.63-2.34-.61-1.2.02-2.31.7-2.93 1.77C1.1 8.68 1.9 12.3 3.3 14.27c.69.99 1.51 2.1 2.59 2.06 1.04-.04 1.43-.67 2.69-.67 1.26 0 1.61.67 2.7.65 1.12-.02 1.83-1.01 2.51-2 .8-1.14 1.12-2.25 1.14-2.31-.03-.01-2.35-.9-2.37-3.22zM9.7 3.12c.57-.69.95-1.65.85-2.61-.82.03-1.81.55-2.4 1.23-.52.6-.99 1.57-.86 2.5.91.07 1.85-.46 2.41-1.12z"
-        fill="#181818"
-      />
-    </svg>
-    <span
-      className="font-['Inter',sans-serif] text-[14px] font-semibold leading-none text-[#181818]"
-    >
-      Pay
-    </span>
-  </div>
-);
-
 const PublicFooter = () => {
+  const { pathname } = useLocation();
+  const showFinalCTA = pathname === '/how-it-works';
+
   return (
-    <footer className="w-full border-t border-[#f2f2f2] bg-[#fcfcfc]">
-      <div className="container mx-auto px-4 py-14 sm:px-6 lg:px-20">
+    <div className="w-full bg-white px-3 pb-3 lg:px-5 lg:pb-5">
+      {showFinalCTA && (
+        <div className="relative z-20 mx-auto max-w-[1300px] px-3 pt-[30px] pb-5 md:px-5 lg:px-0 lg:pt-[90px] lg:pb-[70px]">
+          <FinalCTASection />
+        </div>
+      )}
 
-        {/* Main row: left brand block + right columns */}
-        <div className="flex flex-col gap-12 lg:flex-row lg:items-stretch lg:justify-between">
-
-          {/* ── Left: logo top, payment bottom ── */}
-          <div className="flex flex-col items-start justify-between gap-8 lg:gap-0">
-            {/* Logo + copyright */}
-            <div className="flex flex-col gap-5">
-              <a href="/" className="inline-flex items-center no-underline">
-                <img src="/logo.png" alt="Elyxa.Ai" className="h-11 w-auto" />
-              </a>
-              <p className="font-['Inter',sans-serif] text-[14px] font-normal leading-normal text-[#c2c2c2]">
-                © 2026 Elyxa AI LLC.{' '}
+      <footer
+        className={`relative z-10 w-full rounded-[20px] border border-[#f2f2f2] bg-[#fcfcfc] lg:rounded-[30px] ${
+          showFinalCTA
+            ? '-mt-[250px] pt-[280px] pb-[30px] lg:-mt-[229px] lg:pt-[230px] lg:pb-[70px]'
+            : 'py-[30px] lg:py-[70px]'
+        }`}
+      >
+        <div className="mx-auto max-w-[1300px] px-3 md:px-5 lg:px-0">
+          {/* Mobile / tablet footer */}
+          <div className="flex flex-col gap-[30px] lg:hidden">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <a href="/" className="inline-flex no-underline">
+                  <img src="/logo.png" alt="Elyxa.Ai" className="h-[26px] w-auto" />
+                </a>
+                <img
+                  src="/images/how-it-works/hiw-footer-payments.png"
+                  alt="Stripe and Apple Pay"
+                  className="h-[18px] w-auto"
+                />
+              </div>
+              <p className="font-['Inter',sans-serif] text-xs font-normal leading-none text-[#c2c2c2]">
+                © 2026 Elyxa AI LLC.
                 <br />
                 All rights reserved.
               </p>
             </div>
 
-            {/* Payment icons */}
-            <div className="flex items-center gap-3">
-              <StripeIcon />
-              <ApplePayIcon />
+            <div className="flex flex-wrap gap-x-[50px] gap-y-[30px]">
+              {COLUMNS.map((col) => (
+                <div key={col.heading} className="w-[120px]">
+                  <p className="mb-5 font-['Inter',sans-serif] text-xs font-normal leading-none text-[#c2c2c2]">
+                    {col.heading}
+                  </p>
+                  <div className="flex flex-col gap-4">
+                    {col.links.map((link) => (
+                      <a
+                        key={link.label}
+                        href={link.href}
+                        className={`font-['Inter',sans-serif] text-xs font-semibold leading-none text-[#181818] no-underline transition-colors hover:text-[#8022fe] ${
+                          link.accent ? 'lg:text-[#8022fe]' : ''
+                        }`}
+                      >
+                        {link.label}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* ── Right: 4 link columns ── */}
-          <div className="grid grid-cols-2 gap-x-10 gap-y-10 sm:flex sm:flex-row sm:gap-15 lg:gap-25">
-            {COLUMNS.map((col) => (
-              <div key={col.heading} className="flex flex-col gap-7.5">
-                {/* Column heading */}
-                <p className="font-['Inter',sans-serif] text-[14px] font-normal leading-none text-[#c2c2c2]">
-                  {col.heading}
+          {/* Desktop footer */}
+          <div className="hidden items-start justify-between lg:flex">
+            <div className="flex min-h-[180px] flex-col justify-between self-stretch">
+              <div className="flex flex-col gap-5">
+                <a href="/" className="inline-flex no-underline">
+                  <img src="/logo.png" alt="Elyxa.Ai" className="h-[33px] w-auto" />
+                </a>
+                <p className="font-['Inter',sans-serif] text-sm font-normal leading-none text-[#c2c2c2]">
+                  © 2026 Elyxa AI LLC.
+                  <br />
+                  All rights reserved.
                 </p>
-                {/* Links */}
-                <div className="flex flex-col gap-5">
-                  {col.links.map((link) => (
-                    <a
-                      key={link.label}
-                      href={link.href}
-                      className="font-['Inter',sans-serif] text-[14px] font-semibold leading-none text-[#181818] no-underline transition-colors hover:text-[#8022fe] hover:no-underline"
-                    >
-                      {link.label}
-                    </a>
-                  ))}
-                </div>
               </div>
-            ))}
-          </div>
+              <img
+                src="/images/how-it-works/hiw-footer-payments.png"
+                alt="Stripe and Apple Pay"
+                className="h-5 w-auto"
+              />
+            </div>
 
+            <div className="flex gap-[100px]">
+              {COLUMNS.map((col) => (
+                <div key={col.heading} className="flex flex-col gap-[30px]">
+                  <p className="font-['Inter',sans-serif] text-sm font-normal leading-none text-[#c2c2c2]">
+                    {col.heading}
+                  </p>
+                  <div className="flex flex-col gap-5">
+                    {col.links.map((link) => (
+                      <a
+                        key={link.label}
+                        href={link.href}
+                        className={`font-['Inter',sans-serif] text-sm font-semibold leading-none no-underline transition-colors hover:text-[#8022fe] ${
+                          link.accent ? 'text-[#8022fe]' : 'text-[#181818]'
+                        }`}
+                      >
+                        {link.label}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-      </div>
-    </footer>
+      </footer>
+    </div>
   );
 };
 

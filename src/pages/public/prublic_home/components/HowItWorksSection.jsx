@@ -1320,150 +1320,87 @@ const FAQHIWSection = () => {
 
 // ─── Section 7: Final CTA ─────────────────────────────────────────────────────
 
-const CTADashboard = () => (
-  <div
-    className="flex overflow-hidden rounded-xl shadow-[0_8px_40px_rgba(0,0,0,0.2)]"
-    style={{ height: 270 }}
-  >
-    <div className="flex w-8 shrink-0 flex-col items-center gap-2 bg-[#222] py-2">
-      <div className="flex h-4 w-4 items-center justify-center rounded bg-[#8022fe]">
-        <span style={{ fontSize: 6, color: 'white', fontWeight: 700 }}>E</span>
-      </div>
-      {[...Array(7)].map((_, i) => (
-        <div key={i} className="h-3 w-3 rounded bg-[#333]" />
-      ))}
-    </div>
-    <div className="flex flex-1 flex-col overflow-hidden bg-white p-3">
-      <p className="mb-0.5 font-['Inter',sans-serif] text-[11px] font-bold text-[#181818]">Daily</p>
-      <div className="mb-2 flex items-center gap-1">
-        <span className="text-[8px] text-[#c2c2c2]">{'<'}</span>
-        <p className="font-['Inter',sans-serif] text-[8px] font-medium text-[#181818]">
-          6 Plans Scheduled
-        </p>
-        <span className="text-[8px] text-[#c2c2c2]">{'>'}</span>
-        <p className="ml-1 font-['Inter',sans-serif] text-[8px] text-[#c2c2c2]">
-          Sunday, December 14
-        </p>
-      </div>
-      {[
-        { time: '7:00 AM', task: 'Morning Mindfulness', tag: 'Optimized for You', hl: true },
-        { time: '8:00 AM', task: 'Breakfast Boost', tag: '' },
-        { time: '9:30 AM', task: 'Team Standup', tag: 'High Priority' },
-        { time: '11:00 AM', task: 'Focus Time', tag: 'Focus Block' },
-        { time: '1:00 PM', task: 'Lunch Break', tag: '' },
-        { time: '2:30 PM', task: 'Creative Session', tag: '' },
-      ].map((r, i) => (
-        <div
-          key={i}
-          className={`flex items-center gap-1.5 border-b border-[#f8f8f8] py-1 last:border-0 ${r.hl ? '-mx-0.5 rounded bg-[#f5f0ff] px-0.5' : ''}`}
-        >
-          <span className="w-11 shrink-0 font-['Inter',sans-serif] text-[8px] font-medium text-[#c2c2c2]">
-            {r.time}
-          </span>
-          <p className="flex-1 truncate font-['Inter',sans-serif] text-[9px] font-medium text-[#181818]">
-            {r.task}
-          </p>
-          {r.tag && (
-            <span className="shrink-0 rounded bg-[#f0e8ff] px-1 py-0.5 font-['Inter',sans-serif] text-[7px] font-medium text-[#8022fe]">
-              {r.tag}
-            </span>
-          )}
-        </div>
-      ))}
-    </div>
-    <div className="w-28 shrink-0 border-l border-[#f0f0f0] bg-white p-2.5">
-      <p className="mb-1.5 font-['Inter',sans-serif] text-[9px] font-bold text-[#181818]">
-        Tasks List
-      </p>
-      {[
-        { name: 'Review Goals', time: '09:00', tag: 'Work', done: true },
-        { name: 'Team Meeting', time: '10:00', tag: 'Collaboration', done: true },
-        { name: 'Project Update', time: '11:30', tag: 'Reporting' },
-        { name: 'Lunch Break', time: '12:30', tag: 'Rest' },
-        { name: 'Client Call', time: '14:00', tag: 'Consulting' },
-        { name: 'Generate with AI', time: '', tag: '' },
-      ].map((t, i) => (
-        <div
-          key={i}
-          className="flex items-start gap-1 border-b border-[#f8f8f8] py-0.5 last:border-0"
-        >
-          <div
-            className={`mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full border ${t.done ? 'border-[#8022fe] bg-[#8022fe]' : 'border-[#d9d9d9]'}`}
-          />
-          <div className="min-w-0">
-            <p className="truncate font-['Inter',sans-serif] text-[8px] leading-tight font-medium text-[#181818]">
-              {t.name}
-            </p>
-            {t.time && (
-              <p className="font-['Inter',sans-serif] text-[7px] text-[#c2c2c2]">
-                {t.time} <span className={t.done ? 'text-[#8022fe]' : 'text-[#aaa]'}>{t.tag}</span>
-              </p>
-            )}
-          </div>
-        </div>
-      ))}
-    </div>
-  </div>
+const FINAL_CTA_SHADOW =
+  'shadow-[0px_171px_48px_0px_rgba(0,0,0,0),0px_109px_44px_0px_rgba(0,0,0,0),0px_61px_37px_0px_rgba(0,0,0,0.01),0px_27px_27px_0px_rgba(0,0,0,0.02),0px_7px_15px_0px_rgba(0,0,0,0.02)]';
+
+const SparkleIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true" className="shrink-0">
+    <path
+      d="M9 1.5L10.5 6H15L11.25 8.625L12.75 13.5L9 10.875L5.25 13.5L6.75 8.625L3 6H7.5L9 1.5Z"
+      stroke="#5D5D5D"
+      strokeWidth="1"
+      strokeLinejoin="round"
+    />
+  </svg>
 );
 
-const FinalCTASection = () => {
-  const secRef = useRef(null);
+export const FinalCTASection = () => {
+  const cardRef = useRef(null);
   const textRef = useRef(null);
-  const dashRef = useRef(null);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      const tl = gsap.timeline({
-        scrollTrigger: { trigger: secRef.current, start: 'top 80%', once: true },
+      gsap.from(textRef.current, {
+        opacity: 0,
+        y: 20,
+        duration: 0.55,
+        ease: 'power2.out',
+        scrollTrigger: { trigger: cardRef.current, start: 'top 88%', once: true },
       });
-      tl.from(textRef.current, { opacity: 0, y: 20, duration: 0.55, ease: 'power2.out' }).from(
-        dashRef.current,
-        { opacity: 0, y: 24, duration: 0.6, ease: 'expo.out' },
-        '-=0.2'
-      );
-    }, secRef);
+      gsap.from(cardRef.current, {
+        opacity: 0,
+        y: 24,
+        duration: 0.6,
+        ease: 'expo.out',
+        scrollTrigger: { trigger: cardRef.current, start: 'top 88%', once: true },
+      });
+    }, cardRef);
     return () => ctx.revert();
   }, []);
 
   return (
-    <section className="w-full bg-white px-6 py-20 lg:px-24">
-      <div className="mx-auto max-w-[1300px]">
-        <div
-          ref={secRef}
-          className="relative overflow-hidden rounded-[28px] bg-[#181818] px-10 py-14 lg:flex lg:items-center lg:gap-12"
-        >
-          <div ref={textRef} className="shrink-0 lg:w-[400px]">
-            <h2 className="mb-4 font-['Inter',sans-serif] text-[28px] leading-tight font-bold text-white sm:text-[36px]">
+    <div ref={cardRef} className="relative z-20 w-full">
+      <div
+        className={`relative overflow-hidden rounded-[20px] bg-[#181818] px-5 pb-[190px] pt-5 lg:h-[319px] lg:rounded-[30px] lg:p-[50px] lg:pb-[50px] ${FINAL_CTA_SHADOW}`}
+      >
+        <div ref={textRef} className="relative z-10 flex w-full flex-col gap-5 lg:max-w-[640px] lg:gap-[50px]">
+          <div className="flex flex-col gap-3.5 lg:gap-5">
+            <h2 className="font-['Inter',sans-serif] text-[22px] font-bold leading-[1.3] text-white lg:text-[34px]">
               Your plans should adapt to <span className="text-[#8022fe]">You</span>
               <span className="text-[#14f1d9]">.</span>
             </h2>
-            <p className="mb-8 font-['Inter',sans-serif] text-[15px] leading-relaxed font-medium text-[#888]">
+            <p className="font-['Inter',sans-serif] text-sm font-medium leading-normal text-white lg:text-base">
               Elyxa adjusts your day as things change — so you always know what to do next.
-            </p>
-            <Link to="/signup">
-              <button className="rounded-xl bg-[#8022fe] px-7 py-3.5 font-['Inter',sans-serif] text-[15px] font-semibold text-white shadow-[0_4px_20px_rgba(128,34,254,0.4)] transition-colors hover:bg-[#6b1bdb]">
-                Get Your First Plan
-              </button>
-            </Link>
-            <p className="mt-4 flex items-center gap-2 font-['Inter',sans-serif] text-[13px] font-medium text-[#555]">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path
-                  d="M7 1L8.5 5H13L9.5 7.5L11 12L7 9.5L3 12L4.5 7.5L1 5H5.5L7 1Z"
-                  stroke="#666"
-                  strokeWidth="1"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              Takes less than a minute
             </p>
           </div>
 
-          <div ref={dashRef} className="mt-8 flex-1 lg:mt-0">
-            <CTADashboard />
+          <div className="flex flex-col gap-5">
+            <Link to="/signup" className="inline-flex w-full lg:w-auto">
+              <button
+                type="button"
+                className="w-full rounded-[10px] bg-[#8022fe] px-5 py-3 font-['Inter',sans-serif] text-sm font-semibold text-white transition-colors hover:bg-[#6b1bdb] lg:w-auto lg:text-base"
+              >
+                Get Your First Plan
+              </button>
+            </Link>
+            <div className="flex items-center gap-1">
+              <SparkleIcon />
+              <p className="font-['Inter',sans-serif] text-xs font-normal leading-none text-[#5d5d5d] lg:text-sm">
+                Takes less than a minute
+              </p>
+            </div>
           </div>
         </div>
+
+        <div className="pointer-events-none absolute bottom-0 left-1/2 w-[320px] max-w-none -translate-x-1/2 overflow-hidden rounded-[15.6px] drop-shadow-[-8px_0px_14.39px_rgba(255,255,255,0.05)] lg:bottom-auto lg:left-auto lg:right-[-99px] lg:top-[50px] lg:w-[650px] lg:translate-x-0">
+          <img
+            src="/images/how-it-works/hiw-final-cta-dashboard.png"
+            alt=""
+            className="block h-auto w-full"
+          />
+        </div>
       </div>
-    </section>
+    </div>
   );
 };
 
@@ -1477,7 +1414,6 @@ const HowItWorksSection = () => (
     <PricingHIW />
     <MissingLayerSection />
     <FAQHIWSection />
-    <FinalCTASection />
   </div>
 );
 
