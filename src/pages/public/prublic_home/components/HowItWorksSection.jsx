@@ -434,8 +434,8 @@ const BreakingSection = () => {
   }, []);
 
   return (
-    <section ref={secRef} className="w-full bg-white px-6 py-20 lg:px-24">
-      <div className="mx-auto max-w-[1300px]">
+    <section ref={secRef} className="w-full bg-white px-6 py-10 lg:px-24">
+      <div className="mx-auto max-w-[1370px] px-2 lg:px-6 xl:px-0">
         <div ref={headRef} className="mb-10">
           <h2 className="font-['Inter',sans-serif] text-[28px] leading-tight font-bold text-[#181818] sm:text-[36px] lg:text-[42px]">
             Have you ever wondered why your
