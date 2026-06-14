@@ -12,7 +12,13 @@ gsap.registerPlugin(ScrollTrigger);
 // ─── Shared icons ─────────────────────────────────────────────────────────────
 
 const PlanCheckIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+  <svg
+    width={16}
+    height={16}
+    viewBox="0 0 16 16"
+    fill="none"
+    className="size-[14px] shrink-0 lg:size-4"
+  >
     <circle cx="8" cy="8" r="7" stroke="#C2C2C2" strokeWidth="1" />
     <path
       d="M5 8.5L7 10.5L11 6"
@@ -23,6 +29,9 @@ const PlanCheckIcon = () => (
     />
   </svg>
 );
+
+const PRICING_CARD_SHADOW =
+  'shadow-[0px_171px_48px_0px_rgba(0,0,0,0),0px_109px_44px_0px_rgba(0,0,0,0),0px_61px_37px_0px_rgba(0,0,0,0.01),0px_27px_27px_0px_rgba(0,0,0,0.02),0px_7px_15px_0px_rgba(0,0,0,0.02)]';
 
 const ElyxaIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="mt-0.5 shrink-0">
@@ -45,7 +54,7 @@ const YEARLY_PLANS = [
     name: 'Free',
     tagline: 'Limited features only',
     price: '$0',
-    priceSuffix: '/yearly',
+    priceSuffix: '/month',
     billingNote: 'Free forever',
     cta: 'Start Free',
     ctaFilled: false,
@@ -64,7 +73,7 @@ const YEARLY_PLANS = [
     tagline: 'Get organized with AI',
     originalPrice: '$8',
     price: '$6.39',
-    priceSuffix: '/yearly',
+    priceSuffix: '/month',
     billingNote: 'Billed annually',
     cta: 'Get Starter',
     ctaFilled: true,
@@ -87,7 +96,7 @@ const YEARLY_PLANS = [
     tagline: 'AI that runs your entire day',
     originalPrice: '$18',
     price: '$14.39',
-    priceSuffix: '/yearly',
+    priceSuffix: '/month',
     billingNote: 'Billed annually',
     cta: 'Get Pro',
     ctaFilled: false,
@@ -107,7 +116,7 @@ const YEARLY_PLANS = [
     tagline: 'Complete AI system for your life',
     originalPrice: '$40',
     price: '$31.99',
-    priceSuffix: '/yearly',
+    priceSuffix: '/month',
     billingNote: 'Billed annually',
     cta: 'Get Ultimate',
     ctaFilled: false,
@@ -132,6 +141,7 @@ const MONTHLY_PLANS = [
     tagline: 'Limited features only',
     price: '$0',
     priceSuffix: '/month',
+    billingNote: 'Free forever',
     cta: 'Start Free',
     ctaFilled: false,
     featured: false,
@@ -369,18 +379,59 @@ const TASK_TAG_STYLES = {
 };
 
 const BREAKING_TASKS = [
-  { name: 'Review Goals', time: '09:00', tag: 'Work', tagStyle: 'green', done: true, timeBg: 'bg-[#f8f8f8]' },
-  { name: 'Team Meeting', time: '10:00', tag: 'Collaboration', tagStyle: 'yellow', done: true, timeBg: 'bg-[#f3f4f6]' },
-  { name: 'Project Update', time: '11:30', tag: 'Reporting', tagStyle: 'blue', done: false, timeBg: 'bg-[#f3f4f6]' },
-  { name: 'Lunch Break', time: '12:30', tag: 'Rest', tagStyle: 'purple', done: false, timeBg: 'bg-white' },
-  { name: 'Client Call', time: '14:00', tag: 'Consultation', tagStyle: 'green', done: false, timeBg: 'bg-white' },
+  {
+    name: 'Review Goals',
+    time: '09:00',
+    tag: 'Work',
+    tagStyle: 'green',
+    done: true,
+    timeBg: 'bg-[#f8f8f8]',
+  },
+  {
+    name: 'Team Meeting',
+    time: '10:00',
+    tag: 'Collaboration',
+    tagStyle: 'yellow',
+    done: true,
+    timeBg: 'bg-[#f3f4f6]',
+  },
+  {
+    name: 'Project Update',
+    time: '11:30',
+    tag: 'Reporting',
+    tagStyle: 'blue',
+    done: false,
+    timeBg: 'bg-[#f3f4f6]',
+  },
+  {
+    name: 'Lunch Break',
+    time: '12:30',
+    tag: 'Rest',
+    tagStyle: 'purple',
+    done: false,
+    timeBg: 'bg-white',
+  },
+  {
+    name: 'Client Call',
+    time: '14:00',
+    tag: 'Consultation',
+    tagStyle: 'green',
+    done: false,
+    timeBg: 'bg-white',
+  },
 ];
 
 const TaskCheckboxIcon = ({ done }) =>
   done ? (
     <svg width="15" height="15" viewBox="0 0 15 15" fill="none" className="shrink-0">
       <rect x="0.5" y="0.5" width="14" height="14" rx="3" fill="#8022FE" stroke="#8022FE" />
-      <path d="M4 7.5L6.5 10L11 5" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M4 7.5L6.5 10L11 5"
+        stroke="white"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   ) : (
     <svg width="15" height="15" viewBox="0 0 15 15" fill="none" className="shrink-0">
@@ -602,16 +653,7 @@ const ADAPTS_MOBILE_STEPS = [
   },
 ];
 
-const AdaptsMobileCard = ({
-  cardRef,
-  number,
-  title,
-  body,
-  variant,
-  visual,
-  visualClass,
-  alt,
-}) => {
+const AdaptsMobileCard = ({ cardRef, number, title, body, variant, visual, visualClass, alt }) => {
   const isAdaptCard = variant === '03';
 
   return (
@@ -659,39 +701,39 @@ const AdaptsDesktopCards = () => (
   <div className="hidden w-full overflow-x-auto lg:block">
     <div className="flex min-w-[1300px] items-center gap-5">
       <div className="flex w-[640px] shrink-0 flex-col gap-5">
-      <img
-        src="/images/how-it-works/hiw-adapts-card01-full.png"
-        alt="Plan your day — Elyxa daily plan interface"
-        width={640}
-        height={350}
-        className="h-[350px] w-[640px] shrink-0 rounded-[20px]"
-        draggable={false}
-      />
-      <img
-        src="/images/how-it-works/hiw-adapts-card02-full.png"
-        alt="Life happens — schedule with time conflicts"
-        width={640}
-        height={350}
-        className="h-[350px] w-[640px] shrink-0 rounded-[20px]"
-        draggable={false}
-      />
-    </div>
+        <img
+          src="/images/how-it-works/hiw-adapts-card01-full.png"
+          alt="Plan your day — Elyxa daily plan interface"
+          width={640}
+          height={350}
+          className="h-[350px] w-[640px] shrink-0 rounded-[20px]"
+          draggable={false}
+        />
+        <img
+          src="/images/how-it-works/hiw-adapts-card02-full.png"
+          alt="Life happens — schedule with time conflicts"
+          width={640}
+          height={350}
+          className="h-[350px] w-[640px] shrink-0 rounded-[20px]"
+          draggable={false}
+        />
+      </div>
 
-    <div className="relative h-[720px] w-[640px] shrink-0">
-      <img
-        src="/images/how-it-works/hiw-adapts-card03-full.png"
-        alt="Elyxa adapts — full dashboard with tasks list and AI panel"
-        width={640}
-        height={720}
-        className="h-[720px] w-[640px] rounded-[20px]"
-        draggable={false}
-      />
-      <Link
-        to="/signup"
-        className="absolute top-[139px] left-[30px] z-10 h-[43px] w-[220px] rounded-[10px]"
-        aria-label="Get Your First Plan"
-      />
-    </div>
+      <div className="relative h-[720px] w-[640px] shrink-0">
+        <img
+          src="/images/how-it-works/hiw-adapts-card03-full.png"
+          alt="Elyxa adapts — full dashboard with tasks list and AI panel"
+          width={640}
+          height={720}
+          className="h-[720px] w-[640px] rounded-[20px]"
+          draggable={false}
+        />
+        <Link
+          to="/signup"
+          className="absolute top-[139px] left-[30px] z-10 h-[43px] w-[220px] rounded-[10px]"
+          aria-label="Get Your First Plan"
+        />
+      </div>
     </div>
   </div>
 );
@@ -728,7 +770,7 @@ const AdaptsSection = () => {
 
   return (
     <section ref={secRef} className="w-full bg-white">
-      <div className="mx-auto max-w-[1300px] px-5 py-[50px] lg:pt-[90px] lg:pb-[180px] lg:px-0">
+      <div className="mx-auto max-w-[1300px] px-5 py-[50px] lg:px-0 lg:pt-[90px] lg:pb-[180px]">
         <div className="flex flex-col gap-6 lg:gap-[50px]">
           <div ref={headRef} className="flex max-w-[640px] flex-col gap-3.5 lg:gap-5">
             <h2 className="font-['Inter',sans-serif] text-[22px] leading-[1.3] font-bold text-[#181818] lg:text-[34px]">
@@ -757,57 +799,109 @@ const AdaptsSection = () => {
 
 // ─── Section 4: Pricing ───────────────────────────────────────────────────────
 
-const PricingCard = ({ plan, cardRef }) => {
-  const inner = (
-    <div
-      className={`flex h-full flex-col overflow-hidden rounded-[20px] bg-white ${
-        plan.featured ? 'border-2 border-[#8022fe]' : 'border border-[#f2f2f2]'
-      } shadow-[0_7px_15px_rgba(0,0,0,0.02),0_27px_27px_rgba(0,0,0,0.02)]`}
-    >
-      <div className="flex w-full flex-col gap-1.5 border-b border-[#f2f2f2] p-6">
-        <p className="font-['Inter',sans-serif] text-[22px] font-semibold text-[#181818]">
-          {plan.name}
-        </p>
-        <p className="font-['Inter',sans-serif] text-[14px] font-medium text-[#888]">
-          {plan.tagline}
-        </p>
-      </div>
-      <div className="flex w-full flex-col gap-1 border-b border-[#f2f2f2] px-6 py-4">
-        <div className="flex items-start gap-2">
-          {plan.originalPrice && (
-            <div className="relative flex shrink-0 items-center">
-              <p className="font-['Inter',sans-serif] text-[30px] font-bold text-[#8022fe]">
-                {plan.originalPrice}
-              </p>
-              <span className="absolute top-1/2 right-0 left-0 h-px -translate-y-1/2 bg-[#8022fe]" />
-            </div>
+const StrikethroughPrice = ({ price }) => (
+  <div className="relative flex shrink-0 items-center">
+    <p className="font-['Inter',sans-serif] text-[22px] font-bold leading-[1.3] text-[#8022fe] lg:text-[34px]">
+      {price}
+    </p>
+    <span className="absolute top-1/2 right-0 left-0 h-[2px] -translate-y-1/2 bg-[#8022fe] lg:h-[3px]" />
+  </div>
+);
+
+const PricingToggle = ({ billing, onChange }) => (
+  <div className="flex w-full items-center overflow-hidden rounded-[12px] border border-[#f2f2f2] p-1 lg:w-[268px]">
+    {['monthly', 'yearly'].map((opt) => {
+      const isActive = billing === opt;
+      return (
+        <button
+          key={opt}
+          type="button"
+          onClick={() => onChange(opt)}
+          className={`flex flex-1 items-center justify-center rounded-[8px] px-5 py-2.5 font-['Inter',sans-serif] text-[12px] font-semibold capitalize transition-all lg:flex-none lg:text-[14px] ${
+            isActive
+              ? 'bg-white text-[#8022fe] shadow-[0px_0px_5px_rgba(0,0,0,0.05)]'
+              : 'text-[#c2c2c2]'
+          } ${isActive && opt === 'monthly' ? 'text-[#181818]' : ''} ${opt === 'yearly' ? 'gap-2' : ''}`}
+        >
+          {opt === 'yearly' ? 'Yearly' : 'Monthly'}
+          {opt === 'yearly' && (
+            <span
+              className={`rounded-[40px] px-2 py-0.5 font-['Inter',sans-serif] text-[10px] font-medium text-white shadow-[0px_0px_5px_rgba(128,34,254,0.3)] lg:text-[12px] ${
+                isActive ? 'bg-[#8022fe]' : 'bg-[#c2c2c2]'
+              }`}
+            >
+              Save 20%
+            </span>
           )}
-          <div className="flex items-baseline">
-            <p className="shrink-0 font-['Inter',sans-serif] text-[30px] font-bold text-[#181818]">
-              {plan.price}
+        </button>
+      );
+    })}
+  </div>
+);
+
+const PricingCard = ({ plan, cardRef, billing }) => {
+  const isYearly = billing === 'yearly';
+  const showDiscount = isYearly && plan.originalPrice;
+  const borderClass = plan.featured
+    ? 'border-2 border-[#8022fe]'
+    : plan.id === 'free'
+      ? 'border border-[#f2f2f2] lg:border-[#e9e8e8]'
+      : 'border border-[#f2f2f2]';
+
+  const cardBody = (
+    <>
+      <div className="flex w-full flex-1 flex-col">
+        <div className="flex w-full flex-col gap-1 border-b border-[#f2f2f2] p-5 lg:gap-1.5 lg:p-6">
+          <p className="font-['Inter',sans-serif] text-[18px] font-semibold leading-[1.3] text-[#181818] lg:text-[24px]">
+            {plan.name}
+          </p>
+          <p className="font-['Inter',sans-serif] text-[14px] font-medium leading-[1.5] text-[#181818] lg:text-[16px]">
+            {plan.tagline}
+          </p>
+        </div>
+
+        <div className="border-b border-[#f2f2f2] px-5 py-3.5 lg:flex lg:flex-col lg:gap-1 lg:px-6 lg:py-4">
+          <div className="flex w-full items-center gap-1.5 lg:items-start lg:gap-2.5">
+            {showDiscount && <StrikethroughPrice price={plan.originalPrice} />}
+            <div className="flex items-baseline">
+              <p className="font-['Inter',sans-serif] text-[22px] font-bold leading-[1.3] text-[#181818] lg:text-[34px]">
+                {plan.price}
+              </p>
+              <p className="font-['Inter',sans-serif] text-[12px] font-medium leading-[1.5] text-[#c2c2c2] lg:text-[16px]">
+                {plan.priceSuffix}
+              </p>
+            </div>
+            {plan.billingNote && (
+              <p className="ml-auto shrink-0 font-['Inter',sans-serif] text-[12px] font-medium leading-[1.5] text-[#c2c2c2] lg:hidden">
+                {plan.billingNote}
+              </p>
+            )}
+          </div>
+          {plan.billingNote && (
+            <p className="hidden font-['Inter',sans-serif] text-[14px] font-medium leading-[1.5] text-[#c2c2c2] lg:block">
+              {plan.billingNote}
             </p>
-            <p className="font-['Inter',sans-serif] text-[13px] font-medium text-[#c2c2c2]">
-              {plan.priceSuffix}
-            </p>
+          )}
+        </div>
+
+        <div className="flex flex-1 flex-col px-5 pb-2.5 pt-5 lg:p-6">
+          <div className="flex flex-col gap-2.5 lg:gap-3.5">
+            {plan.features.map((f) => (
+              <div key={f} className="flex items-center gap-1.5 lg:gap-2">
+                <PlanCheckIcon />
+                <p className="font-['Inter',sans-serif] text-[12px] font-medium leading-[1.5] text-[#181818] lg:text-[14px]">
+                  {f}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
-        {plan.billingNote && (
-          <p className="font-['Inter',sans-serif] text-[13px] font-medium text-[#c2c2c2]">
-            {plan.billingNote}
-          </p>
-        )}
       </div>
-      <div className="flex flex-1 flex-col gap-3 p-6">
-        {plan.features.map((f) => (
-          <div key={f} className="flex items-center gap-2">
-            <PlanCheckIcon />
-            <p className="font-['Inter',sans-serif] text-[13px] font-medium text-[#181818]">{f}</p>
-          </div>
-        ))}
-      </div>
-      <div className="p-6">
+
+      <div className="px-5 pb-5 pt-2.5 lg:p-6">
         <button
-          className={`w-full rounded-[10px] px-5 py-3 font-['Inter',sans-serif] text-[14px] font-semibold transition-colors ${
+          type="button"
+          className={`w-full rounded-[10px] px-5 py-3 font-['Inter',sans-serif] text-[14px] font-semibold transition-colors lg:text-[16px] ${
             plan.ctaFilled
               ? 'bg-[#8022fe] text-white hover:bg-[#6b1bdb]'
               : 'border-2 border-[#8022fe] bg-white text-[#8022fe] hover:bg-[#f9f4ff]'
@@ -816,22 +910,38 @@ const PricingCard = ({ plan, cardRef }) => {
           {plan.cta}
         </button>
       </div>
-    </div>
+    </>
   );
 
   if (plan.featured) {
     return (
-      <div ref={cardRef} className="relative flex flex-col items-center">
-        <div className="absolute -top-3 z-10 flex items-center justify-center rounded-[40px] bg-[#8022fe] px-3 py-0.5">
-          <p className="font-['Inter',sans-serif] text-[11px] font-medium text-white">
+      <div
+        ref={cardRef}
+        className="relative flex w-full flex-col items-center lg:h-[620px] lg:w-[310px] lg:shrink-0 lg:gap-[7px]"
+      >
+        <div
+          className={`relative flex h-[460px] w-full flex-col justify-between overflow-hidden rounded-[16px] bg-white lg:h-full lg:flex-1 lg:rounded-[20px] ${borderClass} ${PRICING_CARD_SHADOW}`}
+        >
+          {cardBody}
+        </div>
+        <div className="absolute top-[-8.5px] left-1/2 z-10 flex -translate-x-1/2 items-center justify-center rounded-[40px] bg-[#8022fe] px-2 py-0.5 lg:top-[-10px]">
+          <p className="font-['Inter',sans-serif] text-[10px] font-medium leading-[1.5] text-white lg:text-[12px]">
             {plan.badge}
           </p>
         </div>
-        <div className="w-full flex-1">{inner}</div>
       </div>
     );
   }
-  return <div ref={cardRef}>{inner}</div>;
+
+  return (
+    <div ref={cardRef} className="w-full lg:w-[310px] lg:shrink-0">
+      <div
+        className={`flex h-[460px] flex-col justify-between overflow-hidden rounded-[16px] bg-white lg:h-[620px] lg:rounded-[20px] ${borderClass} ${PRICING_CARD_SHADOW}`}
+      >
+        {cardBody}
+      </div>
+    </div>
+  );
 };
 
 const PricingHIW = () => {
@@ -869,60 +979,47 @@ const PricingHIW = () => {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <section ref={secRef} id="pricing" className="w-full bg-[#fcfcfc] px-6 py-20 lg:px-24">
-      <div className="mx-auto max-w-[1300px]">
-        <div ref={headRef} className="mb-10 flex flex-col items-center gap-3 text-center">
-          <h2 className="font-['Inter',sans-serif] text-[26px] font-bold text-[#181818] sm:text-[32px]">
-            Your day, fully managed by AI — <span className="text-[#8022fe]">From $6.39/month</span>
-            <span className="text-[#14f1d9]">.</span>
-          </h2>
-          <p className="font-['Inter',sans-serif] text-[13px] font-medium text-[#c2c2c2]">
-            (Billed yearly)
-          </p>
-          <p className="font-['Inter',sans-serif] text-[15px] font-medium text-[#181818]">
+    <section ref={secRef} id="pricing" className="w-full border-y border-[#f2f2f2] bg-[#fcfcfc]">
+      <div className="mx-auto flex max-w-[1300px] flex-col gap-[30px] px-3 py-[30px] md:gap-10 md:px-6 md:py-[60px] lg:gap-[50px] lg:px-0 lg:py-[90px]">
+        <div ref={headRef} className="flex flex-col items-center gap-3.5 text-center lg:gap-5">
+          <div className="flex flex-col items-center gap-1 lg:flex-row lg:items-start lg:justify-center lg:gap-2.5">
+            <h2 className="font-['Inter',sans-serif] text-[22px] font-bold leading-[1.3] text-[#181818] lg:text-[34px]">
+              Your day, fully managed by AI —{' '}
+              <span className="text-[#8022fe]">From $6.39/month</span>
+              <span className="text-[#14f1d9]">.</span>
+            </h2>
+            {billing === 'yearly' && (
+              <p className="font-['Inter',sans-serif] text-[12px] font-medium leading-[1.5] text-[#c2c2c2] lg:text-[16px]">
+                (Billed yearly)
+              </p>
+            )}
+          </div>
+          <p className="font-['Inter',sans-serif] text-[14px] font-medium leading-[1.5] text-[#181818] lg:text-[16px]">
             Start free. Upgrade when you need real productivity. Cancel anytime.
           </p>
         </div>
 
-        <div className="mb-8 flex justify-center">
-          <div className="flex items-center overflow-hidden rounded-xl border border-[#f2f2f2] p-1">
-            {['monthly', 'yearly'].map((opt) => (
-              <button
-                key={opt}
-                onClick={() => setBilling(opt)}
-                className={`flex items-center gap-2 rounded-lg px-5 py-2.5 font-['Inter',sans-serif] text-[13px] font-semibold capitalize transition-all ${
-                  billing === opt
-                    ? opt === 'yearly'
-                      ? 'bg-white text-[#8022fe] shadow-[0_0_5px_rgba(0,0,0,0.05)]'
-                      : 'bg-white text-[#181818] shadow-[0_0_5px_rgba(0,0,0,0.05)]'
-                    : 'text-[#c2c2c2]'
-                }`}
-              >
-                {opt === 'yearly' ? 'Yearly' : 'Monthly'}
-                {opt === 'yearly' && (
-                  <span
-                    className={`rounded-[40px] px-2 py-0.5 font-['Inter',sans-serif] text-[11px] font-medium text-white ${billing === 'yearly' ? 'bg-[#8022fe]' : 'bg-[#c2c2c2]'}`}
-                  >
-                    Save 20%
-                  </span>
-                )}
-              </button>
-            ))}
+        <div className="flex flex-col items-center gap-5 lg:gap-[50px]">
+          <PricingToggle billing={billing} onChange={setBilling} />
+
+          <div className="flex w-full flex-col items-center gap-5 lg:gap-[30px]">
+            <div className="grid w-full grid-cols-1 gap-5 md:grid-cols-2 lg:flex lg:justify-between lg:gap-5">
+              {plans.map((plan, i) => (
+                <PricingCard
+                  key={plan.id}
+                  plan={plan}
+                  cardRef={cardRefs[i]}
+                  billing={billing}
+                />
+              ))}
+            </div>
+
+            <div className="flex w-full items-start justify-between px-5 font-['Inter',sans-serif] text-[10px] font-medium leading-[1.5] text-[#c2c2c2] md:justify-center md:gap-10 md:px-0 lg:gap-10 lg:text-[12px]">
+              {['No commitment', 'Cancel anytime', 'Secure payments'].map((t) => (
+                <p key={t}>{t}</p>
+              ))}
+            </div>
           </div>
-        </div>
-
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {plans.map((plan, i) => (
-            <PricingCard key={plan.id} plan={plan} cardRef={cardRefs[i]} />
-          ))}
-        </div>
-
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-10">
-          {['No commitment', 'Cancel anytime', 'Secure payments'].map((t) => (
-            <p key={t} className="font-['Inter',sans-serif] text-[12px] font-medium text-[#c2c2c2]">
-              {t}
-            </p>
-          ))}
         </div>
       </div>
     </section>
