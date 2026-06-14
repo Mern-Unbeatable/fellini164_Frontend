@@ -567,252 +567,134 @@ const BreakingSection = () => {
   );
 };
 
-// ─── Section 3: Adapts ────────────────────────────────────────────────────────
+// ─── Section 3: Adapts (Figma 842:84149 desktop / 278:4187 mobile) ─────────────
 
-const AppSidebar = () => (
-  <div className="flex h-full w-[90px] shrink-0 flex-col bg-[#181818] p-3">
-    <div className="mb-4 flex items-center gap-1.5">
-      <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-[#8022fe]">
-        <span className="font-bold text-white" style={{ fontSize: 9 }}>
-          E
-        </span>
-      </div>
-      <span className="font-['Inter',sans-serif] text-[10px] font-bold text-white">Elyxa.AI</span>
-    </div>
-    {['Dashboard', 'Daily Plan', 'Weekly Plan', 'Monthly Plan'].map((item, i) => (
-      <div key={item} className={`mb-1 rounded-md px-2 py-1 ${i === 1 ? 'bg-[#8022fe]/20' : ''}`}>
-        <p
-          className={`font-['Inter',sans-serif] text-[9px] font-medium ${i === 1 ? 'text-[#8022fe]' : 'text-[#666]'}`}
-        >
-          {item}
-        </p>
-      </div>
-    ))}
-    <div className="mt-2 border-t border-[#2a2a2a] pt-2">
-      {['Tasks', 'Habits', 'Goals', 'AI Coach Chat', 'Analytics'].map((item) => (
-        <div key={item} className="mb-0.5 px-2 py-0.5">
-          <p className="font-['Inter',sans-serif] text-[8px] font-medium text-[#555]">{item}</p>
-        </div>
-      ))}
-    </div>
-  </div>
-);
+const ADAPTS_MOBILE_STEPS = [
+  {
+    number: '01',
+    title: 'Plan your day',
+    body: 'Add tasks and plan your day in seconds.',
+    variant: '01',
+    visual: '/images/how-it-works/hiw-adapts-card01-visual-mobile.png',
+    visualClass:
+      'absolute left-[19px] top-[110px] w-[550px] rounded-[13.2px] drop-shadow-[-16.337px_0_16.337px_rgba(0,0,0,0.05)]',
+    alt: 'Elyxa daily plan interface with empty schedule and add task button',
+  },
+  {
+    number: '02',
+    title: 'Life happens',
+    body: 'Meetings run late. Plans shift. Things break.',
+    variant: '02',
+    visual: '/images/how-it-works/hiw-adapts-card02-visual-mobile.png',
+    visualClass:
+      'absolute left-[19px] top-[110px] w-[320px] rounded-[13.672px] shadow-[0_0_35.165px_rgba(0,0,0,0.05)]',
+    alt: 'Schedule with time conflicts and overdue tasks',
+  },
+  {
+    number: '03',
+    title: 'Elyxa adapts',
+    body: 'Your schedule updates automatically — no manual fixes.',
+    variant: '03',
+    visual: '/images/how-it-works/hiw-adapts-card03-visual-mobile.png',
+    visualClass:
+      'absolute bottom-[-121px] right-[-301px] w-[600px] rounded-[14.4px] drop-shadow-[-13.304px_0_13.304px_rgba(0,0,0,0.05)]',
+    alt: 'Elyxa adapted schedule with daily plan, tasks list, and AI generate panel',
+  },
+];
 
-const DailyEmpty = () => (
-  <div className="flex flex-1 flex-col bg-white p-4">
-    <p className="mb-1 font-['Inter',sans-serif] text-[13px] font-bold text-[#181818]">Daily</p>
-    <div className="mb-4 flex items-center gap-1 font-['Inter',sans-serif] text-[10px] text-[#c2c2c2]">
-      <span>{'<'}</span>
-      <span>0 Plans Scheduled</span>
-      <span>{'>'}</span>
-    </div>
-    <div className="flex flex-1 items-center justify-center">
-      <button className="flex items-center gap-1 rounded-lg border border-dashed border-[#8022fe]/40 px-3 py-1.5 font-['Inter',sans-serif] text-[10px] font-medium text-[#8022fe]">
-        <span className="text-sm leading-none">+</span> Add Task Here
-      </button>
-    </div>
-  </div>
-);
-
-const ConflictSchedule = () => (
-  <div className="flex-1 overflow-hidden rounded-xl border border-[#f0f0f0] bg-white p-3">
-    {[
-      { time: '11:00 AM', task: 'Focus Time', badge: 'Time Conflict', red: true },
-      { time: '11:00 AM', task: 'Breakfast Boost', badge: 'Time Conflict', red: true },
-      { time: '5:00 AM', task: 'Morning Mindfulness', badge: null },
-      { time: '1:00 PM', task: 'Lunch Break', badge: 'Double Booked', red: false },
-      { time: '2:00 AM', task: 'Team Standup', badge: null },
-    ].map((r, i) => (
-      <div
-        key={i}
-        className="flex items-center gap-2 border-b border-[#f8f8f8] py-1.5 last:border-0"
-      >
-        <span
-          className={`w-14 shrink-0 font-['Inter',sans-serif] text-[9px] font-medium ${r.red || r.badge ? 'text-[#ef4444]' : 'text-[#c2c2c2]'}`}
-        >
-          {r.time}
-        </span>
-        <p className="flex-1 truncate font-['Inter',sans-serif] text-[10px] font-medium text-[#181818]">
-          {r.task}
-        </p>
-        {r.badge && (
-          <span
-            className={`shrink-0 rounded px-1.5 py-0.5 font-['Inter',sans-serif] text-[8px] font-medium ${r.red ? 'bg-[#fee2e2] text-[#ef4444]' : 'bg-[#fff3e0] text-[#f59e0b]'}`}
-          >
-            {r.badge}
-          </span>
-        )}
-      </div>
-    ))}
-  </div>
-);
-
-const AdaptedScheduleMockup = ({ className = '', style }) => (
-  <div
-    className={`flex overflow-hidden rounded-xl border border-[#f0f0f0] shadow-sm ${className}`}
-    style={style ?? { height: 255 }}
-  >
-    <div className="flex w-7 shrink-0 flex-col items-center gap-2 bg-[#181818] py-2">
-      <div className="flex h-4 w-4 items-center justify-center rounded bg-[#8022fe]">
-        <span style={{ fontSize: 6, color: 'white', fontWeight: 700 }}>E</span>
-      </div>
-      {[...Array(6)].map((_, i) => (
-        <div key={i} className="h-3 w-3 rounded bg-[#2a2a2a]" />
-      ))}
-    </div>
-    <div className="flex flex-1 flex-col overflow-hidden bg-white p-2.5">
-      <p className="mb-0.5 font-['Inter',sans-serif] text-[10px] font-bold text-[#181818]">Daily</p>
-      <div className="mb-2 flex items-center gap-1">
-        <span className="text-[8px] text-[#c2c2c2]">{'<'}</span>
-        <p className="font-['Inter',sans-serif] text-[8px] font-medium text-[#181818]">
-          6 Plans Scheduled
-        </p>
-        <span className="text-[8px] text-[#c2c2c2]">{'>'}</span>
-        <p className="ml-1 font-['Inter',sans-serif] text-[8px] text-[#c2c2c2]">
-          Sunday, December 14
-        </p>
-      </div>
-      {[
-        { time: '7:00 AM', task: 'Morning Mindfulness', tag: 'Optimized for You', hl: true },
-        { time: '8:00 AM', task: 'Breakfast Boost', tag: '' },
-        { time: '9:30 AM', task: 'Team Standup', tag: 'High Priority', warn: true },
-        { time: '11:00 AM', task: 'Focus Time', tag: 'Focus Block' },
-        { time: '1:00 PM', task: 'Lunch Break', tag: '' },
-        { time: '2:30 PM', task: 'Creative Session', tag: '' },
-      ].map((r, i) => (
-        <div
-          key={i}
-          className={`flex items-center gap-1.5 border-b border-[#f8f8f8] py-0.5 last:border-0 ${r.hl ? '-mx-0.5 rounded bg-[#f5f0ff] px-0.5' : ''}`}
-        >
-          <span
-            className={`w-11 shrink-0 font-['Inter',sans-serif] text-[8px] font-medium ${r.warn ? 'text-[#8022fe]' : 'text-[#c2c2c2]'}`}
-          >
-            {r.time}
-          </span>
-          <p className="flex-1 truncate font-['Inter',sans-serif] text-[9px] font-medium text-[#181818]">
-            {r.task}
-          </p>
-          {r.tag && (
-            <span className="shrink-0 rounded bg-[#f0e8ff] px-1 py-0.5 font-['Inter',sans-serif] text-[7px] font-medium text-[#8022fe]">
-              {r.tag}
-            </span>
-          )}
-        </div>
-      ))}
-    </div>
-    <div className="w-24 shrink-0 border-l border-[#f0f0f0] bg-white p-2">
-      <p className="mb-1.5 font-['Inter',sans-serif] text-[9px] font-bold text-[#181818]">
-        Tasks List
-      </p>
-      {[
-        { name: 'Review Goals', time: '09:00', tag: 'Work', done: true },
-        { name: 'Team Meeting', time: '10:05', tag: 'Collab', done: true },
-        { name: 'Project Update', time: '11:30', tag: 'Report' },
-        { name: 'Lunch Break', time: '12:30', tag: 'Rest' },
-        { name: 'Client Call', time: '14:00', tag: 'Consu' },
-      ].map((t, i) => (
-        <div
-          key={i}
-          className="flex items-start gap-1 border-b border-[#f8f8f8] py-0.5 last:border-0"
-        >
-          <div
-            className={`mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full border ${t.done ? 'border-[#8022fe] bg-[#8022fe]' : 'border-[#d9d9d9]'}`}
-          />
-          <div className="min-w-0">
-            <p className="truncate font-['Inter',sans-serif] text-[8px] leading-tight font-medium text-[#181818]">
-              {t.name}
-            </p>
-            <p className="font-['Inter',sans-serif] text-[7px] text-[#c2c2c2]">
-              {t.time} <span className={t.done ? 'text-[#8022fe]' : 'text-[#aaa]'}>{t.tag}</span>
-            </p>
-          </div>
-        </div>
-      ))}
-    </div>
-  </div>
-);
-
-const PlanDayVisual = () => (
-  <div className="flex h-[280px] w-[520px] overflow-hidden rounded-2xl bg-[#f3f4f6] shadow-[-16px_0_16px_rgba(0,0,0,0.05)] sm:h-[320px] sm:w-[580px] lg:h-[292px] lg:w-[520px]">
-    <AppSidebar />
-    <DailyEmpty />
-  </div>
-);
-
-const LifeHappensVisual = () => (
-  <div className="h-[280px] w-[520px] overflow-hidden rounded-2xl bg-white p-4 shadow-[-16px_0_16px_rgba(0,0,0,0.05)] sm:h-[320px] sm:w-[580px] lg:h-[292px] lg:w-[520px]">
-    <ConflictSchedule />
-  </div>
-);
-
-const HIWStepCard = ({ cardRef, number, title, body, variant, visual }) => {
+const AdaptsMobileCard = ({
+  cardRef,
+  number,
+  title,
+  body,
+  variant,
+  visual,
+  visualClass,
+  alt,
+}) => {
   const isAdaptCard = variant === '03';
 
   return (
     <div
       ref={cardRef}
-      className={`relative overflow-hidden border border-[#f2f2f2] bg-[#fcfcfc] ${
+      className={`relative w-full max-w-[320px] overflow-hidden border border-[#f2f2f2] bg-[#fcfcfc] ${
         isAdaptCard
-          ? 'flex flex-col rounded-2xl px-5 pt-5 pb-[350px] lg:h-[720px] lg:rounded-[20px] lg:p-[30px]'
-          : 'h-[300px] rounded-2xl p-5 lg:h-[350px] lg:rounded-[20px] lg:p-[30px]'
+          ? 'flex flex-col gap-4 rounded-2xl px-5 pt-5 pb-[350px]'
+          : 'h-[300px] rounded-2xl p-5'
       }`}
     >
-      {/* Header row */}
-      <div
-        className={`relative z-10 flex items-start gap-6 lg:gap-[50px] ${isAdaptCard ? 'lg:mb-5' : ''}`}
-      >
-        <div
-          className={`flex flex-1 flex-col gap-1.5 lg:gap-2.5 ${!isAdaptCard ? 'lg:h-full lg:max-w-[230px] lg:justify-between' : ''}`}
-        >
-          <div className="flex flex-col gap-1.5 lg:gap-2.5">
-            <h3 className="font-['Inter',sans-serif] text-[18px] leading-[1.3] font-semibold text-[#181818] lg:text-[24px]">
-              {title}
-            </h3>
-            <p className="font-['Inter',sans-serif] text-[14px] leading-normal font-medium text-[#181818] lg:text-[16px]">
-              {body}
-            </p>
-          </div>
-
-          {isAdaptCard && (
-            <Link to="/signup" className="mt-3 lg:mt-0">
-              <button className="w-full rounded-[10px] bg-[#8022fe] px-5 py-3 font-['Inter',sans-serif] text-[14px] font-semibold text-white transition-colors hover:bg-[#6b1bdb] lg:w-auto lg:px-5 lg:py-3 lg:text-[16px]">
-                Get Your First Plan
-              </button>
-            </Link>
-          )}
-
-          {!isAdaptCard && (
-            <p className="hidden font-['Inter',sans-serif] text-[54px] leading-[1.3] font-bold text-[#f2f2f2] select-none lg:block">
-              {number}
-            </p>
-          )}
+      <div className="relative z-10 flex items-start gap-[30px]">
+        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+          <h3 className="font-['Inter',sans-serif] text-[18px] leading-[1.3] font-semibold text-[#181818]">
+            {title}
+          </h3>
+          <p className="font-['Inter',sans-serif] text-[14px] leading-normal font-medium text-[#181818]">
+            {body}
+          </p>
         </div>
-
-        <p className="font-['Inter',sans-serif] text-[40px] leading-[1.3] font-bold text-[#f2f2f2] select-none lg:hidden">
+        <p className="shrink-0 font-['Inter',sans-serif] text-[40px] leading-[1.3] font-bold text-[#f2f2f2] select-none">
           {number}
         </p>
       </div>
 
-      {/* Card 03 desktop number — top-right */}
       {isAdaptCard && (
-        <p className="absolute top-[30px] right-[30px] hidden font-['Inter',sans-serif] text-[54px] leading-[1.3] font-bold text-[#f2f2f2] select-none lg:block">
-          {number}
-        </p>
+        <Link to="/signup" className="relative z-10 w-full">
+          <button className="w-full rounded-[10px] bg-[#8022fe] px-5 py-3 font-['Inter',sans-serif] text-[14px] font-semibold text-white transition-colors hover:bg-[#6b1bdb]">
+            Get Your First Plan
+          </button>
+        </Link>
       )}
 
-      {/* Visual mockup */}
-      <div
-        className={
-          isAdaptCard
-            ? 'absolute right-5 bottom-0 left-5 lg:relative lg:mt-auto lg:flex lg:flex-1 lg:flex-col'
-            : 'absolute top-[110px] left-5 lg:top-[29px] lg:right-[-40%] lg:left-auto xl:right-[-53%]'
-        }
-      >
-        {visual}
-      </div>
+      <img
+        src={visual}
+        alt={alt}
+        className={`pointer-events-none z-0 h-auto max-w-none select-none ${visualClass}`}
+        draggable={false}
+      />
     </div>
   );
 };
+
+const AdaptsDesktopCards = () => (
+  <div className="hidden w-full overflow-x-auto lg:block">
+    <div className="flex min-w-[1300px] items-center gap-5">
+      <div className="flex w-[640px] shrink-0 flex-col gap-5">
+      <img
+        src="/images/how-it-works/hiw-adapts-card01-full.png"
+        alt="Plan your day — Elyxa daily plan interface"
+        width={640}
+        height={350}
+        className="h-[350px] w-[640px] shrink-0 rounded-[20px]"
+        draggable={false}
+      />
+      <img
+        src="/images/how-it-works/hiw-adapts-card02-full.png"
+        alt="Life happens — schedule with time conflicts"
+        width={640}
+        height={350}
+        className="h-[350px] w-[640px] shrink-0 rounded-[20px]"
+        draggable={false}
+      />
+    </div>
+
+    <div className="relative h-[720px] w-[640px] shrink-0">
+      <img
+        src="/images/how-it-works/hiw-adapts-card03-full.png"
+        alt="Elyxa adapts — full dashboard with tasks list and AI panel"
+        width={640}
+        height={720}
+        className="h-[720px] w-[640px] rounded-[20px]"
+        draggable={false}
+      />
+      <Link
+        to="/signup"
+        className="absolute top-[139px] left-[30px] z-10 h-[43px] w-[220px] rounded-[10px]"
+        aria-label="Get Your First Plan"
+      />
+    </div>
+    </div>
+  </div>
+);
 
 const AdaptsSection = () => {
   const secRef = useRef(null);
@@ -820,6 +702,7 @@ const AdaptsSection = () => {
   const c1Ref = useRef(null);
   const c2Ref = useRef(null);
   const c3Ref = useRef(null);
+  const cardsAnimRef = useRef(null);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -830,59 +713,42 @@ const AdaptsSection = () => {
         ease: 'power2.out',
         scrollTrigger: { trigger: headRef.current, start: 'top 88%', once: true },
       });
-      const tl = gsap.timeline({
-        scrollTrigger: { trigger: c1Ref.current, start: 'top 85%', once: true },
+      gsap.from(cardsAnimRef.current, {
+        opacity: 0,
+        y: 24,
+        duration: 0.55,
+        ease: 'power2.out',
+        scrollTrigger: { trigger: cardsAnimRef.current, start: 'top 85%', once: true },
       });
-      tl.from(c1Ref.current, { opacity: 0, y: 24, duration: 0.55, ease: 'power2.out' })
-        .from(c2Ref.current, { opacity: 0, y: 24, duration: 0.55, ease: 'power2.out' })
-        .from(c3Ref.current, { opacity: 0, y: 24, duration: 0.55, ease: 'power2.out' });
     }, secRef);
     return () => ctx.revert();
   }, []);
 
-  return (
-    <section ref={secRef} className="w-full bg-white px-5 py-[50px] lg:px-6 lg:py-[90px] xl:px-24">
-      <div className="mx-auto max-w-[1300px]">
-        <div ref={headRef} className="mb-6 flex flex-col gap-3.5 lg:mb-10 lg:gap-5">
-          <h2 className="font-['Inter',sans-serif] text-[22px] leading-[1.3] font-bold text-[#181818] lg:text-[34px]">
-            How Elyxa adapts to your <span className="text-[#8022fe]">Life</span>
-            <span className="text-[#14f1d9]">.</span>
-          </h2>
-          <p className="font-['Inter',sans-serif] text-[14px] leading-normal font-medium text-[#181818] lg:text-[16px]">
-            Your plan updates itself when things don't go as expected.
-          </p>
-        </div>
+  const [step01, step02, step03] = ADAPTS_MOBILE_STEPS;
 
-        <div className="flex flex-col gap-5 lg:grid lg:grid-cols-2 lg:items-start">
-          <div className="flex flex-col gap-5">
-            <HIWStepCard
-              cardRef={c1Ref}
-              number="01"
-              title="Plan your day"
-              body="Add tasks and plan your day in seconds."
-              variant="01"
-              visual={<PlanDayVisual />}
-            />
-            <HIWStepCard
-              cardRef={c2Ref}
-              number="02"
-              title="Life happens"
-              body="Meetings run late. Plans shift. Things break."
-              variant="02"
-              visual={<LifeHappensVisual />}
-            />
+  return (
+    <section ref={secRef} className="w-full bg-white">
+      <div className="mx-auto max-w-[1300px] px-5 py-[50px] lg:pt-[90px] lg:pb-[180px] lg:px-0">
+        <div className="flex flex-col gap-6 lg:gap-[50px]">
+          <div ref={headRef} className="flex max-w-[640px] flex-col gap-3.5 lg:gap-5">
+            <h2 className="font-['Inter',sans-serif] text-[22px] leading-[1.3] font-bold text-[#181818] lg:text-[34px]">
+              How Elyxa adapts to your <span className="text-[#8022fe]">Life</span>
+              <span className="text-[#14f1d9]">.</span>
+            </h2>
+            <p className="font-['Inter',sans-serif] text-[14px] leading-normal font-medium text-[#181818] lg:text-[16px]">
+              Your plan updates itself when things don't go as expected.
+            </p>
           </div>
 
-          <HIWStepCard
-            cardRef={c3Ref}
-            number="03"
-            title="Elyxa adapts"
-            body="Your schedule updates automatically — no manual fixes."
-            variant="03"
-            visual={
-              <AdaptedScheduleMockup className="h-[280px] w-full lg:h-[calc(100%-140px)] lg:min-h-[480px]" />
-            }
-          />
+          <div ref={cardsAnimRef}>
+            <AdaptsDesktopCards />
+
+            <div className="flex flex-col gap-5 lg:hidden">
+              <AdaptsMobileCard cardRef={c1Ref} {...step01} />
+              <AdaptsMobileCard cardRef={c2Ref} {...step02} />
+              <AdaptsMobileCard cardRef={c3Ref} {...step03} />
+            </div>
+          </div>
         </div>
       </div>
     </section>
