@@ -361,46 +361,72 @@ const HeroHIW = () => {
 
 // ─── Section 2: Breaking ──────────────────────────────────────────────────────
 
-const MiniTaskList = () => (
-  <div className="flex h-full flex-col rounded-xl border border-[#f0f0f0] bg-white p-3">
-    <p className="mb-2.5 font-['Inter',sans-serif] text-[11px] font-bold text-[#181818]">
+const TASK_TAG_STYLES = {
+  green: { text: 'text-[#16a34a]', border: 'border-[rgba(22,163,74,0.2)]' },
+  yellow: { text: 'text-[#a38e16]', border: 'border-[rgba(163,142,22,0.2)]' },
+  blue: { text: 'text-[#1647a3]', border: 'border-[rgba(22,71,163,0.2)]' },
+  purple: { text: 'text-[#7d16a3]', border: 'border-[rgba(125,22,163,0.2)]' },
+};
+
+const BREAKING_TASKS = [
+  { name: 'Review Goals', time: '09:00', tag: 'Work', tagStyle: 'green', done: true, timeBg: 'bg-[#f8f8f8]' },
+  { name: 'Team Meeting', time: '10:00', tag: 'Collaboration', tagStyle: 'yellow', done: true, timeBg: 'bg-[#f3f4f6]' },
+  { name: 'Project Update', time: '11:30', tag: 'Reporting', tagStyle: 'blue', done: false, timeBg: 'bg-[#f3f4f6]' },
+  { name: 'Lunch Break', time: '12:30', tag: 'Rest', tagStyle: 'purple', done: false, timeBg: 'bg-white' },
+  { name: 'Client Call', time: '14:00', tag: 'Consultation', tagStyle: 'green', done: false, timeBg: 'bg-white' },
+];
+
+const TaskCheckboxIcon = ({ done }) =>
+  done ? (
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" className="shrink-0">
+      <rect x="0.5" y="0.5" width="14" height="14" rx="3" fill="#8022FE" stroke="#8022FE" />
+      <path d="M4 7.5L6.5 10L11 5" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ) : (
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" className="shrink-0">
+      <rect x="0.5" y="0.5" width="14" height="14" rx="3" stroke="#D9D9D9" />
+    </svg>
+  );
+
+const BreakingTasksList = ({ className = '' }) => (
+  <div
+    className={`flex flex-col gap-3.5 rounded-[18px] border border-[#f2f2f2] bg-white p-3.5 shadow-[0px_10.97px_21.939px_rgba(0,0,0,0.05)] lg:rounded-[18px] lg:p-3.5 ${className}`}
+  >
+    <p className="font-['Inter',sans-serif] text-[11px] font-semibold text-[#181818] lg:text-[12px]">
       Tasks List
     </p>
-    {[
-      { name: 'Review Goals', time: '09:00', tag: 'Work', done: true },
-      { name: 'Team Meeting', time: '10:00', tag: 'Collaboration', done: false },
-    ].map((t) => (
-      <div
-        key={t.name}
-        className="flex items-center gap-2 border-b border-[#f8f8f8] py-2 last:border-0"
-      >
-        <div
-          className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded border ${t.done ? 'border-[#8022fe] bg-[#f0e8ff]' : 'border-[#d9d9d9]'}`}
-        >
-          {t.done && (
-            <svg width="7" height="7" viewBox="0 0 7 7" fill="none">
-              <path
-                d="M1 3.5L2.8 5.5L6 1.5"
-                stroke="#8022FE"
-                strokeWidth="1"
-                strokeLinecap="round"
-              />
-            </svg>
-          )}
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="truncate font-['Inter',sans-serif] text-[10px] font-semibold text-[#181818]">
-            {t.name}
-          </p>
-          <p className="font-['Inter',sans-serif] text-[9px] text-[#c2c2c2]">
-            {t.time}{' '}
-            <span className={`font-medium ${t.done ? 'text-[#8022fe]' : 'text-[#aaa]'}`}>
-              {t.tag}
-            </span>
-          </p>
-        </div>
-      </div>
-    ))}
+    <div className="flex max-h-[220px] flex-col gap-2.5 overflow-hidden lg:max-h-[292px] lg:gap-2.5">
+      {BREAKING_TASKS.map((task) => {
+        const tag = TASK_TAG_STYLES[task.tagStyle];
+        return (
+          <div
+            key={task.name}
+            className="flex items-center gap-2.5 rounded-[8px] border border-[#f2f2f2] bg-[#fcfcfc] p-2.5 lg:gap-2.5 lg:p-2.5"
+          >
+            <TaskCheckboxIcon done={task.done} />
+            <div className="min-w-0 flex-1">
+              <p
+                className={`font-['Inter',sans-serif] text-[10px] font-medium text-[#181818] lg:text-[10px] ${task.done ? 'line-through' : ''}`}
+              >
+                {task.name}
+              </p>
+              <div className="mt-1 flex flex-wrap items-center gap-1">
+                <span
+                  className={`rounded px-1 py-0.5 font-['Inter',sans-serif] text-[7px] font-medium text-[#181818] lg:text-[7.5px] ${task.timeBg}`}
+                >
+                  {task.time}
+                </span>
+                <span
+                  className={`rounded-full border bg-white px-1 py-0.5 font-['Inter',sans-serif] text-[7px] font-medium lg:text-[7.5px] ${tag.text} ${tag.border}`}
+                >
+                  {task.tag}
+                </span>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
   </div>
 );
 
@@ -489,54 +515,50 @@ const BreakingSection = () => {
             </p>
           </div>
 
-          {/* Card 3 — Start planning differently (split layout with embedded task list) */}
+          {/* Card 3 — Start planning differently */}
           <div
             ref={c2}
-            className="overflow-hidden rounded-2xl border border-[#f0f0f0] bg-white shadow-[0_2px_16px_rgba(0,0,0,0.04)]"
+            className="relative overflow-hidden rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] p-4 min-h-[217px] lg:min-h-[163px] lg:rounded-[20px] lg:p-6"
           >
-            <div className="flex h-full min-h-[200px]">
-              {/* Left: text + button */}
-              <div className="flex flex-col justify-between p-7 pr-4" style={{ flex: '0 0 54%' }}>
-                <div>
-                  <div className="mb-4 flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f5f0ff]">
-                      <HiOutlineSparkles size={18} className="text-purple-600" />
-                    </div>
-                    <h3 className="font-['Inter',sans-serif] text-[17px] font-bold text-[#181818]">
-                      Start planning differently
-                    </h3>
-                  </div>
-                  <p className="mb-6 font-['Inter',sans-serif] text-[14px] leading-relaxed font-medium text-[#888]">
-                    See how your schedule adapts when life changes.
-                  </p>
+            <BreakingTasksList className="absolute top-[97px] right-[-51px] z-10 w-[200px] lg:top-[23px] lg:right-[-45px] lg:w-[224px]" />
+
+            <div className="relative z-0 flex max-w-[calc(100%-80px)] flex-col gap-2.5 lg:max-w-[400px] lg:gap-2.5">
+              <div className="flex items-center gap-2.5 lg:gap-3.5">
+                <div className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-lg bg-[#f9f4ff] lg:h-[34px] lg:w-[34px]">
+                  <HiOutlineSparkles size={16} className="text-[#8022fe] lg:hidden" />
+                  <HiOutlineSparkles size={18} className="hidden text-[#8022fe] lg:block" />
                 </div>
-                <button className="w-fit rounded-xl bg-[#8022fe] px-5 py-2.5 font-['Inter',sans-serif] text-[13px] font-semibold text-white shadow-[0_4px_14px_rgba(128,34,254,0.3)] transition-colors hover:bg-[#6b1bdb]">
-                  Try It Yourself
-                </button>
+                <h3 className="font-['Inter',sans-serif] text-[18px] font-semibold leading-[1.3] text-[#181818] lg:text-[24px]">
+                  Start planning differently
+                </h3>
               </div>
-              {/* Right: embedded mini task list */}
-              <div className="border-l border-[#f5f5f5] p-4" style={{ flex: '0 0 46%' }}>
-                <MiniTaskList />
-              </div>
+              <p className="font-['Inter',sans-serif] text-[14px] font-medium leading-normal text-[#181818] lg:text-[16px]">
+                See how your schedule adapts when life changes.
+              </p>
             </div>
+
+            <button className="relative z-0 mt-[70px] rounded-lg bg-[#8022fe] px-4 py-2 font-['Inter',sans-serif] text-[14px] font-semibold text-white transition-colors hover:bg-[#6b1bdb] lg:mt-3.5">
+              Try It Yourself
+            </button>
           </div>
 
           {/* Card 4 — The Result */}
           <div
             ref={c3}
-            className="rounded-2xl border border-[#f0f0f0] bg-white p-7 shadow-[0_2px_16px_rgba(0,0,0,0.04)]"
+            className="rounded-2xl border border-[#e9e8e8] bg-[#fcfcfc] p-4 shadow-[0px_15px_7.5px_rgba(0,0,0,0.02)] lg:rounded-[20px] lg:p-6"
           >
-            <div className="mb-4 flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f5f0ff]">
-                <PiTimer size={18} className="text-purple-600" />
+            <div className="mb-2.5 flex items-center gap-2.5 lg:gap-3.5">
+              <div className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-lg bg-[#f9f4ff] lg:h-[34px] lg:w-[34px]">
+                <PiTimer size={16} className="text-[#8022fe] lg:hidden" />
+                <PiTimer size={18} className="hidden text-[#8022fe] lg:block" />
               </div>
-              <h3 className="font-['Inter',sans-serif] text-[18px] font-bold text-[#181818]">
+              <h3 className="font-['Inter',sans-serif] text-[18px] font-semibold leading-[1.3] text-[#181818] lg:text-[24px]">
                 The Result
               </h3>
             </div>
-            <p className="font-['Inter',sans-serif] text-[15px] leading-relaxed font-medium text-[#888]">
-              You don't feel organized — you feel behind. And most days end in either <br />{' '}
-              catching up or giving up.
+            <p className="font-['Inter',sans-serif] text-[14px] font-medium leading-normal text-[#181818] lg:text-[16px]">
+              You don't feel organized — you feel behind. And most days end in either catching up or
+              giving up.
             </p>
           </div>
         </div>
