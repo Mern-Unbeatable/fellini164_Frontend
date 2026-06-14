@@ -2,8 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Link } from 'react-router-dom';
-import { PiCompass, PiInfinity } from 'react-icons/pi';
+import { PiCompass, PiInfinity, PiWarning, PiTimer } from 'react-icons/pi';
 import { MdChecklist } from 'react-icons/md';
+import { GoMegaphone } from 'react-icons/go';
+import { HiOutlineSparkles } from 'react-icons/hi2';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -456,21 +458,7 @@ const BreakingSection = () => {
           >
             <div className="mb-4 flex items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f5f0ff]">
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                  <path
-                    d="M3 9C3 5.686 5.686 3 9 3"
-                    stroke="#8022FE"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
-                  <path
-                    d="M15 9C15 12.314 12.314 15 9 15"
-                    stroke="#8022FE"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
-                  <circle cx="9" cy="9" r="2" fill="#8022FE" />
-                </svg>
+                <GoMegaphone size={18} className="text-purple-600" />
               </div>
               <h3 className="font-['Inter',sans-serif] text-[18px] font-bold text-[#181818]">
                 The Gap
@@ -488,16 +476,7 @@ const BreakingSection = () => {
           >
             <div className="mb-4 flex items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f5f0ff]">
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                  <path
-                    d="M9 3L16 15H2L9 3Z"
-                    stroke="#8022FE"
-                    strokeWidth="1.5"
-                    strokeLinejoin="round"
-                  />
-                  <path d="M9 8V11" stroke="#8022FE" strokeWidth="1.5" strokeLinecap="round" />
-                  <circle cx="9" cy="13" r="0.75" fill="#8022FE" />
-                </svg>
+                <PiWarning size={18} className="text-purple-600" />
               </div>
               <h3 className="font-['Inter',sans-serif] text-[18px] font-bold text-[#181818]">
                 The Consequence
@@ -519,14 +498,7 @@ const BreakingSection = () => {
                 <div>
                   <div className="mb-4 flex items-center gap-3">
                     <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f5f0ff]">
-                      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                        <path
-                          d="M9 2L10.8 7H16L11.6 10.3L13.4 15.3L9 12L4.6 15.3L6.4 10.3L2 7H7.2L9 2Z"
-                          stroke="#8022FE"
-                          strokeWidth="1.3"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
+                      <HiOutlineSparkles size={18} className="text-purple-600" />
                     </div>
                     <h3 className="font-['Inter',sans-serif] text-[17px] font-bold text-[#181818]">
                       Start planning differently
@@ -554,16 +526,7 @@ const BreakingSection = () => {
           >
             <div className="mb-4 flex items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f5f0ff]">
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                  <circle cx="9" cy="9" r="6.5" stroke="#8022FE" strokeWidth="1.5" />
-                  <path
-                    d="M9 6V9.5L11 11.5"
-                    stroke="#8022FE"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+                <PiTimer size={18} className="text-purple-600" />
               </div>
               <h3 className="font-['Inter',sans-serif] text-[18px] font-bold text-[#181818]">
                 The Result
