@@ -1014,9 +1014,14 @@ const PricingHIW = () => {
               ))}
             </div>
 
-            <div className="flex w-full items-start justify-between px-5 font-['Inter',sans-serif] text-[10px] font-medium leading-[1.5] text-[#c2c2c2] md:justify-center md:gap-10 md:px-0 lg:gap-10 lg:text-[12px]">
+            <div className="flex w-full items-start justify-between px-5 md:justify-center md:gap-10 md:px-0 lg:gap-10">
               {['No commitment', 'Cancel anytime', 'Secure payments'].map((t) => (
-                <p key={t}>{t}</p>
+                <p
+                  key={t}
+                  className="font-['Inter',sans-serif] text-[10px] font-medium leading-[1.5] text-[#c2c2c2] lg:text-[12px]"
+                >
+                  {t}
+                </p>
               ))}
             </div>
           </div>
