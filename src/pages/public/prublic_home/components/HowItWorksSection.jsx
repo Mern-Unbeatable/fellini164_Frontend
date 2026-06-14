@@ -486,11 +486,11 @@ const BreakingSection = () => {
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f5f0ff]">
                 <GoMegaphone size={18} className="text-purple-600" />
               </div>
-              <h3 className="font-['Inter',sans-serif] text-[18px] font-bold text-[#181818]">
+              <h3 className="font-['Inter',sans-serif] text-[18px] leading-[1.3] font-semibold text-[#181818] lg:text-[24px]">
                 The Gap
               </h3>
             </div>
-            <p className="font-['Inter',sans-serif] text-[15px] leading-relaxed font-medium text-[#888]">
+            <p className="font-['Inter',sans-serif] text-[14px] leading-normal font-medium text-[#181818] lg:text-[16px]">
               Most planning tools work — until something changes. Then everything falls <br />{' '}
               apart.
             </p>
@@ -505,11 +505,11 @@ const BreakingSection = () => {
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f5f0ff]">
                 <PiWarning size={18} className="text-purple-600" />
               </div>
-              <h3 className="font-['Inter',sans-serif] text-[18px] font-bold text-[#181818]">
+              <h3 className="font-['Inter',sans-serif] text-[18px] leading-[1.3] font-semibold text-[#181818] lg:text-[24px]">
                 The Consequence
               </h3>
             </div>
-            <p className="font-['Inter',sans-serif] text-[15px] leading-relaxed font-medium text-[#888]">
+            <p className="font-['Inter',sans-serif] text-[14px] leading-normal font-medium text-[#181818] lg:text-[16px]">
               One delay, one unexpected event — and your day turns into a list of overdue <br />{' '}
               tasks.
             </p>
@@ -518,7 +518,7 @@ const BreakingSection = () => {
           {/* Card 3 — Start planning differently */}
           <div
             ref={c2}
-            className="relative overflow-hidden rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] p-4 min-h-[217px] lg:min-h-[163px] lg:rounded-[20px] lg:p-6"
+            className="relative min-h-[217px] overflow-hidden rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] p-4 lg:min-h-[163px] lg:rounded-[20px] lg:p-6"
           >
             <BreakingTasksList className="absolute top-[97px] right-[-51px] z-10 w-[200px] lg:top-[23px] lg:right-[-45px] lg:w-[224px]" />
 
@@ -528,11 +528,11 @@ const BreakingSection = () => {
                   <HiOutlineSparkles size={16} className="text-[#8022fe] lg:hidden" />
                   <HiOutlineSparkles size={18} className="hidden text-[#8022fe] lg:block" />
                 </div>
-                <h3 className="font-['Inter',sans-serif] text-[18px] font-semibold leading-[1.3] text-[#181818] lg:text-[24px]">
+                <h3 className="font-['Inter',sans-serif] text-[18px] leading-[1.3] font-semibold text-[#181818] lg:text-[24px]">
                   Start planning differently
                 </h3>
               </div>
-              <p className="font-['Inter',sans-serif] text-[14px] font-medium leading-normal text-[#181818] lg:text-[16px]">
+              <p className="font-['Inter',sans-serif] text-[14px] leading-normal font-medium text-[#181818] lg:text-[16px]">
                 See how your schedule adapts when life changes.
               </p>
             </div>
@@ -552,11 +552,11 @@ const BreakingSection = () => {
                 <PiTimer size={16} className="text-[#8022fe] lg:hidden" />
                 <PiTimer size={18} className="hidden text-[#8022fe] lg:block" />
               </div>
-              <h3 className="font-['Inter',sans-serif] text-[18px] font-semibold leading-[1.3] text-[#181818] lg:text-[24px]">
+              <h3 className="font-['Inter',sans-serif] text-[18px] leading-[1.3] font-semibold text-[#181818] lg:text-[24px]">
                 The Result
               </h3>
             </div>
-            <p className="font-['Inter',sans-serif] text-[14px] font-medium leading-normal text-[#181818] lg:text-[16px]">
+            <p className="font-['Inter',sans-serif] text-[14px] leading-normal font-medium text-[#181818] lg:text-[16px]">
               You don't feel organized — you feel behind. And most days end in either catching up or
               giving up.
             </p>
