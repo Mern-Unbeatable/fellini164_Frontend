@@ -2,10 +2,18 @@ import React, { useState, useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Link } from 'react-router-dom';
-import { PiCompass, PiInfinity, PiWarning, PiTimer } from 'react-icons/pi';
+import {
+  PiCompass,
+  PiInfinity,
+  PiWarning,
+  PiTimer,
+  PiCalendarCheckDuotone,
+  PiCheckSquare,
+  PiFileDuotone,
+} from 'react-icons/pi';
 import { MdChecklist } from 'react-icons/md';
 import { GoMegaphone } from 'react-icons/go';
-import { HiOutlineSparkles } from 'react-icons/hi2';
+import { HiOutlineSparkles, HiArrowPathRoundedSquare } from 'react-icons/hi2';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -32,19 +40,6 @@ const PlanCheckIcon = () => (
 
 const PRICING_CARD_SHADOW =
   'shadow-[0px_171px_48px_0px_rgba(0,0,0,0),0px_109px_44px_0px_rgba(0,0,0,0),0px_61px_37px_0px_rgba(0,0,0,0.01),0px_27px_27px_0px_rgba(0,0,0,0.02),0px_7px_15px_0px_rgba(0,0,0,0.02)]';
-
-const ElyxaIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="mt-0.5 shrink-0">
-    <rect width="16" height="16" rx="3" fill="#8022FE" fillOpacity="0.12" />
-    <path
-      d="M4 8.5L6.5 11L12 5"
-      stroke="#8022FE"
-      strokeWidth="1.3"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
 
 // ─── Pricing data ─────────────────────────────────────────────────────────────
 
@@ -801,7 +796,7 @@ const AdaptsSection = () => {
 
 const StrikethroughPrice = ({ price }) => (
   <div className="relative flex shrink-0 items-center">
-    <p className="font-['Inter',sans-serif] text-[22px] font-bold leading-[1.3] text-[#8022fe] lg:text-[34px]">
+    <p className="font-['Inter',sans-serif] text-[22px] leading-[1.3] font-bold text-[#8022fe] lg:text-[34px]">
       {price}
     </p>
     <span className="absolute top-1/2 right-0 left-0 h-[2px] -translate-y-1/2 bg-[#8022fe] lg:h-[3px]" />
@@ -852,10 +847,10 @@ const PricingCard = ({ plan, cardRef, billing }) => {
     <>
       <div className="flex w-full flex-1 flex-col">
         <div className="flex w-full flex-col gap-1 border-b border-[#f2f2f2] p-5 lg:gap-1.5 lg:p-6">
-          <p className="font-['Inter',sans-serif] text-[18px] font-semibold leading-[1.3] text-[#181818] lg:text-[24px]">
+          <p className="font-['Inter',sans-serif] text-[18px] leading-[1.3] font-semibold text-[#181818] lg:text-[24px]">
             {plan.name}
           </p>
-          <p className="font-['Inter',sans-serif] text-[14px] font-medium leading-[1.5] text-[#181818] lg:text-[16px]">
+          <p className="font-['Inter',sans-serif] text-[14px] leading-[1.5] font-medium text-[#181818] lg:text-[16px]">
             {plan.tagline}
           </p>
         </div>
@@ -864,32 +859,32 @@ const PricingCard = ({ plan, cardRef, billing }) => {
           <div className="flex w-full items-center gap-1.5 lg:items-start lg:gap-2.5">
             {showDiscount && <StrikethroughPrice price={plan.originalPrice} />}
             <div className="flex items-baseline">
-              <p className="font-['Inter',sans-serif] text-[22px] font-bold leading-[1.3] text-[#181818] lg:text-[34px]">
+              <p className="font-['Inter',sans-serif] text-[22px] leading-[1.3] font-bold text-[#181818] lg:text-[34px]">
                 {plan.price}
               </p>
-              <p className="font-['Inter',sans-serif] text-[12px] font-medium leading-[1.5] text-[#c2c2c2] lg:text-[16px]">
+              <p className="font-['Inter',sans-serif] text-[12px] leading-[1.5] font-medium text-[#c2c2c2] lg:text-[16px]">
                 {plan.priceSuffix}
               </p>
             </div>
             {plan.billingNote && (
-              <p className="ml-auto shrink-0 font-['Inter',sans-serif] text-[12px] font-medium leading-[1.5] text-[#c2c2c2] lg:hidden">
+              <p className="ml-auto shrink-0 font-['Inter',sans-serif] text-[12px] leading-[1.5] font-medium text-[#c2c2c2] lg:hidden">
                 {plan.billingNote}
               </p>
             )}
           </div>
           {plan.billingNote && (
-            <p className="hidden font-['Inter',sans-serif] text-[14px] font-medium leading-[1.5] text-[#c2c2c2] lg:block">
+            <p className="hidden font-['Inter',sans-serif] text-[14px] leading-[1.5] font-medium text-[#c2c2c2] lg:block">
               {plan.billingNote}
             </p>
           )}
         </div>
 
-        <div className="flex flex-1 flex-col px-5 pb-2.5 pt-5 lg:p-6">
+        <div className="flex flex-1 flex-col px-5 pt-5 pb-2.5 lg:p-6">
           <div className="flex flex-col gap-2.5 lg:gap-3.5">
             {plan.features.map((f) => (
               <div key={f} className="flex items-center gap-1.5 lg:gap-2">
                 <PlanCheckIcon />
-                <p className="font-['Inter',sans-serif] text-[12px] font-medium leading-[1.5] text-[#181818] lg:text-[14px]">
+                <p className="font-['Inter',sans-serif] text-[12px] leading-[1.5] font-medium text-[#181818] lg:text-[14px]">
                   {f}
                 </p>
               </div>
@@ -898,7 +893,7 @@ const PricingCard = ({ plan, cardRef, billing }) => {
         </div>
       </div>
 
-      <div className="px-5 pb-5 pt-2.5 lg:p-6">
+      <div className="px-5 pt-2.5 pb-5 lg:p-6">
         <button
           type="button"
           className={`w-full rounded-[10px] px-5 py-3 font-['Inter',sans-serif] text-[14px] font-semibold transition-colors lg:text-[16px] ${
@@ -925,7 +920,7 @@ const PricingCard = ({ plan, cardRef, billing }) => {
           {cardBody}
         </div>
         <div className="absolute top-[-8.5px] left-1/2 z-10 flex -translate-x-1/2 items-center justify-center rounded-[40px] bg-[#8022fe] px-2 py-0.5 lg:top-[-10px]">
-          <p className="font-['Inter',sans-serif] text-[10px] font-medium leading-[1.5] text-white lg:text-[12px]">
+          <p className="font-['Inter',sans-serif] text-[10px] leading-[1.5] font-medium text-white lg:text-[12px]">
             {plan.badge}
           </p>
         </div>
@@ -983,18 +978,18 @@ const PricingHIW = () => {
       <div className="mx-auto flex max-w-[1300px] flex-col gap-[30px] px-3 py-[30px] md:gap-10 md:px-6 md:py-[60px] lg:gap-[50px] lg:px-0 lg:py-[90px]">
         <div ref={headRef} className="flex flex-col items-center gap-3.5 text-center lg:gap-5">
           <div className="flex flex-col items-center gap-1 lg:flex-row lg:items-start lg:justify-center lg:gap-2.5">
-            <h2 className="font-['Inter',sans-serif] text-[22px] font-bold leading-[1.3] text-[#181818] lg:text-[34px]">
+            <h2 className="font-['Inter',sans-serif] text-[22px] leading-[1.3] font-bold text-[#181818] lg:text-[34px]">
               Your day, fully managed by AI —{' '}
               <span className="text-[#8022fe]">From $6.39/month</span>
               <span className="text-[#14f1d9]">.</span>
             </h2>
             {billing === 'yearly' && (
-              <p className="font-['Inter',sans-serif] text-[12px] font-medium leading-[1.5] text-[#c2c2c2] lg:text-[16px]">
+              <p className="font-['Inter',sans-serif] text-[12px] leading-[1.5] font-medium text-[#c2c2c2] lg:text-[16px]">
                 (Billed yearly)
               </p>
             )}
           </div>
-          <p className="font-['Inter',sans-serif] text-[14px] font-medium leading-[1.5] text-[#181818] lg:text-[16px]">
+          <p className="font-['Inter',sans-serif] text-[14px] leading-[1.5] font-medium text-[#181818] lg:text-[16px]">
             Start free. Upgrade when you need real productivity. Cancel anytime.
           </p>
         </div>
@@ -1005,12 +1000,7 @@ const PricingHIW = () => {
           <div className="flex w-full flex-col items-center gap-5 lg:gap-[30px]">
             <div className="grid w-full grid-cols-1 gap-5 md:grid-cols-2 lg:flex lg:justify-between lg:gap-5">
               {plans.map((plan, i) => (
-                <PricingCard
-                  key={plan.id}
-                  plan={plan}
-                  cardRef={cardRefs[i]}
-                  billing={billing}
-                />
+                <PricingCard key={plan.id} plan={plan} cardRef={cardRefs[i]} billing={billing} />
               ))}
             </div>
 
@@ -1018,7 +1008,7 @@ const PricingHIW = () => {
               {['No commitment', 'Cancel anytime', 'Secure payments'].map((t) => (
                 <p
                   key={t}
-                  className="font-['Inter',sans-serif] text-[10px] font-medium leading-[1.5] text-[#c2c2c2] lg:text-[12px]"
+                  className="font-['Inter',sans-serif] text-[10px] leading-[1.5] font-medium text-[#c2c2c2] lg:text-[12px]"
                 >
                   {t}
                 </p>
@@ -1033,82 +1023,138 @@ const PricingHIW = () => {
 
 // ─── Section 5: Missing Layer ─────────────────────────────────────────────────
 
+const WorkflowIconWrap = ({ children }) => (
+  <div className="flex size-[30px] shrink-0 items-center justify-center rounded-lg bg-[#f9f4ff] lg:size-[34px]">
+    {children}
+  </div>
+);
+
+const CalendarWorkflowIcon = () => <PiCalendarCheckDuotone className="h-6 w-6 text-purple-600" />;
+
+const TaskWorkflowIcon = () => <PiCheckSquare className="h-6 w-6 text-purple-600" />;
+
+const HabitWorkflowIcon = () => <HiArrowPathRoundedSquare className="h-6 w-6 text-purple-600" />;
+
+const NotesWorkflowIcon = () => <PiFileDuotone className="h-6 w-6 text-purple-600" />;
+
+const WorkflowSolutionIcon = () => (
+  <img src="/images/how-it-works/Arrow.png" alt="Workflow Solution Icon"  />
+);
+
 const MISSING_ROWS = [
   {
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-        <rect x="2" y="4" width="16" height="13" rx="2" stroke="#8022FE" strokeWidth="1.4" />
-        <path d="M6 2V5M14 2V5M2 8H18" stroke="#8022FE" strokeWidth="1.4" strokeLinecap="round" />
-      </svg>
-    ),
+    icon: CalendarWorkflowIcon,
     tool: 'Calendars',
     badge: 'Auto-Adapts',
-    badgeColor: 'bg-[#f0e8ff] text-[#8022fe]',
+    badgeText: 'text-[#1647a3]',
+    badgeBorder: 'border-[rgba(22,71,163,0.2)]',
     problem: "They manage schedules, but can't adapt when plans change.",
     solution: 'Your schedule adapts automatically when life changes.',
+    featured: true,
   },
   {
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-        <rect x="3" y="3" width="14" height="14" rx="2" stroke="#8022FE" strokeWidth="1.4" />
-        <path
-          d="M7 10L9 12L13 8"
-          stroke="#8022FE"
-          strokeWidth="1.4"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    ),
+    icon: TaskWorkflowIcon,
     tool: 'Task Managers',
     badge: 'Reprioritizes',
-    badgeColor: 'bg-[#e8fff9] text-[#0aab7a]',
+    badgeText: 'text-[#16a34a]',
+    badgeBorder: 'border-[rgba(22,163,74,0.2)]',
     problem: 'Tasks pile up. The list grows longer — not smarter.',
     solution: 'Tasks are reprioritized based on your actual capacity.',
   },
   {
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-        <path
-          d="M10 3C6.686 3 4 5.686 4 9C4 12.314 6.686 15 10 15C13.314 15 16 12.314 16 9"
-          stroke="#8022FE"
-          strokeWidth="1.4"
-          strokeLinecap="round"
-        />
-        <path
-          d="M13 3L16 6L13 9"
-          stroke="#8022FE"
-          strokeWidth="1.4"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    ),
+    icon: HabitWorkflowIcon,
     tool: 'Habit Trackers',
     badge: 'Adapts to Reality',
-    badgeColor: 'bg-[#fff8e8] text-[#d97706]',
-    problem: "They track streaks, but don't understand context. One bad day breaks your progress.",
+    badgeText: 'text-[#7d16a3]',
+    badgeBorder: 'border-[rgba(125,22,163,0.2)]',
+    problem: "They track streaks, but don't understand content. One bad day breaks your progress.",
     solution: 'Distinguishes between failure and necessary adjustment.',
   },
   {
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-        <rect x="3" y="3" width="14" height="14" rx="2" stroke="#8022FE" strokeWidth="1.4" />
-        <path
-          d="M6 7H14M6 10H14M6 13H11"
-          stroke="#8022FE"
-          strokeWidth="1.4"
-          strokeLinecap="round"
-        />
-      </svg>
-    ),
+    icon: NotesWorkflowIcon,
     tool: 'Notes & Docs',
     badge: 'Focuses on Action',
-    badgeColor: 'bg-[#fff0f5] text-[#e11d48]',
+    badgeText: 'text-[#a38e16]',
+    badgeBorder: 'border-[rgba(163,142,22,0.2)]',
     problem: 'You spend more time building the system than doing the work.',
     solution: 'No setup. Built for action, not planning.',
   },
 ];
+
+const WorkflowCard = ({ row, cardRef }) => {
+  const Icon = row.icon;
+  const cardBorder = row.featured ? 'border-[#e9e8e8]' : 'border-[#f2f2f2]';
+  const cardShadow = row.featured ? 'shadow-[0px_15px_7.5px_rgba(0,0,0,0.02)]' : '';
+
+  return (
+    <article
+      ref={cardRef}
+      className={`flex w-full flex-col overflow-hidden rounded-[20px] border bg-[#fcfcfc] ${cardBorder} ${cardShadow}`}
+    >
+      <div className="flex items-center justify-between gap-3 border-b border-[#f2f2f2] px-4 py-3.5 lg:justify-start lg:gap-3.5 lg:px-6 lg:py-5">
+        <div className="flex min-w-0 items-center gap-2.5 lg:gap-3.5">
+          <WorkflowIconWrap>
+            <Icon />
+          </WorkflowIconWrap>
+          <h3 className="font-['Inter',sans-serif] text-lg leading-[1.3] font-semibold text-[#181818] lg:text-2xl">
+            {row.tool}
+          </h3>
+        </div>
+        <span
+          className={`shrink-0 rounded-[40px] border bg-white px-2 py-0.5 font-['Inter',sans-serif] text-[10px] leading-normal font-medium lg:px-2.5 lg:py-1 lg:text-sm ${row.badgeText} ${row.badgeBorder}`}
+        >
+          {row.badge}
+        </span>
+      </div>
+
+      <div className="flex flex-col gap-4 p-4 lg:gap-2.5 lg:p-6">
+        {/* Mobile / tablet: stacked */}
+        <div className="flex flex-col gap-1 lg:hidden">
+          <p className="font-['Inter',sans-serif] text-sm leading-normal font-medium text-[#181818]">
+            The problem
+          </p>
+          <p className="font-['Inter',sans-serif] text-sm leading-normal font-medium text-[#c2c2c2]">
+            {row.problem}
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-2 lg:hidden">
+          <p className="font-['Inter',sans-serif] text-sm leading-normal font-medium text-[#181818]">
+            With Elyxa
+          </p>
+          <div className="flex items-start gap-2 rounded-xl border border-[#f2f2f2] bg-white px-2.5 py-1.5">
+            <WorkflowSolutionIcon />
+            <p className="font-['Inter',sans-serif] text-sm leading-normal font-medium text-[#8022fe]">
+              {row.solution}
+            </p>
+          </div>
+        </div>
+
+        {/* Desktop: two-column */}
+        <div className="hidden lg:flex lg:items-center lg:justify-between">
+          <p className="font-['Inter',sans-serif] text-base leading-normal font-medium text-[#181818]">
+            The problem
+          </p>
+          <p className="w-[580px] shrink-0 font-['Inter',sans-serif] text-base leading-normal font-medium text-[#181818]">
+            With Elyxa
+          </p>
+        </div>
+
+        <div className="hidden lg:flex lg:items-start lg:justify-between">
+          <p className="max-w-[660px] flex-1 font-['Inter',sans-serif] text-xl leading-normal font-medium text-[#c2c2c2]">
+            {row.problem}
+          </p>
+          <div className="flex w-[580px] shrink-0 items-start gap-2.5 rounded-xl border border-[#f2f2f2] bg-white px-3 py-2">
+            <WorkflowSolutionIcon />
+            <p className="font-['Inter',sans-serif] text-xl leading-normal font-medium text-[#8022fe]">
+              {row.solution}
+            </p>
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+};
 
 const MissingLayerSection = () => {
   const secRef = useRef(null);
@@ -1143,60 +1189,21 @@ const MissingLayerSection = () => {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <section ref={secRef} className="w-full bg-white px-6 py-20 lg:px-24">
-      <div className="mx-auto max-w-[1100px]">
-        <div ref={headRef} className="mb-10 flex flex-col items-center gap-3 text-center">
-          <h2 className="font-['Inter',sans-serif] text-[26px] font-bold text-[#181818] sm:text-[34px]">
+    <section ref={secRef} className="w-full bg-white">
+      <div className="mx-auto flex max-w-[1300px] flex-col gap-6 px-5 py-[50px] md:gap-10 md:px-6 md:py-[60px] lg:gap-[50px] lg:px-0 lg:pt-[170px] lg:pb-[90px]">
+        <div ref={headRef} className="flex flex-col items-center gap-3.5 text-center lg:gap-5">
+          <h2 className="font-['Inter',sans-serif] text-[22px] leading-[1.3] font-bold text-[#181818] lg:text-[34px]">
             The missing layer in your <span className="text-[#8022fe]">Workflow</span>
             <span className="text-[#14f1d9]">.</span>
           </h2>
-          <p className="font-['Inter',sans-serif] text-[15px] font-medium text-[#888]">
-            Your tools manage tasks — but they don't adapt when life changes.
+          <p className="max-w-[1300px] font-['Inter',sans-serif] text-sm leading-normal font-medium text-[#181818] lg:text-base">
+            Your tools manage tasks — but they don&apos;t adapt when life changes.
           </p>
         </div>
 
-        <div className="overflow-hidden rounded-2xl border border-[#f0f0f0]">
+        <div className="flex w-full flex-col gap-5 lg:gap-5">
           {MISSING_ROWS.map((row, i) => (
-            <div
-              key={row.tool}
-              ref={rowRefs[i]}
-              className="border-b border-[#f0f0f0] bg-white last:border-0"
-            >
-              <div className="flex items-center gap-3 px-8 pt-6 pb-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#f5f0ff]">
-                  {row.icon}
-                </div>
-                <p className="font-['Inter',sans-serif] text-[17px] font-bold text-[#181818]">
-                  {row.tool}
-                </p>
-                <span
-                  className={`rounded-full px-3 py-1 font-['Inter',sans-serif] text-[12px] font-medium ${row.badgeColor}`}
-                >
-                  {row.badge}
-                </span>
-              </div>
-              <div className="grid grid-cols-2 gap-8 px-8 pb-6">
-                <div>
-                  <p className="mb-1.5 font-['Inter',sans-serif] text-[13px] font-medium text-[#181818]">
-                    The problem
-                  </p>
-                  <p className="font-['Inter',sans-serif] text-[14px] leading-relaxed font-medium text-[#c2c2c2]">
-                    {row.problem}
-                  </p>
-                </div>
-                <div>
-                  <p className="mb-1.5 font-['Inter',sans-serif] text-[13px] font-medium text-[#181818]">
-                    With Elyxa
-                  </p>
-                  <div className="flex items-start gap-2">
-                    <ElyxaIcon />
-                    <p className="font-['Inter',sans-serif] text-[14px] leading-relaxed font-medium text-[#8022fe]">
-                      {row.solution}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <WorkflowCard key={row.tool} row={row} cardRef={rowRefs[i]} />
           ))}
         </div>
       </div>
