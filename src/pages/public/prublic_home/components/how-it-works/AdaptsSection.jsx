@@ -104,7 +104,7 @@ const AdaptsTabletCards = () => (
         <img
           src="/images/how-it-works/hiw-adapts-card01-full.png"
           alt="Plan your day — Elyxa daily plan interface"
-          className="w-full object-cover object-top rounded-[20px] md:h-44"
+          className="w-full object-cover object-top rounded-[20px] md:h-60"
           draggable={false}
         />
       </div>
@@ -112,7 +112,7 @@ const AdaptsTabletCards = () => (
         <img
           src="/images/how-it-works/hiw-adapts-card02-full.png"
           alt="Life happens — schedule with time conflicts"
-          className="w-full object-cover object-top rounded-[20px] md:h-44"
+          className="w-full object-cover object-top rounded-[20px] md:h-60"
           draggable={false}
         />
       </div>

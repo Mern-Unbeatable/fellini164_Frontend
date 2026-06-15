@@ -144,7 +144,7 @@ const PublicFooter = () => {
               </div>
             </div>
 
-            <div className="flex gap-10 lg:gap-25">
+            <div className="flex gap-5 lg:gap-25">
               {COLUMNS.map((col) => (
                 <div key={col.heading} className="flex flex-col gap-7.5">
                   <p className="font-['Inter',sans-serif] text-sm leading-none font-normal text-[#c2c2c2]">

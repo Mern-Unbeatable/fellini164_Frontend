@@ -109,7 +109,7 @@ const BreakingSection = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
           <div ref={c0} className="rounded-2xl border border-[#f0f0f0] bg-white p-5 shadow-[0_2px_16px_rgba(0,0,0,0.04)]">
             <div className="mb-4 flex items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f5f0ff]">

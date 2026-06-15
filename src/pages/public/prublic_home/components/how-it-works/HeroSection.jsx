@@ -117,7 +117,7 @@ const HeroHIW = () => {
           <img
             src="/images/how-it-works/hiw-hero-visual.png"
             alt="Elyxa AI transforms scattered tasks into an organized daily schedule"
-            className="hidden h-150 w-full object-contain object-center md:block"
+            className="hidden w-full md:block md:h-auto lg:h-150 lg:object-contain lg:object-center"
             draggable={false}
           />
         </div>

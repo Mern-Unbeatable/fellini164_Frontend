@@ -60,19 +60,19 @@ const PublicNavbar = () => {
 
       <div className="sticky top-0 z-50 mx-5 pt-5">
         <nav className="relative rounded-xl border border-[#f2f2f2] bg-[#fcfcfc] shadow-[0px_5px_12.5px_rgba(0,0,0,0.05)] md:rounded-2xl">
-          <div className="container mx-auto flex h-11 items-center justify-between px-4 sm:px-6 md:h-13.25 md:px-20">
+          <div className="container mx-auto flex h-11 items-center justify-between px-4 sm:px-6 md:h-13.25 md:px-8 lg:px-20">
             {/* Logo */}
             <a href="/" className="flex shrink-0 items-center no-underline hover:no-underline">
               <img src="/logo.png" alt="Elyxa.Ai" className="h-6.5 w-auto md:h-8.25" />
             </a>
 
             {/* Desktop/tablet nav links */}
-            <div className="hidden items-center gap-12.5 md:flex">
+            <div className="hidden items-center gap-6 md:flex lg:gap-12.5">
               {NAV_LINKS.map((link) => (
                 <a
                   key={link.label}
                   href={link.href}
-                  className={`font-['Inter',sans-serif] text-[14px] font-semibold no-underline transition-colors hover:text-[#8022fe] hover:no-underline ${
+                  className={`whitespace-nowrap font-['Inter',sans-serif] text-[14px] font-semibold no-underline transition-colors hover:text-[#8022fe] hover:no-underline ${
                     isActive(link) ? 'text-[#8022fe]' : 'text-[#181818]'
                   }`}
                 >

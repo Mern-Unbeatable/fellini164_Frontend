@@ -161,7 +161,7 @@ const MissingLayerSection = () => {
 
   return (
     <section ref={secRef} className="w-full bg-white">
-      <div className="mx-auto flex max-w-385 flex-col gap-6 px-5 py-12.5 md:gap-12.5 md:px-20 md:pt-42.5 md:pb-22.5">
+      <div className="mx-auto flex max-w-385 flex-col gap-6 px-5 py-12.5 md:gap-12.5 md:px-20 md:pt-12.5 md:pb-22.5 lg:pt-42.5">
         <div ref={headRef} className="flex flex-col items-center gap-3.5 text-center md:gap-5">
           <h2 className="font-['Inter',sans-serif] text-[22px] leading-[1.3] font-bold text-[#181818] md:text-[34px]">
             The missing layer in your <span className="text-[#8022fe]">Workflow</span>
