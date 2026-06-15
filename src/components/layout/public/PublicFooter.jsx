@@ -68,11 +68,24 @@ const PublicFooter = () => {
                 <a href="/" className="inline-flex no-underline">
                   <img src="/logo.png" alt="Elyxa.Ai" className="h-6.5 w-auto" />
                 </a>
-                <img
-                  src="/images/how-it-works/hiw-footer-payments.png"
-                  alt="Stripe and Apple Pay"
-                  className="h-4.5 w-auto"
-                />
+                <div className="flex items-center gap-3">
+                  <a
+                    href="https://stripe.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex no-underline"
+                  >
+                    <img src="/stripe.png" alt="Stripe" className="h-4.5 w-auto" />
+                  </a>
+                  <a
+                    href="https://apple.com/apple-pay"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex no-underline"
+                  >
+                    <img src="/applePay.png" alt="Apple Pay" className="h-4.5 w-auto" />
+                  </a>
+                </div>
               </div>
               <p className="font-['Inter',sans-serif] text-xs leading-none font-normal text-[#c2c2c2]">
                 © 2026 Elyxa AI LLC.
@@ -118,11 +131,24 @@ const PublicFooter = () => {
                   All rights reserved.
                 </p>
               </div>
-              <img
-                src="/images/how-it-works/hiw-footer-payments.png"
-                alt="Stripe and Apple Pay"
-                className="h-5 w-auto"
-              />
+              <div className="flex items-center gap-6">
+                <a
+                  href="https://stripe.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex no-underline"
+                >
+                  <img src="/stripe.png" alt="Stripe" className="h-5 w-auto" />
+                </a>
+                <a
+                  href="https://apple.com/apple-pay"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex no-underline"
+                >
+                  <img src="/applePay.png" alt="Apple Pay" className="h-5 w-auto" />
+                </a>
+              </div>
             </div>
 
             <div className="flex gap-25">
