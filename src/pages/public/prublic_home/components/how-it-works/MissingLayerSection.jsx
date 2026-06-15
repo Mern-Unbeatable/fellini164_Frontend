@@ -88,7 +88,7 @@ const WorkflowCard = ({ row, cardRef }) => {
       </div>
 
       <div className="flex flex-col gap-4 p-5 md:gap-2.5 md:p-6">
-        <div className="flex flex-col gap-1 md:hidden">
+        <div className="flex flex-col gap-1 lg:hidden">
           <p className="font-['Inter',sans-serif] text-sm leading-normal font-medium text-[#181818]">
             The problem
           </p>
@@ -97,7 +97,7 @@ const WorkflowCard = ({ row, cardRef }) => {
           </p>
         </div>
 
-        <div className="flex flex-col gap-2 md:hidden">
+        <div className="flex flex-col gap-2 lg:hidden">
           <p className="font-['Inter',sans-serif] text-sm leading-normal font-medium text-[#181818]">
             With Elyxa
           </p>
@@ -109,7 +109,7 @@ const WorkflowCard = ({ row, cardRef }) => {
           </div>
         </div>
 
-        <div className="hidden md:flex md:items-center md:justify-between">
+        <div className="hidden lg:flex lg:items-center lg:justify-between">
           <p className="font-['Inter',sans-serif] text-base leading-normal font-medium text-[#181818]">
             The problem
           </p>
@@ -118,7 +118,7 @@ const WorkflowCard = ({ row, cardRef }) => {
           </p>
         </div>
 
-        <div className="hidden md:flex md:items-start md:justify-between">
+        <div className="hidden lg:flex lg:items-start lg:justify-between">
           <p className="max-w-165 flex-1 font-['Inter',sans-serif] text-xl leading-normal font-medium text-[#c2c2c2]">
             {row.problem}
           </p>
