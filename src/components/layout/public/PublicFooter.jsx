@@ -1,6 +1,5 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
-import { FinalCTASection } from '../../../pages/public/prublic_home/components/HowItWorksSection';
 
 const COLUMNS = [
   {
@@ -43,16 +42,10 @@ const COLUMNS = [
 
 const PublicFooter = () => {
   const { pathname } = useLocation();
-  const showFinalCTA = pathname === '/how-it-works';
+  const showFinalCTA = pathname === '/' || pathname === '/how-it-works';
 
   return (
     <div className="w-full bg-white px-3 pb-3 lg:px-5 lg:pb-5">
-      {showFinalCTA && (
-        <div className="relative z-20 mx-auto max-w-325 px-3 pt-7.5 pb-5 md:px-5 lg:px-0 lg:pt-22.5 lg:pb-17.5">
-          <FinalCTASection />
-        </div>
-      )}
-
       <footer
         className={`relative z-10 w-full rounded-[20px] border border-[#f2f2f2] bg-[#fcfcfc] lg:rounded-[30px] ${
           showFinalCTA
