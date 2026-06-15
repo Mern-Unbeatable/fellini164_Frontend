@@ -6,28 +6,28 @@ gsap.registerPlugin(ScrollTrigger);
 
 const FAQS = [
   {
-    q: 'Do I still need my calendar?',
-    a: "Elyxa integrates with your existing calendar so you don't need to replace anything. It reads your schedule and adapts your tasks around it.",
+    q: 'Does this replace my calendar?',
+    a: 'No. Elyxa is a layer that sits on top of your existing tools to make them smarter.',
   },
   {
     q: 'What makes this "Adaptive"?',
-    a: 'Unlike traditional planners that are static, Elyxa re-schedules your day when something changes — a meeting runs over, a task takes longer, or life simply gets in the way.',
+    a: 'Most tools just nag you to "catch up." Elyxa actually changes the plan to match your current reality.',
   },
   {
-    q: 'Is this just another "AI" tool?',
-    a: 'No. Most "AI" tools just generate content. Elyxa is an AI that manages your actual schedule, reprioritizes tasks, and helps you stay on track — every day.',
+    q: 'Is this just another AI buzzword?',
+    a: "We focus on execution, not hype. The AI is used specifically to rerun the math on your day so you don't have to.",
   },
   {
     q: 'How is this different from a "Smart" to-do list?',
-    a: 'Smart to-do lists track tasks. Elyxa manages your time — it schedules tasks into your actual day, adapts when things change, and helps you focus on what matters most.',
+    a: 'To-do lists just collect tasks. Elyxa focuses on execution by continuously recalculating your best next move based on real-world constraints.',
   },
   {
     q: 'What happens if I fall behind by a lot?',
     a: "That's where Elyxa shines. Instead of overwhelming you with a backlog, it helps you ruthlessly reprioritize so you can start fresh with a plan that actually works.",
   },
   {
-    q: 'Do you offer early access to new features?',
-    a: "Yes! Ultimate plan subscribers get early access to all new features before they're released to the general public.",
+    q: 'What is the "Early Access" phase?',
+    a: 'We are currently in pre-launch. Joining the waitlist means you get to help shape the product and secure early-adopter benefits.',
   },
 ];
 
