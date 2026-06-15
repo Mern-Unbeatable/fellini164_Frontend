@@ -1,12 +1,14 @@
 import React from 'react';
 import FAQHIWSection from '../prublic_home/components/how-it-works/FAQSection';
-import CTASection from '../prublic_home/components/CTASection';
+import { FinalCTASection } from '../prublic_home/components/how-it-works/FinalCTASection';
 
 const FAQView = () => {
   return (
     <div className="w-full">
       <FAQHIWSection />
-      <CTASection />
+      <div className="mx-auto max-w-385 px-5 pb-12.5 lg:px-20 lg:pb-22.5">
+        <FinalCTASection />
+      </div>
     </div>
   );
 };
