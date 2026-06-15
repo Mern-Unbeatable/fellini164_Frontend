@@ -25,7 +25,7 @@ const PlanCheckIcon = () => (
     height={16}
     viewBox="0 0 16 16"
     fill="none"
-    className="size-[14px] shrink-0 lg:size-4"
+    className="size-3.5 shrink-0 lg:size-4"
   >
     <circle cx="8" cy="8" r="7" stroke="#C2C2C2" strokeWidth="1" />
     <path
@@ -271,13 +271,13 @@ const HeroHIW = () => {
   return (
     <section
       ref={secRef}
-      className="relative w-full overflow-hidden bg-white pt-[30px] pb-[50px] lg:pt-[50px] lg:pb-[90px]"
+      className="relative w-full overflow-hidden bg-white pt-7.5 pb-12.5 lg:pt-12.5 lg:pb-22.5"
     >
-      <div className="mx-auto flex max-w-[1300px] flex-col items-center gap-[60px] lg:gap-20">
+      <div className="mx-auto flex max-w-325 flex-col items-center gap-15 lg:gap-20">
         {/* Header */}
         <div className="flex w-full flex-col items-center gap-6 px-5 lg:gap-10 lg:px-6 xl:px-0">
-          <div className="flex w-full flex-col items-center gap-5 lg:gap-[30px]">
-            <div ref={h1Ref} className="flex w-full flex-col items-center gap-2.5 lg:gap-[30px]">
+          <div className="flex w-full flex-col items-center gap-5 lg:gap-7.5">
+            <div ref={h1Ref} className="flex w-full flex-col items-center gap-2.5 lg:gap-7.5">
               {/* Mobile headline */}
               <h1 className="text-center font-['Inter',sans-serif] text-[26px] leading-[1.3] font-bold text-[#181818] lg:hidden">
                 AI organizes your tasks into a clear <span className="text-[#8022fe]">Plan</span>
@@ -298,7 +298,7 @@ const HeroHIW = () => {
 
               <p
                 ref={subRef}
-                className="w-full text-center font-['Inter',sans-serif] text-[14px] leading-normal font-medium text-[#181818] lg:max-w-[470px] lg:text-[16px]"
+                className="w-full text-center font-['Inter',sans-serif] text-[14px] leading-normal font-medium text-[#181818] lg:max-w-117.5 lg:text-[16px]"
               >
                 Elyxa<span className="text-[#8022fe]">.Ai</span> automatically adjusts your day when
                 plans break — so you always know what to do next
@@ -322,18 +322,18 @@ const HeroHIW = () => {
 
           <div
             ref={bensRef}
-            className="relative flex w-full flex-col items-center gap-4 pt-5 before:absolute before:top-0 before:left-1/2 before:h-px before:w-[800px] before:-translate-x-1/2 before:bg-[#f2f2f2] lg:flex-row lg:flex-wrap lg:justify-center lg:gap-[70px] lg:pt-[30px]"
+            className="relative flex w-full flex-col items-center gap-4 pt-5 before:absolute before:top-0 before:left-1/2 before:h-px before:w-200 before:-translate-x-1/2 before:bg-[#f2f2f2] lg:flex-row lg:flex-wrap lg:justify-center lg:gap-17.5 lg:pt-7.5"
           >
-            {HERO_BENEFITS.map(({ icon: BenefitIcon, text }) => (
+            {HERO_BENEFITS.map(({ icon: Icon, text }) => (
               <span
                 key={text}
                 className="flex items-center gap-1.5 font-['Inter',sans-serif] text-[12px] font-normal text-[#a3a3a3] lg:gap-2 lg:text-[14px]"
               >
                 <span className="lg:hidden">
-                  <BenefitIcon size={16} className="text-[#8022fe]" />
+                  <Icon size={16} className="text-[#8022fe]" />
                 </span>
                 <span className="hidden lg:inline">
-                  <BenefitIcon size={18} className="text-[#8022fe]" />
+                  <Icon size={18} className="text-[#8022fe]" />
                 </span>
                 {text}
               </span>
@@ -344,18 +344,18 @@ const HeroHIW = () => {
         {/* Hero visual — separate mobile / desktop Figma exports */}
         <div
           ref={visualRef}
-          className="relative mx-auto w-full max-w-[344px] px-2 lg:max-w-[1300px] lg:px-6 xl:px-0"
+          className="relative mx-auto w-full max-w-86 px-2 lg:max-w-325 lg:px-6 xl:px-0"
         >
           <img
             src="/images/how-it-works/heroSectionMobile.png"
             alt="Elyxa AI transforms scattered tasks into an organized daily schedule"
-            className="mx-auto h-auto w-full max-w-[344px] lg:hidden"
+            className="mx-auto h-auto w-full max-w-86 lg:hidden"
             draggable={false}
           />
           <img
             src="/images/how-it-works/hiw-hero-visual.png"
             alt="Elyxa AI transforms scattered tasks into an organized daily schedule"
-            className="hidden h-[600px] w-full object-contain object-center lg:block"
+            className="hidden h-150 w-full object-contain object-center lg:block"
             draggable={false}
           />
         </div>
@@ -441,13 +441,13 @@ const BreakingTasksList = ({ className = '' }) => (
     <p className="font-['Inter',sans-serif] text-[11px] font-semibold text-[#181818] lg:text-[12px]">
       Tasks List
     </p>
-    <div className="flex max-h-[220px] flex-col gap-2.5 overflow-hidden lg:max-h-[292px] lg:gap-2.5">
+    <div className="flex max-h-55 flex-col gap-2.5 overflow-hidden lg:max-h-73 lg:gap-2.5">
       {BREAKING_TASKS.map((task) => {
         const tag = TASK_TAG_STYLES[task.tagStyle];
         return (
           <div
             key={task.name}
-            className="flex items-center gap-2.5 rounded-[8px] border border-[#f2f2f2] bg-[#fcfcfc] p-2.5 lg:gap-2.5 lg:p-2.5"
+            className="flex items-center gap-2.5 rounded-lg border border-[#f2f2f2] bg-[#fcfcfc] p-2.5 lg:gap-2.5 lg:p-2.5"
           >
             <TaskCheckboxIcon done={task.done} />
             <div className="min-w-0 flex-1">
@@ -509,7 +509,7 @@ const BreakingSection = () => {
 
   return (
     <section ref={secRef} className="w-full bg-white px-6 py-10 lg:px-24">
-      <div className="mx-auto max-w-[1370px] px-2 lg:px-6 xl:px-0">
+      <div className="mx-auto max-w-342.5 px-2 lg:px-6 xl:px-0">
         <div ref={headRef} className="mb-10">
           <h2 className="font-['Inter',sans-serif] text-[28px] leading-tight font-bold text-[#181818] sm:text-[36px] lg:text-[42px]">
             Have you ever wondered why your
@@ -517,7 +517,7 @@ const BreakingSection = () => {
             plans keep <span className="text-[#8022fe]">Breaking</span>
             <span className="text-[#14f1d9]">.</span>
           </h2>
-          <p className="mt-4 max-w-[560px] font-['Inter',sans-serif] text-[15px] font-medium text-[#888]">
+          <p className="mt-4 max-w-140 font-['Inter',sans-serif] text-[15px] font-medium text-[#888]">
             It's not your motivation — it's that your tools treat your life like a fixed schedule.
           </p>
         </div>
@@ -564,13 +564,13 @@ const BreakingSection = () => {
           {/* Card 3 — Start planning differently */}
           <div
             ref={c2}
-            className="relative min-h-[217px] overflow-hidden rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] p-4 lg:min-h-[163px] lg:rounded-[20px] lg:p-6"
+            className="relative min-h-54.25 overflow-hidden rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] p-4 lg:min-h-40.75 lg:rounded-[20px] lg:p-6"
           >
-            <BreakingTasksList className="absolute top-[97px] right-[-51px] z-10 w-[200px] lg:top-[23px] lg:right-[-45px] lg:w-[224px]" />
+            <BreakingTasksList className="absolute top-24.25 -right-12.75 z-10 w-50 lg:top-5.75 lg:-right-11.25 lg:w-56" />
 
-            <div className="relative z-0 flex max-w-[calc(100%-80px)] flex-col gap-2.5 lg:max-w-[400px] lg:gap-2.5">
+            <div className="relative z-0 flex max-w-[calc(100%-80px)] flex-col gap-2.5 lg:max-w-100 lg:gap-2.5">
               <div className="flex items-center gap-2.5 lg:gap-3.5">
-                <div className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-lg bg-[#f9f4ff] lg:h-[34px] lg:w-[34px]">
+                <div className="flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded-lg bg-[#f9f4ff] lg:h-8.5 lg:w-8.5">
                   <HiOutlineSparkles size={16} className="text-[#8022fe] lg:hidden" />
                   <HiOutlineSparkles size={18} className="hidden text-[#8022fe] lg:block" />
                 </div>
@@ -583,7 +583,7 @@ const BreakingSection = () => {
               </p>
             </div>
 
-            <button className="relative z-0 mt-[70px] rounded-lg bg-[#8022fe] px-4 py-2 font-['Inter',sans-serif] text-[14px] font-semibold text-white transition-colors hover:bg-[#6b1bdb] lg:mt-3.5">
+            <button className="relative z-0 mt-17.5 rounded-lg bg-[#8022fe] px-4 py-2 font-['Inter',sans-serif] text-[14px] font-semibold text-white transition-colors hover:bg-[#6b1bdb] lg:mt-3.5">
               Try It Yourself
             </button>
           </div>
@@ -594,7 +594,7 @@ const BreakingSection = () => {
             className="rounded-2xl border border-[#e9e8e8] bg-[#fcfcfc] p-4 shadow-[0px_15px_7.5px_rgba(0,0,0,0.02)] lg:rounded-[20px] lg:p-6"
           >
             <div className="mb-2.5 flex items-center gap-2.5 lg:gap-3.5">
-              <div className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-lg bg-[#f9f4ff] lg:h-[34px] lg:w-[34px]">
+              <div className="flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded-lg bg-[#f9f4ff] lg:h-8.5 lg:w-8.5">
                 <PiTimer size={16} className="text-[#8022fe] lg:hidden" />
                 <PiTimer size={18} className="hidden text-[#8022fe] lg:block" />
               </div>
@@ -656,11 +656,11 @@ const AdaptsMobileCard = ({ cardRef, number, title, body, variant, visual, visua
       ref={cardRef}
       className={`relative w-full max-w-[320px] overflow-hidden border border-[#f2f2f2] bg-[#fcfcfc] ${
         isAdaptCard
-          ? 'flex flex-col gap-4 rounded-2xl px-5 pt-5 pb-[350px]'
-          : 'h-[300px] rounded-2xl p-5'
+          ? 'flex flex-col gap-4 rounded-2xl px-5 pt-5 pb-87.5'
+          : 'h-75 rounded-2xl p-5'
       }`}
     >
-      <div className="relative z-10 flex items-start gap-[30px]">
+      <div className="relative z-10 flex items-start gap-7.5">
         <div className="flex min-w-0 flex-1 flex-col gap-1.5">
           <h3 className="font-['Inter',sans-serif] text-[18px] leading-[1.3] font-semibold text-[#181818]">
             {title}
@@ -694,14 +694,14 @@ const AdaptsMobileCard = ({ cardRef, number, title, body, variant, visual, visua
 
 const AdaptsDesktopCards = () => (
   <div className="hidden w-full overflow-x-auto lg:block">
-    <div className="flex min-w-[1300px] items-center gap-5">
-      <div className="flex w-[640px] shrink-0 flex-col gap-5">
+    <div className="flex min-w-325 items-center gap-5">
+      <div className="flex w-160 shrink-0 flex-col gap-5">
         <img
           src="/images/how-it-works/hiw-adapts-card01-full.png"
           alt="Plan your day — Elyxa daily plan interface"
           width={640}
           height={350}
-          className="h-[350px] w-[640px] shrink-0 rounded-[20px]"
+          className="h-87.5 w-160 shrink-0 rounded-[20px]"
           draggable={false}
         />
         <img
@@ -709,23 +709,23 @@ const AdaptsDesktopCards = () => (
           alt="Life happens — schedule with time conflicts"
           width={640}
           height={350}
-          className="h-[350px] w-[640px] shrink-0 rounded-[20px]"
+          className="h-87.5 w-160 shrink-0 rounded-[20px]"
           draggable={false}
         />
       </div>
 
-      <div className="relative h-[720px] w-[640px] shrink-0">
+      <div className="relative h-180 w-160 shrink-0">
         <img
           src="/images/how-it-works/hiw-adapts-card03-full.png"
           alt="Elyxa adapts — full dashboard with tasks list and AI panel"
           width={640}
           height={720}
-          className="h-[720px] w-[640px] rounded-[20px]"
+          className="h-180 w-160 rounded-[20px]"
           draggable={false}
         />
         <Link
           to="/signup"
-          className="absolute top-[139px] left-[30px] z-10 h-[43px] w-[220px] rounded-[10px]"
+          className="absolute top-34.75 left-7.5 z-10 h-10.75 w-55 rounded-[10px]"
           aria-label="Get Your First Plan"
         />
       </div>
@@ -765,9 +765,9 @@ const AdaptsSection = () => {
 
   return (
     <section ref={secRef} className="w-full bg-white">
-      <div className="mx-auto max-w-[1300px] px-5 py-[50px] lg:px-0 lg:pt-[90px] lg:pb-[180px]">
-        <div className="flex flex-col gap-6 lg:gap-[50px]">
-          <div ref={headRef} className="flex max-w-[640px] flex-col gap-3.5 lg:gap-5">
+      <div className="mx-auto max-w-325 px-5 py-12.5 lg:px-0 lg:pt-22.5 lg:pb-45">
+        <div className="flex flex-col gap-6 lg:gap-12.5">
+          <div ref={headRef} className="flex max-w-160 flex-col gap-3.5 lg:gap-5">
             <h2 className="font-['Inter',sans-serif] text-[22px] leading-[1.3] font-bold text-[#181818] lg:text-[34px]">
               How Elyxa adapts to your <span className="text-[#8022fe]">Life</span>
               <span className="text-[#14f1d9]">.</span>
@@ -799,12 +799,12 @@ const StrikethroughPrice = ({ price }) => (
     <p className="font-['Inter',sans-serif] text-[22px] leading-[1.3] font-bold text-[#8022fe] lg:text-[34px]">
       {price}
     </p>
-    <span className="absolute top-1/2 right-0 left-0 h-[2px] -translate-y-1/2 bg-[#8022fe] lg:h-[3px]" />
+    <span className="absolute top-1/2 right-0 left-0 h-0.5 -translate-y-1/2 bg-[#8022fe] lg:h-0.75" />
   </div>
 );
 
 const PricingToggle = ({ billing, onChange }) => (
-  <div className="flex w-full items-center overflow-hidden rounded-[12px] border border-[#f2f2f2] p-1 lg:w-[268px]">
+  <div className="flex w-full items-center overflow-hidden rounded-xl border border-[#f2f2f2] p-1 lg:w-67">
     {['monthly', 'yearly'].map((opt) => {
       const isActive = billing === opt;
       return (
@@ -812,7 +812,7 @@ const PricingToggle = ({ billing, onChange }) => (
           key={opt}
           type="button"
           onClick={() => onChange(opt)}
-          className={`flex flex-1 items-center justify-center rounded-[8px] px-5 py-2.5 font-['Inter',sans-serif] text-[12px] font-semibold capitalize transition-all lg:flex-none lg:text-[14px] ${
+          className={`flex flex-1 items-center justify-center rounded-lg px-5 py-2.5 font-['Inter',sans-serif] text-[12px] font-semibold capitalize transition-all lg:flex-none lg:text-[14px] ${
             isActive
               ? 'bg-white text-[#8022fe] shadow-[0px_0px_5px_rgba(0,0,0,0.05)]'
               : 'text-[#c2c2c2]'
@@ -850,7 +850,7 @@ const PricingCard = ({ plan, cardRef, billing }) => {
           <p className="font-['Inter',sans-serif] text-[18px] leading-[1.3] font-semibold text-[#181818] lg:text-[24px]">
             {plan.name}
           </p>
-          <p className="font-['Inter',sans-serif] text-[14px] leading-[1.5] font-medium text-[#181818] lg:text-[16px]">
+          <p className="font-['Inter',sans-serif] text-[14px] leading-normal font-medium text-[#181818] lg:text-[16px]">
             {plan.tagline}
           </p>
         </div>
@@ -862,18 +862,18 @@ const PricingCard = ({ plan, cardRef, billing }) => {
               <p className="font-['Inter',sans-serif] text-[22px] leading-[1.3] font-bold text-[#181818] lg:text-[34px]">
                 {plan.price}
               </p>
-              <p className="font-['Inter',sans-serif] text-[12px] leading-[1.5] font-medium text-[#c2c2c2] lg:text-[16px]">
+              <p className="font-['Inter',sans-serif] text-[12px] leading-normal font-medium text-[#c2c2c2] lg:text-[16px]">
                 {plan.priceSuffix}
               </p>
             </div>
             {plan.billingNote && (
-              <p className="ml-auto shrink-0 font-['Inter',sans-serif] text-[12px] leading-[1.5] font-medium text-[#c2c2c2] lg:hidden">
+              <p className="ml-auto shrink-0 font-['Inter',sans-serif] text-[12px] leading-normal font-medium text-[#c2c2c2] lg:hidden">
                 {plan.billingNote}
               </p>
             )}
           </div>
           {plan.billingNote && (
-            <p className="hidden font-['Inter',sans-serif] text-[14px] leading-[1.5] font-medium text-[#c2c2c2] lg:block">
+            <p className="hidden font-['Inter',sans-serif] text-[14px] leading-normal font-medium text-[#c2c2c2] lg:block">
               {plan.billingNote}
             </p>
           )}
@@ -884,7 +884,7 @@ const PricingCard = ({ plan, cardRef, billing }) => {
             {plan.features.map((f) => (
               <div key={f} className="flex items-center gap-1.5 lg:gap-2">
                 <PlanCheckIcon />
-                <p className="font-['Inter',sans-serif] text-[12px] leading-[1.5] font-medium text-[#181818] lg:text-[14px]">
+                <p className="font-['Inter',sans-serif] text-[12px] leading-normal font-medium text-[#181818] lg:text-[14px]">
                   {f}
                 </p>
               </div>
@@ -912,15 +912,15 @@ const PricingCard = ({ plan, cardRef, billing }) => {
     return (
       <div
         ref={cardRef}
-        className="relative flex w-full flex-col items-center lg:h-[620px] lg:w-[310px] lg:shrink-0 lg:gap-[7px]"
+        className="relative flex w-full flex-col items-center lg:h-155 lg:w-77.5 lg:shrink-0 lg:gap-1.75"
       >
         <div
-          className={`relative flex h-[460px] w-full flex-col justify-between overflow-hidden rounded-[16px] bg-white lg:h-full lg:flex-1 lg:rounded-[20px] ${borderClass} ${PRICING_CARD_SHADOW}`}
+          className={`relative flex h-115 w-full flex-col justify-between overflow-hidden rounded-2xl bg-white lg:h-full lg:flex-1 lg:rounded-[20px] ${borderClass} ${PRICING_CARD_SHADOW}`}
         >
           {cardBody}
         </div>
-        <div className="absolute top-[-8.5px] left-1/2 z-10 flex -translate-x-1/2 items-center justify-center rounded-[40px] bg-[#8022fe] px-2 py-0.5 lg:top-[-10px]">
-          <p className="font-['Inter',sans-serif] text-[10px] leading-[1.5] font-medium text-white lg:text-[12px]">
+        <div className="absolute top-[-8.5px] left-1/2 z-10 flex -translate-x-1/2 items-center justify-center rounded-[40px] bg-[#8022fe] px-2 py-0.5 lg:-top-2.5">
+          <p className="font-['Inter',sans-serif] text-[10px] leading-normal font-medium text-white lg:text-[12px]">
             {plan.badge}
           </p>
         </div>
@@ -929,9 +929,9 @@ const PricingCard = ({ plan, cardRef, billing }) => {
   }
 
   return (
-    <div ref={cardRef} className="w-full lg:w-[310px] lg:shrink-0">
+    <div ref={cardRef} className="w-full lg:w-77.5 lg:shrink-0">
       <div
-        className={`flex h-[460px] flex-col justify-between overflow-hidden rounded-[16px] bg-white lg:h-[620px] lg:rounded-[20px] ${borderClass} ${PRICING_CARD_SHADOW}`}
+        className={`flex h-115 flex-col justify-between overflow-hidden rounded-2xl bg-white lg:h-155 lg:rounded-[20px] ${borderClass} ${PRICING_CARD_SHADOW}`}
       >
         {cardBody}
       </div>
@@ -975,7 +975,7 @@ const PricingHIW = () => {
 
   return (
     <section ref={secRef} id="pricing" className="w-full border-y border-[#f2f2f2] bg-[#fcfcfc]">
-      <div className="mx-auto flex max-w-[1300px] flex-col gap-[30px] px-3 py-[30px] md:gap-10 md:px-6 md:py-[60px] lg:gap-[50px] lg:px-0 lg:py-[90px]">
+      <div className="mx-auto flex max-w-325 flex-col gap-7.5 px-3 py-7.5 md:gap-10 md:px-6 md:py-15 lg:gap-12.5 lg:px-0 lg:py-22.5">
         <div ref={headRef} className="flex flex-col items-center gap-3.5 text-center lg:gap-5">
           <div className="flex flex-col items-center gap-1 lg:flex-row lg:items-start lg:justify-center lg:gap-2.5">
             <h2 className="font-['Inter',sans-serif] text-[22px] leading-[1.3] font-bold text-[#181818] lg:text-[34px]">
@@ -984,20 +984,20 @@ const PricingHIW = () => {
               <span className="text-[#14f1d9]">.</span>
             </h2>
             {billing === 'yearly' && (
-              <p className="font-['Inter',sans-serif] text-[12px] leading-[1.5] font-medium text-[#c2c2c2] lg:text-[16px]">
+              <p className="font-['Inter',sans-serif] text-[12px] leading-normal font-medium text-[#c2c2c2] lg:text-[16px]">
                 (Billed yearly)
               </p>
             )}
           </div>
-          <p className="font-['Inter',sans-serif] text-[14px] leading-[1.5] font-medium text-[#181818] lg:text-[16px]">
+          <p className="font-['Inter',sans-serif] text-[14px] leading-normal font-medium text-[#181818] lg:text-[16px]">
             Start free. Upgrade when you need real productivity. Cancel anytime.
           </p>
         </div>
 
-        <div className="flex flex-col items-center gap-5 lg:gap-[50px]">
+        <div className="flex flex-col items-center gap-5 lg:gap-12.5">
           <PricingToggle billing={billing} onChange={setBilling} />
 
-          <div className="flex w-full flex-col items-center gap-5 lg:gap-[30px]">
+          <div className="flex w-full flex-col items-center gap-5 lg:gap-7.5">
             <div className="grid w-full grid-cols-1 gap-5 md:grid-cols-2 lg:flex lg:justify-between lg:gap-5">
               {plans.map((plan, i) => (
                 <PricingCard key={plan.id} plan={plan} cardRef={cardRefs[i]} billing={billing} />
@@ -1008,7 +1008,7 @@ const PricingHIW = () => {
               {['No commitment', 'Cancel anytime', 'Secure payments'].map((t) => (
                 <p
                   key={t}
-                  className="font-['Inter',sans-serif] text-[10px] leading-[1.5] font-medium text-[#c2c2c2] lg:text-[12px]"
+                  className="font-['Inter',sans-serif] text-[10px] leading-normal font-medium text-[#c2c2c2] lg:text-[12px]"
                 >
                   {t}
                 </p>
@@ -1024,7 +1024,7 @@ const PricingHIW = () => {
 // ─── Section 5: Missing Layer ─────────────────────────────────────────────────
 
 const WorkflowIconWrap = ({ children }) => (
-  <div className="flex size-[30px] shrink-0 items-center justify-center rounded-lg bg-[#f9f4ff] lg:size-[34px]">
+  <div className="flex size-7.5 shrink-0 items-center justify-center rounded-lg bg-[#f9f4ff] lg:size-8.5">
     {children}
   </div>
 );
@@ -1135,16 +1135,16 @@ const WorkflowCard = ({ row, cardRef }) => {
           <p className="font-['Inter',sans-serif] text-base leading-normal font-medium text-[#181818]">
             The problem
           </p>
-          <p className="w-[580px] shrink-0 font-['Inter',sans-serif] text-base leading-normal font-medium text-[#181818]">
+          <p className="w-145 shrink-0 font-['Inter',sans-serif] text-base leading-normal font-medium text-[#181818]">
             With Elyxa
           </p>
         </div>
 
         <div className="hidden lg:flex lg:items-start lg:justify-between">
-          <p className="max-w-[660px] flex-1 font-['Inter',sans-serif] text-xl leading-normal font-medium text-[#c2c2c2]">
+          <p className="max-w-165 flex-1 font-['Inter',sans-serif] text-xl leading-normal font-medium text-[#c2c2c2]">
             {row.problem}
           </p>
-          <div className="flex w-[580px] shrink-0 items-start gap-2.5 rounded-xl border border-[#f2f2f2] bg-white px-3 py-2">
+          <div className="flex w-145 shrink-0 items-start gap-2.5 rounded-xl border border-[#f2f2f2] bg-white px-3 py-2">
             <WorkflowSolutionIcon />
             <p className="font-['Inter',sans-serif] text-xl leading-normal font-medium text-[#8022fe]">
               {row.solution}
@@ -1190,13 +1190,13 @@ const MissingLayerSection = () => {
 
   return (
     <section ref={secRef} className="w-full bg-white">
-      <div className="mx-auto flex max-w-[1300px] flex-col gap-6 px-5 py-[50px] md:gap-10 md:px-6 md:py-[60px] lg:gap-[50px] lg:px-0 lg:pt-[170px] lg:pb-[90px]">
+      <div className="mx-auto flex max-w-325 flex-col gap-6 px-5 py-12.5 md:gap-10 md:px-6 md:py-15 lg:gap-12.5 lg:px-0 lg:pt-42.5 lg:pb-22.5">
         <div ref={headRef} className="flex flex-col items-center gap-3.5 text-center lg:gap-5">
           <h2 className="font-['Inter',sans-serif] text-[22px] leading-[1.3] font-bold text-[#181818] lg:text-[34px]">
             The missing layer in your <span className="text-[#8022fe]">Workflow</span>
             <span className="text-[#14f1d9]">.</span>
           </h2>
-          <p className="max-w-[1300px] font-['Inter',sans-serif] text-sm leading-normal font-medium text-[#181818] lg:text-base">
+          <p className="max-w-325 font-['Inter',sans-serif] text-sm leading-normal font-medium text-[#181818] lg:text-base">
             Your tools manage tasks — but they don&apos;t adapt when life changes.
           </p>
         </div>
@@ -1298,7 +1298,7 @@ const FAQHIWSection = () => {
 
   return (
     <section ref={secRef} className="w-full bg-[#fcfcfc] px-6 py-20 lg:px-24">
-      <div className="mx-auto max-w-[900px]">
+      <div className="mx-auto max-w-225">
         <div ref={headRef} className="mb-10 text-center">
           <h2 className="font-['Inter',sans-serif] text-[26px] font-bold text-[#181818] sm:text-[34px]">
             Frequently Asked <span className="text-[#8022fe]">Questions</span>
@@ -1368,11 +1368,11 @@ export const FinalCTASection = () => {
   return (
     <div ref={cardRef} className="relative z-20 w-full">
       <div
-        className={`relative overflow-hidden rounded-[20px] bg-[#181818] px-5 pt-5 pb-[190px] lg:h-[319px] lg:rounded-[30px] lg:p-[50px] lg:pb-[50px] ${FINAL_CTA_SHADOW}`}
+        className={`relative overflow-hidden rounded-[20px] bg-[#181818] px-5 pt-5 pb-47.5 lg:h-79.75 lg:rounded-[30px] lg:p-12.5 lg:pb-12.5 ${FINAL_CTA_SHADOW}`}
       >
         <div
           ref={textRef}
-          className="relative z-10 flex w-full flex-col gap-5 lg:max-w-[640px] lg:gap-[50px]"
+          className="relative z-10 flex w-full flex-col gap-5 lg:max-w-160 lg:gap-12.5"
         >
           <div className="flex flex-col gap-3.5 lg:gap-5">
             <h2 className="font-['Inter',sans-serif] text-[22px] leading-[1.3] font-bold text-white lg:text-[34px]">
@@ -1402,7 +1402,7 @@ export const FinalCTASection = () => {
           </div>
         </div>
 
-        <div className="pointer-events-none absolute bottom-0 left-1/2 w-[320px] max-w-none -translate-x-1/2 overflow-hidden rounded-[15.6px] drop-shadow-[-8px_0px_14.39px_rgba(255,255,255,0.05)] lg:top-[50px] lg:right-[-99px] lg:bottom-auto lg:left-auto lg:w-[650px] lg:translate-x-0">
+        <div className="pointer-events-none absolute bottom-0 left-1/2 w-[320px] max-w-none -translate-x-1/2 overflow-hidden rounded-[15.6px] drop-shadow-[-8px_0px_14.39px_rgba(255,255,255,0.05)] lg:top-12.5 lg:-right-24.75 lg:bottom-auto lg:left-auto lg:w-162.5 lg:translate-x-0">
           <img
             src="/images/how-it-works/hiw-final-cta-dashboard.png"
             alt=""
