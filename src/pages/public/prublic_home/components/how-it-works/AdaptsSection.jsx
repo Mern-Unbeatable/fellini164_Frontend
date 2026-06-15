@@ -96,6 +96,44 @@ const AdaptsMobileCard = ({ cardRef, number, title, body, variant, visual, visua
   );
 };
 
+/* Tablet: row 1 = cards 01+02 side by side, row 2 = card 03 full width below */
+const AdaptsTabletCards = () => (
+  <div className="hidden md:flex md:flex-col md:gap-5 lg:hidden">
+    <div className="flex gap-5">
+      <div className="min-w-0 flex-1">
+        <img
+          src="/images/how-it-works/hiw-adapts-card01-full.png"
+          alt="Plan your day — Elyxa daily plan interface"
+          className="w-full object-cover object-top rounded-[20px] md:h-44"
+          draggable={false}
+        />
+      </div>
+      <div className="min-w-0 flex-1">
+        <img
+          src="/images/how-it-works/hiw-adapts-card02-full.png"
+          alt="Life happens — schedule with time conflicts"
+          className="w-full object-cover object-top rounded-[20px] md:h-44"
+          draggable={false}
+        />
+      </div>
+    </div>
+    <div className="relative w-full">
+      <img
+        src="/images/how-it-works/hiw-adapts-card03-full.png"
+        alt="Elyxa adapts — full dashboard with tasks list and AI panel"
+        className="w-full rounded-[20px] md:h-auto"
+        draggable={false}
+      />
+      <Link
+        to="/signup"
+        className="absolute top-[19.3%] left-[4.7%] z-10 h-[6%] w-[34.4%] rounded-[10px]"
+        aria-label="Get Your First Plan"
+      />
+    </div>
+  </div>
+);
+
+/* Desktop: original fixed-width horizontal layout */
 const AdaptsDesktopCards = () => (
   <div className="hidden w-full overflow-x-auto lg:block">
     <div className="flex min-w-325 items-center gap-5">
@@ -163,21 +201,25 @@ const AdaptsSection = () => {
 
   return (
     <section ref={secRef} className="w-full bg-white">
-      <div className="mx-auto max-w-385 px-5 py-12.5 lg:px-20 lg:pt-22.5 lg:pb-45">
-        <div className="flex flex-col gap-6 lg:gap-12.5">
-          <div ref={headRef} className="flex max-w-160 flex-col gap-3.5 lg:gap-5">
-            <h2 className="font-['Inter',sans-serif] text-[22px] leading-[1.3] font-bold text-[#181818] lg:text-[34px]">
+      <div className="mx-auto max-w-385 px-5 py-12.5 md:px-20 md:pt-22.5 md:pb-45">
+        <div className="flex flex-col gap-6 md:gap-12.5">
+          <div ref={headRef} className="flex max-w-160 flex-col gap-3.5 md:gap-5">
+            <h2 className="font-['Inter',sans-serif] text-[22px] leading-[1.3] font-bold text-[#181818] md:text-[34px]">
               How Elyxa adapts to your <span className="text-[#8022fe]">Life</span>
               <span className="text-[#14f1d9]">.</span>
             </h2>
-            <p className="font-['Inter',sans-serif] text-[14px] leading-normal font-medium text-[#181818] lg:text-[16px]">
+            <p className="font-['Inter',sans-serif] text-[14px] leading-normal font-medium text-[#181818] md:text-[16px]">
               Your plan updates itself when things don't go as expected.
             </p>
           </div>
 
           <div ref={cardsAnimRef}>
+            {/* Desktop only */}
             <AdaptsDesktopCards />
-            <div className="flex flex-col gap-5 lg:hidden">
+            {/* Tablet only: desktop images in responsive 2-col layout */}
+            <AdaptsTabletCards />
+            {/* Mobile only */}
+            <div className="flex flex-col gap-5 md:hidden">
               <AdaptsMobileCard cardRef={c1Ref} {...step01} />
               <AdaptsMobileCard cardRef={c2Ref} {...step02} />
               <AdaptsMobileCard cardRef={c3Ref} {...step03} />

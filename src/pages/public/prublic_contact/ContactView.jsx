@@ -26,7 +26,7 @@ const CONTACT_INFO = [
 ];
 
 const INPUT_BASE =
-  "w-full rounded-[10px] border border-[#f2f2f2] bg-white px-4 py-3 font-['Inter',sans-serif] text-[14px] font-medium text-[#181818] outline-none placeholder:text-[#c2c2c2] transition-colors focus:border-[#8022fe] lg:text-[15px]";
+  "w-full rounded-[10px] border border-[#f2f2f2] bg-white px-4 py-3 font-['Inter',sans-serif] text-[14px] font-medium text-[#181818] outline-none placeholder:text-[#c2c2c2] transition-colors focus:border-[#8022fe] md:text-[15px]";
 
 const ContactView = () => {
   const secRef = useRef(null);
@@ -69,20 +69,20 @@ const ContactView = () => {
   return (
     <div ref={secRef} className="w-full bg-white">
       {/* ── Hero ── */}
-      <div className="mx-auto max-w-385 px-5 pt-12.5 pb-10 lg:px-20 lg:pt-22.5 lg:pb-15">
-        <div ref={headRef} className="flex flex-col gap-3.5 lg:gap-5">
-          <h1 className="font-['Inter',sans-serif] text-[28px] leading-[1.3] font-bold text-[#181818] lg:text-[42px]">
+      <div className="mx-auto max-w-385 px-5 pt-12.5 pb-10 md:px-20 md:pt-22.5 md:pb-15">
+        <div ref={headRef} className="flex flex-col gap-3.5 md:gap-5">
+          <h1 className="font-['Inter',sans-serif] text-[28px] leading-[1.3] font-bold text-[#181818] md:text-[42px]">
             Get in <span className="text-[#8022fe]">Touch</span>
             <span className="text-[#14f1d9]">.</span>
           </h1>
-          <p className="max-w-160 font-['Inter',sans-serif] text-[14px] leading-normal font-medium text-[#888] lg:text-[16px]">
+          <p className="max-w-160 font-['Inter',sans-serif] text-[14px] leading-normal font-medium text-[#888] md:text-[16px]">
             Have a question, feedback, or just want to say hi? We'd love to hear from you. Our team typically responds within 24 hours.
           </p>
         </div>
       </div>
 
       {/* ── Contact Info Cards ── */}
-      <div className="mx-auto max-w-385 px-5 pb-10 lg:px-20 lg:pb-15">
+      <div className="mx-auto max-w-385 px-5 pb-10 md:px-20 md:pb-15">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {CONTACT_INFO.map((item, i) => {
             const Icon = item.icon;
@@ -91,7 +91,7 @@ const ContactView = () => {
                 key={item.label}
                 ref={cardRefs[i]}
                 href={item.href}
-                className="group flex flex-col gap-3.5 rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] p-5 no-underline transition-colors hover:border-[#8022fe]/30 lg:p-6"
+                className="group flex flex-col gap-3.5 rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] p-5 no-underline transition-colors hover:border-[#8022fe]/30 md:p-6"
               >
                 <div className="flex size-10 items-center justify-center rounded-xl bg-[#f9f4ff]">
                   <Icon className="h-5 w-5 text-[#8022fe]" />
@@ -100,7 +100,7 @@ const ContactView = () => {
                   <p className="font-['Inter',sans-serif] text-[11px] font-semibold uppercase tracking-wider text-[#c2c2c2]">
                     {item.label}
                   </p>
-                  <p className="font-['Inter',sans-serif] text-[15px] font-semibold text-[#181818] lg:text-[16px]">
+                  <p className="font-['Inter',sans-serif] text-[15px] font-semibold text-[#181818] md:text-[16px]">
                     {item.value}
                   </p>
                   <p className="font-['Inter',sans-serif] text-[13px] font-medium text-[#888]">
@@ -114,13 +114,13 @@ const ContactView = () => {
       </div>
 
       {/* ── Contact Form ── */}
-      <div className="mx-auto max-w-385 px-5 pb-12.5 lg:px-20 lg:pb-22.5">
+      <div className="mx-auto max-w-385 px-5 pb-12.5 md:px-20 md:pb-22.5">
         <div
           ref={formRef}
-          className="w-full rounded-[20px] border border-[#f2f2f2] bg-[#fcfcfc] p-5 lg:p-10"
+          className="w-full rounded-[20px] border border-[#f2f2f2] bg-[#fcfcfc] p-5 md:p-10"
         >
-          <div className="mb-6 flex flex-col gap-1.5 lg:mb-8">
-            <h2 className="font-['Inter',sans-serif] text-[20px] font-bold text-[#181818] lg:text-[26px]">
+          <div className="mb-6 flex flex-col gap-1.5 md:mb-8">
+            <h2 className="font-['Inter',sans-serif] text-[20px] font-bold text-[#181818] md:text-[26px]">
               Send us a message
             </h2>
             <p className="font-['Inter',sans-serif] text-[14px] font-medium text-[#888]">
@@ -228,7 +228,7 @@ const ContactView = () => {
       </div>
 
       {/* ── Final CTA ── */}
-      <div className="mx-auto max-w-385 px-5 pb-12.5 lg:px-20 lg:pb-22.5">
+      <div className="mx-auto max-w-385 px-5 pb-12.5 md:px-20 md:pb-22.5">
         <FinalCTASection />
       </div>
     </div>

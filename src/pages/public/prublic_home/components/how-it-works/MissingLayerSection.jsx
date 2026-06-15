@@ -7,7 +7,7 @@ import { HiArrowPathRoundedSquare } from 'react-icons/hi2';
 gsap.registerPlugin(ScrollTrigger);
 
 const WorkflowIconWrap = ({ children }) => (
-  <div className="flex size-7.5 shrink-0 items-center justify-center rounded-lg bg-[#f9f4ff] lg:size-8.5">
+  <div className="flex size-7.5 shrink-0 items-center justify-center rounded-lg bg-[#f9f4ff] md:size-8.5">
     {children}
   </div>
 );
@@ -71,24 +71,24 @@ const WorkflowCard = ({ row, cardRef }) => {
       ref={cardRef}
       className={`flex w-full flex-col overflow-hidden rounded-[20px] border bg-[#fcfcfc] ${cardBorder} ${cardShadow}`}
     >
-      <div className="flex items-center justify-between gap-3 border-b border-[#f2f2f2] px-5 py-3.5 lg:justify-start lg:gap-3.5 lg:px-6 lg:py-5">
-        <div className="flex min-w-0 items-center gap-2.5 lg:gap-3.5">
+      <div className="flex items-center justify-between gap-3 border-b border-[#f2f2f2] px-5 py-3.5 md:justify-start md:gap-3.5 md:px-6 md:py-5">
+        <div className="flex min-w-0 items-center gap-2.5 md:gap-3.5">
           <WorkflowIconWrap>
             <Icon />
           </WorkflowIconWrap>
-          <h3 className="font-['Inter',sans-serif] text-lg leading-[1.3] font-semibold text-[#181818] lg:text-2xl">
+          <h3 className="font-['Inter',sans-serif] text-lg leading-[1.3] font-semibold text-[#181818] md:text-2xl">
             {row.tool}
           </h3>
         </div>
         <span
-          className={`shrink-0 rounded-[40px] border bg-white px-2 py-0.5 font-['Inter',sans-serif] text-[10px] leading-normal font-medium lg:px-2.5 lg:py-1 lg:text-sm ${row.badgeText} ${row.badgeBorder}`}
+          className={`shrink-0 rounded-[40px] border bg-white px-2 py-0.5 font-['Inter',sans-serif] text-[10px] leading-normal font-medium md:px-2.5 md:py-1 md:text-sm ${row.badgeText} ${row.badgeBorder}`}
         >
           {row.badge}
         </span>
       </div>
 
-      <div className="flex flex-col gap-4 p-5 lg:gap-2.5 lg:p-6">
-        <div className="flex flex-col gap-1 lg:hidden">
+      <div className="flex flex-col gap-4 p-5 md:gap-2.5 md:p-6">
+        <div className="flex flex-col gap-1 md:hidden">
           <p className="font-['Inter',sans-serif] text-sm leading-normal font-medium text-[#181818]">
             The problem
           </p>
@@ -97,7 +97,7 @@ const WorkflowCard = ({ row, cardRef }) => {
           </p>
         </div>
 
-        <div className="flex flex-col gap-2 lg:hidden">
+        <div className="flex flex-col gap-2 md:hidden">
           <p className="font-['Inter',sans-serif] text-sm leading-normal font-medium text-[#181818]">
             With Elyxa
           </p>
@@ -109,7 +109,7 @@ const WorkflowCard = ({ row, cardRef }) => {
           </div>
         </div>
 
-        <div className="hidden lg:flex lg:items-center lg:justify-between">
+        <div className="hidden md:flex md:items-center md:justify-between">
           <p className="font-['Inter',sans-serif] text-base leading-normal font-medium text-[#181818]">
             The problem
           </p>
@@ -118,7 +118,7 @@ const WorkflowCard = ({ row, cardRef }) => {
           </p>
         </div>
 
-        <div className="hidden lg:flex lg:items-start lg:justify-between">
+        <div className="hidden md:flex md:items-start md:justify-between">
           <p className="max-w-165 flex-1 font-['Inter',sans-serif] text-xl leading-normal font-medium text-[#c2c2c2]">
             {row.problem}
           </p>
@@ -161,13 +161,13 @@ const MissingLayerSection = () => {
 
   return (
     <section ref={secRef} className="w-full bg-white">
-      <div className="mx-auto flex max-w-385 flex-col gap-6 px-5 py-12.5 md:gap-10 md:px-6 md:py-15 lg:gap-12.5 lg:px-20 lg:pt-42.5 lg:pb-22.5">
-        <div ref={headRef} className="flex flex-col items-center gap-3.5 text-center lg:gap-5">
-          <h2 className="font-['Inter',sans-serif] text-[22px] leading-[1.3] font-bold text-[#181818] lg:text-[34px]">
+      <div className="mx-auto flex max-w-385 flex-col gap-6 px-5 py-12.5 md:gap-12.5 md:px-20 md:pt-42.5 md:pb-22.5">
+        <div ref={headRef} className="flex flex-col items-center gap-3.5 text-center md:gap-5">
+          <h2 className="font-['Inter',sans-serif] text-[22px] leading-[1.3] font-bold text-[#181818] md:text-[34px]">
             The missing layer in your <span className="text-[#8022fe]">Workflow</span>
             <span className="text-[#14f1d9]">.</span>
           </h2>
-          <p className="max-w-325 font-['Inter',sans-serif] text-sm leading-normal font-medium text-[#181818] lg:text-base">
+          <p className="max-w-325 font-['Inter',sans-serif] text-sm leading-normal font-medium text-[#181818] md:text-base">
             Your tools manage tasks — but they don&apos;t adapt when life changes.
           </p>
         </div>

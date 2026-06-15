@@ -45,17 +45,17 @@ const PublicFooter = () => {
   const showFinalCTA = pathname === '/' || pathname === '/how-it-works';
 
   return (
-    <div className="w-full bg-white px-3 pb-3 lg:px-5 lg:pb-5">
+    <div className="w-full bg-white px-3 pb-3 md:px-5 md:pb-5">
       <footer
-        className={`relative z-10 w-full rounded-[20px] border border-[#f2f2f2] bg-[#fcfcfc] lg:rounded-[30px] ${
+        className={`relative z-10 w-full rounded-[20px] border border-[#f2f2f2] bg-[#fcfcfc] md:rounded-[30px] ${
           showFinalCTA
-            ? '-mt-62.5 pt-70 pb-7.5 lg:-mt-57.25 lg:pt-57.5 lg:pb-17.5'
-            : 'py-7.5 lg:py-17.5'
+            ? '-mt-62.5 pt-70 pb-7.5 md:-mt-57.25 md:pt-57.5 md:pb-17.5'
+            : 'py-7.5 md:py-17.5'
         }`}
       >
         <div className="mx-auto max-w-325 px-3 md:px-5 lg:px-0">
-          {/* Mobile / tablet footer */}
-          <div className="flex flex-col gap-7.5 lg:hidden">
+          {/* Mobile footer */}
+          <div className="flex flex-col gap-7.5 md:hidden">
             <div className="flex flex-col gap-4">
               <div className="flex items-center justify-between">
                 <a href="/" className="inline-flex no-underline">
@@ -99,7 +99,7 @@ const PublicFooter = () => {
                         key={link.label}
                         href={link.href}
                         className={`font-['Inter',sans-serif] text-xs leading-none font-semibold text-[#181818] no-underline transition-colors hover:text-[#8022fe] ${
-                          link.accent ? 'lg:text-[#8022fe]' : ''
+                          link.accent ? 'md:text-[#8022fe]' : ''
                         }`}
                       >
                         {link.label}
@@ -111,8 +111,8 @@ const PublicFooter = () => {
             </div>
           </div>
 
-          {/* Desktop footer */}
-          <div className="hidden items-start justify-between lg:flex">
+          {/* Tablet + Desktop footer */}
+          <div className="hidden items-start justify-between md:flex">
             <div className="flex min-h-45 flex-col justify-between self-stretch">
               <div className="flex flex-col gap-5">
                 <a href="/" className="inline-flex no-underline">
@@ -144,7 +144,7 @@ const PublicFooter = () => {
               </div>
             </div>
 
-            <div className="flex gap-25">
+            <div className="flex gap-10 lg:gap-25">
               {COLUMNS.map((col) => (
                 <div key={col.heading} className="flex flex-col gap-7.5">
                   <p className="font-['Inter',sans-serif] text-sm leading-none font-normal text-[#c2c2c2]">

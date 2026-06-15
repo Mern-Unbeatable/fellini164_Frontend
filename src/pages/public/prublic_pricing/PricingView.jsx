@@ -6,7 +6,7 @@ const PricingView = () => {
   return (
     <div className="w-full">
       <PricingHIW />
-      <div className="mx-auto max-w-385 px-5 pb-12.5 lg:px-20 lg:pb-22.5">
+      <div className="mx-auto max-w-385 px-5 pb-12.5 md:px-20 md:pb-22.5">
         <FinalCTASection />
       </div>
     </div>

@@ -53,23 +53,21 @@ const PublicNavbar = () => {
       {/* Mobile overlay */}
       {isMobileMenuOpen && (
         <div
-          className="fixed inset-0 z-40 bg-[rgba(24,24,24,0.5)] lg:hidden"
+          className="fixed inset-0 z-40 bg-[rgba(24,24,24,0.5)] md:hidden"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
 
       <div className="sticky top-0 z-50 mx-5 pt-5">
-        {/* Navbar bar — full width of the mx-5 area */}
-        <nav className="relative rounded-xl border border-[#f2f2f2] bg-[#fcfcfc] shadow-[0px_5px_12.5px_rgba(0,0,0,0.05)] lg:rounded-2xl">
-          {/* Header row — full width, no container max-width override */}
-          <div className="container mx-auto flex h-11 items-center justify-between px-4 sm:px-6 lg:h-13.25 lg:px-20">
+        <nav className="relative rounded-xl border border-[#f2f2f2] bg-[#fcfcfc] shadow-[0px_5px_12.5px_rgba(0,0,0,0.05)] md:rounded-2xl">
+          <div className="container mx-auto flex h-11 items-center justify-between px-4 sm:px-6 md:h-13.25 md:px-20">
             {/* Logo */}
             <a href="/" className="flex shrink-0 items-center no-underline hover:no-underline">
-              <img src="/logo.png" alt="Elyxa.Ai" className="h-6.5 w-auto lg:h-8.25" />
+              <img src="/logo.png" alt="Elyxa.Ai" className="h-6.5 w-auto md:h-8.25" />
             </a>
 
-            {/* Desktop nav links */}
-            <div className="hidden items-center gap-12.5 lg:flex">
+            {/* Desktop/tablet nav links */}
+            <div className="hidden items-center gap-12.5 md:flex">
               {NAV_LINKS.map((link) => (
                 <a
                   key={link.label}
@@ -83,8 +81,8 @@ const PublicNavbar = () => {
               ))}
             </div>
 
-            {/* Desktop action links */}
-            <div className="hidden items-center gap-7.5 lg:flex">
+            {/* Desktop/tablet action links */}
+            <div className="hidden items-center gap-7.5 md:flex">
               {!isAuthenticated ? (
                 <>
                   <a
@@ -121,7 +119,7 @@ const PublicNavbar = () => {
             </div>
 
             {/* Mobile right side */}
-            <div className="flex items-center gap-5 lg:hidden">
+            <div className="flex items-center gap-5 md:hidden">
               {!isAuthenticated && (
                 <div className="flex items-center gap-4">
                   <a
@@ -152,9 +150,9 @@ const PublicNavbar = () => {
             </div>
           </div>
 
-          {/* Mobile dropdown — absolute card below the nav pill */}
+          {/* Mobile dropdown */}
           {isMobileMenuOpen && (
-            <div className="absolute top-[calc(100%+10px)] -right-px -left-px z-50 overflow-hidden rounded-[14px] border border-[#f2f2f2] bg-[#fcfcfc] shadow-[0px_5.667px_11.334px_rgba(0,0,0,0.05)] lg:hidden">
+            <div className="absolute top-[calc(100%+10px)] -right-px -left-px z-50 overflow-hidden rounded-[14px] border border-[#f2f2f2] bg-[#fcfcfc] shadow-[0px_5.667px_11.334px_rgba(0,0,0,0.05)] md:hidden">
               <div className="flex flex-col items-center gap-7.5 p-5">
                 {NAV_LINKS.map((link) => (
                   <a

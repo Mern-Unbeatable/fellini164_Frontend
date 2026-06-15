@@ -37,7 +37,7 @@ const FAQItem = ({ faq, animRef }) => {
     <div ref={animRef} className="overflow-hidden rounded-2xl border border-[#f0f0f0] bg-white">
       <button
         onClick={() => setOpen((p) => !p)}
-        className="flex w-full items-center justify-between px-5 py-4 text-left lg:px-7 lg:py-5"
+        className="flex w-full items-center justify-between px-5 py-4 text-left md:px-7 md:py-5"
       >
         <p className={`font-['Inter',sans-serif] text-[16px] font-semibold ${open ? 'text-[#8022fe]' : 'text-[#181818]'}`}>
           {faq.q}
@@ -58,7 +58,7 @@ const FAQItem = ({ faq, animRef }) => {
         className="transition-all duration-300 ease-out"
         style={{ maxHeight: open ? '300px' : '0px', overflow: 'hidden' }}
       >
-        <p className="px-5 pb-5 font-['Inter',sans-serif] text-[15px] leading-relaxed font-medium text-[#888] lg:px-7 lg:pb-6">
+        <p className="px-5 pb-5 font-['Inter',sans-serif] text-[15px] leading-relaxed font-medium text-[#888] md:px-7 md:pb-6">
           {faq.a}
         </p>
       </div>
@@ -94,8 +94,8 @@ const FAQHIWSection = () => {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <section ref={secRef} className="w-full bg-[#fcfcfc] py-12.5 lg:py-20">
-      <div className="mx-auto max-w-385 px-5 lg:px-20">
+    <section ref={secRef} className="w-full bg-[#fcfcfc] py-12.5 md:py-20">
+      <div className="mx-auto max-w-385 px-5 md:px-20">
         <div className="mx-auto max-w-225">
           <div ref={headRef} className="mb-6 text-center">
             <h2 className="font-['Inter',sans-serif] text-[26px] font-bold text-[#181818] sm:text-[34px]">

@@ -40,13 +40,13 @@ const HeroHIW = () => {
   return (
     <section
       ref={secRef}
-      className="relative w-full overflow-hidden bg-white pt-7.5 pb-12.5 lg:pt-12.5 lg:pb-22.5"
+      className="relative w-full overflow-hidden bg-white pt-7.5 pb-12.5 md:pt-12.5 md:pb-22.5"
     >
-      <div className="mx-auto flex max-w-385 flex-col items-center gap-15 px-5 lg:gap-20 lg:px-20">
-        <div className="flex w-full flex-col items-center gap-6 lg:gap-10">
-          <div className="flex w-full flex-col items-center gap-5 lg:gap-7.5">
-            <div ref={h1Ref} className="flex w-full flex-col items-center gap-2.5 lg:gap-7.5">
-              <h1 className="text-center font-['Inter',sans-serif] text-[26px] leading-[1.3] font-bold text-[#181818] lg:hidden">
+      <div className="mx-auto flex max-w-385 flex-col items-center gap-15 px-5 md:gap-20 md:px-20">
+        <div className="flex w-full flex-col items-center gap-6 md:gap-10">
+          <div className="flex w-full flex-col items-center gap-5 md:gap-7.5">
+            <div ref={h1Ref} className="flex w-full flex-col items-center gap-2.5 md:gap-7.5">
+              <h1 className="text-center font-['Inter',sans-serif] text-[26px] leading-[1.3] font-bold text-[#181818] md:hidden">
                 AI organizes your tasks into a clear <span className="text-[#8022fe]">Plan</span>
                 <span className="text-[#14f1d9]">.</span>
                 <br />
@@ -54,7 +54,7 @@ const HeroHIW = () => {
                 <span className="text-[#14f1d9]">.</span>
               </h1>
 
-              <h1 className="hidden text-center font-['Inter',sans-serif] text-[54px] leading-[1.3] font-bold text-[#181818] lg:block">
+              <h1 className="hidden text-center font-['Inter',sans-serif] text-[54px] leading-[1.3] font-bold text-[#181818] md:block">
                 Your plans should adapt to your <span className="text-[#8022fe]">Life</span>
                 <span className="text-[#14f1d9]">.</span>
                 <br />
@@ -64,7 +64,7 @@ const HeroHIW = () => {
 
               <p
                 ref={subRef}
-                className="w-full text-center font-['Inter',sans-serif] text-[14px] leading-normal font-medium text-[#181818] lg:max-w-117.5 lg:text-[16px]"
+                className="w-full text-center font-['Inter',sans-serif] text-[14px] leading-normal font-medium text-[#181818] md:max-w-117.5 md:text-[16px]"
               >
                 Elyxa<span className="text-[#8022fe]">.Ai</span> automatically adjusts your day when
                 plans break — so you always know what to do next
@@ -73,14 +73,14 @@ const HeroHIW = () => {
 
             <div
               ref={ctaRef}
-              className="flex w-full flex-col gap-2.5 lg:w-auto lg:flex-row lg:items-center lg:justify-center lg:gap-5"
+              className="flex w-full flex-col gap-2.5 md:w-auto md:flex-row md:items-center md:justify-center md:gap-5"
             >
-              <Link to="/signup" className="block w-full shrink-0 lg:w-auto">
-                <button className="w-full rounded-[10px] bg-[#8022fe] px-5 py-3 font-['Inter',sans-serif] text-[14px] font-semibold whitespace-nowrap text-white transition-colors hover:bg-[#6b1bdb] lg:w-auto lg:px-5 lg:py-3 lg:text-[16px]">
+              <Link to="/signup" className="block w-full shrink-0 md:w-auto">
+                <button className="w-full rounded-[10px] bg-[#8022fe] px-5 py-3 font-['Inter',sans-serif] text-[14px] font-semibold whitespace-nowrap text-white transition-colors hover:bg-[#6b1bdb] md:w-auto md:text-[16px]">
                   Get Your First Plan
                 </button>
               </Link>
-              <button className="w-full shrink-0 rounded-[10px] border-2 border-[#8022fe] bg-transparent px-5 py-3 font-['Inter',sans-serif] text-[14px] font-semibold whitespace-nowrap text-[#8022fe] transition-colors hover:bg-[rgba(128,34,254,0.05)] lg:w-auto lg:bg-[rgba(128,34,254,0.05)] lg:text-[16px]">
+              <button className="w-full shrink-0 rounded-[10px] border-2 border-[#8022fe] bg-transparent px-5 py-3 font-['Inter',sans-serif] text-[14px] font-semibold whitespace-nowrap text-[#8022fe] transition-colors hover:bg-[rgba(128,34,254,0.05)] md:w-auto md:bg-[rgba(128,34,254,0.05)] md:text-[16px]">
                 See How It Works
               </button>
             </div>
@@ -88,17 +88,17 @@ const HeroHIW = () => {
 
           <div
             ref={bensRef}
-            className="relative flex w-full flex-col items-center gap-4 pt-5 before:absolute before:top-0 before:left-1/2 before:h-px before:w-200 before:-translate-x-1/2 before:bg-[#f2f2f2] lg:flex-row lg:flex-wrap lg:justify-center lg:gap-17.5 lg:pt-7.5"
+            className="relative flex w-full flex-col items-center gap-4 pt-5 before:absolute before:top-0 before:left-1/2 before:h-px before:w-200 before:-translate-x-1/2 before:bg-[#f2f2f2] md:flex-row md:flex-wrap md:justify-center md:gap-17.5 md:pt-7.5"
           >
             {HERO_BENEFITS.map(({ icon: Icon, text }) => (
               <span
                 key={text}
-                className="flex items-center gap-1.5 font-['Inter',sans-serif] text-[12px] font-normal text-[#a3a3a3] lg:gap-2 lg:text-[14px]"
+                className="flex items-center gap-1.5 font-['Inter',sans-serif] text-[12px] font-normal text-[#a3a3a3] md:gap-2 md:text-[14px]"
               >
-                <span className="lg:hidden">
+                <span className="md:hidden">
                   <Icon size={16} className="text-[#8022fe]" />
                 </span>
-                <span className="hidden lg:inline">
+                <span className="hidden md:inline">
                   <Icon size={18} className="text-[#8022fe]" />
                 </span>
                 {text}
@@ -107,17 +107,17 @@ const HeroHIW = () => {
           </div>
         </div>
 
-        <div ref={visualRef} className="relative mx-auto w-full max-w-86 lg:max-w-full">
+        <div ref={visualRef} className="relative mx-auto w-full max-w-86 md:max-w-full">
           <img
             src="/images/how-it-works/heroSectionMobile.png"
             alt="Elyxa AI transforms scattered tasks into an organized daily schedule"
-            className="mx-auto h-auto w-full max-w-86 lg:hidden"
+            className="mx-auto h-auto w-full max-w-86 md:hidden"
             draggable={false}
           />
           <img
             src="/images/how-it-works/hiw-hero-visual.png"
             alt="Elyxa AI transforms scattered tasks into an organized daily schedule"
-            className="hidden h-150 w-full object-contain object-center lg:block"
+            className="hidden h-150 w-full object-contain object-center md:block"
             draggable={false}
           />
         </div>

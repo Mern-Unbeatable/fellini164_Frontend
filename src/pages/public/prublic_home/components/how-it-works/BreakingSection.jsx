@@ -38,10 +38,10 @@ const BreakingTasksList = ({ className = '' }) => (
   <div
     className={`flex flex-col gap-3.5 rounded-[18px] border border-[#f2f2f2] bg-white p-3.5 shadow-[0px_10.97px_21.939px_rgba(0,0,0,0.05)] ${className}`}
   >
-    <p className="font-['Inter',sans-serif] text-[11px] font-semibold text-[#181818] lg:text-[12px]">
+    <p className="font-['Inter',sans-serif] text-[11px] font-semibold text-[#181818] md:text-[12px]">
       Tasks List
     </p>
-    <div className="flex max-h-55 flex-col gap-2.5 overflow-hidden lg:max-h-73">
+    <div className="flex max-h-55 flex-col gap-2.5 overflow-hidden md:max-h-73">
       {BREAKING_TASKS.map((task) => {
         const tag = TASK_TAG_STYLES[task.tagStyle];
         return (
@@ -95,10 +95,10 @@ const BreakingSection = () => {
   }, []);
 
   return (
-    <section ref={secRef} className="w-full bg-white py-12.5 lg:py-10">
-      <div className="mx-auto max-w-385 px-5 lg:px-20">
+    <section ref={secRef} className="w-full bg-white py-12.5 md:py-10">
+      <div className="mx-auto max-w-385 px-5 md:px-20">
         <div ref={headRef} className="mb-6">
-          <h2 className="font-['Inter',sans-serif] text-[28px] leading-tight font-bold text-[#181818] sm:text-[36px] lg:text-[42px]">
+          <h2 className="font-['Inter',sans-serif] text-[28px] leading-tight font-bold text-[#181818] sm:text-[36px] md:text-[42px]">
             Have you ever wondered why your
             <br />
             plans keep <span className="text-[#8022fe]">Breaking</span>
@@ -115,11 +115,11 @@ const BreakingSection = () => {
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f5f0ff]">
                 <GoMegaphone size={18} className="text-purple-600" />
               </div>
-              <h3 className="font-['Inter',sans-serif] text-[18px] leading-[1.3] font-semibold text-[#181818] lg:text-[24px]">
+              <h3 className="font-['Inter',sans-serif] text-[18px] leading-[1.3] font-semibold text-[#181818] md:text-[24px]">
                 The Gap
               </h3>
             </div>
-            <p className="font-['Inter',sans-serif] text-[14px] leading-normal font-medium text-[#181818] lg:text-[16px]">
+            <p className="font-['Inter',sans-serif] text-[14px] leading-normal font-medium text-[#181818] md:text-[16px]">
               Most planning tools work — until something changes. Then everything falls <br /> apart.
             </p>
           </div>
@@ -129,47 +129,47 @@ const BreakingSection = () => {
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f5f0ff]">
                 <PiWarning size={18} className="text-purple-600" />
               </div>
-              <h3 className="font-['Inter',sans-serif] text-[18px] leading-[1.3] font-semibold text-[#181818] lg:text-[24px]">
+              <h3 className="font-['Inter',sans-serif] text-[18px] leading-[1.3] font-semibold text-[#181818] md:text-[24px]">
                 The Consequence
               </h3>
             </div>
-            <p className="font-['Inter',sans-serif] text-[14px] leading-normal font-medium text-[#181818] lg:text-[16px]">
+            <p className="font-['Inter',sans-serif] text-[14px] leading-normal font-medium text-[#181818] md:text-[16px]">
               One delay, one unexpected event — and your day turns into a list of overdue <br /> tasks.
             </p>
           </div>
 
-          <div ref={c2} className="relative min-h-54.25 overflow-hidden rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] p-5 lg:min-h-40.75 lg:rounded-[20px] lg:p-6">
-            <BreakingTasksList className="absolute top-24.25 -right-12.75 z-10 w-50 lg:top-5.75 lg:-right-11.25 lg:w-56" />
-            <div className="relative z-0 flex max-w-[calc(100%-80px)] flex-col gap-2.5 lg:max-w-100">
-              <div className="flex items-center gap-2.5 lg:gap-3.5">
-                <div className="flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded-lg bg-[#f9f4ff] lg:h-8.5 lg:w-8.5">
-                  <HiOutlineSparkles size={16} className="text-[#8022fe] lg:hidden" />
-                  <HiOutlineSparkles size={18} className="hidden text-[#8022fe] lg:block" />
+          <div ref={c2} className="relative min-h-54.25 overflow-hidden rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] p-5 md:min-h-40.75 md:rounded-[20px] md:p-6">
+            <BreakingTasksList className="absolute top-24.25 -right-12.75 z-10 w-50 md:top-5.75 md:-right-11.25 md:w-56" />
+            <div className="relative z-0 flex max-w-[calc(100%-80px)] flex-col gap-2.5 md:max-w-100">
+              <div className="flex items-center gap-2.5 md:gap-3.5">
+                <div className="flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded-lg bg-[#f9f4ff] md:h-8.5 md:w-8.5">
+                  <HiOutlineSparkles size={16} className="text-[#8022fe] md:hidden" />
+                  <HiOutlineSparkles size={18} className="hidden text-[#8022fe] md:block" />
                 </div>
-                <h3 className="font-['Inter',sans-serif] text-[18px] leading-[1.3] font-semibold text-[#181818] lg:text-[24px]">
+                <h3 className="font-['Inter',sans-serif] text-[18px] leading-[1.3] font-semibold text-[#181818] md:text-[24px]">
                   Start planning differently
                 </h3>
               </div>
-              <p className="font-['Inter',sans-serif] text-[14px] leading-normal font-medium text-[#181818] lg:text-[16px]">
+              <p className="font-['Inter',sans-serif] text-[14px] leading-normal font-medium text-[#181818] md:text-[16px]">
                 See how your schedule adapts when life changes.
               </p>
             </div>
-            <button className="relative z-0 mt-17.5 rounded-lg bg-[#8022fe] px-4 py-2 font-['Inter',sans-serif] text-[14px] font-semibold text-white transition-colors hover:bg-[#6b1bdb] lg:mt-3.5">
+            <button className="relative z-0 mt-17.5 rounded-lg bg-[#8022fe] px-4 py-2 font-['Inter',sans-serif] text-[14px] font-semibold text-white transition-colors hover:bg-[#6b1bdb] md:mt-3.5">
               Try It Yourself
             </button>
           </div>
 
-          <div ref={c3} className="rounded-2xl border border-[#e9e8e8] bg-[#fcfcfc] p-5 shadow-[0px_15px_7.5px_rgba(0,0,0,0.02)] lg:rounded-[20px] lg:p-6">
-            <div className="mb-2.5 flex items-center gap-2.5 lg:gap-3.5">
-              <div className="flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded-lg bg-[#f9f4ff] lg:h-8.5 lg:w-8.5">
-                <PiTimer size={16} className="text-[#8022fe] lg:hidden" />
-                <PiTimer size={18} className="hidden text-[#8022fe] lg:block" />
+          <div ref={c3} className="rounded-2xl border border-[#e9e8e8] bg-[#fcfcfc] p-5 shadow-[0px_15px_7.5px_rgba(0,0,0,0.02)] md:rounded-[20px] md:p-6">
+            <div className="mb-2.5 flex items-center gap-2.5 md:gap-3.5">
+              <div className="flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded-lg bg-[#f9f4ff] md:h-8.5 md:w-8.5">
+                <PiTimer size={16} className="text-[#8022fe] md:hidden" />
+                <PiTimer size={18} className="hidden text-[#8022fe] md:block" />
               </div>
-              <h3 className="font-['Inter',sans-serif] text-[18px] leading-[1.3] font-semibold text-[#181818] lg:text-[24px]">
+              <h3 className="font-['Inter',sans-serif] text-[18px] leading-[1.3] font-semibold text-[#181818] md:text-[24px]">
                 The Result
               </h3>
             </div>
-            <p className="font-['Inter',sans-serif] text-[14px] leading-normal font-medium text-[#181818] lg:text-[16px]">
+            <p className="font-['Inter',sans-serif] text-[14px] leading-normal font-medium text-[#181818] md:text-[16px]">
               You don't feel organized — you feel behind. And most days end in either catching up or giving up.
             </p>
           </div>
