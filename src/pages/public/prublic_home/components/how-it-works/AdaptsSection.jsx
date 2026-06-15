@@ -37,13 +37,48 @@ const ADAPTS_MOBILE_STEPS = [
 
 const AdaptsMobileCard = ({ cardRef, number, title, body, variant, visual, visualClass, alt }) => {
   const isAdaptCard = variant === '03';
+
+  if (isAdaptCard) {
+    return (
+      <div ref={cardRef} className="relative w-full overflow-hidden rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] flex flex-col">
+        <div className="flex flex-col gap-4 px-5 pt-5 pb-4">
+          <div className="flex items-start gap-7.5">
+            <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+              <h3 className="font-['Inter',sans-serif] text-[18px] leading-[1.3] font-semibold text-[#181818]">
+                {title}
+              </h3>
+              <p className="font-['Inter',sans-serif] text-[14px] leading-normal font-medium text-[#181818]">
+                {body}
+              </p>
+            </div>
+            <p className="shrink-0 font-['Inter',sans-serif] text-[40px] leading-[1.3] font-bold text-[#f2f2f2] select-none">
+              {number}
+            </p>
+          </div>
+          <Link to="/signup" className="w-full no-underline outline-none focus:outline-none focus-visible:outline-none">
+            <button className="w-full rounded-[10px] bg-[#8022fe] px-5 py-3 font-['Inter',sans-serif] text-[14px] font-semibold text-white outline-none transition-colors hover:bg-[#6b1bdb] focus:outline-none focus-visible:outline-none">
+              Get Your First Plan
+            </button>
+          </Link>
+        </div>
+        <img
+          src={visual}
+          alt={alt}
+          className="ml-5 h-auto w-full rounded-[14.4px] drop-shadow-[-13.304px_0_13.304px_rgba(0,0,0,0.05)] pointer-events-none select-none"
+          draggable={false}
+        />
+      </div>
+    );
+  }
+
   return (
-    <div
-      ref={cardRef}
-      className={`relative w-full max-w-[320px] overflow-hidden border border-[#f2f2f2] bg-[#fcfcfc] ${
-        isAdaptCard ? 'flex flex-col gap-4 rounded-2xl px-5 pt-5 pb-87.5' : 'h-75 rounded-2xl p-5'
-      }`}
-    >
+    <div ref={cardRef} className="relative h-75 w-full overflow-hidden rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] p-5">
+      <img
+        src={visual}
+        alt={alt}
+        className={`pointer-events-none absolute h-auto max-w-none select-none ${visualClass}`}
+        draggable={false}
+      />
       <div className="relative z-10 flex items-start gap-7.5">
         <div className="flex min-w-0 flex-1 flex-col gap-1.5">
           <h3 className="font-['Inter',sans-serif] text-[18px] leading-[1.3] font-semibold text-[#181818]">
@@ -57,21 +92,6 @@ const AdaptsMobileCard = ({ cardRef, number, title, body, variant, visual, visua
           {number}
         </p>
       </div>
-
-      {isAdaptCard && (
-        <Link to="/signup" className="relative z-10 w-full">
-          <button className="w-full rounded-[10px] bg-[#8022fe] px-5 py-3 font-['Inter',sans-serif] text-[14px] font-semibold text-white transition-colors hover:bg-[#6b1bdb]">
-            Get Your First Plan
-          </button>
-        </Link>
-      )}
-
-      <img
-        src={visual}
-        alt={alt}
-        className={`pointer-events-none z-0 h-auto max-w-none select-none ${visualClass}`}
-        draggable={false}
-      />
     </div>
   );
 };
@@ -157,7 +177,7 @@ const AdaptsSection = () => {
 
           <div ref={cardsAnimRef}>
             <AdaptsDesktopCards />
-            <div className="flex flex-col items-center gap-5 lg:hidden">
+            <div className="flex flex-col gap-5 lg:hidden">
               <AdaptsMobileCard cardRef={c1Ref} {...step01} />
               <AdaptsMobileCard cardRef={c2Ref} {...step02} />
               <AdaptsMobileCard cardRef={c3Ref} {...step03} />
