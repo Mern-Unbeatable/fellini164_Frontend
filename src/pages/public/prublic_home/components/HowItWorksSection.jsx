@@ -834,9 +834,7 @@ const PricingCard = ({ plan, cardRef, billing }) => {
   const showDiscount = isYearly && plan.originalPrice;
   const borderClass = plan.featured
     ? 'border-2 border-[#8022fe]'
-    : plan.id === 'free'
-      ? 'border border-[#f2f2f2] lg:border-[#e9e8e8]'
-      : 'border border-[#f2f2f2]';
+    : 'border border-[#f2f2f2]';
 
   const cardBody = (
     <>
@@ -907,14 +905,14 @@ const PricingCard = ({ plan, cardRef, billing }) => {
     return (
       <div
         ref={cardRef}
-        className="relative flex w-full flex-col items-center lg:h-155 lg:w-77.5 lg:shrink-0 lg:gap-1.75"
+        className="relative flex w-full flex-col items-center lg:h-full"
       >
         <div
-          className={`relative flex h-115 w-full flex-col justify-between overflow-hidden rounded-2xl bg-white lg:h-full lg:flex-1 lg:rounded-[20px] ${borderClass} ${PRICING_CARD_SHADOW}`}
+          className={`relative flex h-115 w-full flex-col justify-between overflow-hidden rounded-2xl bg-white lg:h-full lg:min-h-155 lg:rounded-[20px] ${borderClass} ${PRICING_CARD_SHADOW}`}
         >
           {cardBody}
         </div>
-        <div className="absolute top-[-8.5px] left-1/2 z-10 flex -translate-x-1/2 items-center justify-center rounded-[40px] bg-[#8022fe] px-2 py-0.5 lg:-top-2.5">
+        <div className="absolute top-[-8.5px] left-1/2 z-10 flex -translate-x-1/2 items-center justify-center rounded-[40px] bg-[#8022fe] px-2 py-0.5 drop-shadow-[0px_0px_5px_rgba(128,34,254,0.3)] lg:-top-2.5">
           <p className="font-['Inter',sans-serif] text-[10px] leading-normal font-medium text-white lg:text-[12px]">
             {plan.badge}
           </p>
@@ -924,9 +922,9 @@ const PricingCard = ({ plan, cardRef, billing }) => {
   }
 
   return (
-    <div ref={cardRef} className="w-full lg:w-77.5 lg:shrink-0">
+    <div ref={cardRef} className="w-full">
       <div
-        className={`flex h-115 flex-col justify-between overflow-hidden rounded-2xl bg-white lg:h-155 lg:rounded-[20px] ${borderClass} ${PRICING_CARD_SHADOW}`}
+        className={`flex h-115 flex-col justify-between overflow-hidden rounded-2xl bg-white lg:h-full lg:min-h-155 lg:rounded-[20px] ${borderClass} ${PRICING_CARD_SHADOW}`}
       >
         {cardBody}
       </div>
@@ -993,7 +991,7 @@ const PricingHIW = () => {
           <PricingToggle billing={billing} onChange={setBilling} />
 
           <div className="flex w-full flex-col items-center gap-5 lg:gap-7.5">
-            <div className="grid w-full grid-cols-1 gap-5 md:grid-cols-2 lg:flex lg:justify-between lg:gap-5">
+            <div className="grid w-full grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
               {plans.map((plan, i) => (
                 <PricingCard key={plan.id} plan={plan} cardRef={cardRefs[i]} billing={billing} />
               ))}

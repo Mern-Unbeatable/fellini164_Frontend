@@ -110,7 +110,7 @@ const PublicFooter = () => {
             <div className="flex min-h-[180px] flex-col justify-between self-stretch">
               <div className="flex flex-col gap-5">
                 <a href="/" className="inline-flex no-underline">
-                  <img src="/logo.png" alt="Elyxa.Ai" className="h-[33px] w-auto" />
+                  <img src="/logo.png" alt="Elyxa.Ai" className="h-11 w-auto" />
                 </a>
                 <p className="font-['Inter',sans-serif] text-sm leading-none font-normal text-[#c2c2c2]">
                   © 2026 Elyxa AI LLC.
@@ -136,9 +136,7 @@ const PublicFooter = () => {
                       <a
                         key={link.label}
                         href={link.href}
-                        className={`font-['Inter',sans-serif] text-sm leading-none font-semibold no-underline transition-colors hover:text-[#8022fe] ${
-                          link.accent ? 'text-[#8022fe]' : 'text-[#181818]'
-                        }`}
+                        className="font-['Inter',sans-serif] text-sm leading-none font-semibold text-[#181818] no-underline transition-colors hover:text-[#8022fe]"
                       >
                         {link.label}
                       </a>
