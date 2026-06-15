@@ -98,7 +98,7 @@ const AdaptsMobileCard = ({ cardRef, number, title, body, variant, visual, visua
 
 /* Tablet: row 1 = cards 01+02 side by side, row 2 = card 03 full width below */
 const AdaptsTabletCards = () => (
-  <div className="hidden md:flex md:flex-col md:gap-5 lg:hidden">
+  <div className="hidden">
     <div className="flex gap-5">
       <div className="min-w-0 flex-1">
         <img
@@ -219,7 +219,7 @@ const AdaptsSection = () => {
             {/* Tablet only: desktop images in responsive 2-col layout */}
             <AdaptsTabletCards />
             {/* Mobile only */}
-            <div className="flex flex-col gap-5 md:hidden">
+            <div className="flex flex-col gap-5 lg:hidden">
               <AdaptsMobileCard cardRef={c1Ref} {...step01} />
               <AdaptsMobileCard cardRef={c2Ref} {...step02} />
               <AdaptsMobileCard cardRef={c3Ref} {...step03} />
