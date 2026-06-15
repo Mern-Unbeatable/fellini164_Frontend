@@ -61,7 +61,7 @@ export const FinalCTASection = () => {
           </div>
         </div>
 
-        <div className="pointer-events-none absolute bottom-0 left-1/2 w-[320px] max-w-none -translate-x-1/2 overflow-hidden rounded-[15.6px] drop-shadow-[-8px_0px_14.39px_rgba(255,255,255,0.05)] md:left-auto md:right-0 md:w-[42%] md:translate-x-0 lg:top-12.5 lg:bottom-auto lg:-right-24.75 lg:w-162.5">
+        <div className="pointer-events-none absolute bottom-0 right-0 w-[320px] max-w-none overflow-hidden rounded-[15.6px] drop-shadow-[-8px_0px_14.39px_rgba(255,255,255,0.05)] md:left-auto md:right-0 md:w-[42%] md:translate-x-0 lg:top-12.5 lg:bottom-auto lg:-right-24.75 lg:w-162.5">
           <img src="/images/how-it-works/hiw-final-cta-dashboard.png" alt="" className="block w-full h-auto" />
         </div>
       </div>
