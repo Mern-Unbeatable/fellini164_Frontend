@@ -44,10 +44,10 @@ export const FinalCTASection = () => {
           </div>
 
           <div className="flex flex-col gap-5">
-            <Link to="/signup" className="inline-flex w-full lg:w-auto">
+            <Link to="/signup" className="inline-flex w-full no-underline outline-none hover:no-underline focus:outline-none focus-visible:outline-none lg:w-auto" tabIndex={-1}>
               <button
                 type="button"
-                className="w-full rounded-[10px] bg-[#8022fe] px-5 py-3 font-['Inter',sans-serif] text-sm font-semibold text-white transition-colors hover:bg-[#6b1bdb] lg:w-auto lg:text-base"
+                className="w-full rounded-[10px] bg-[#8022fe] px-5 py-3 font-['Inter',sans-serif] text-sm font-semibold text-white outline-none transition-colors hover:bg-[#6b1bdb] focus:outline-none focus-visible:outline-none lg:w-auto lg:text-base"
               >
                 Get Your First Plan
               </button>

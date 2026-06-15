@@ -366,6 +366,11 @@
     outline-offset: 2px;
   }
 
+  a:focus-visible,
+  button:focus-visible {
+    outline: none;
+  }
+
   /* SELECTION */
   ::selection {
     background-color: var(--color-primary-500);
