@@ -59,7 +59,7 @@ const PublicFooter = () => {
             <div className="flex flex-col gap-4">
               <div className="flex items-center justify-between">
                 <a href="/" className="inline-flex no-underline">
-                  <img src="/logo.png" alt="Elyxa.Ai" className="h-6.5 w-auto" />
+                  <img src="/logo.png" alt="Elyxa.Ai" className="h-9 w-auto" />
                 </a>
                 <div className="flex items-center gap-3">
                   <a
