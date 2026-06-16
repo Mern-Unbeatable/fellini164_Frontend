@@ -215,7 +215,7 @@ const OnboardingFlowView = () => {
       <div className="mx-auto max-w-480 px-4 pt-4 pb-8 sm:px-7 sm:pt-7">
         <div className="sm:grid sm:grid-cols-[1.2fr_auto_1.4fr] sm:items-center">
           <div className="flex items-center justify-between sm:contents">
-            <div className="pt-1 sm:pt-2.5">
+            <div>
               <BackLink step={step} onBack={onBack} />
             </div>
             <div className="sm:col-start-3 sm:flex sm:justify-end">
