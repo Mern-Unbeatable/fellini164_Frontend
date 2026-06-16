@@ -28,7 +28,7 @@ const Brand = () => (
 );
 
 const Stepper = ({ step }) => (
-  <div className="flex w-full items-start justify-between gap-3 sm:w-200 sm:gap-0">
+  <div className="flex w-full items-start justify-between gap-3 sm:w-200 sm:gap-0 md:w-full md:gap-3 lg:w-200 lg:gap-0">
     {STEP_META.map((item, index) => {
       const number = index + 1;
       const active = number === step;
@@ -37,7 +37,7 @@ const Stepper = ({ step }) => (
       return (
         <div
           key={item.key}
-          className="flex min-w-0 flex-1 flex-col items-center sm:w-40 sm:flex-none"
+          className="flex min-w-0 flex-1 flex-col items-center sm:w-40 sm:flex-none md:flex-1 md:w-auto lg:w-40 lg:flex-none"
         >
           <div className="relative flex h-8 w-full items-center justify-center sm:h-9">
             {number > 1 && (
@@ -213,8 +213,8 @@ const OnboardingFlowView = () => {
   return (
     <div className="relative min-h-screen overflow-hidden bg-white">
       <div className="mx-auto max-w-480 px-4 pt-4 pb-8 sm:px-7 sm:pt-7">
-        <div className="sm:grid sm:grid-cols-[1.2fr_auto_1.4fr] sm:items-center">
-          <div className="flex items-center justify-between sm:contents">
+        <div className="sm:grid sm:grid-cols-[1.2fr_auto_1.4fr] sm:items-center md:block lg:grid lg:grid-cols-[1.2fr_auto_1.4fr] lg:items-center">
+          <div className="flex items-center justify-between sm:contents md:flex md:items-center md:justify-between lg:contents">
             <div>
               <BackLink step={step} onBack={onBack} />
             </div>
@@ -222,13 +222,13 @@ const OnboardingFlowView = () => {
               <Brand />
             </div>
           </div>
-          <div className="mt-8 sm:col-start-2 sm:row-start-1 sm:mt-0 md:mt-8 lg:mt-8">
+          <div className="mt-8 sm:col-start-2 sm:row-start-1 sm:mt-0 md:mt-4 lg:mt-0">
             <Stepper step={step} />
           </div>
         </div>
 
         {!isGenerating && (
-          <div className="relative mx-auto mt-10 flex w-full max-w-325 flex-col items-center justify-start gap-7.5 px-1 text-center sm:absolute sm:top-1/2 sm:left-1/2 sm:w-325 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:gap-12.5 sm:px-0 sm:pb-0">
+          <div className="relative mx-auto mt-10 flex w-full max-w-325 flex-col items-center justify-start gap-7.5 px-1 text-center sm:absolute sm:top-1/2 sm:left-1/2 sm:w-325 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:gap-12.5 sm:px-0 sm:pb-0 md:static md:top-auto md:left-auto md:w-full md:translate-x-0 md:translate-y-0 md:gap-7.5 md:px-1 lg:absolute lg:top-1/2 lg:left-1/2 lg:w-325 lg:-translate-x-1/2 lg:-translate-y-1/2 lg:gap-12.5 lg:px-0">
             {step === 1 && <Step1 onContinue={onContinue} />}
             {step === 2 && (
               <Step2
