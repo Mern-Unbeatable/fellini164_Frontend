@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
+import gsap from 'gsap';
 import { selectIsAuthenticated, selectUser, logout } from '../../../features/auth/authSlice';
 
 const NAV_LINKS = [
@@ -20,6 +21,10 @@ const PublicNavbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const dropdownRef = useRef(null);
+  const linksContainerRef = useRef(null);
+  const ctaSectionRef = useRef(null);
+
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setActiveHash(window.location.hash);
@@ -32,6 +37,28 @@ const PublicNavbar = () => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
+
+  // Animate dropdown when it opens
+  useEffect(() => {
+    if (!isMobileMenuOpen || !dropdownRef.current) return;
+
+    const dropdown = dropdownRef.current;
+    const links = linksContainerRef.current
+      ? Array.from(linksContainerRef.current.children)
+      : [];
+    const cta = ctaSectionRef.current;
+
+    gsap.set(dropdown, { opacity: 0, y: -10 });
+    gsap.set(links, { opacity: 0, y: 8 });
+    if (cta) gsap.set(cta, { opacity: 0, y: 8 });
+
+    const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
+    tl.to(dropdown, { opacity: 1, y: 0, duration: 0.22 })
+      .to(links, { opacity: 1, y: 0, duration: 0.28, stagger: 0.07 }, '-=0.1')
+      .to(cta, { opacity: 1, y: 0, duration: 0.22 }, '-=0.1');
+
+    return () => tl.kill();
+  }, [isMobileMenuOpen]);
 
   const toggleMobileMenu = () => setIsMobileMenuOpen((v) => !v);
 
@@ -152,8 +179,11 @@ const PublicNavbar = () => {
 
           {/* Mobile dropdown */}
           {isMobileMenuOpen && (
-            <div className="absolute top-[calc(100%+10px)] -right-px -left-px z-50 overflow-hidden rounded-[14px] border border-[#f2f2f2] bg-[#fcfcfc] shadow-[0px_5.667px_11.334px_rgba(0,0,0,0.05)] md:hidden">
-              <div className="flex flex-col items-center gap-7.5 p-5">
+            <div
+              ref={dropdownRef}
+              className="absolute top-[calc(100%+10px)] -right-px -left-px z-50 overflow-hidden rounded-[14px] border border-[#f2f2f2] bg-[#fcfcfc] shadow-[0px_5.667px_11.334px_rgba(0,0,0,0.05)] md:hidden"
+            >
+              <div ref={linksContainerRef} className="flex flex-col items-center gap-7.5 p-5">
                 {NAV_LINKS.map((link) => (
                   <a
                     key={link.label}
@@ -167,7 +197,7 @@ const PublicNavbar = () => {
                   </a>
                 ))}
               </div>
-              <div className="border-t border-[#f2f2f2] p-4">
+              <div ref={ctaSectionRef} className="border-t border-[#f2f2f2] p-4">
                 {!isAuthenticated ? (
                   <a
                     href="/signup"
