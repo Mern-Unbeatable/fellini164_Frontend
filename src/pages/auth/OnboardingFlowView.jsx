@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
+import gsap from 'gsap';
 import { BACK_LABELS, ROUTINE_TIMES, STEP_META } from '../../constants';
 import Step1 from './steps/Step1';
 import Step2 from './steps/Step2';
@@ -77,12 +78,61 @@ const Stepper = ({ step }) => (
   </div>
 );
 
-const Glow = () => (
-  <div
-    aria-hidden="true"
-    className="pointer-events-none absolute -bottom-20 left-1/2 h-40 w-[140vw] -translate-x-1/2 rounded-[9999px] bg-[radial-gradient(ellipse_at_center,rgba(128,34,254,0.45)_0%,rgba(128,34,254,0)_70%)] sm:top-207.5 sm:left-10.75 sm:h-175 sm:w-458.5 sm:translate-x-0 sm:rounded-[9999px] sm:bg-[linear-gradient(158deg,#8022FE_0%,white_100%)] sm:opacity-70 sm:blur-[48.93px]"
-  />
-);
+const Glow = ({ step }) => {
+  const innerRef = useRef(null);
+  const idleTweenRef = useRef(null);
+  const prevStepRef = useRef(step);
+
+  // Idle breathing — smooth infinite yoyo loop
+  useEffect(() => {
+    const el = innerRef.current;
+    if (!el) return;
+    idleTweenRef.current = gsap.fromTo(
+      el,
+      { scale: 0.97, opacity: 0.62 },
+      { scale: 1.06, opacity: 0.82, duration: 3.0, ease: 'sine.inOut', repeat: -1, yoyo: true }
+    );
+    return () => idleTweenRef.current?.kill();
+  }, []);
+
+  // Step-change pulse — pause idle, swell briefly, return, resume
+  useEffect(() => {
+    const el = innerRef.current;
+    if (!el || step === prevStepRef.current) {
+      prevStepRef.current = step;
+      return;
+    }
+    prevStepRef.current = step;
+    idleTweenRef.current?.pause();
+    gsap.to(el, {
+      scale: 1.13,
+      opacity: 0.96,
+      duration: 0.9,
+      ease: 'power1.inOut',
+      onComplete: () => {
+        gsap.to(el, {
+          scale: 1,
+          opacity: 0.7,
+          duration: 1.6,
+          ease: 'sine.out',
+          onComplete: () => idleTweenRef.current?.restart(),
+        });
+      },
+    });
+  }, [step]);
+
+  return (
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute -bottom-20 left-1/2 -translate-x-1/2 sm:top-207.5 sm:left-10.75 sm:translate-x-0"
+    >
+      <div
+        ref={innerRef}
+        className="h-40 w-[140vw] rounded-[9999px] bg-[radial-gradient(ellipse_at_center,rgba(128,34,254,0.45)_0%,rgba(128,34,254,0)_70%)] sm:h-175 sm:w-458.5 sm:bg-[linear-gradient(158deg,#8022FE_0%,white_100%)] sm:blur-[48.93px]"
+      />
+    </div>
+  );
+};
 
 const OnboardingFlowView = () => {
   const navigate = useNavigate();
@@ -225,7 +275,7 @@ const OnboardingFlowView = () => {
         {isGenerating && <GeneratingPlan progress={progress} />}
       </div>
 
-      <Glow />
+      <Glow step={step} />
     </div>
   );
 };
