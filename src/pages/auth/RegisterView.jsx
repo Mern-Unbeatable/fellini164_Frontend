@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Loader2, ArrowLeft, TriangleAlert, Eye, EyeOff } from 'lucide-react';
@@ -6,6 +6,7 @@ import { registerUser } from '../../features/auth/authAPI';
 import { clearError, selectAuth } from '../../features/auth/authSlice';
 import { FcGoogle } from 'react-icons/fc';
 import { FaApple } from 'react-icons/fa';
+import gsap from 'gsap';
 
 const RegisterView = () => {
   const [searchParams] = useSearchParams();
@@ -18,6 +19,26 @@ const RegisterView = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { loading, error } = useSelector(selectAuth);
+
+  const pageRef = useRef(null);
+  const visualRef = useRef(null);
+  const headRef = useRef(null);
+  const formAreaRef = useRef(null);
+  const ctaRef = useRef(null);
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.set([headRef.current, formAreaRef.current, ctaRef.current], { opacity: 0, y: 20 });
+      gsap.set(visualRef.current, { opacity: 0, y: 16 });
+
+      const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
+      tl.to(headRef.current, { opacity: 1, y: 0, duration: 0.5 })
+        .to(formAreaRef.current, { opacity: 1, y: 0, duration: 0.55 }, '-=0.25')
+        .to(visualRef.current, { opacity: 1, y: 0, duration: 0.65 }, '-=0.3')
+        .to(ctaRef.current, { opacity: 1, y: 0, duration: 0.45 }, '-=0.2');
+    }, pageRef);
+    return () => ctx.revert();
+  }, []);
 
   useEffect(() => {
     const refCode = searchParams.get('ref');
@@ -63,9 +84,9 @@ const RegisterView = () => {
   const isFormValid = Boolean(fullName.trim()) && Boolean(email.trim()) && password.length >= 8;
 
   return (
-    <div className="flex min-h-screen flex-col bg-white md:h-screen md:flex-row md:gap-5 md:overflow-hidden md:p-5">
+    <div ref={pageRef} className="flex min-h-screen flex-col bg-white md:h-screen md:flex-row md:gap-5 md:overflow-hidden md:p-5">
       {/* ── Left Visual Panel — bottom on mobile, left on desktop ── */}
-      <div className="order-2 p-2 md:order-1 md:flex-1 md:p-0">
+      <div ref={visualRef} className="order-2 p-2 md:order-1 md:flex-1 md:p-0">
         <img
           src="/images/SignUp.png"
           alt="Auth Visual"
@@ -87,19 +108,19 @@ const RegisterView = () => {
         {/* Form content — max 530px, centered on desktop */}
         <div className="flex w-full flex-col gap-7.5 md:mx-auto md:max-w-132.5 md:gap-7.5">
           {/* Heading */}
-          <div className="flex flex-col items-center gap-3.5 text-center md:gap-3.5">
+          <div ref={headRef} className="flex flex-col items-center gap-3.5 text-center md:gap-3.5">
             <p className="font-['Inter',sans-serif] text-[22px] leading-[1.3] font-bold text-[#181818] md:text-[34px]">
               {'Get started with '}
               <span className="text-[#8022fe]">Elyxa</span>
               <span className="text-[#14f1d9]">.</span>
             </p>
             <p className="font-['Inter',sans-serif] text-[14px] leading-normal font-medium text-[#181818] md:text-[16px]">
-              {`You’re signing up for Starter plan`}
+              {`You're signing up for Starter plan`}
             </p>
           </div>
 
           {/* Social + divider + fields */}
-          <div className="flex flex-col gap-7.5 md:gap-7.5">
+          <div ref={formAreaRef} className="flex flex-col gap-7.5 md:gap-7.5">
             {/* Social buttons */}
             <div className="flex flex-col gap-2.5 md:gap-3">
               <button
@@ -238,7 +259,7 @@ const RegisterView = () => {
               <input type="hidden" value={referralCode} readOnly />
 
               {/* Submit + login + terms */}
-              <div className="flex flex-col gap-5 md:gap-5">
+              <div ref={ctaRef} className="flex flex-col gap-5 md:gap-5">
                 <div className="flex flex-col items-center gap-5">
                   <button
                     type="submit"
