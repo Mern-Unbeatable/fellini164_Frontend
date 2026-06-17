@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Menu, ChevronRight, LogOut } from 'lucide-react';
+import { Menu, ChevronRight, LogOut, Bell, Settings } from 'lucide-react';
 
 const BREADCRUMBS = [
   { prefix: '/user/tasks', section: 'Work', page: 'Tasks' },
@@ -70,28 +70,54 @@ export default function PrivateNavbar({ pathname, user, onOpenMobileSidebar, onL
         </div>
       </div>
 
-      <div ref={menuRef} className="relative">
-        <button
-          type="button"
-          onClick={() => setIsMenuOpen((o) => !o)}
-          aria-label="Account menu"
-          className="flex size-[24px] shrink-0 items-center justify-center rounded-full bg-[#8022fe]"
-        >
-          <p className="text-[10px] font-bold text-white">{getInitials(user)}</p>
-        </button>
-
-        {isMenuOpen && (
-          <div className="absolute right-0 top-[32px] z-50 w-36 rounded-lg border border-gray-100 bg-white py-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-800">
-            <button
-              type="button"
-              onClick={onLogout}
-              className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-gray-600 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-zinc-700"
-            >
-              <LogOut size={14} />
-              Logout
-            </button>
+      <div className="flex items-center gap-5">
+        <div className="flex items-center gap-5">
+          {/* Go to — visual only, non-functional in MVP */}
+          <div className="flex w-26.25 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-gray-100 bg-gray-50 px-2.5 py-1.25 dark:border-zinc-700 dark:bg-zinc-800">
+            <p className="min-w-px flex-1 text-[12px] font-medium whitespace-nowrap text-gray-400 dark:text-gray-300">
+              Go to...
+            </p>
+            <p className="shrink-0 text-[10px] font-medium whitespace-nowrap text-gray-200 dark:text-zinc-500">
+              Ctrl + K
+            </p>
           </div>
-        )}
+
+          <div className="flex items-center gap-4">
+            {/* Notifications — visual only, non-functional in MVP */}
+            <div className="relative text-gray-400 dark:text-gray-300">
+              <Bell size={18} />
+              <span className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-red-500" />
+            </div>
+            {/* Settings — visual only, non-functional in MVP */}
+            <Settings size={18} className="text-gray-400 dark:text-gray-300" />
+          </div>
+        </div>
+
+        <div className="h-4 w-px bg-gray-100 dark:bg-zinc-700" />
+
+        <div ref={menuRef} className="relative">
+          <button
+            type="button"
+            onClick={() => setIsMenuOpen((o) => !o)}
+            aria-label="Account menu"
+            className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[#8022fe]"
+          >
+            <p className="text-[10px] font-bold text-white">{getInitials(user)}</p>
+          </button>
+
+          {isMenuOpen && (
+            <div className="absolute right-0 top-8 z-50 w-36 rounded-lg border border-gray-100 bg-white py-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-800">
+              <button
+                type="button"
+                onClick={onLogout}
+                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-gray-600 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-zinc-700"
+              >
+                <LogOut size={14} />
+                Logout
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

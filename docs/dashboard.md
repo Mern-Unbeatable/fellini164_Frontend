@@ -34,9 +34,14 @@ This boundary must be enforced in whatever component handles the AI edit (valida
 the request payload, not just hidden UI) — if a "loosen this later" temptation comes up,
 this is the line that doesn't move without an explicit spec change.
 
-Non-functional / not visible in MVP across **all boards**: Tools & Main nav items, Create
-button (global nav), Settings, Profile, "Go to", Board/List toggle. Don't wire these up or
-leave dead click targets that look functional — either omit them or render visually inert.
+Non-functional in MVP across **all boards**: Tools & Main nav items, Create button (global
+nav), Settings gear, "Go to", Board/List toggle, notification bell. **Resolved 2026-06-17:**
+render these pixel-perfect per Figma (visible) but inert — no onClick/navigation. Profile is
+the exception: the navbar avatar stays functional (opens a Logout action), since the app
+needs a working sign-out path and Figma doesn't show one elsewhere. This is the global
+private-app shell now (`src/components/layout/private/PrivateLayout.jsx`), used by every
+private route — Dashboard, Tasks/Habits/Goals/Planner, Settings, Profile, Subscription,
+AI Coach, Analytics, Refer a Friend — not just the Work boards.
 
 ---
 
@@ -265,7 +270,7 @@ Rules:
 8. **Est. Minutes field with a min/max** — spec explicitly says "no limit." Don't add a default `max` because it "seems reasonable."
 9. **Skeleton scope too broad** — only title + description skeleton during AI generation; due date/category/time must stay visible/interactive, not skeletonized.
 10. **Animation timing drift** — 100–150ms stagger for field reveal, 300ms ease-out for new card insert. These are specific enough to be testable; don't substitute a generic 200ms/500ms default.
-11. **Implementing non-MVP nav items as dead links** — Create button, Settings, Profile, Go to, Board/List toggle, Dashboard/Announcements/AI Coach/Activity/Notification (Goals board) should not be wired up at all per spec; rendering them as clickable-but-broken is worse than omitting them.
+11. **Wiring up non-MVP nav items** — Create button, Settings gear, Go to, Board/List toggle, Dashboard/Announcements/AI Coach/Activity/Notification render visually (per the 2026-06-17 decision in §0) but must stay inert — no onClick, no navigation, no real notification/search logic behind them.
 12. **Reusing the marketing site's `clamp()` h1–h6 system on dashboard pages** — those headings are tuned for hero/landing sections (2.5rem–3.75rem h1) and will look oversized in dense dashboard cards. Use the fixed Tailwind scale in §5 instead.
 13. **Mismatched "AI Suggested" vs "AI recommended" labeling** — Tasks' Linked Goal first item is "AI recommended", Goals' Linked Tasks/Habits first item is "✦ AI Suggested" (with icon). Keep these as spec'd per board, don't standardize them to one string without checking the source annotation again.
 14. **Filter "Source" values reused correctly** — "All Sources / Created by AI / Created manually" appears in both Tasks and Goals filters — fine to share a component for that one field only.
