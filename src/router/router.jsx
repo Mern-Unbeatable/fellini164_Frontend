@@ -2,7 +2,7 @@ import React from 'react';
 import { createBrowserRouter, createRoutesFromElements, Route } from 'react-router-dom';
 import PublicLayout from '../components/layout/public/PublicLayout';
 import AdminLayout from '../components/layout/admin/AdminLayout';
-import UserLayout from '../components/layout/user/UserLayout';
+import PrivateLayout from '../components/layout/private/PrivateLayout';
 import AuthLayout from '../components/layout/auth/AuthLayout';
 import ProtectedRoute from './ProtectedRoute';
 import HomeView from '../pages/public/prublic_home/HomeView';
@@ -16,7 +16,6 @@ import RegisterView from '../pages/auth/RegisterView';
 import OTPVerifyView from '../pages/auth/OTPVerifyView';
 import OnboardingFlowView from '../pages/auth/OnboardingFlowView';
 import UserDashView from '../pages/private/user/UserDashView';
-import WorkInProgressView from '../pages/private/user/WorkInProgressView';
 import AdminDashView from '../pages/private/admin/AdminDashView';
 import Subscription from '../pages/private/user/account/Subscription';
 import ReferFriend from '../pages/private/user/account/ReferFriend';
@@ -75,8 +74,7 @@ const router = createBrowserRouter(
       <Route
         element={
           <ProtectedRoute requiredRole="user">
-            {/* <WorkInProgressView /> */}
-            {<UserLayout />}
+            <PrivateLayout />
           </ProtectedRoute>
         }
       >
