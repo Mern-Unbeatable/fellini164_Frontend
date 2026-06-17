@@ -156,7 +156,7 @@ function NavItem({ item, isActive, collapsed, onNavigate }) {
     <Link
       to={item.path}
       onClick={onNavigate}
-      className={`relative flex h-8.25 w-full items-center gap-2 rounded-[10px] px-2.5 py-1.5 ${
+      className={`relative flex h-8.25 w-full items-center gap-2 rounded-[10px] px-2.5 py-1.5 no-underline ${
         isActive
           ? 'bg-[#f9f4ff] text-[#8022fe] dark:bg-purple-950 dark:text-purple-300'
           : 'text-gray-400 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-zinc-800'
@@ -221,7 +221,7 @@ export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }
         {/* Logo / collapse */}
         <div className="flex w-full items-center justify-between border-b border-gray-100 p-[12px] dark:border-zinc-700">
           {!collapsed && (
-            <Link to="/dashboard" className="flex items-center">
+            <Link to="/dashboard" className="flex items-center no-underline">
               <img src="/logo.png" alt="Elyxa.Ai" className="h-[18px] w-auto object-contain" />
             </Link>
           )}
