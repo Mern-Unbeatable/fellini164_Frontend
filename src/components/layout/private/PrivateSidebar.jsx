@@ -23,9 +23,10 @@ const MONTH_NAMES = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ];
 
-// Visible in Figma for context only — not functional in MVP (see docs/dashboard.md).
+// Dashboard has a real page, so it's a working link. Announcements has no page yet —
+// stays visible per Figma but inert (see docs/dashboard.md).
 const MAIN_ITEMS = [
-  { label: 'Dashboard', icon: LayoutDashboard },
+  { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard', match: ['/dashboard'] },
   { label: 'Announcements', icon: Megaphone },
 ];
 
@@ -255,13 +256,23 @@ export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }
           </div>
         )}
 
-        {/* Main — visual only, non-functional in MVP */}
+        {/* Main — Dashboard is a working link, Announcements is visual-only (no page yet) */}
         <div className="flex w-full flex-col items-start gap-1.5 px-2 py-3">
           {!collapsed && <SectionSubtitle>Main</SectionSubtitle>}
           <div className="flex w-full flex-col items-start gap-1">
-            {MAIN_ITEMS.map((item) => (
-              <InertNavItem key={item.label} item={item} collapsed={collapsed} />
-            ))}
+            {MAIN_ITEMS.map((item) =>
+              item.path ? (
+                <NavItem
+                  key={item.label}
+                  item={item}
+                  collapsed={collapsed}
+                  isActive={isItemActive(item)}
+                  onNavigate={onCloseMobile}
+                />
+              ) : (
+                <InertNavItem key={item.label} item={item} collapsed={collapsed} />
+              )
+            )}
           </div>
         </div>
 
