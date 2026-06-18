@@ -18,6 +18,14 @@ import {
 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import TaskFormModal from './components/TaskFormModal';
+import TypewriterText from '../../../../../components/ui/TypewriterText';
+
+const TASKS_SUBTITLE_PHRASES = [
+  'Plan, prioritize, and complete your tasks in one place...',
+  'Let AI suggest tasks based on your goals and habits...',
+  'Break big goals into manageable steps with AI...',
+  'Stay on top of deadlines across all your columns...',
+];
 
 const STATUS_TO_COLUMN = { 'To Do': 'todo', 'In Progress': 'inProgress', Done: 'done' };
 
@@ -654,9 +662,10 @@ export default function TasksBoard() {
       <div className="mb-5 flex w-full items-start justify-between">
         <div className="flex flex-col items-start gap-2">
           <p className="text-[20px] font-medium text-[#181818] dark:text-white">Tasks Board</p>
-          <p className="text-[12px] font-medium text-[#c2c2c2] dark:text-gray-400">
-            Plan, prioritize, and complete your tasks in one place...
-          </p>
+          <TypewriterText
+            phrases={TASKS_SUBTITLE_PHRASES}
+            className="text-[12px] font-medium text-[#c2c2c2] dark:text-gray-400"
+          />
         </div>
         <div className="flex w-62.5 items-center gap-2 rounded-lg border border-[#f2f2f2] px-3 py-1.75 dark:border-zinc-700">
           <Search size={12} className="shrink-0 text-[#c2c2c2]" />
