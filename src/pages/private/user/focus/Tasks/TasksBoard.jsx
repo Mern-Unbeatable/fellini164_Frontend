@@ -631,17 +631,26 @@ export default function TasksBoard() {
 
   const handleSubmitTask = (form) => {
     const columnKey = STATUS_TO_COLUMN[form.status] || 'todo';
+    const isAi = form.source === 'ai';
+    const tags = [{ label: form.category }];
+    if (form.estMinutes) {
+      tags.push({ label: `${form.estMinutes} Min`, icon: Clock });
+    }
+    if (form.linkedGoal && form.linkedGoal !== '__create_new__') {
+      tags.push({ label: form.linkedGoal, icon: TrendingUp });
+    }
+
     const taskData = {
       ...(taskModal.mode === 'edit' ? taskModal.task : {}),
       id: taskModal.mode === 'edit' ? taskModal.task.id : Date.now(),
       priority: form.priority.toUpperCase(),
       title: form.title || 'Untitled Task',
       description: form.description,
-      tags: [{ label: form.category }],
-      due: formatDate(form.dueDate),
-      source: taskModal.mode === 'edit' ? taskModal.task.source ?? 'manual' : 'manual',
+      tags,
+      due: form.dueLabel || (form.dueDate ? formatDate(form.dueDate) : 'No date'),
+      source: isAi ? 'ai' : taskModal.mode === 'edit' ? taskModal.task.source ?? 'manual' : 'manual',
       category: form.category,
-      status: form.status,
+      status: form.status || 'To Do',
     };
 
     setColumns((prev) => {

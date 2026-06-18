@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Calendar, Sparkles } from 'lucide-react';
+import { X, Calendar, Sparkles, Clock, MoreHorizontal } from 'lucide-react';
 import TypewriterPlaceholder from '../../../../../../components/ui/TypewriterPlaceholder';
 
 const PRIORITIES = ['Low', 'Medium', 'High', 'Urgent'];
@@ -16,6 +16,20 @@ const AI_PROMPT_PHRASES = [
   'Generate a task to review my monthly budget...',
 ];
 
+const PRIORITY_STYLES = {
+  URGENT: 'bg-[rgba(220,38,38,0.05)] text-[#dc2626]',
+  HIGH: 'bg-[rgba(249,115,22,0.05)] text-[#f97316]',
+  MEDIUM: 'bg-[rgba(202,138,4,0.05)] text-[#ca8a04]',
+  LOW: 'bg-[rgba(107,114,128,0.05)] text-[#6b7280]',
+};
+
+const PRIORITY_LABELS = {
+  URGENT: 'Urgent',
+  HIGH: 'High',
+  MEDIUM: 'Medium',
+  LOW: 'Low',
+};
+
 const EMPTY_FORM = {
   title: '',
   priority: 'Medium',
@@ -30,6 +44,48 @@ const EMPTY_FORM = {
   description: '',
 };
 
+function mockGenerateTask(prompt) {
+  const lower = prompt.toLowerCase();
+  if (lower.includes('workout') || lower.includes('exercise')) {
+    return {
+      priority: 'MEDIUM',
+      title: 'Exercise Routine',
+      description: 'Follow your fitness routine or do a workout session.',
+      category: 'Health',
+      estMinutes: 60,
+      due: 'Today',
+    };
+  }
+  if (lower.includes('portfolio') || lower.includes('linkedin')) {
+    return {
+      priority: 'HIGH',
+      title: 'Update LinkedIn profile',
+      description: 'Refresh headline, summary, and recent projects on your profile.',
+      category: 'Career',
+      estMinutes: 45,
+      due: 'Tomorrow',
+    };
+  }
+  if (lower.includes('interview')) {
+    return {
+      priority: 'URGENT',
+      title: 'Prepare for job interview',
+      description: 'Research the company and rehearse answers to common questions.',
+      category: 'Career',
+      estMinutes: 90,
+      due: 'Tomorrow',
+    };
+  }
+  return {
+    priority: 'LOW',
+    title: 'Finish the assigned work task.',
+    description: 'Focus on the primary job task scheduled for today.',
+    category: 'Finance',
+    estMinutes: 45,
+    due: 'Tomorrow',
+  };
+}
+
 function Field({ label, children }) {
   return (
     <div className="flex flex-col gap-1.5">
@@ -42,15 +98,16 @@ function Field({ label, children }) {
 const inputClasses =
   'w-full rounded-lg border border-[#f2f2f2] bg-white px-3 py-2 text-[12px] text-[#181818] outline-none focus:border-[#8022fe] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white';
 
-function TabToggle({ activeTab, onChange, showTabs }) {
+function TabToggle({ activeTab, onChange, showTabs, disabled }) {
   if (!showTabs) return null;
 
   return (
     <div className="flex w-full items-center justify-between rounded-[10px] border border-[#f2f2f2] bg-white p-1 dark:border-zinc-700 dark:bg-zinc-800">
       <button
         type="button"
+        disabled={disabled}
         onClick={() => onChange('ai')}
-        className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-[12px] font-medium ${
+        className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-[12px] font-medium disabled:cursor-default ${
           activeTab === 'ai'
             ? 'bg-[#f9f4ff] text-[#8022fe]'
             : 'text-[#c2c2c2]'
@@ -61,8 +118,9 @@ function TabToggle({ activeTab, onChange, showTabs }) {
       </button>
       <button
         type="button"
+        disabled={disabled}
         onClick={() => onChange('manual')}
-        className={`flex flex-1 items-center justify-center rounded-md px-2 py-1.5 text-[12px] font-medium ${
+        className={`flex flex-1 items-center justify-center rounded-md px-2 py-1.5 text-[12px] font-medium disabled:cursor-default ${
           activeTab === 'manual'
             ? 'bg-[#f2f2f2] text-[#181818] dark:bg-zinc-700 dark:text-white'
             : 'text-[#c2c2c2]'
@@ -70,6 +128,52 @@ function TabToggle({ activeTab, onChange, showTabs }) {
       >
         Manual
       </button>
+    </div>
+  );
+}
+
+function AIGeneratedPreviewCard({ task }) {
+  return (
+    <div className="flex w-full flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-white dark:border-zinc-700 dark:bg-zinc-800">
+      <div className="flex flex-col gap-2.5 p-3">
+        <div className="flex w-full items-center justify-between">
+          <div className="flex items-center gap-1">
+            <span
+              className={`rounded-md px-1.5 py-0.5 text-[12px] font-medium uppercase ${PRIORITY_STYLES[task.priority]}`}
+            >
+              {PRIORITY_LABELS[task.priority]}
+            </span>
+            <span className="flex items-center gap-1 rounded-md bg-[#f9f4ff] px-1.5 py-0.5 text-[12px] font-medium text-[#8022fe]">
+              <Sparkles size={10} />
+              AI
+            </span>
+          </div>
+          <MoreHorizontal size={14} className="text-[#a3a3a3]" />
+        </div>
+        <div className="flex flex-col gap-1">
+          <p className="text-[16px] font-medium text-[#181818] dark:text-white">{task.title}</p>
+          <p className="overflow-hidden text-ellipsis text-[12px] whitespace-nowrap text-[#a3a3a3]">
+            {task.description}
+          </p>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="rounded-md border border-[#f2f2f2] px-1.5 py-0.5 text-[12px] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+            {task.category}
+          </span>
+          {task.estMinutes != null && (
+            <span className="flex items-center gap-1.5 rounded-md border border-[#f2f2f2] px-1.5 py-0.5 text-[12px] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+              <Clock size={12} />
+              {task.estMinutes} Min
+            </span>
+          )}
+        </div>
+      </div>
+      <div className="flex items-center border-t border-[#f2f2f2] px-3 py-2.5 dark:border-zinc-700">
+        <p className="text-[12px]">
+          <span className="text-[#c2c2c2]">Due:</span>{' '}
+          <span className="text-[#5d5d5d]">{task.due}</span>
+        </p>
+      </div>
     </div>
   );
 }
@@ -218,7 +322,10 @@ function ManualFormFields({ form, update }) {
 export default function TaskFormModal({ mode = 'create', initialTask, onClose, onSubmit }) {
   const isEdit = mode === 'edit';
   const [activeTab, setActiveTab] = useState('ai');
+  const [aiPhase, setAiPhase] = useState('input');
   const [aiPrompt, setAiPrompt] = useState('');
+  const [changeRequest, setChangeRequest] = useState('');
+  const [generatedTask, setGeneratedTask] = useState(null);
 
   const [form, setForm] = useState(() => {
     if (isEdit && initialTask) {
@@ -245,8 +352,50 @@ export default function TaskFormModal({ mode = 'create', initialTask, onClose, o
     onClose();
   };
 
+  const handleGenerate = () => {
+    if (!aiPrompt.trim()) return;
+    setGeneratedTask(mockGenerateTask(aiPrompt));
+    setAiPhase('preview');
+    setChangeRequest('');
+  };
+
+  const handleRegenerate = () => {
+    const seed = `${aiPrompt}${Date.now()}`;
+    setGeneratedTask(mockGenerateTask(seed));
+    setChangeRequest('');
+  };
+
+  const handleUpdatePreview = () => {
+    if (!changeRequest.trim() || !generatedTask) return;
+    setGeneratedTask(mockGenerateTask(`${aiPrompt} ${changeRequest}`));
+    setChangeRequest('');
+  };
+
+  const handleAddGeneratedToBoard = () => {
+    if (!generatedTask) return;
+    onSubmit({
+      title: generatedTask.title,
+      description: generatedTask.description,
+      priority: generatedTask.priority[0] + generatedTask.priority.slice(1).toLowerCase(),
+      category: generatedTask.category,
+      status: 'To Do',
+      estMinutes: String(generatedTask.estMinutes ?? ''),
+      dueLabel: generatedTask.due,
+      source: 'ai',
+    });
+    onClose();
+  };
+
   const canSubmitManual = form.title.trim().length > 0;
   const canGenerate = aiPrompt.trim().length > 0;
+  const showAiPreview = !isEdit && activeTab === 'ai' && aiPhase === 'preview';
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    if (tab === 'ai') {
+      setAiPhase(generatedTask ? 'preview' : 'input');
+    }
+  };
 
   return (
     <div
@@ -268,11 +417,46 @@ export default function TaskFormModal({ mode = 'create', initialTask, onClose, o
 
         <div className="flex flex-col gap-6 p-3">
           {!isEdit && (
-            <TabToggle activeTab={activeTab} onChange={setActiveTab} showTabs />
+            <TabToggle
+              activeTab={activeTab}
+              onChange={handleTabChange}
+              showTabs
+              disabled={false}
+            />
           )}
 
           {isEdit || activeTab === 'manual' ? (
             <ManualFormFields form={form} update={update} />
+          ) : showAiPreview ? (
+            <div className="flex flex-col gap-4">
+              <AIGeneratedPreviewCard task={generatedTask} />
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-[12px] font-medium text-[#5d5d5d] dark:text-gray-300">
+                    Anything to change?
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleUpdatePreview}
+                    disabled={!changeRequest.trim()}
+                    className={`rounded-md px-2 py-0.5 text-[12px] font-medium ${
+                      changeRequest.trim()
+                        ? 'bg-[#f9f4ff] text-[#8022fe]'
+                        : 'cursor-default bg-[#f9f4ff] text-[#8022fe] opacity-60'
+                    }`}
+                  >
+                    Update
+                  </button>
+                </div>
+                <textarea
+                  rows={3}
+                  value={changeRequest}
+                  onChange={(e) => setChangeRequest(e.target.value)}
+                  placeholder="Type here..."
+                  className={`${inputClasses} h-[70px] resize-none rounded-xl`}
+                />
+              </div>
+            </div>
           ) : (
             <div className="flex flex-col gap-2">
               <p className="text-[12px] font-medium text-[#5d5d5d] dark:text-gray-300">
@@ -291,47 +475,69 @@ export default function TaskFormModal({ mode = 'create', initialTask, onClose, o
           )}
 
           <div className="flex items-center gap-2.5">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex flex-1 items-center justify-center rounded-lg bg-[#f2f2f2] px-3 py-2 text-[12px] font-medium text-[#5d5d5d] dark:bg-zinc-700 dark:text-gray-300"
-            >
-              Cancel
-            </button>
-
-            {isEdit ? (
-              <button
-                type="button"
-                onClick={handleManualSubmit}
-                className="flex flex-1 items-center justify-center rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] font-semibold text-white"
-              >
-                Edit
-              </button>
-            ) : activeTab === 'ai' ? (
-              <button
-                type="button"
-                disabled={!canGenerate}
-                className={`flex flex-1 items-center justify-center rounded-lg px-3 py-2 text-[12px] font-semibold ${
-                  canGenerate
-                    ? 'bg-[#8022fe] text-white'
-                    : 'cursor-not-allowed bg-[#f1f1f1] text-[#dedede]'
-                }`}
-              >
-                Generate
-              </button>
+            {showAiPreview ? (
+              <>
+                <button
+                  type="button"
+                  onClick={handleRegenerate}
+                  className="flex flex-1 items-center justify-center rounded-lg bg-[#f2f2f2] px-3 py-2 text-[12px] font-medium text-[#5d5d5d] dark:bg-zinc-700 dark:text-gray-300"
+                >
+                  Regenerate
+                </button>
+                <button
+                  type="button"
+                  onClick={handleAddGeneratedToBoard}
+                  className="flex flex-1 items-center justify-center rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] font-semibold text-white"
+                >
+                  Add to Board
+                </button>
+              </>
             ) : (
-              <button
-                type="button"
-                disabled={!canSubmitManual}
-                onClick={handleManualSubmit}
-                className={`flex flex-1 items-center justify-center rounded-lg px-3 py-2 text-[12px] font-semibold ${
-                  canSubmitManual
-                    ? 'bg-[#8022fe] text-white'
-                    : 'cursor-not-allowed bg-[#f1f1f1] text-[#dedede]'
-                }`}
-              >
-                Add to Board
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="flex flex-1 items-center justify-center rounded-lg bg-[#f2f2f2] px-3 py-2 text-[12px] font-medium text-[#5d5d5d] dark:bg-zinc-700 dark:text-gray-300"
+                >
+                  Cancel
+                </button>
+
+                {isEdit ? (
+                  <button
+                    type="button"
+                    onClick={handleManualSubmit}
+                    className="flex flex-1 items-center justify-center rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] font-semibold text-white"
+                  >
+                    Edit
+                  </button>
+                ) : activeTab === 'ai' ? (
+                  <button
+                    type="button"
+                    disabled={!canGenerate}
+                    onClick={handleGenerate}
+                    className={`flex flex-1 items-center justify-center rounded-lg px-3 py-2 text-[12px] font-semibold ${
+                      canGenerate
+                        ? 'bg-[#8022fe] text-white'
+                        : 'cursor-not-allowed bg-[#f1f1f1] text-[#dedede]'
+                    }`}
+                  >
+                    Generate
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={!canSubmitManual}
+                    onClick={handleManualSubmit}
+                    className={`flex flex-1 items-center justify-center rounded-lg px-3 py-2 text-[12px] font-semibold ${
+                      canSubmitManual
+                        ? 'bg-[#8022fe] text-white'
+                        : 'cursor-not-allowed bg-[#f1f1f1] text-[#dedede]'
+                    }`}
+                  >
+                    Add to Board
+                  </button>
+                )}
+              </>
             )}
           </div>
         </div>

@@ -4,11 +4,11 @@ import { useEffect, useState } from 'react';
  * Cycles through phrases with type-in → pause → char-by-char delete → next phrase.
  * Used for board subtitles, AI popup placeholders, and chat placeholders.
  */
-export function useTypewriter(phrases, { typingDelay = 45, deletingDelay = 30, pauseDelay = 3000 } = {}) {
+export function useTypewriter(phrases, { typingDelay = 45, deletingDelay = 30, pauseDelay = 3000, active = true } = {}) {
   const [displayText, setDisplayText] = useState('');
 
   useEffect(() => {
-    if (!phrases?.length) {
+    if (!active || !phrases?.length) {
       setDisplayText('');
       return undefined;
     }
@@ -52,7 +52,7 @@ export function useTypewriter(phrases, { typingDelay = 45, deletingDelay = 30, p
     timeoutId = setTimeout(tick, typingDelay);
 
     return () => clearTimeout(timeoutId);
-  }, [phrases, typingDelay, deletingDelay, pauseDelay]);
+  }, [phrases, typingDelay, deletingDelay, pauseDelay, active]);
 
   return displayText;
 }

@@ -1,7 +1,7 @@
 import { useTypewriter } from '../../hooks/useTypewriter';
 
 export default function TypewriterPlaceholder({ phrases, visible = true, className = '' }) {
-  const text = useTypewriter(phrases);
+  const text = useTypewriter(phrases, { active: visible });
 
   if (!visible) return null;
 
