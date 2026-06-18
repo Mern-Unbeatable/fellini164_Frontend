@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { X, Calendar, Sparkles, Clock, MoreHorizontal } from 'lucide-react';
 import TypewriterPlaceholder from '../../../../../../components/ui/TypewriterPlaceholder';
+import SkeletonBar from '../../../../../../components/ui/SkeletonBar';
+import { useAiGenerationReveal } from '../../../../../../hooks/useAiGenerationReveal';
 
 const PRIORITIES = ['Low', 'Medium', 'High', 'Urgent'];
 const CATEGORIES = ['Career', 'Health', 'Finance', 'Personal', 'Education'];
@@ -132,7 +134,11 @@ function TabToggle({ activeTab, onChange, showTabs, disabled }) {
   );
 }
 
-function AIGeneratedPreviewCard({ task }) {
+function AIGeneratedPreviewCard({ task, revealStep = 3 }) {
+  const showTitle = revealStep >= 1;
+  const showDescription = revealStep >= 2;
+  const showTags = revealStep >= 3;
+
   return (
     <div className="flex w-full flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-white dark:border-zinc-700 dark:bg-zinc-800">
       <div className="flex flex-col gap-2.5 p-3">
@@ -151,22 +157,32 @@ function AIGeneratedPreviewCard({ task }) {
           <MoreHorizontal size={14} className="text-[#a3a3a3]" />
         </div>
         <div className="flex flex-col gap-1">
-          <p className="text-[16px] font-medium text-[#181818] dark:text-white">{task.title}</p>
-          <p className="overflow-hidden text-ellipsis text-[12px] whitespace-nowrap text-[#a3a3a3]">
-            {task.description}
-          </p>
-        </div>
-        <div className="flex items-center gap-1">
-          <span className="rounded-md border border-[#f2f2f2] px-1.5 py-0.5 text-[12px] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
-            {task.category}
-          </span>
-          {task.estMinutes != null && (
-            <span className="flex items-center gap-1.5 rounded-md border border-[#f2f2f2] px-1.5 py-0.5 text-[12px] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
-              <Clock size={12} />
-              {task.estMinutes} Min
-            </span>
+          {showTitle ? (
+            <p className="text-[16px] font-medium text-[#181818] dark:text-white">{task.title}</p>
+          ) : (
+            <SkeletonBar className="h-5 w-[75%]" />
+          )}
+          {showDescription ? (
+            <p className="overflow-hidden text-ellipsis text-[12px] whitespace-nowrap text-[#a3a3a3]">
+              {task.description}
+            </p>
+          ) : (
+            <SkeletonBar className="h-3 w-full" />
           )}
         </div>
+        {showTags && (
+          <div className="flex items-center gap-1">
+            <span className="rounded-md border border-[#f2f2f2] px-1.5 py-0.5 text-[12px] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+              {task.category}
+            </span>
+            {task.estMinutes != null && (
+              <span className="flex items-center gap-1.5 rounded-md border border-[#f2f2f2] px-1.5 py-0.5 text-[12px] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+                <Clock size={12} />
+                {task.estMinutes} Min
+              </span>
+            )}
+          </div>
+        )}
       </div>
       <div className="flex items-center border-t border-[#f2f2f2] px-3 py-2.5 dark:border-zinc-700">
         <p className="text-[12px]">
@@ -326,6 +342,8 @@ export default function TaskFormModal({ mode = 'create', initialTask, onClose, o
   const [aiPrompt, setAiPrompt] = useState('');
   const [changeRequest, setChangeRequest] = useState('');
   const [generatedTask, setGeneratedTask] = useState(null);
+  const [pendingTask, setPendingTask] = useState(null);
+  const { revealStep, isRevealing, startReveal } = useAiGenerationReveal();
 
   const [form, setForm] = useState(() => {
     if (isEdit && initialTask) {
@@ -347,28 +365,35 @@ export default function TaskFormModal({ mode = 'create', initialTask, onClose, o
 
   const update = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
 
+  const runAiGeneration = async (prompt) => {
+    const task = mockGenerateTask(prompt);
+    setPendingTask(task);
+    setAiPhase('generating');
+    setChangeRequest('');
+    await startReveal();
+    setGeneratedTask(task);
+    setPendingTask(null);
+    setAiPhase('preview');
+  };
+
   const handleManualSubmit = () => {
     onSubmit(form);
     onClose();
   };
 
   const handleGenerate = () => {
-    if (!aiPrompt.trim()) return;
-    setGeneratedTask(mockGenerateTask(aiPrompt));
-    setAiPhase('preview');
-    setChangeRequest('');
+    if (!aiPrompt.trim() || isRevealing) return;
+    runAiGeneration(aiPrompt);
   };
 
   const handleRegenerate = () => {
-    const seed = `${aiPrompt}${Date.now()}`;
-    setGeneratedTask(mockGenerateTask(seed));
-    setChangeRequest('');
+    if (isRevealing) return;
+    runAiGeneration(`${aiPrompt}${Date.now()}`);
   };
 
   const handleUpdatePreview = () => {
-    if (!changeRequest.trim() || !generatedTask) return;
-    setGeneratedTask(mockGenerateTask(`${aiPrompt} ${changeRequest}`));
-    setChangeRequest('');
+    if (!changeRequest.trim() || isRevealing) return;
+    runAiGeneration(`${aiPrompt} ${changeRequest}`);
   };
 
   const handleAddGeneratedToBoard = () => {
@@ -387,10 +412,13 @@ export default function TaskFormModal({ mode = 'create', initialTask, onClose, o
   };
 
   const canSubmitManual = form.title.trim().length > 0;
-  const canGenerate = aiPrompt.trim().length > 0;
+  const canGenerate = aiPrompt.trim().length > 0 && !isRevealing;
   const showAiPreview = !isEdit && activeTab === 'ai' && aiPhase === 'preview';
+  const showAiGenerating = !isEdit && activeTab === 'ai' && aiPhase === 'generating';
+  const aiBusy = isRevealing;
 
   const handleTabChange = (tab) => {
+    if (aiBusy) return;
     setActiveTab(tab);
     if (tab === 'ai') {
       setAiPhase(generatedTask ? 'preview' : 'input');
@@ -421,12 +449,14 @@ export default function TaskFormModal({ mode = 'create', initialTask, onClose, o
               activeTab={activeTab}
               onChange={handleTabChange}
               showTabs
-              disabled={false}
+              disabled={aiBusy}
             />
           )}
 
           {isEdit || activeTab === 'manual' ? (
             <ManualFormFields form={form} update={update} />
+          ) : showAiGenerating ? (
+            <AIGeneratedPreviewCard task={pendingTask} revealStep={revealStep} />
           ) : showAiPreview ? (
             <div className="flex flex-col gap-4">
               <AIGeneratedPreviewCard task={generatedTask} />
@@ -480,16 +510,35 @@ export default function TaskFormModal({ mode = 'create', initialTask, onClose, o
                 <button
                   type="button"
                   onClick={handleRegenerate}
-                  className="flex flex-1 items-center justify-center rounded-lg bg-[#f2f2f2] px-3 py-2 text-[12px] font-medium text-[#5d5d5d] dark:bg-zinc-700 dark:text-gray-300"
+                  disabled={aiBusy}
+                  className="flex flex-1 items-center justify-center rounded-lg bg-[#f2f2f2] px-3 py-2 text-[12px] font-medium text-[#5d5d5d] disabled:opacity-60 dark:bg-zinc-700 dark:text-gray-300"
                 >
                   Regenerate
                 </button>
                 <button
                   type="button"
                   onClick={handleAddGeneratedToBoard}
-                  className="flex flex-1 items-center justify-center rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] font-semibold text-white"
+                  disabled={aiBusy}
+                  className="flex flex-1 items-center justify-center rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] font-semibold text-white disabled:opacity-60"
                 >
                   Add to Board
+                </button>
+              </>
+            ) : showAiGenerating ? (
+              <>
+                <button
+                  type="button"
+                  disabled
+                  className="flex flex-1 cursor-not-allowed items-center justify-center rounded-lg bg-[#f2f2f2] px-3 py-2 text-[12px] font-medium text-[#5d5d5d] opacity-60 dark:bg-zinc-700 dark:text-gray-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled
+                  className="flex flex-1 cursor-not-allowed items-center justify-center rounded-lg bg-[#f1f1f1] px-3 py-2 text-[12px] font-semibold text-[#dedede]"
+                >
+                  Generating...
                 </button>
               </>
             ) : (
