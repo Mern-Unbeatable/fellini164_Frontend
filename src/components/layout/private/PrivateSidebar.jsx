@@ -9,12 +9,23 @@ import {
   Calendar,
   PanelLeft,
   PanelLeftClose,
+  PenSquare,
+  LayoutDashboard,
+  Megaphone,
+  Bot,
+  Activity,
+  Bell,
 } from 'lucide-react';
 
 const WEEKDAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December',
+];
+
+const MAIN_ITEMS = [
+  { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard', match: ['/dashboard'] },
+  { label: 'Announcements', icon: Megaphone },
 ];
 
 const ORGANIZATION_ITEMS = [
@@ -27,12 +38,17 @@ const WORK_ITEMS = [
   { label: 'Goals', icon: Target, path: '/user/goals', match: ['/user/goals'] },
 ];
 
+const TOOLS_ITEMS = [
+  { label: 'AI Coach', icon: Bot },
+  { label: 'Activity', icon: Activity },
+  { label: 'Notification', icon: Bell, badge: '+2' },
+];
+
 function buildCalendarGrid(viewDate) {
   const year = viewDate.getFullYear();
   const month = viewDate.getMonth();
 
   const firstOfMonth = new Date(year, month, 1);
-  // Convert Sunday(0)-based getDay() to Monday-first index (0=Mon ... 6=Sun)
   const leadingBlank = (firstOfMonth.getDay() + 6) % 7;
 
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -154,6 +170,30 @@ function NavItem({ item, isActive, collapsed, onNavigate }) {
   );
 }
 
+function InertNavItem({ item, collapsed }) {
+  const Icon = item.icon;
+  return (
+    <div
+      className={`flex h-8.25 w-full items-center gap-2 rounded-[10px] bg-white px-2.5 py-1.5 text-[#5d5d5d] dark:bg-zinc-900 dark:text-gray-300 ${
+        collapsed ? 'justify-center' : ''
+      }`}
+      title={collapsed ? item.label : undefined}
+    >
+      <Icon size={18} className="shrink-0" />
+      {!collapsed && (
+        <>
+          <p className="min-w-px flex-1 text-[14px] font-medium whitespace-nowrap">{item.label}</p>
+          {item.badge && (
+            <span className="shrink-0 rounded-md bg-[rgba(220,38,38,0.05)] px-1.5 py-0.5 text-[12px] font-medium text-[#dc2626]">
+              {item.badge}
+            </span>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }) {
   const [collapsed, setCollapsed] = useState(false);
 
@@ -173,7 +213,6 @@ export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }
           isMobileOpen ? 'translate-x-0' : '-translate-x-full'
         } ${collapsed ? 'w-[72px]' : 'w-[200px]'}`}
       >
-        {/* Logo / collapse */}
         <div className="flex w-full items-center justify-between border-b border-[#f2f2f2] p-[12px] dark:border-zinc-700">
           {!collapsed && (
             <Link to="/dashboard" className="flex items-center no-underline">
@@ -193,10 +232,39 @@ export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }
         {!collapsed && (
           <div className="flex w-full flex-col items-start gap-2 p-[8px]">
             <MiniCalendar />
+
+            {/* Create — visible per Figma, non-functional in MVP */}
+            <div className="flex h-8.25 w-full items-center gap-2 rounded-[10px] border border-[#f2f2f2] bg-[#fcfcfc] px-2.5 py-1.5 dark:border-zinc-700 dark:bg-zinc-800">
+              <PenSquare size={18} className="shrink-0 text-[#5d5d5d] dark:text-gray-300" />
+              <p className="min-w-px flex-1 text-[14px] font-medium whitespace-nowrap text-[#5d5d5d] dark:text-gray-300">
+                Create
+              </p>
+              <p className="shrink-0 text-[10px] font-medium whitespace-nowrap text-[#c2c2c2] dark:text-zinc-500">
+                Ctrl + Shift + C
+              </p>
+            </div>
           </div>
         )}
 
-        {/* Organization */}
+        <div className="flex w-full flex-col items-start gap-1.5 px-2 py-3">
+          {!collapsed && <SectionSubtitle>Main</SectionSubtitle>}
+          <div className="flex w-full flex-col items-start gap-1">
+            {MAIN_ITEMS.map((item) =>
+              item.path ? (
+                <NavItem
+                  key={item.label}
+                  item={item}
+                  collapsed={collapsed}
+                  isActive={isItemActive(item)}
+                  onNavigate={onCloseMobile}
+                />
+              ) : (
+                <InertNavItem key={item.label} item={item} collapsed={collapsed} />
+              )
+            )}
+          </div>
+        </div>
+
         <div className="flex w-full flex-col items-start gap-1.5 px-2 py-3">
           {!collapsed && <SectionSubtitle>Organization</SectionSubtitle>}
           {ORGANIZATION_ITEMS.map((item) => (
@@ -210,7 +278,6 @@ export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }
           ))}
         </div>
 
-        {/* Work */}
         <div className="flex w-full flex-col items-start gap-1.5 px-2 py-3">
           {!collapsed && <SectionSubtitle>Work</SectionSubtitle>}
           <div className="flex w-full flex-col items-start gap-1">
@@ -222,6 +289,15 @@ export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }
                 isActive={isItemActive(item)}
                 onNavigate={onCloseMobile}
               />
+            ))}
+          </div>
+        </div>
+
+        <div className="flex w-full flex-col items-start gap-1.5 px-2 py-3">
+          {!collapsed && <SectionSubtitle>Tools</SectionSubtitle>}
+          <div className="flex w-full flex-col items-start gap-1">
+            {TOOLS_ITEMS.map((item) => (
+              <InertNavItem key={item.label} item={item} collapsed={collapsed} />
             ))}
           </div>
         </div>
