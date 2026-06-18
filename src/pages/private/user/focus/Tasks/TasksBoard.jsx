@@ -11,7 +11,7 @@ import {
   Clock,
   TrendingUp,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import NewPlanModal from '../../planng/DailyPlan/components/NewPlanModal';
 
 const PRIORITY_STYLES = {
@@ -52,7 +52,13 @@ const GHOST_TASKS = [
   },
 ];
 
-const FILTERS = ['All Status', 'All Priority', 'All Category', 'All Source', 'All Date'];
+const FILTER_OPTIONS = {
+  Status: ['All Statuses', 'To Do', 'In Progress', 'Done'],
+  Priority: ['All Priorities', 'Urgent', 'High', 'Medium', 'Low'],
+  Category: ['All Categories', 'Career', 'Health', 'Finance', 'Personal', 'Education'],
+  Source: ['All Sources', 'Created by AI', 'Created manually'],
+  Date: ['All Dates', 'Today', 'Tomorrow', 'This week', 'This month', 'Overdue'],
+};
 
 function GhostTaskCard({ task }) {
   return (
@@ -124,6 +130,172 @@ function GhostTaskCard({ task }) {
   );
 }
 
+// Three groups: 1) Edit  2) Break into subtasks, Improve description (✦ AI actions)  3) Delete.
+function TaskCardMenu({ onClose }) {
+  return (
+    <div className="absolute right-0 top-6 z-20 w-44 rounded-lg border border-gray-100 bg-white py-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-800">
+      <button
+        type="button"
+        onClick={onClose}
+        className="flex w-full items-center px-3 py-2 text-left text-[12px] font-medium text-gray-400 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-zinc-700"
+      >
+        Edit
+      </button>
+      <div className="border-t border-gray-100 dark:border-zinc-700" />
+      <button
+        type="button"
+        onClick={onClose}
+        className="flex w-full items-center gap-1.5 px-3 py-2 text-left text-[12px] font-medium text-[#8022fe] hover:bg-gray-50 dark:hover:bg-zinc-700"
+      >
+        <Sparkles size={12} />
+        Break into subtasks
+      </button>
+      <button
+        type="button"
+        onClick={onClose}
+        className="flex w-full items-center gap-1.5 px-3 py-2 text-left text-[12px] font-medium text-[#8022fe] hover:bg-gray-50 dark:hover:bg-zinc-700"
+      >
+        <Sparkles size={12} />
+        Improve description
+      </button>
+      <div className="border-t border-gray-100 dark:border-zinc-700" />
+      <button
+        type="button"
+        onClick={onClose}
+        className="flex w-full items-center px-3 py-2 text-left text-[12px] font-medium text-gray-400 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-zinc-700"
+      >
+        Delete
+      </button>
+    </div>
+  );
+}
+
+function TaskCard({ task }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const cardRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (cardRef.current && !cardRef.current.contains(e.target)) setMenuOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div
+      ref={cardRef}
+      className="group relative flex w-full flex-col items-start gap-2.5 rounded-2xl border border-gray-100 bg-white p-3 dark:border-zinc-700 dark:bg-zinc-800"
+    >
+      <div className="flex w-full items-center justify-between">
+        <span
+          className={`rounded-md px-1.5 py-0.5 text-[12px] font-medium uppercase ${PRIORITY_STYLES[task.priority]}`}
+        >
+          {task.priority}
+        </span>
+        <button
+          type="button"
+          onClick={() => setMenuOpen((o) => !o)}
+          aria-label="Task menu"
+          className={`text-gray-300 transition-opacity ${menuOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+        >
+          <MoreHorizontal size={14} />
+        </button>
+        {menuOpen && <TaskCardMenu onClose={() => setMenuOpen(false)} />}
+      </div>
+
+      <div className="flex w-full flex-col items-start gap-1">
+        <p className="w-full text-[16px] font-medium text-[#181818] dark:text-white">{task.title}</p>
+        {task.description && (
+          <p className="w-full overflow-hidden text-ellipsis text-[12px] whitespace-nowrap text-gray-300">
+            {task.description}
+          </p>
+        )}
+      </div>
+
+      {task.tags?.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1">
+          {task.tags.map((tag) => (
+            <span
+              key={tag.label}
+              className="flex items-center gap-1.5 rounded-md border border-gray-100 px-1.5 py-0.5 text-[12px] font-medium text-gray-400 dark:border-zinc-700 dark:text-gray-300"
+            >
+              {tag.icon && <tag.icon size={12} />}
+              {tag.label}
+            </span>
+          ))}
+          {task.steps && (
+            <span className="rounded-md border border-gray-100 px-1.5 py-0.5 text-[12px] font-medium text-gray-400 dark:border-zinc-700 dark:text-gray-300">
+              {task.steps}
+            </span>
+          )}
+        </div>
+      )}
+
+      <div className="flex h-10.5 w-full items-center justify-center border-t border-gray-100 px-3 py-2.5 dark:border-zinc-700">
+        {task.overdue ? (
+          <p className="text-[12px] font-medium text-[#dc2626]">
+            Overdue{task.overdueDays ? ` ${task.overdueDays}d` : ''}
+          </p>
+        ) : (
+          <p className="text-[12px]">
+            <span className="text-gray-200">Due:</span> <span className="text-gray-400">{task.due}</span>
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function FilterDropdown({ options }) {
+  const [open, setOpen] = useState(false);
+  const [selected, setSelected] = useState(options[0]);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-30 items-center justify-between rounded-lg border border-gray-100 px-3 py-1.75 text-[12px] font-medium text-[#181818] dark:border-zinc-700 dark:text-white"
+      >
+        <span className="truncate">{selected}</span>
+        <ChevronDown size={10} className="shrink-0 text-gray-300" />
+      </button>
+
+      {open && (
+        <div className="absolute left-0 top-8 z-20 w-40 rounded-lg border border-gray-100 bg-white py-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-800">
+          {options.map((opt) => (
+            <button
+              key={opt}
+              type="button"
+              onClick={() => {
+                setSelected(opt);
+                setOpen(false);
+              }}
+              className={`flex w-full items-center px-3 py-2 text-left text-[12px] font-medium ${
+                opt === selected
+                  ? 'bg-[#f9f4ff] text-[#8022fe]'
+                  : 'text-gray-400 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-zinc-700'
+              }`}
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function EmptyColumnPlaceholder({ text }) {
   return (
     <div className="flex w-full items-center justify-center pt-2.5">
@@ -140,8 +312,6 @@ const COLUMNS = [
 
 export default function TasksBoard() {
   const [modalOpen, setModalOpen] = useState(false);
-
-  // Real task data per column. Empty for now — only ghost (AI-suggested) cards render in To Do.
   const [columns] = useState({ todo: [], inProgress: [], done: [] });
 
   const handleOpenModal = () => setModalOpen(true);
@@ -187,15 +357,8 @@ export default function TasksBoard() {
           </div>
           <div className="h-4 w-px bg-gray-100 dark:bg-zinc-700" />
           <div className="flex items-center gap-2.5">
-            {FILTERS.map((label) => (
-              <button
-                key={label}
-                type="button"
-                className="flex w-30 items-center justify-between rounded-lg border border-gray-100 px-3 py-1.75 text-[12px] font-medium text-[#181818] dark:border-zinc-700 dark:text-white"
-              >
-                {label}
-                <ChevronDown size={10} className="text-gray-300" />
-              </button>
+            {Object.entries(FILTER_OPTIONS).map(([label, options]) => (
+              <FilterDropdown key={label} options={options} />
             ))}
           </div>
         </div>
@@ -230,13 +393,15 @@ export default function TasksBoard() {
                 )}
               </div>
 
-              {isTodo && cards.length === 0 ? (
-                GHOST_TASKS.map((task) => <GhostTaskCard key={task.id} task={task} />)
-              ) : cards.length === 0 ? (
-                <EmptyColumnPlaceholder
-                  text={key === 'inProgress' ? 'No tasks in progress' : 'Completed tasks will appear here'}
-                />
-              ) : null}
+              {isTodo && cards.length === 0
+                ? GHOST_TASKS.map((task) => <GhostTaskCard key={task.id} task={task} />)
+                : cards.length === 0
+                  ? (
+                    <EmptyColumnPlaceholder
+                      text={key === 'inProgress' ? 'No tasks in progress' : 'Completed tasks will appear here'}
+                    />
+                  )
+                  : cards.map((task) => <TaskCard key={task.id} task={task} />)}
             </div>
           );
         })}

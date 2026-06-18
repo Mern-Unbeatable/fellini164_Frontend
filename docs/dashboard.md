@@ -47,6 +47,19 @@ AI Coach, Analytics, Refer a Friend — not just the Work boards.
 
 ## 1. Tasks Board
 
+**Status (2026-06-18):** ✅ done — empty-state ghost cards (frames 1-2), populated board with
+real cards, three-dot menu, and filter dropdowns (frame 3 + 3.1-Hover + 3-Filter) all built
+in `src/pages/private/user/focus/Tasks/TasksBoard.jsx`. Confirmed from Figma inspection
+(not just the written spec): real/non-ghost cards never show the "AI" sparkle pill — that's
+ghost-card-only; **Delete in the three-dot menu is plain gray, not red** (don't "fix" this
+to red later, it's intentional in the design); ghost-card and real-card ⋯ buttons are both
+hidden until hover (confirmed via user decision 2026-06-18); overdue real cards show
+"Overdue" / "Overdue Xd" in red instead of the "Due: X" footer.
+
+Still open (frames 4-8, not built yet): New Task / Edit popups (frame 4, 4.1, 4.2), card
+insert animation (frame 8), subtasks UI (frame 7, 7.1), and actually wiring the filter
+dropdowns to filter the card list (currently they open/select visually but don't filter).
+
 ### Ghost cards (empty state)
 - Appear **only** when the board/column is empty.
 - Default: due date visible, no footer.
