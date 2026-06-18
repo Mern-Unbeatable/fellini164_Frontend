@@ -12,7 +12,19 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
-import NewPlanModal from '../../planng/DailyPlan/components/NewPlanModal';
+import TaskFormModal from './components/TaskFormModal';
+
+const STATUS_TO_COLUMN = { 'To Do': 'todo', 'In Progress': 'inProgress', Done: 'done' };
+
+function formatDate(iso) {
+  if (!iso) return 'No date';
+  const [year, month, day] = iso.split('-').map(Number);
+  return new Date(year, month - 1, day).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
 
 const PRIORITY_STYLES = {
   URGENT: 'bg-[rgba(220,38,38,0.05)] text-[#dc2626]',
@@ -131,12 +143,12 @@ function GhostTaskCard({ task }) {
 }
 
 // Three groups: 1) Edit  2) Break into subtasks, Improve description (✦ AI actions)  3) Delete.
-function TaskCardMenu({ onClose }) {
+function TaskCardMenu({ onClose, onEdit }) {
   return (
     <div className="absolute right-0 top-6 z-20 w-44 rounded-lg border border-[#f2f2f2] bg-white py-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-800">
       <button
         type="button"
-        onClick={onClose}
+        onClick={onEdit}
         className="flex w-full items-center px-3 py-2 text-left text-[12px] font-medium text-[#5d5d5d] hover:bg-[#fcfcfc] dark:text-gray-300 dark:hover:bg-zinc-700"
       >
         Edit
@@ -170,7 +182,7 @@ function TaskCardMenu({ onClose }) {
   );
 }
 
-function TaskCard({ task }) {
+function TaskCard({ task, onEdit }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const cardRef = useRef(null);
 
@@ -201,7 +213,15 @@ function TaskCard({ task }) {
         >
           <MoreHorizontal size={14} />
         </button>
-        {menuOpen && <TaskCardMenu onClose={() => setMenuOpen(false)} />}
+        {menuOpen && (
+          <TaskCardMenu
+            onClose={() => setMenuOpen(false)}
+            onEdit={() => {
+              setMenuOpen(false);
+              onEdit(task);
+            }}
+          />
+        )}
       </div>
 
       <div className="flex w-full flex-col items-start gap-1">
@@ -311,13 +331,34 @@ const COLUMNS = [
 ];
 
 export default function TasksBoard() {
-  const [modalOpen, setModalOpen] = useState(false);
-  const [columns] = useState({ todo: [], inProgress: [], done: [] });
+  const [columns, setColumns] = useState({ todo: [], inProgress: [], done: [] });
+  const [taskModal, setTaskModal] = useState({ open: false, mode: 'create', task: null });
 
-  const handleOpenModal = () => setModalOpen(true);
-  const handleCloseModal = () => setModalOpen(false);
-  const handleSavePlan = (data) => {
-    console.log('Saved plan:', data);
+  const openNewTaskModal = () => setTaskModal({ open: true, mode: 'create', task: null });
+  const openEditTaskModal = (task) => setTaskModal({ open: true, mode: 'edit', task });
+  const closeTaskModal = () => setTaskModal((prev) => ({ ...prev, open: false }));
+
+  const handleSubmitTask = (form) => {
+    const columnKey = STATUS_TO_COLUMN[form.status] || 'todo';
+    const taskData = {
+      id: taskModal.mode === 'edit' ? taskModal.task.id : Date.now(),
+      priority: form.priority.toUpperCase(),
+      title: form.title || 'Untitled Task',
+      description: form.description,
+      tags: [{ label: form.category }],
+      due: formatDate(form.dueDate),
+    };
+
+    setColumns((prev) => {
+      const next = { todo: [...prev.todo], inProgress: [...prev.inProgress], done: [...prev.done] };
+      if (taskModal.mode === 'edit') {
+        for (const key of Object.keys(next)) {
+          next[key] = next[key].filter((t) => t.id !== taskData.id);
+        }
+      }
+      next[columnKey] = [...next[columnKey], taskData];
+      return next;
+    });
   };
 
   return (
@@ -339,7 +380,7 @@ export default function TasksBoard() {
       {/* Action row */}
       <div className="mb-5 flex w-full items-center justify-between">
         <button
-          onClick={handleOpenModal}
+          onClick={openNewTaskModal}
           className="flex items-center gap-2 rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] font-semibold text-white"
         >
           <Plus size={10} />
@@ -401,14 +442,24 @@ export default function TasksBoard() {
                       text={key === 'inProgress' ? 'No tasks in progress' : 'Completed tasks will appear here'}
                     />
                   )
-                  : cards.map((task) => <TaskCard key={task.id} task={task} />)}
+                  : cards.map((task) => (
+                      <TaskCard key={task.id} task={task} onEdit={openEditTaskModal} />
+                    ))}
             </div>
           );
         })}
       </div>
 
       {/* Modal */}
-      <NewPlanModal open={modalOpen} onClose={handleCloseModal} onSave={handleSavePlan} />
+      {taskModal.open && (
+        <TaskFormModal
+          key={taskModal.task?.id ?? 'new'}
+          mode={taskModal.mode}
+          initialTask={taskModal.task}
+          onClose={closeTaskModal}
+          onSubmit={handleSubmitTask}
+        />
+      )}
     </div>
   );
 }

@@ -56,8 +56,21 @@ to red later, it's intentional in the design); ghost-card and real-card ⋯ butt
 hidden until hover (confirmed via user decision 2026-06-18); overdue real cards show
 "Overdue" / "Overdue Xd" in red instead of the "Due: X" footer.
 
-Still open (frames 4-8, not built yet): New Task / Edit popups (frame 4, 4.1, 4.2), card
-insert animation (frame 8), subtasks UI (frame 7, 7.1), and actually wiring the filter
+**Update (2026-06-18):** New Task / Edit Task popup built (`components/TaskFormModal.jsx`),
+matching frame 4.2 exactly: Title, Priority+Category, Due Date+Due Time (12h, custom 3-part
+select — no native `<input type="time">`, per the mistakes list below), Est. Minutes+Status,
+Linked Goal (first option AI-recommended, last is "+ Create new goal"), Description. Submit
+button reads "Add to Board" when creating, "Edit" when editing (exact Figma wording, not
+"Save"). Wired to real state: "New Task" creates a card in the column matching the chosen
+Status; the three-dot "Edit" action opens the same modal pre-filled and updates that card in
+place (including moving it between columns if Status changed). Frames 4 and 4.1 (despite
+their names) turned out to just be additional populated-board screenshots, not popups —
+don't re-fetch those expecting form content.
+
+Still open (frames 5-8, not built yet): frame 5/6 (unclear purpose, not yet investigated),
+card insert animation (frame 8), subtasks UI (frame 7, 7.1), the AI-generation tab for New
+Task (Generate button + rotating placeholder + skeleton, written spec rules 4-6 — no Figma
+frame found for this yet, may need to ask the user), and actually wiring the filter
 dropdowns to filter the card list (currently they open/select visually but don't filter).
 
 ### Ghost cards (empty state)
