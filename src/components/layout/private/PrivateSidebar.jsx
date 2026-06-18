@@ -86,9 +86,9 @@ function MiniCalendar() {
     setViewDate((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1));
 
   return (
-    <div className="w-full rounded-[10px] border border-gray-100 bg-gray-50 dark:border-zinc-700 dark:bg-zinc-800">
-      <div className="flex w-full items-center justify-between border-b border-gray-100 px-2.5 py-1.5 dark:border-zinc-700">
-        <p className="text-[12px] font-medium whitespace-nowrap text-gray-400 dark:text-gray-300">
+    <div className="w-full rounded-[10px] border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800">
+      <div className="flex w-full items-center justify-between border-b border-[#f2f2f2] px-2.5 py-1.5 dark:border-zinc-700">
+        <p className="text-[12px] font-medium whitespace-nowrap text-[#5d5d5d] dark:text-gray-300">
           {MONTH_NAMES[viewDate.getMonth()]} {viewDate.getFullYear()}
         </p>
         <div className="flex items-center gap-1">
@@ -96,7 +96,7 @@ function MiniCalendar() {
             type="button"
             onClick={goPrevMonth}
             aria-label="Previous month"
-            className="rounded p-0.5 text-gray-400 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-zinc-700"
+            className="rounded p-0.5 text-[#5d5d5d] hover:bg-[#f2f2f2] dark:text-gray-300 dark:hover:bg-zinc-700"
           >
             <ChevronLeft size={12} />
           </button>
@@ -104,7 +104,7 @@ function MiniCalendar() {
             type="button"
             onClick={goNextMonth}
             aria-label="Next month"
-            className="rounded p-0.5 text-gray-400 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-zinc-700"
+            className="rounded p-0.5 text-[#5d5d5d] hover:bg-[#f2f2f2] dark:text-gray-300 dark:hover:bg-zinc-700"
           >
             <ChevronRight size={12} />
           </button>
@@ -115,7 +115,7 @@ function MiniCalendar() {
         {WEEKDAYS.map((wd) => (
           <div
             key={wd}
-            className="flex size-[20px] shrink-0 items-center justify-center rounded-[5px] text-[10px] font-medium text-gray-400 dark:text-gray-300"
+            className="flex size-[20px] shrink-0 items-center justify-center rounded-[5px] text-[10px] font-medium text-[#5d5d5d] dark:text-gray-300"
           >
             {wd}
           </div>
@@ -129,8 +129,8 @@ function MiniCalendar() {
                 isToday
                   ? 'bg-[#f9f4ff] text-[#8022fe] dark:bg-purple-950 dark:text-purple-300'
                   : cell.faded
-                    ? 'text-gray-200 dark:text-zinc-600'
-                    : 'text-gray-400 dark:text-gray-300'
+                    ? 'text-[#c2c2c2] dark:text-zinc-600'
+                    : 'text-[#5d5d5d] dark:text-gray-300'
               }`}
             >
               {cell.day}
@@ -145,7 +145,7 @@ function MiniCalendar() {
 function SectionSubtitle({ children }) {
   return (
     <div className="flex w-full items-center px-2.5">
-      <p className="text-[12px] font-medium text-gray-200 dark:text-zinc-500">{children}</p>
+      <p className="text-[12px] font-medium text-[#c2c2c2] dark:text-zinc-500">{children}</p>
     </div>
   );
 }
@@ -159,7 +159,7 @@ function NavItem({ item, isActive, collapsed, onNavigate }) {
       className={`relative flex h-8.25 w-full items-center gap-2 rounded-[10px] px-2.5 py-1.5 no-underline ${
         isActive
           ? 'bg-[#f9f4ff] text-[#8022fe] dark:bg-purple-950 dark:text-purple-300'
-          : 'text-gray-400 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-zinc-800'
+          : 'text-[#5d5d5d] hover:bg-[#fcfcfc] dark:text-gray-300 dark:hover:bg-zinc-800'
       } ${collapsed ? 'justify-center' : ''}`}
       title={collapsed ? item.label : undefined}
     >
@@ -179,7 +179,7 @@ function InertNavItem({ item, collapsed }) {
   const Icon = item.icon;
   return (
     <div
-      className={`flex h-8.25 w-full items-center gap-2 rounded-[10px] bg-white px-2.5 py-1.5 text-gray-400 dark:bg-zinc-900 dark:text-gray-300 ${
+      className={`flex h-8.25 w-full items-center gap-2 rounded-[10px] bg-white px-2.5 py-1.5 text-[#5d5d5d] dark:bg-zinc-900 dark:text-gray-300 ${
         collapsed ? 'justify-center' : ''
       }`}
       title={collapsed ? item.label : undefined}
@@ -214,12 +214,12 @@ export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex h-screen flex-col overflow-y-auto border-r border-gray-100 bg-white transition-transform duration-300 ease-in-out dark:border-zinc-700 dark:bg-zinc-900 lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 flex h-screen flex-col overflow-y-auto border-r border-[#f2f2f2] bg-white transition-transform duration-300 ease-in-out dark:border-zinc-700 dark:bg-zinc-900 lg:static lg:translate-x-0 ${
           isMobileOpen ? 'translate-x-0' : '-translate-x-full'
         } ${collapsed ? 'w-[72px]' : 'w-[200px]'}`}
       >
         {/* Logo / collapse */}
-        <div className="flex w-full items-center justify-between border-b border-gray-100 p-[12px] dark:border-zinc-700">
+        <div className="flex w-full items-center justify-between border-b border-[#f2f2f2] p-[12px] dark:border-zinc-700">
           {!collapsed && (
             <Link to="/dashboard" className="flex items-center no-underline">
               <img src="/logo.png" alt="Elyxa.Ai" className="h-[18px] w-auto object-contain" />
@@ -229,7 +229,7 @@ export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }
             type="button"
             onClick={() => setCollapsed((c) => !c)}
             aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            className="hidden shrink-0 rounded p-0.5 text-gray-400 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-zinc-800 lg:flex"
+            className="hidden shrink-0 rounded p-0.5 text-[#5d5d5d] hover:bg-[#f2f2f2] dark:text-gray-300 dark:hover:bg-zinc-800 lg:flex"
           >
             {collapsed ? <PanelLeft size={18} /> : <PanelLeftClose size={18} />}
           </button>
@@ -241,15 +241,15 @@ export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }
 
             {/* Create — visual only, non-functional in MVP */}
             <div
-              className={`flex h-8.25 w-full items-center gap-2 rounded-[10px] border border-gray-100 bg-gray-50 px-2.5 py-1.5 dark:border-zinc-700 dark:bg-zinc-800 ${
+              className={`flex h-8.25 w-full items-center gap-2 rounded-[10px] border border-[#f2f2f2] bg-[#fcfcfc] px-2.5 py-1.5 dark:border-zinc-700 dark:bg-zinc-800 ${
                 collapsed ? 'justify-center' : ''
               }`}
             >
-              <PenSquare size={18} className="shrink-0 text-gray-400 dark:text-gray-300" />
-              <p className="min-w-px flex-1 text-[14px] font-medium whitespace-nowrap text-gray-400 dark:text-gray-300">
+              <PenSquare size={18} className="shrink-0 text-[#5d5d5d] dark:text-gray-300" />
+              <p className="min-w-px flex-1 text-[14px] font-medium whitespace-nowrap text-[#5d5d5d] dark:text-gray-300">
                 Create
               </p>
-              <p className="shrink-0 text-[10px] font-medium whitespace-nowrap text-gray-200 dark:text-zinc-500">
+              <p className="shrink-0 text-[10px] font-medium whitespace-nowrap text-[#c2c2c2] dark:text-zinc-500">
                 Ctrl + Shift + C
               </p>
             </div>

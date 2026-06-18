@@ -63,7 +63,7 @@ const FILTER_OPTIONS = {
 function GhostTaskCard({ task }) {
   return (
     <div
-      className="group flex h-43.5 w-full flex-col items-start justify-between overflow-hidden rounded-2xl border border-dashed border-[#e9e9e9] bg-white transition-all hover:border-solid hover:border-gray-100 hover:bg-gray-50 hover:shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:bg-zinc-800 dark:hover:bg-zinc-700"
+      className="group flex h-43.5 w-full flex-col items-start justify-between overflow-hidden rounded-2xl border border-dashed border-[#e9e9e9] bg-white transition-all hover:border-solid hover:border-[#f2f2f2] hover:bg-[#fcfcfc] hover:shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:bg-zinc-800 dark:hover:bg-zinc-700"
     >
       <div className="flex w-full flex-col items-start gap-2.5 p-3">
         <div className="flex w-full flex-col items-start gap-2 opacity-40 group-hover:opacity-100">
@@ -79,11 +79,11 @@ function GhostTaskCard({ task }) {
                 AI
               </span>
             </div>
-            <MoreHorizontal size={14} className="text-gray-300" />
+            <MoreHorizontal size={14} className="text-[#a3a3a3]" />
           </div>
           <div className="flex w-full flex-col items-start gap-1">
             <p className="w-full text-[16px] font-medium text-[#181818]">{task.title}</p>
-            <p className="w-full overflow-hidden text-ellipsis text-[12px] whitespace-nowrap text-gray-300">
+            <p className="w-full overflow-hidden text-ellipsis text-[12px] whitespace-nowrap text-[#a3a3a3]">
               {task.description}
             </p>
           </div>
@@ -92,14 +92,14 @@ function GhostTaskCard({ task }) {
           {task.tags.map((tag) => (
             <span
               key={tag.label}
-              className="flex items-center gap-1.5 rounded-md border border-gray-100 px-1.5 py-0.5 text-[12px] font-medium text-gray-400 dark:border-zinc-700 dark:text-gray-300"
+              className="flex items-center gap-1.5 rounded-md border border-[#f2f2f2] px-1.5 py-0.5 text-[12px] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300"
             >
               {tag.icon && <tag.icon size={12} />}
               {tag.label}
             </span>
           ))}
           {task.steps && (
-            <span className="rounded-md border border-gray-100 px-1.5 py-0.5 text-[12px] font-medium text-gray-400 dark:border-zinc-700 dark:text-gray-300">
+            <span className="rounded-md border border-[#f2f2f2] px-1.5 py-0.5 text-[12px] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
               {task.steps}
             </span>
           )}
@@ -109,13 +109,13 @@ function GhostTaskCard({ task }) {
       {/* Default footer: due date */}
       <div className="flex h-10.5 w-full items-center justify-center border-t border-dashed border-[#e9e9e9] px-3 py-2.5 opacity-40 group-hover:hidden">
         <p className="text-[12px]">
-          <span className="text-gray-200">Due:</span> <span className="text-gray-400">{task.due}</span>
+          <span className="text-[#c2c2c2]">Due:</span> <span className="text-[#5d5d5d]">{task.due}</span>
         </p>
       </div>
 
       {/* Hover footer: AI suggestion + Accept */}
-      <div className="hidden h-10.5 w-full items-center justify-between border-t border-gray-100 px-3 py-2.5 group-hover:flex dark:border-zinc-700">
-        <p className="text-[12px] font-medium text-gray-200 dark:text-gray-400">
+      <div className="hidden h-10.5 w-full items-center justify-between border-t border-[#f2f2f2] px-3 py-2.5 group-hover:flex dark:border-zinc-700">
+        <p className="text-[12px] font-medium text-[#c2c2c2] dark:text-gray-400">
           AI suggested based on your profile
         </p>
         <button
@@ -133,19 +133,19 @@ function GhostTaskCard({ task }) {
 // Three groups: 1) Edit  2) Break into subtasks, Improve description (✦ AI actions)  3) Delete.
 function TaskCardMenu({ onClose }) {
   return (
-    <div className="absolute right-0 top-6 z-20 w-44 rounded-lg border border-gray-100 bg-white py-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-800">
+    <div className="absolute right-0 top-6 z-20 w-44 rounded-lg border border-[#f2f2f2] bg-white py-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-800">
       <button
         type="button"
         onClick={onClose}
-        className="flex w-full items-center px-3 py-2 text-left text-[12px] font-medium text-gray-400 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-zinc-700"
+        className="flex w-full items-center px-3 py-2 text-left text-[12px] font-medium text-[#5d5d5d] hover:bg-[#fcfcfc] dark:text-gray-300 dark:hover:bg-zinc-700"
       >
         Edit
       </button>
-      <div className="border-t border-gray-100 dark:border-zinc-700" />
+      <div className="border-t border-[#f2f2f2] dark:border-zinc-700" />
       <button
         type="button"
         onClick={onClose}
-        className="flex w-full items-center gap-1.5 px-3 py-2 text-left text-[12px] font-medium text-[#8022fe] hover:bg-gray-50 dark:hover:bg-zinc-700"
+        className="flex w-full items-center gap-1.5 px-3 py-2 text-left text-[12px] font-medium text-[#8022fe] hover:bg-[#fcfcfc] dark:hover:bg-zinc-700"
       >
         <Sparkles size={12} />
         Break into subtasks
@@ -153,16 +153,16 @@ function TaskCardMenu({ onClose }) {
       <button
         type="button"
         onClick={onClose}
-        className="flex w-full items-center gap-1.5 px-3 py-2 text-left text-[12px] font-medium text-[#8022fe] hover:bg-gray-50 dark:hover:bg-zinc-700"
+        className="flex w-full items-center gap-1.5 px-3 py-2 text-left text-[12px] font-medium text-[#8022fe] hover:bg-[#fcfcfc] dark:hover:bg-zinc-700"
       >
         <Sparkles size={12} />
         Improve description
       </button>
-      <div className="border-t border-gray-100 dark:border-zinc-700" />
+      <div className="border-t border-[#f2f2f2] dark:border-zinc-700" />
       <button
         type="button"
         onClick={onClose}
-        className="flex w-full items-center px-3 py-2 text-left text-[12px] font-medium text-gray-400 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-zinc-700"
+        className="flex w-full items-center px-3 py-2 text-left text-[12px] font-medium text-[#5d5d5d] hover:bg-[#fcfcfc] dark:text-gray-300 dark:hover:bg-zinc-700"
       >
         Delete
       </button>
@@ -185,7 +185,7 @@ function TaskCard({ task }) {
   return (
     <div
       ref={cardRef}
-      className="group relative flex w-full flex-col items-start gap-2.5 rounded-2xl border border-gray-100 bg-white p-3 dark:border-zinc-700 dark:bg-zinc-800"
+      className="group relative flex w-full flex-col items-start gap-2.5 rounded-2xl border border-[#f2f2f2] bg-white p-3 dark:border-zinc-700 dark:bg-zinc-800"
     >
       <div className="flex w-full items-center justify-between">
         <span
@@ -197,7 +197,7 @@ function TaskCard({ task }) {
           type="button"
           onClick={() => setMenuOpen((o) => !o)}
           aria-label="Task menu"
-          className={`text-gray-300 transition-opacity ${menuOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+          className={`text-[#a3a3a3] transition-opacity ${menuOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
         >
           <MoreHorizontal size={14} />
         </button>
@@ -207,7 +207,7 @@ function TaskCard({ task }) {
       <div className="flex w-full flex-col items-start gap-1">
         <p className="w-full text-[16px] font-medium text-[#181818] dark:text-white">{task.title}</p>
         {task.description && (
-          <p className="w-full overflow-hidden text-ellipsis text-[12px] whitespace-nowrap text-gray-300">
+          <p className="w-full overflow-hidden text-ellipsis text-[12px] whitespace-nowrap text-[#a3a3a3]">
             {task.description}
           </p>
         )}
@@ -218,28 +218,28 @@ function TaskCard({ task }) {
           {task.tags.map((tag) => (
             <span
               key={tag.label}
-              className="flex items-center gap-1.5 rounded-md border border-gray-100 px-1.5 py-0.5 text-[12px] font-medium text-gray-400 dark:border-zinc-700 dark:text-gray-300"
+              className="flex items-center gap-1.5 rounded-md border border-[#f2f2f2] px-1.5 py-0.5 text-[12px] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300"
             >
               {tag.icon && <tag.icon size={12} />}
               {tag.label}
             </span>
           ))}
           {task.steps && (
-            <span className="rounded-md border border-gray-100 px-1.5 py-0.5 text-[12px] font-medium text-gray-400 dark:border-zinc-700 dark:text-gray-300">
+            <span className="rounded-md border border-[#f2f2f2] px-1.5 py-0.5 text-[12px] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
               {task.steps}
             </span>
           )}
         </div>
       )}
 
-      <div className="flex h-10.5 w-full items-center justify-center border-t border-gray-100 px-3 py-2.5 dark:border-zinc-700">
+      <div className="flex h-10.5 w-full items-center justify-center border-t border-[#f2f2f2] px-3 py-2.5 dark:border-zinc-700">
         {task.overdue ? (
           <p className="text-[12px] font-medium text-[#dc2626]">
             Overdue{task.overdueDays ? ` ${task.overdueDays}d` : ''}
           </p>
         ) : (
           <p className="text-[12px]">
-            <span className="text-gray-200">Due:</span> <span className="text-gray-400">{task.due}</span>
+            <span className="text-[#c2c2c2]">Due:</span> <span className="text-[#5d5d5d]">{task.due}</span>
           </p>
         )}
       </div>
@@ -265,14 +265,14 @@ function FilterDropdown({ options }) {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-30 items-center justify-between rounded-lg border border-gray-100 px-3 py-1.75 text-[12px] font-medium text-[#181818] dark:border-zinc-700 dark:text-white"
+        className="flex w-30 items-center justify-between rounded-lg border border-[#f2f2f2] px-3 py-1.75 text-[12px] font-medium text-[#181818] dark:border-zinc-700 dark:text-white"
       >
         <span className="truncate">{selected}</span>
-        <ChevronDown size={10} className="shrink-0 text-gray-300" />
+        <ChevronDown size={10} className="shrink-0 text-[#a3a3a3]" />
       </button>
 
       {open && (
-        <div className="absolute left-0 top-8 z-20 w-40 rounded-lg border border-gray-100 bg-white py-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-800">
+        <div className="absolute left-0 top-8 z-20 w-40 rounded-lg border border-[#f2f2f2] bg-white py-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-800">
           {options.map((opt) => (
             <button
               key={opt}
@@ -284,7 +284,7 @@ function FilterDropdown({ options }) {
               className={`flex w-full items-center px-3 py-2 text-left text-[12px] font-medium ${
                 opt === selected
                   ? 'bg-[#f9f4ff] text-[#8022fe]'
-                  : 'text-gray-400 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-zinc-700'
+                  : 'text-[#5d5d5d] hover:bg-[#fcfcfc] dark:text-gray-300 dark:hover:bg-zinc-700'
               }`}
             >
               {opt}
@@ -299,7 +299,7 @@ function FilterDropdown({ options }) {
 function EmptyColumnPlaceholder({ text }) {
   return (
     <div className="flex w-full items-center justify-center pt-2.5">
-      <p className="flex-1 text-center text-[12px] font-medium text-gray-200 dark:text-gray-500">{text}</p>
+      <p className="flex-1 text-center text-[12px] font-medium text-[#c2c2c2] dark:text-gray-500">{text}</p>
     </div>
   );
 }
@@ -326,13 +326,13 @@ export default function TasksBoard() {
       <div className="mb-5 flex w-full items-start justify-between">
         <div className="flex flex-col items-start gap-2">
           <p className="text-[20px] font-medium text-[#181818] dark:text-white">Tasks Board</p>
-          <p className="text-[12px] font-medium text-gray-200 dark:text-gray-400">
+          <p className="text-[12px] font-medium text-[#c2c2c2] dark:text-gray-400">
             Plan, prioritize, and complete your tasks in one place...
           </p>
         </div>
-        <div className="flex w-62.5 items-center gap-2 rounded-lg border border-gray-100 px-3 py-1.75 dark:border-zinc-700">
-          <Search size={12} className="shrink-0 text-gray-200" />
-          <p className="text-[12px] font-medium text-gray-200">Search tasks in board...</p>
+        <div className="flex w-62.5 items-center gap-2 rounded-lg border border-[#f2f2f2] px-3 py-1.75 dark:border-zinc-700">
+          <Search size={12} className="shrink-0 text-[#c2c2c2]" />
+          <p className="text-[12px] font-medium text-[#c2c2c2]">Search tasks in board...</p>
         </div>
       </div>
 
@@ -347,15 +347,15 @@ export default function TasksBoard() {
         </button>
 
         <div className="flex items-center gap-5">
-          <div className="flex items-center gap-1 rounded-lg border border-gray-100 p-1 dark:border-zinc-700">
-            <span className="rounded bg-gray-100 px-2 py-0.75 text-[12px] font-medium text-[#181818] dark:bg-zinc-700 dark:text-white">
+          <div className="flex items-center gap-1 rounded-lg border border-[#f2f2f2] p-1 dark:border-zinc-700">
+            <span className="rounded bg-[#f2f2f2] px-2 py-0.75 text-[12px] font-medium text-[#181818] dark:bg-zinc-700 dark:text-white">
               Board
             </span>
-            <span className="flex w-12.5 items-center justify-center px-2 py-0.75 text-[12px] font-medium text-gray-200">
+            <span className="flex w-12.5 items-center justify-center px-2 py-0.75 text-[12px] font-medium text-[#c2c2c2]">
               List
             </span>
           </div>
-          <div className="h-4 w-px bg-gray-100 dark:bg-zinc-700" />
+          <div className="h-4 w-px bg-[#f2f2f2] dark:bg-zinc-700" />
           <div className="flex items-center gap-2.5">
             {Object.entries(FILTER_OPTIONS).map(([label, options]) => (
               <FilterDropdown key={label} options={options} />
@@ -374,12 +374,12 @@ export default function TasksBoard() {
           return (
             <div
               key={key}
-              className="flex h-full flex-1 flex-col items-start gap-2.5 overflow-y-auto rounded-2xl border border-gray-100 bg-white p-3 dark:border-zinc-700 dark:bg-zinc-800"
+              className="flex h-full flex-1 flex-col items-start gap-2.5 overflow-y-auto rounded-2xl border border-[#f2f2f2] bg-white p-3 dark:border-zinc-700 dark:bg-zinc-800"
             >
               <div className="flex w-full items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Icon size={12} className="text-gray-400 dark:text-gray-300" />
-                  <p className="text-[14px] font-medium text-gray-400 dark:text-gray-300">{label}</p>
+                  <Icon size={12} className="text-[#5d5d5d] dark:text-gray-300" />
+                  <p className="text-[14px] font-medium text-[#5d5d5d] dark:text-gray-300">{label}</p>
                 </div>
                 {isTodo && cards.length === 0 ? (
                   <span className="flex items-center gap-1 rounded-md bg-[#f9f4ff] px-1.5 py-0.5 text-[12px] font-medium text-[#8022fe]">
@@ -387,7 +387,7 @@ export default function TasksBoard() {
                     3 AI Suggestions
                   </span>
                 ) : (
-                  <span className="flex w-5.5 items-center justify-center rounded-md bg-gray-100 px-1.5 py-0.5 text-[12px] font-medium text-gray-400 dark:bg-zinc-700 dark:text-gray-300">
+                  <span className="flex w-5.5 items-center justify-center rounded-md bg-[#f2f2f2] px-1.5 py-0.5 text-[12px] font-medium text-[#5d5d5d] dark:bg-zinc-700 dark:text-gray-300">
                     {cards.length}
                   </span>
                 )}
