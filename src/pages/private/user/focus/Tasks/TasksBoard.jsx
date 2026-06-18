@@ -3,13 +3,14 @@ import {
   Search,
   Sparkles,
   MoreHorizontal,
-  ChevronRight,
   ChevronDown,
   ListTodo,
   Loader2,
   CheckCircle2,
   Clock,
   TrendingUp,
+  Check,
+  X,
 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import TaskFormModal from './components/TaskFormModal';
@@ -33,7 +34,14 @@ const PRIORITY_STYLES = {
   LOW: 'bg-[rgba(34,197,94,0.05)] text-green-600',
 };
 
-// AI-suggested ghost tasks shown only when the To Do column has no real tasks yet.
+const PRIORITY_LABELS = {
+  URGENT: 'Urgent',
+  HIGH: 'High',
+  MEDIUM: 'Medium',
+  LOW: 'Low',
+};
+
+// AI-suggested ghost tasks — shown only when the entire board has no real tasks.
 const GHOST_TASKS = [
   {
     id: 'ghost-1',
@@ -72,35 +80,92 @@ const FILTER_OPTIONS = {
   Date: ['All Dates', 'Today', 'Tomorrow', 'This week', 'This month', 'Overdue'],
 };
 
-function GhostTaskCard({ task }) {
+function GhostTaskMenu({ onRegenerate, onDismiss }) {
+  return (
+    <div className="absolute right-3 top-9.5 z-20 flex flex-col overflow-hidden rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
+      <button
+        type="button"
+        onClick={onRegenerate}
+        className="flex items-center gap-1.5 border-b border-[#f2f2f2] px-2.5 py-1.5 text-left text-[12px] font-medium text-[#8022fe] hover:bg-[#fcfcfc] dark:border-zinc-700 dark:hover:bg-zinc-700"
+      >
+        <Sparkles size={10} />
+        Regenerate suggestion
+      </button>
+      <button
+        type="button"
+        onClick={onDismiss}
+        className="flex w-full items-center gap-1.5 px-2.5 py-1.5 text-left text-[12px] font-medium text-[#5d5d5d] hover:bg-[#fcfcfc] dark:text-gray-300 dark:hover:bg-zinc-700"
+      >
+        <X size={10} />
+        Dismiss
+      </button>
+    </div>
+  );
+}
+
+function GhostTaskCard({ task, onDismiss, onRegenerate }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const cardRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (cardRef.current && !cardRef.current.contains(e.target)) setMenuOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const isActive = menuOpen;
+
   return (
     <div
-      className="group flex h-43.5 w-full flex-col items-start justify-between overflow-hidden rounded-2xl border border-dashed border-[#e9e9e9] bg-white transition-all hover:border-solid hover:border-[#f2f2f2] hover:bg-[#fcfcfc] hover:shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:bg-zinc-800 dark:hover:bg-zinc-700"
+      ref={cardRef}
+      className={`group relative flex h-43.5 w-full flex-col items-start justify-between overflow-hidden rounded-2xl border bg-white transition-all dark:bg-zinc-800 ${
+        isActive
+          ? 'border-solid border-[#f2f2f2] bg-[#fcfcfc] shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:bg-zinc-700'
+          : 'border-dashed border-[#e9e9e9] hover:border-solid hover:border-[#f2f2f2] hover:bg-[#fcfcfc] hover:shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:hover:bg-zinc-700'
+      }`}
     >
-      <div className="flex w-full flex-col items-start gap-2.5 p-3">
-        <div className="flex w-full flex-col items-start gap-2 opacity-40 group-hover:opacity-100">
+      <div className="relative flex w-full flex-col items-start gap-2.5 p-3">
+        <div
+          className={`flex w-full flex-col items-start gap-2 transition-opacity ${isActive ? 'opacity-100' : 'opacity-40 group-hover:opacity-100'}`}
+        >
           <div className="flex w-full items-center justify-between">
             <div className="flex items-center gap-1">
               <span
                 className={`rounded-md px-1.5 py-0.5 text-[12px] font-medium uppercase ${PRIORITY_STYLES[task.priority]}`}
               >
-                {task.priority}
+                {PRIORITY_LABELS[task.priority]}
               </span>
               <span className="flex items-center gap-1 rounded-md bg-[#f9f4ff] px-1.5 py-0.5 text-[12px] font-medium text-[#8022fe]">
                 <Sparkles size={10} />
                 AI
               </span>
             </div>
-            <MoreHorizontal size={14} className="text-[#a3a3a3]" />
+            <button
+              type="button"
+              onClick={() => setMenuOpen((o) => !o)}
+              aria-label="Ghost task menu"
+              aria-expanded={menuOpen}
+              className={`rounded-md p-1 text-[#a3a3a3] transition-opacity ${
+                menuOpen
+                  ? 'bg-[#f2f2f2] opacity-100 dark:bg-zinc-600'
+                  : 'opacity-0 group-hover:opacity-100'
+              }`}
+            >
+              <MoreHorizontal size={14} />
+            </button>
           </div>
           <div className="flex w-full flex-col items-start gap-1">
-            <p className="w-full text-[16px] font-medium text-[#181818]">{task.title}</p>
+            <p className="w-full text-[16px] font-medium text-[#181818] dark:text-white">{task.title}</p>
             <p className="w-full overflow-hidden text-ellipsis text-[12px] whitespace-nowrap text-[#a3a3a3]">
               {task.description}
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-1 opacity-40 group-hover:opacity-100">
+        <div
+          className={`flex items-center gap-1 transition-opacity ${isActive ? 'opacity-100' : 'opacity-40 group-hover:opacity-100'}`}
+        >
           {task.tags.map((tag) => (
             <span
               key={tag.label}
@@ -116,27 +181,48 @@ function GhostTaskCard({ task }) {
             </span>
           )}
         </div>
+
+        {menuOpen && (
+          <GhostTaskMenu
+            onRegenerate={() => {
+              setMenuOpen(false);
+              onRegenerate(task.id);
+            }}
+            onDismiss={() => {
+              setMenuOpen(false);
+              onDismiss(task.id);
+            }}
+          />
+        )}
       </div>
 
-      {/* Default footer: due date */}
-      <div className="flex h-10.5 w-full items-center justify-center border-t border-dashed border-[#e9e9e9] px-3 py-2.5 opacity-40 group-hover:hidden">
-        <p className="text-[12px]">
-          <span className="text-[#c2c2c2]">Due:</span> <span className="text-[#5d5d5d]">{task.due}</span>
-        </p>
-      </div>
-
-      {/* Hover footer: AI suggestion + Accept */}
-      <div className="hidden h-10.5 w-full items-center justify-between border-t border-[#f2f2f2] px-3 py-2.5 group-hover:flex dark:border-zinc-700">
-        <p className="text-[12px] font-medium text-[#c2c2c2] dark:text-gray-400">
-          AI suggested based on your profile
-        </p>
-        <button
-          type="button"
-          className="flex items-center gap-1.5 rounded-md bg-[#f9f4ff] px-2 py-0.5 text-[12px] font-medium text-[#8022fe]"
+      {/* Footer: due date fades out on hover, Accept footer fades in */}
+      <div className="relative h-10.5 w-full shrink-0 border-t border-[#f2f2f2] dark:border-zinc-700">
+        <div
+          className={`absolute inset-0 flex items-center justify-center border-t border-dashed border-[#e9e9e9] px-3 py-2.5 transition-opacity duration-200 ${
+            isActive ? 'pointer-events-none opacity-0' : 'opacity-40 group-hover:opacity-0'
+          }`}
         >
-          Accept Task
-          <ChevronRight size={10} />
-        </button>
+          <p className="text-[12px]">
+            <span className="text-[#c2c2c2]">Due:</span> <span className="text-[#5d5d5d]">{task.due}</span>
+          </p>
+        </div>
+        <div
+          className={`absolute inset-0 flex items-center justify-between px-3 py-2.5 transition-opacity duration-200 ${
+            isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+          }`}
+        >
+          <p className="text-[12px] font-medium text-[#c2c2c2] dark:text-gray-400">
+            AI suggested based on your profile
+          </p>
+          <button
+            type="button"
+            className="flex items-center gap-1.5 rounded-md bg-[#f9f4ff] px-2 py-0.5 text-[12px] font-medium text-[#8022fe]"
+          >
+            Accept
+            <Check size={10} strokeWidth={2.5} />
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -332,11 +418,25 @@ const COLUMNS = [
 
 export default function TasksBoard() {
   const [columns, setColumns] = useState({ todo: [], inProgress: [], done: [] });
+  const [ghostTasks, setGhostTasks] = useState(GHOST_TASKS);
   const [taskModal, setTaskModal] = useState({ open: false, mode: 'create', task: null });
 
   const openNewTaskModal = () => setTaskModal({ open: true, mode: 'create', task: null });
   const openEditTaskModal = (task) => setTaskModal({ open: true, mode: 'edit', task });
   const closeTaskModal = () => setTaskModal((prev) => ({ ...prev, open: false }));
+
+  const handleDismissGhost = (id) => {
+    setGhostTasks((prev) => prev.filter((t) => t.id !== id));
+  };
+
+  const handleRegenerateGhost = () => {
+    // Visual-only for Step 2 — AI regeneration wired in a later step.
+  };
+
+  const boardIsEmpty =
+    columns.todo.length === 0 && columns.inProgress.length === 0 && columns.done.length === 0;
+
+  const showGhostCards = boardIsEmpty && ghostTasks.length > 0;
 
   const handleSubmitTask = (form) => {
     const columnKey = STATUS_TO_COLUMN[form.status] || 'todo';
@@ -387,21 +487,10 @@ export default function TasksBoard() {
           New Task
         </button>
 
-        <div className="flex items-center gap-5">
-          <div className="flex items-center gap-1 rounded-lg border border-[#f2f2f2] p-1 dark:border-zinc-700">
-            <span className="rounded bg-[#f2f2f2] px-2 py-0.75 text-[12px] font-medium text-[#181818] dark:bg-zinc-700 dark:text-white">
-              Board
-            </span>
-            <span className="flex w-12.5 items-center justify-center px-2 py-0.75 text-[12px] font-medium text-[#c2c2c2]">
-              List
-            </span>
-          </div>
-          <div className="h-4 w-px bg-[#f2f2f2] dark:bg-zinc-700" />
-          <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5">
             {Object.entries(FILTER_OPTIONS).map(([label, options]) => (
               <FilterDropdown key={label} options={options} />
             ))}
-          </div>
         </div>
       </div>
 
@@ -422,10 +511,10 @@ export default function TasksBoard() {
                   <Icon size={12} className="text-[#5d5d5d] dark:text-gray-300" />
                   <p className="text-[14px] font-medium text-[#5d5d5d] dark:text-gray-300">{label}</p>
                 </div>
-                {isTodo && cards.length === 0 ? (
+                {isTodo && showGhostCards ? (
                   <span className="flex items-center gap-1 rounded-md bg-[#f9f4ff] px-1.5 py-0.5 text-[12px] font-medium text-[#8022fe]">
                     <Sparkles size={10} />
-                    3 AI Suggestions
+                    {ghostTasks.length} AI Suggestions
                   </span>
                 ) : (
                   <span className="flex w-5.5 items-center justify-center rounded-md bg-[#f2f2f2] px-1.5 py-0.5 text-[12px] font-medium text-[#5d5d5d] dark:bg-zinc-700 dark:text-gray-300">
@@ -434,17 +523,26 @@ export default function TasksBoard() {
                 )}
               </div>
 
-              {isTodo && cards.length === 0
-                ? GHOST_TASKS.map((task) => <GhostTaskCard key={task.id} task={task} />)
-                : cards.length === 0
+              {isTodo && showGhostCards
+                ? ghostTasks.map((task) => (
+                    <GhostTaskCard
+                      key={task.id}
+                      task={task}
+                      onDismiss={handleDismissGhost}
+                      onRegenerate={handleRegenerateGhost}
+                    />
+                  ))
+                : cards.length === 0 && !isTodo
                   ? (
                     <EmptyColumnPlaceholder
                       text={key === 'inProgress' ? 'No tasks in progress' : 'Completed tasks will appear here'}
                     />
                   )
-                  : cards.map((task) => (
+                  : cards.length > 0
+                  ? cards.map((task) => (
                       <TaskCard key={task.id} task={task} onEdit={openEditTaskModal} />
-                    ))}
+                    ))
+                  : null}
             </div>
           );
         })}

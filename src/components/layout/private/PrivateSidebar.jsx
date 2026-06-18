@@ -9,25 +9,12 @@ import {
   Calendar,
   PanelLeft,
   PanelLeftClose,
-  PenSquare,
-  LayoutDashboard,
-  Megaphone,
-  Bot,
-  Activity,
-  Bell,
 } from 'lucide-react';
 
 const WEEKDAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December',
-];
-
-// Dashboard has a real page, so it's a working link. Announcements has no page yet —
-// stays visible per Figma but inert (see docs/dashboard.md).
-const MAIN_ITEMS = [
-  { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard', match: ['/dashboard'] },
-  { label: 'Announcements', icon: Megaphone },
 ];
 
 const ORGANIZATION_ITEMS = [
@@ -38,13 +25,6 @@ const WORK_ITEMS = [
   { label: 'Tasks', icon: CheckSquare, path: '/user/tasks', match: ['/user/tasks'] },
   { label: 'Habits', icon: RotateCcw, path: '/user/habits', match: ['/user/habits'] },
   { label: 'Goals', icon: Target, path: '/user/goals', match: ['/user/goals'] },
-];
-
-// Visible in Figma for context only — not functional in MVP (see docs/dashboard.md).
-const TOOLS_ITEMS = [
-  { label: 'AI Coach', icon: Bot },
-  { label: 'Activity', icon: Activity },
-  { label: 'Notification', icon: Bell, badge: '+2' },
 ];
 
 function buildCalendarGrid(viewDate) {
@@ -174,31 +154,6 @@ function NavItem({ item, isActive, collapsed, onNavigate }) {
   );
 }
 
-// Visual-only match for Figma elements flagged non-functional in MVP (see docs/dashboard.md).
-function InertNavItem({ item, collapsed }) {
-  const Icon = item.icon;
-  return (
-    <div
-      className={`flex h-8.25 w-full items-center gap-2 rounded-[10px] bg-white px-2.5 py-1.5 text-[#5d5d5d] dark:bg-zinc-900 dark:text-gray-300 ${
-        collapsed ? 'justify-center' : ''
-      }`}
-      title={collapsed ? item.label : undefined}
-    >
-      <Icon size={18} className="shrink-0" />
-      {!collapsed && (
-        <>
-          <p className="min-w-px flex-1 text-[14px] font-medium whitespace-nowrap">{item.label}</p>
-          {item.badge && (
-            <span className="shrink-0 rounded-md bg-[rgba(220,38,38,0.05)] px-1.5 py-0.5 text-[12px] font-medium text-[#dc2626]">
-              {item.badge}
-            </span>
-          )}
-        </>
-      )}
-    </div>
-  );
-}
-
 export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }) {
   const [collapsed, setCollapsed] = useState(false);
 
@@ -238,43 +193,8 @@ export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }
         {!collapsed && (
           <div className="flex w-full flex-col items-start gap-2 p-[8px]">
             <MiniCalendar />
-
-            {/* Create — visual only, non-functional in MVP */}
-            <div
-              className={`flex h-8.25 w-full items-center gap-2 rounded-[10px] border border-[#f2f2f2] bg-[#fcfcfc] px-2.5 py-1.5 dark:border-zinc-700 dark:bg-zinc-800 ${
-                collapsed ? 'justify-center' : ''
-              }`}
-            >
-              <PenSquare size={18} className="shrink-0 text-[#5d5d5d] dark:text-gray-300" />
-              <p className="min-w-px flex-1 text-[14px] font-medium whitespace-nowrap text-[#5d5d5d] dark:text-gray-300">
-                Create
-              </p>
-              <p className="shrink-0 text-[10px] font-medium whitespace-nowrap text-[#c2c2c2] dark:text-zinc-500">
-                Ctrl + Shift + C
-              </p>
-            </div>
           </div>
         )}
-
-        {/* Main — Dashboard is a working link, Announcements is visual-only (no page yet) */}
-        <div className="flex w-full flex-col items-start gap-1.5 px-2 py-3">
-          {!collapsed && <SectionSubtitle>Main</SectionSubtitle>}
-          <div className="flex w-full flex-col items-start gap-1">
-            {MAIN_ITEMS.map((item) =>
-              item.path ? (
-                <NavItem
-                  key={item.label}
-                  item={item}
-                  collapsed={collapsed}
-                  isActive={isItemActive(item)}
-                  onNavigate={onCloseMobile}
-                />
-              ) : (
-                <InertNavItem key={item.label} item={item} collapsed={collapsed} />
-              )
-            )}
-          </div>
-        </div>
 
         {/* Organization */}
         <div className="flex w-full flex-col items-start gap-1.5 px-2 py-3">
@@ -302,16 +222,6 @@ export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }
                 isActive={isItemActive(item)}
                 onNavigate={onCloseMobile}
               />
-            ))}
-          </div>
-        </div>
-
-        {/* Tools — visual only, non-functional in MVP */}
-        <div className="flex w-full flex-col items-start gap-1.5 px-2 py-3">
-          {!collapsed && <SectionSubtitle>Tools</SectionSubtitle>}
-          <div className="flex w-full flex-col items-start gap-1">
-            {TOOLS_ITEMS.map((item) => (
-              <InertNavItem key={item.label} item={item} collapsed={collapsed} />
             ))}
           </div>
         </div>
