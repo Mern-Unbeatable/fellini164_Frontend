@@ -223,7 +223,7 @@ function GhostTaskMenu({ onRegenerate, onDismiss }) {
       <button
         type="button"
         onClick={onRegenerate}
-        className="flex items-center gap-1.5 border-b border-[#f2f2f2] px-[10px] py-1.5 text-left text-[12px] font-medium whitespace-nowrap text-[#8022fe] hover:bg-[#fcfcfc] dark:border-zinc-700 dark:hover:bg-zinc-700"
+        className="flex items-center gap-1.5 border-b border-[#f2f2f2] px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#8022fe] hover:bg-[#fcfcfc] dark:border-zinc-700 dark:hover:bg-zinc-700"
       >
         <Sparkles size={10} className="shrink-0" />
         Regenerate suggestion
@@ -231,7 +231,7 @@ function GhostTaskMenu({ onRegenerate, onDismiss }) {
       <button
         type="button"
         onClick={onDismiss}
-        className="flex items-center gap-1.5 px-[10px] py-1.5 text-left text-[12px] font-medium whitespace-nowrap text-[#5d5d5d] hover:bg-[#fcfcfc] dark:text-gray-300 dark:hover:bg-zinc-700"
+        className="flex items-center gap-1.5 px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#5d5d5d] hover:bg-[#fcfcfc] dark:text-gray-300 dark:hover:bg-zinc-700"
       >
         <X size={10} className="shrink-0" />
         Dismiss
@@ -273,20 +273,20 @@ function GhostTaskCard({ task, onDismiss, onRegenerate }) {
         <div className={`flex flex-col gap-2 transition-opacity duration-200 ${faded}`}>
           <div className="flex items-center gap-1">
             <span
-              className={`rounded-[6px] px-[6px] py-[2px] text-[12px] font-medium uppercase ${PRIORITY_STYLES[task.priority]}`}
+              className={`rounded-[6px] px-[6px] py-[2px] text-xs font-medium uppercase lg:text-[12px] ${PRIORITY_STYLES[task.priority]}`}
             >
               {PRIORITY_LABELS[task.priority]}
             </span>
-            <span className="flex items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-[12px] font-medium text-[#8022fe]">
+            <span className="flex items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-xs font-medium text-[#8022fe] sm:text-sm">
               <Sparkles size={10} />
               AI
             </span>
           </div>
           <div className="flex w-full flex-col gap-1">
-            <p className="w-full text-[16px] font-medium leading-normal text-[#181818] dark:text-white">
+            <p className="w-full text-base font-medium leading-normal text-[#181818] dark:text-white">
               {task.title}
             </p>
-            <p className="w-full overflow-hidden text-ellipsis whitespace-nowrap text-[12px] leading-normal text-[#a3a3a3]">
+            <p className="w-full overflow-hidden text-ellipsis whitespace-nowrap text-sm leading-normal text-[#a3a3a3] md:text-base">
               {task.description}
             </p>
           </div>
@@ -296,7 +296,7 @@ function GhostTaskCard({ task, onDismiss, onRegenerate }) {
           {task.tags.map((tag) => (
             <span
               key={tag.label}
-              className="flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300"
+              className="flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-xs font-medium text-[#5d5d5d] sm:text-sm dark:border-zinc-700 dark:text-gray-300"
             >
               {tag.icon && <tag.icon size={12} className="shrink-0" />}
               {tag.label}
@@ -320,7 +320,7 @@ function GhostTaskCard({ task, onDismiss, onRegenerate }) {
       )}
 
       {menuOpen && (
-        <div className="absolute right-[11px] top-[37px] z-30">
+        <div className="absolute right-[11px] top-[37px] z-50">
           <GhostTaskMenu
             onRegenerate={() => {
               setMenuOpen(false);
@@ -344,22 +344,22 @@ function GhostTaskCard({ task, onDismiss, onRegenerate }) {
             isActive ? 'pointer-events-none opacity-0' : 'opacity-40'
           }`}
         >
-          <p className="text-[12px] font-medium leading-normal">
+          <p className="text-xs font-medium leading-normal sm:text-sm">
             <span className="text-[#c2c2c2]">Due:</span>{' '}
             <span className="text-[#5d5d5d]">{task.due}</span>
           </p>
         </div>
         <div
-          className={`absolute inset-0 flex items-center justify-between px-3 py-2.5 transition-opacity duration-200 ${
+          className={`absolute inset-0 flex flex-col items-stretch justify-center gap-2 px-3 py-2.5 transition-opacity duration-200 sm:flex-row sm:items-center sm:justify-between ${
             isActive ? 'opacity-100' : 'pointer-events-none opacity-0'
           }`}
         >
-          <p className="shrink-0 text-[12px] font-medium text-[#c2c2c2]">
+          <p className="shrink-0 text-xs font-medium text-[#c2c2c2] sm:text-sm">
             AI suggested based on your profile
           </p>
           <button
             type="button"
-            className="flex shrink-0 items-center gap-1.5 rounded-[6px] bg-[#f9f4ff] px-[8px] py-[2px] text-[12px] font-medium text-[#8022fe]"
+            className="flex shrink-0 items-center gap-1.5 self-start rounded-[6px] bg-[#f9f4ff] px-[8px] py-[2px] text-xs font-medium text-[#8022fe] sm:self-auto sm:text-sm"
           >
             Accept Task
             <Check size={10} strokeWidth={2.5} />
@@ -380,7 +380,7 @@ function TaskCardMenu({ onClose, onEdit, onDelete, onBreakIntoSubtasks }) {
       <button
         type="button"
         onClick={onEdit}
-        className="flex w-full items-center gap-[6px] border-b border-[#f2f2f2] px-[10px] py-[6px] text-left text-[12px] font-medium leading-normal whitespace-nowrap text-[#5d5d5d] hover:bg-[#fcfcfc] dark:border-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-700"
+        className="flex w-full items-center gap-[6px] border-b border-[#f2f2f2] px-[10px] py-[6px] text-left text-sm font-medium leading-normal whitespace-nowrap text-[#5d5d5d] hover:bg-[#fcfcfc] lg:text-[12px] dark:border-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-700"
       >
         <Pencil size={10} className="shrink-0" />
         Edit
@@ -391,7 +391,7 @@ function TaskCardMenu({ onClose, onEdit, onDelete, onBreakIntoSubtasks }) {
           onClose();
           onBreakIntoSubtasks?.();
         }}
-        className="flex w-full items-center gap-[6px] px-[10px] py-[6px] text-left text-[12px] font-medium leading-normal whitespace-nowrap text-[#8022fe] hover:bg-[#fcfcfc] dark:hover:bg-zinc-700"
+        className="flex w-full items-center gap-[6px] px-[10px] py-[6px] text-left text-sm font-medium leading-normal whitespace-nowrap text-[#8022fe] hover:bg-[#fcfcfc] lg:text-[12px] dark:hover:bg-zinc-700"
       >
         <Sparkles size={10} className="shrink-0" />
         Break into subtasks
@@ -399,7 +399,7 @@ function TaskCardMenu({ onClose, onEdit, onDelete, onBreakIntoSubtasks }) {
       <button
         type="button"
         onClick={onClose}
-        className="flex w-full items-center gap-[6px] border-b border-[#f2f2f2] px-[10px] py-[6px] text-left text-[12px] font-medium leading-normal whitespace-nowrap text-[#8022fe] hover:bg-[#fcfcfc] dark:border-zinc-700 dark:hover:bg-zinc-700"
+        className="flex w-full items-center gap-[6px] border-b border-[#f2f2f2] px-[10px] py-[6px] text-left text-sm font-medium leading-normal whitespace-nowrap text-[#8022fe] hover:bg-[#fcfcfc] lg:text-[12px] dark:border-zinc-700 dark:hover:bg-zinc-700"
       >
         <Sparkles size={10} className="shrink-0" />
         Improve description
@@ -407,7 +407,7 @@ function TaskCardMenu({ onClose, onEdit, onDelete, onBreakIntoSubtasks }) {
       <button
         type="button"
         onClick={onDelete}
-        className="flex w-full items-center gap-[6px] px-[10px] py-[6px] text-left text-[12px] font-medium leading-normal whitespace-nowrap text-[#5d5d5d] hover:bg-[#fcfcfc] dark:text-gray-300 dark:hover:bg-zinc-700"
+        className="flex w-full items-center gap-[6px] px-[10px] py-[6px] text-left text-sm font-medium leading-normal whitespace-nowrap text-[#5d5d5d] hover:bg-[#fcfcfc] lg:text-[12px] dark:text-gray-300 dark:hover:bg-zinc-700"
       >
         <Trash2 size={10} className="shrink-0" />
         Delete
@@ -461,12 +461,12 @@ function TaskCard({ task, onEdit, onDelete, onSelect, onBreakIntoSubtasks, isDon
         <div className={`flex w-full flex-col gap-2 ${faded ? 'opacity-50' : ''}`}>
           <div className="flex items-center gap-1">
             <span
-              className={`rounded-[6px] px-[6px] py-[2px] text-[12px] font-medium uppercase ${PRIORITY_STYLES[task.priority]}`}
+              className={`rounded-[6px] px-[6px] py-[2px] text-xs font-medium uppercase lg:text-[12px] ${PRIORITY_STYLES[task.priority]}`}
             >
               {PRIORITY_LABELS[task.priority]}
             </span>
             {task.source === 'ai' && (
-              <span className="flex items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-[12px] font-medium text-[#8022fe]">
+              <span className="flex items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-xs font-medium text-[#8022fe] lg:text-[12px]">
                 <Sparkles size={10} className="shrink-0" />
                 AI
               </span>
@@ -474,13 +474,13 @@ function TaskCard({ task, onEdit, onDelete, onSelect, onBreakIntoSubtasks, isDon
           </div>
           <div className="flex w-full flex-col gap-1">
             <p
-              className={`w-full text-[16px] font-medium leading-normal ${faded ? 'text-[#5d5d5d]' : 'text-[#181818]'} dark:text-white`}
+              className={`w-full text-base font-medium leading-normal lg:text-[16px] ${faded ? 'text-[#5d5d5d]' : 'text-[#181818]'} dark:text-white`}
             >
               {task.title}
             </p>
             {task.description && (
               <p
-                className={`w-full overflow-hidden text-ellipsis text-[12px] leading-normal whitespace-nowrap ${faded ? 'text-[#c2c2c2]' : 'text-[#a3a3a3]'}`}
+                className={`w-full overflow-hidden text-ellipsis text-sm leading-normal whitespace-nowrap lg:text-[12px] ${faded ? 'text-[#c2c2c2]' : 'text-[#a3a3a3]'}`}
               >
                 {task.description}
               </p>
@@ -493,14 +493,14 @@ function TaskCard({ task, onEdit, onDelete, onSelect, onBreakIntoSubtasks, isDon
             {task.tags?.map((tag) => (
               <span
                 key={tag.label}
-                className="flex items-center gap-[6px] rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] font-medium leading-normal text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300"
+                className="flex items-center gap-[6px] rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-xs font-medium leading-normal text-[#5d5d5d] lg:text-[12px] dark:border-zinc-700 dark:text-gray-300"
               >
                 {tag.icon && <tag.icon size={12} className="shrink-0" />}
                 {tag.label}
               </span>
             ))}
             {task.steps && (
-              <span className="rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+              <span className="rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-xs font-medium text-[#5d5d5d] lg:text-[12px] dark:border-zinc-700 dark:text-gray-300">
                 {task.steps}
               </span>
             )}
@@ -529,7 +529,7 @@ function TaskCard({ task, onEdit, onDelete, onSelect, onBreakIntoSubtasks, isDon
 
       {/* Step 3 — dropdown menu */}
       {menuOpen && (
-        <div className="absolute right-[11px] top-[37px] z-30">
+        <div className="absolute right-[11px] top-[37px] z-50">
           <TaskCardMenu
             onClose={() => setMenuOpen(false)}
             onEdit={() => {
@@ -550,18 +550,18 @@ function TaskCard({ task, onEdit, onDelete, onSelect, onBreakIntoSubtasks, isDon
 
       <div className="relative z-10 flex w-full shrink-0 items-center justify-between border-t border-[#f2f2f2] bg-[#fcfcfc] px-[12px] py-[10px] dark:border-zinc-700 dark:bg-zinc-800">
         {task.completed ? (
-          <p className={`text-[12px] ${faded ? 'text-[#5d5d5d]' : ''}`}>
+          <p className={`text-xs sm:text-sm ${faded ? 'text-[#5d5d5d]' : ''}`}>
             <span className="text-[#c2c2c2]">Completed:</span>{' '}
             <span className="text-[#5d5d5d]">{task.completed}</span>
           </p>
         ) : (
           <>
-            <p className="text-[12px] font-medium leading-normal">
+            <p className="text-xs font-medium leading-normal lg:text-[12px]">
               <span className="text-[#c2c2c2]">Due:</span>{' '}
               <span className="text-[#5d5d5d]">{task.due}</span>
             </p>
             {task.overdueDays != null && (
-              <span className="flex items-center gap-[6px] rounded-[6px] bg-[rgba(220,38,38,0.05)] px-[6px] py-[2px] text-[12px] font-medium leading-normal text-[#dc2626]">
+              <span className="flex items-center gap-[6px] rounded-[6px] bg-[rgba(220,38,38,0.05)] px-[6px] py-[2px] text-xs font-medium leading-normal text-[#dc2626] lg:text-[12px]">
                 <AlertCircle size={12} className="shrink-0" />
                 Overdue {task.overdueDays}d
               </span>
@@ -590,18 +590,19 @@ function FilterDropdown({ defaultLabel, options }) {
   const displayLabel = selected === options[0] ? defaultLabel : selected;
 
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className="relative w-full lg:w-auto lg:shrink-0">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-30 items-center justify-between rounded-lg border border-[#f2f2f2] bg-white px-3 py-1.75 text-[12px] font-medium text-[#181818] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
+        className="flex w-full items-center gap-2 rounded-lg border border-[#f2f2f2] bg-white px-3 py-2.5 text-base font-medium text-[#181818] lg:w-30 lg:justify-between lg:py-1.75 lg:text-[12px] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
       >
-        <span className="truncate">{displayLabel}</span>
+        <ChevronDown size={10} className="shrink-0 text-[#a3a3a3] lg:hidden" />
+        <span className="min-w-0 flex-1 truncate text-center lg:text-left">{displayLabel}</span>
         <ChevronDown size={10} className="shrink-0 text-[#a3a3a3]" />
       </button>
 
       {open && (
-        <div className="absolute left-0 top-8 z-30 w-30 overflow-hidden rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
+        <div className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] lg:right-auto lg:mt-0 lg:w-30 lg:top-8 dark:border-zinc-700 dark:bg-zinc-800">
           {options.map((opt) => (
             <button
               key={opt}
@@ -612,7 +613,7 @@ function FilterDropdown({ defaultLabel, options }) {
                 setSelected(opt);
                 setOpen(false);
               }}
-              className={`flex w-full items-center px-2 py-1.5 text-left text-[12px] font-medium text-[#181818] dark:text-white ${
+              className={`flex w-full items-center px-2 py-1.5 text-left text-sm font-medium text-[#181818] lg:text-[12px] dark:text-white ${
                 hovered === opt ? 'bg-[#f2f2f2] dark:bg-zinc-700' : ''
               }`}
             >
@@ -628,7 +629,7 @@ function FilterDropdown({ defaultLabel, options }) {
 function EmptyColumnPlaceholder({ text }) {
   return (
     <div className="flex w-full items-center justify-center pt-2.5">
-      <p className="flex-1 text-center text-[12px] font-medium text-[#c2c2c2] dark:text-gray-500">{text}</p>
+      <p className="flex-1 text-center text-sm font-medium text-[#c2c2c2] md:text-base dark:text-gray-500">{text}</p>
     </div>
   );
 }
@@ -804,17 +805,17 @@ export default function TasksBoard() {
   };
 
   return (
-    <div className="py-7.5">
-      {/* Header */}
-      <div className="mb-5 flex w-full items-start justify-between">
-        <div className="flex flex-col items-start gap-2">
-          <p className="text-[20px] font-medium text-[#181818] dark:text-white">Tasks Board</p>
+    <div className="py-4 sm:py-6 lg:py-7.5">
+      {/* Header — desktop layout unchanged at lg+ */}
+      <div className="mb-4 flex w-full flex-col gap-4 sm:mb-5 lg:mb-5 lg:flex-row lg:items-start lg:justify-between">
+        <div className="flex min-w-0 flex-col items-start gap-2">
+          <h1 className="text-xl font-medium text-[#181818] dark:text-white lg:text-[20px]">Tasks Board</h1>
           <TypewriterText
             phrases={TASKS_SUBTITLE_PHRASES}
-            className="text-[12px] font-medium text-[#c2c2c2] dark:text-gray-400"
+            className="text-sm font-medium text-[#c2c2c2] dark:text-gray-400 lg:text-[12px]"
           />
         </div>
-        <label className="flex w-62.5 items-center gap-2 rounded-lg border border-[#f2f2f2] bg-white px-3 py-1.75 focus-within:border-[#e9e9e9] dark:border-zinc-700 dark:bg-zinc-800 dark:focus-within:border-zinc-600">
+        <label className="flex w-full items-center gap-2 rounded-lg border border-[#f2f2f2] bg-white px-3 py-2 focus-within:border-[#e9e9e9] lg:w-62.5 lg:py-1.75 dark:border-zinc-700 dark:bg-zinc-800 dark:focus-within:border-zinc-600">
           <Search size={12} className="shrink-0 text-[#c2c2c2]" aria-hidden />
           <input
             type="search"
@@ -822,35 +823,34 @@ export default function TasksBoard() {
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search tasks in board..."
             aria-label="Search tasks in board"
-            className="w-full bg-transparent text-[12px] font-medium text-[#181818] outline-none placeholder:text-[#c2c2c2] dark:text-white"
+            className="w-full min-w-0 bg-transparent text-base font-medium text-[#181818] outline-none placeholder:text-[#c2c2c2] lg:text-[12px] dark:text-white"
           />
         </label>
       </div>
 
-      {/* Action row */}
-      <div className="mb-5 flex w-full items-center justify-between">
+      {/* Action row — desktop layout unchanged at lg+ */}
+      <div className="mb-4 flex w-full flex-col gap-4 sm:mb-5 lg:mb-5 lg:flex-row lg:items-center lg:justify-between">
         <button
           onClick={openNewTaskModal}
-          className="flex items-center gap-2 rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] font-semibold text-white"
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#8022fe] px-3 py-2.5 text-base font-semibold text-white sm:w-auto lg:py-2 lg:text-[12px]"
         >
           <Plus size={10} />
           New Task
         </button>
 
-        <div className="flex items-center gap-5">
-          {/* Board/List — visible per Figma, non-functional in MVP */}
-          <div className="flex items-center gap-1 rounded-lg border border-[#f2f2f2] p-1 dark:border-zinc-700">
-            <span className="rounded-md bg-[#f2f2f2] px-2 py-0.75 text-[12px] font-medium text-[#181818] dark:bg-zinc-700 dark:text-white">
+        <div className="flex w-full min-w-0 flex-col gap-3 overflow-visible lg:flex-row lg:flex-nowrap lg:items-center lg:gap-5">
+          <div className="flex w-full items-center gap-1 rounded-lg border border-[#f2f2f2] p-1 lg:w-auto lg:shrink-0 dark:border-zinc-700">
+            <span className="flex flex-1 items-center justify-center rounded-md bg-[#f2f2f2] px-2 py-2 text-base font-medium text-[#181818] lg:flex-none lg:py-0.75 lg:text-[12px] dark:bg-zinc-700 dark:text-white">
               Board
             </span>
-            <span className="flex w-12.5 items-center justify-center px-2 py-0.75 text-[12px] font-medium text-[#c2c2c2]">
+            <span className="flex flex-1 items-center justify-center px-2 py-2 text-base font-medium text-[#c2c2c2] lg:w-12.5 lg:flex-none lg:py-0.75 lg:text-[12px]">
               List
             </span>
           </div>
 
-          <div className="h-4 w-px bg-[#f2f2f2] dark:bg-zinc-700" />
+          <div className="hidden h-4 w-px shrink-0 bg-[#f2f2f2] lg:block dark:bg-zinc-700" />
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex w-full flex-col gap-2 lg:flex-row lg:items-center lg:gap-2.5">
             {FILTER_CONFIG.map(({ key, defaultLabel, options }) => (
               <FilterDropdown key={key} defaultLabel={defaultLabel} options={options} />
             ))}
@@ -868,7 +868,7 @@ export default function TasksBoard() {
           onAutoTriggerConsumed={() => setTriggerSubtasksAi(false)}
         />
       ) : (
-      <div className="flex h-167.75 items-stretch gap-4">
+      <div className="flex flex-col gap-4 lg:h-167.75 lg:flex-row lg:items-stretch lg:gap-4">
         {COLUMNS.map((column) => {
           const Icon = column.icon;
           const { key, label } = column;
@@ -880,12 +880,12 @@ export default function TasksBoard() {
           return (
             <div
               key={key}
-              className="scrollbar-hidden relative flex h-full min-h-0 flex-1 flex-col items-start gap-2.5 overflow-y-auto rounded-2xl border border-[#f2f2f2] bg-white p-3 dark:border-zinc-700 dark:bg-zinc-800"
+              className="scrollbar-hidden relative flex w-full shrink-0 flex-col items-start gap-2.5 overflow-y-auto rounded-2xl border border-[#f2f2f2] bg-white p-3 max-lg:max-h-[min(70vh,560px)] lg:min-h-0 lg:flex-1 dark:border-zinc-700 dark:bg-zinc-800"
             >
               <div className="flex w-full shrink-0 items-center justify-between">
-                <div className="flex items-center gap-2">
+                <div className="flex min-w-0 items-center gap-2">
                   <Icon size={12} className="shrink-0 text-[#5d5d5d] dark:text-gray-300" />
-                  <p className="text-[14px] font-medium leading-normal text-[#5d5d5d] dark:text-gray-300">{label}</p>
+                  <p className="text-sm font-medium leading-normal text-[#5d5d5d] lg:text-[14px] dark:text-gray-300">{label}</p>
                   {isTodo && overdueCount > 0 && (
                     <span className="flex items-center gap-1 rounded-[6px] bg-[rgba(220,38,38,0.05)] px-[6px] py-[2px] text-[10px] font-semibold leading-normal text-[#dc2626]">
                       <span className="size-[3px] shrink-0 rounded-full bg-[#dc2626]" />
@@ -894,12 +894,12 @@ export default function TasksBoard() {
                   )}
                 </div>
                 {isTodo && showGhostCards ? (
-                  <span className="flex items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-[12px] font-medium text-[#8022fe]">
+                  <span className="flex shrink-0 items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-xs font-medium text-[#8022fe] lg:text-[12px]">
                     <Sparkles size={10} />
                     {filteredGhostTasks.length} AI Suggestions
                   </span>
                 ) : (
-                  <span className="flex w-[22px] shrink-0 items-center justify-center rounded-[6px] bg-[#f2f2f2] px-[6px] py-[2px] text-[12px] font-medium leading-normal text-[#5d5d5d] dark:bg-zinc-700 dark:text-gray-300">
+                  <span className="flex w-[22px] shrink-0 items-center justify-center rounded-[6px] bg-[#f2f2f2] px-[6px] py-[2px] text-xs font-medium leading-normal text-[#5d5d5d] lg:text-[12px] dark:bg-zinc-700 dark:text-gray-300">
                     {cards.length}
                   </span>
                 )}

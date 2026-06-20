@@ -217,8 +217,8 @@ export default function TaskDetailPanel({
   const linkedGoal = task.tags?.find((t) => t.icon === TrendingUp)?.label;
 
   return (
-    <div className="flex h-167.75 w-full gap-7.5">
-      <div className="relative flex flex-1 flex-col gap-6 overflow-y-auto rounded-2xl border border-[#f2f2f2] bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900">
+    <div className="flex min-h-[min(60vh,520px)] w-full flex-col gap-4 lg:h-167.75 lg:flex-row lg:gap-7.5">
+      <div className="relative flex flex-1 flex-col gap-6 overflow-y-auto rounded-2xl border border-[#f2f2f2] bg-white p-4 sm:p-5 dark:border-zinc-700 dark:bg-zinc-900">
         <button
           type="button"
           onClick={onClose}
@@ -246,9 +246,9 @@ export default function TaskDetailPanel({
             <MoreHorizontal size={14} className="text-[#a3a3a3]" />
           </div>
           <div className="flex flex-col gap-2">
-            <p className="text-[20px] font-medium text-[#181818] dark:text-white">{task.title}</p>
+            <p className="text-xl font-medium text-[#181818] dark:text-white md:text-2xl">{task.title}</p>
             {task.description && (
-              <p className="text-[12px] text-[#c2c2c2]">{task.description}</p>
+              <p className="text-base text-[#c2c2c2]">{task.description}</p>
             )}
           </div>
           <div className="flex w-30 items-center justify-between rounded-lg border border-[#f2f2f2] bg-[#fcfcfc] px-3 py-2 dark:border-zinc-700 dark:bg-zinc-800">
