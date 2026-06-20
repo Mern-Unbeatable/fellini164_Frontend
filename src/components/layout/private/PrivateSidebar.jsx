@@ -211,7 +211,7 @@ export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex h-screen w-[220px] flex-col overflow-y-auto border-r border-[#f2f2f2] bg-white transition-transform duration-300 ease-in-out dark:border-zinc-700 dark:bg-zinc-900 lg:static lg:translate-x-0 max-lg:w-[75%] max-lg:scrollbar-hidden ${
+        className={`scrollbar-hidden fixed inset-y-0 left-0 z-50 flex h-screen w-[220px] flex-col overflow-y-auto border-r border-[#f2f2f2] bg-white transition-transform duration-300 ease-in-out dark:border-zinc-700 dark:bg-zinc-900 lg:static lg:translate-x-0 max-lg:w-[75%] ${
           isMobileOpen ? 'translate-x-0' : '-translate-x-full'
         } ${collapsed ? 'lg:w-[72px]' : ''}`}
       >
