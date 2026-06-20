@@ -213,10 +213,14 @@ export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }
           isMobileOpen ? 'translate-x-0' : '-translate-x-full'
         } ${collapsed ? 'w-[72px]' : 'w-[220px]'}`}
       >
-        <div className="flex w-full items-center justify-between border-b border-[#f2f2f2] p-[12px] dark:border-zinc-700">
+        <div className="flex h-[48px] w-full shrink-0 items-center justify-between border-b border-[#f2f2f2] px-[12px] dark:border-zinc-700">
           {!collapsed && (
-            <Link to="/dashboard" className="flex items-center no-underline">
-              <img src="/logo.png" alt="Elyxa.Ai" className="h-[18px] w-auto object-contain" />
+            <Link to="/dashboard" className="flex shrink-0 items-center no-underline">
+              <img
+                src="/logo.png"
+                alt="Elyxa.Ai"
+                className="h-[18px] w-[80px] object-contain object-left"
+              />
             </Link>
           )}
           <button
