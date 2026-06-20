@@ -45,17 +45,17 @@ export default function PrivateNavbar({ pathname, user, onOpenMobileSidebar, onL
   }, []);
 
   return (
-    <div className="flex h-[52px] w-full shrink-0 items-center justify-between gap-3 border-b border-[#f2f2f2] bg-white px-4 sm:px-6 lg:px-[30px] dark:border-zinc-700 dark:bg-zinc-900">
+    <div className="flex h-[52px] w-full shrink-0 items-center justify-between gap-3 border-b border-[#f2f2f2] bg-white px-[30px] dark:border-zinc-700 dark:bg-zinc-900 max-lg:px-4 max-lg:sm:px-6">
       <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
         <button
           type="button"
           onClick={onOpenMobileSidebar}
           aria-label="Open sidebar"
-          className="inline-flex shrink-0 items-center justify-center rounded-lg p-1.5 text-[#5d5d5d] hover:bg-[#f2f2f2] lg:hidden dark:text-gray-300 dark:hover:bg-zinc-800"
+          className="hidden shrink-0 items-center justify-center rounded-lg p-1.5 text-[#5d5d5d] hover:bg-[#f2f2f2] max-lg:inline-flex dark:text-gray-300 dark:hover:bg-zinc-800"
         >
           <PanelLeft size={20} strokeWidth={1.75} />
         </button>
-        <div className="flex min-w-0 items-center gap-2 sm:gap-2.5">
+        <div className="flex min-w-0 items-center gap-2.5">
           {section && (
             <>
               <p className="truncate text-[12px] font-medium whitespace-nowrap text-[#5d5d5d] dark:text-gray-300">
@@ -70,8 +70,8 @@ export default function PrivateNavbar({ pathname, user, onOpenMobileSidebar, onL
         </div>
       </div>
 
-      <div className="flex shrink-0 items-center gap-2 sm:gap-5">
-        <div className="hidden items-center gap-5 md:flex">
+      <div className="flex shrink-0 items-center gap-5">
+        <div className="flex items-center gap-5 max-lg:hidden">
           {/* Go to — visible per Figma, non-functional in MVP */}
           <div className="flex w-[105px] shrink-0 items-center gap-1.5 rounded-lg border border-[#f2f2f2] bg-[#fcfcfc] px-2.5 py-[5px] dark:border-zinc-700 dark:bg-zinc-800">
             <p className="min-w-0 flex-1 text-[12px] font-medium whitespace-nowrap text-[#5d5d5d] dark:text-gray-300">
@@ -93,12 +93,23 @@ export default function PrivateNavbar({ pathname, user, onOpenMobileSidebar, onL
           </div>
         </div>
 
-        <div className="hidden h-4 w-px bg-[#f2f2f2] md:block dark:bg-zinc-700" />
+        <div className="h-4 w-px bg-[#f2f2f2] dark:bg-zinc-700 max-lg:hidden" />
 
-        {/* Mobile — bell only; desktop uses full utility group above */}
-        <div className="relative text-[#5d5d5d] md:hidden dark:text-gray-300">
-          <Bell size={18} strokeWidth={1.75} />
-          <span className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-red-500" />
+        {/* Mobile only */}
+        <div className="hidden items-center gap-1.5 max-lg:flex">
+          <div className="flex w-[105px] shrink-0 items-center gap-1 rounded-lg border border-[#f2f2f2] bg-[#fcfcfc] px-2 py-[5px] dark:border-zinc-700 dark:bg-zinc-800">
+            <p className="min-w-0 flex-1 truncate text-[11px] font-medium whitespace-nowrap text-[#5d5d5d] dark:text-gray-300">
+              Go to...
+            </p>
+            <p className="shrink-0 text-[9px] font-medium whitespace-nowrap text-[#c2c2c2] dark:text-zinc-500">
+              Ctrl + K
+            </p>
+          </div>
+          <div className="relative text-[#5d5d5d] dark:text-gray-300">
+            <Bell size={18} strokeWidth={1.75} />
+            <span className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-red-500" />
+          </div>
+          <Settings size={18} className="text-[#5d5d5d] dark:text-gray-300" strokeWidth={1.75} />
         </div>
 
         <div ref={menuRef} className="relative">

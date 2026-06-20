@@ -590,19 +590,19 @@ function FilterDropdown({ defaultLabel, options }) {
   const displayLabel = selected === options[0] ? defaultLabel : selected;
 
   return (
-    <div ref={ref} className="relative w-full lg:w-auto lg:shrink-0">
+    <div ref={ref} className="relative max-lg:w-full">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center gap-2 rounded-lg border border-[#f2f2f2] bg-white px-3 py-2.5 text-base font-medium text-[#181818] lg:w-30 lg:justify-between lg:py-1.75 lg:text-[12px] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
+        className="flex w-30 items-center justify-between rounded-lg border border-[#f2f2f2] bg-white px-3 py-1.75 text-[12px] font-medium text-[#181818] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white max-lg:w-full max-lg:gap-2 max-lg:py-2.5 max-lg:text-base"
       >
-        <ChevronDown size={10} className="shrink-0 text-[#a3a3a3] lg:hidden" />
-        <span className="min-w-0 flex-1 truncate text-center lg:text-left">{displayLabel}</span>
+        <ChevronDown size={10} className="hidden shrink-0 text-[#a3a3a3] max-lg:block" />
+        <span className="truncate max-lg:min-w-0 max-lg:flex-1 max-lg:text-center">{displayLabel}</span>
         <ChevronDown size={10} className="shrink-0 text-[#a3a3a3]" />
       </button>
 
       {open && (
-        <div className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] lg:right-auto lg:mt-0 lg:w-30 lg:top-8 dark:border-zinc-700 dark:bg-zinc-800">
+        <div className="absolute left-0 top-8 z-50 w-30 overflow-hidden rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800 max-lg:right-0 max-lg:top-full max-lg:mt-1 max-lg:w-auto">
           {options.map((opt) => (
             <button
               key={opt}
@@ -613,7 +613,7 @@ function FilterDropdown({ defaultLabel, options }) {
                 setSelected(opt);
                 setOpen(false);
               }}
-              className={`flex w-full items-center px-2 py-1.5 text-left text-sm font-medium text-[#181818] lg:text-[12px] dark:text-white ${
+              className={`flex w-full items-center px-2 py-1.5 text-left text-[12px] font-medium text-[#181818] dark:text-white max-lg:text-sm ${
                 hovered === opt ? 'bg-[#f2f2f2] dark:bg-zinc-700' : ''
               }`}
             >
@@ -805,17 +805,17 @@ export default function TasksBoard() {
   };
 
   return (
-    <div className="py-4 sm:py-6 lg:py-7.5">
-      {/* Header — desktop layout unchanged at lg+ */}
-      <div className="mb-4 flex w-full flex-col gap-4 sm:mb-5 lg:mb-5 lg:flex-row lg:items-start lg:justify-between">
-        <div className="flex min-w-0 flex-col items-start gap-2">
-          <h1 className="text-xl font-medium text-[#181818] dark:text-white lg:text-[20px]">Tasks Board</h1>
+    <div className="py-7.5 max-lg:py-4 max-lg:sm:py-6">
+      {/* Header */}
+      <div className="mb-5 flex w-full items-start justify-between max-lg:mb-4 max-lg:flex-col max-lg:gap-4">
+        <div className="flex flex-col items-start gap-2">
+          <p className="text-[20px] font-medium text-[#181818] dark:text-white">Tasks Board</p>
           <TypewriterText
             phrases={TASKS_SUBTITLE_PHRASES}
-            className="text-sm font-medium text-[#c2c2c2] dark:text-gray-400 lg:text-[12px]"
+            className="text-[12px] font-medium text-[#c2c2c2] dark:text-gray-400 max-lg:text-sm"
           />
         </div>
-        <label className="flex w-full items-center gap-2 rounded-lg border border-[#f2f2f2] bg-white px-3 py-2 focus-within:border-[#e9e9e9] lg:w-62.5 lg:py-1.75 dark:border-zinc-700 dark:bg-zinc-800 dark:focus-within:border-zinc-600">
+        <label className="flex w-62.5 items-center gap-2 rounded-lg border border-[#f2f2f2] bg-white px-3 py-1.75 focus-within:border-[#e9e9e9] dark:border-zinc-700 dark:bg-zinc-800 dark:focus-within:border-zinc-600 max-lg:w-full max-lg:py-2">
           <Search size={12} className="shrink-0 text-[#c2c2c2]" aria-hidden />
           <input
             type="search"
@@ -823,34 +823,35 @@ export default function TasksBoard() {
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search tasks in board..."
             aria-label="Search tasks in board"
-            className="w-full min-w-0 bg-transparent text-base font-medium text-[#181818] outline-none placeholder:text-[#c2c2c2] lg:text-[12px] dark:text-white"
+            className="w-full bg-transparent text-[12px] font-medium text-[#181818] outline-none placeholder:text-[#c2c2c2] dark:text-white max-lg:text-base"
           />
         </label>
       </div>
 
-      {/* Action row — desktop layout unchanged at lg+ */}
-      <div className="mb-4 flex w-full flex-col gap-4 sm:mb-5 lg:mb-5 lg:flex-row lg:items-center lg:justify-between">
+      {/* Action row */}
+      <div className="mb-5 flex w-full items-center justify-between max-lg:mb-4 max-lg:flex-col max-lg:items-stretch max-lg:gap-4">
         <button
           onClick={openNewTaskModal}
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#8022fe] px-3 py-2.5 text-base font-semibold text-white sm:w-auto lg:py-2 lg:text-[12px]"
+          className="flex items-center gap-2 rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] font-semibold text-white max-lg:w-full max-lg:justify-center max-lg:py-2.5 max-lg:text-base"
         >
           <Plus size={10} />
           New Task
         </button>
 
-        <div className="flex w-full min-w-0 flex-col gap-3 overflow-visible lg:flex-row lg:flex-nowrap lg:items-center lg:gap-5">
-          <div className="flex w-full items-center gap-1 rounded-lg border border-[#f2f2f2] p-1 lg:w-auto lg:shrink-0 dark:border-zinc-700">
-            <span className="flex flex-1 items-center justify-center rounded-md bg-[#f2f2f2] px-2 py-2 text-base font-medium text-[#181818] lg:flex-none lg:py-0.75 lg:text-[12px] dark:bg-zinc-700 dark:text-white">
+        <div className="flex items-center gap-5 max-lg:w-full max-lg:flex-col max-lg:gap-3">
+          {/* Board/List — visible per Figma, non-functional in MVP */}
+          <div className="flex items-center gap-1 rounded-lg border border-[#f2f2f2] p-1 dark:border-zinc-700 max-lg:w-full">
+            <span className="rounded-md bg-[#f2f2f2] px-2 py-0.75 text-[12px] font-medium text-[#181818] dark:bg-zinc-700 dark:text-white max-lg:flex-1 max-lg:py-2 max-lg:text-center max-lg:text-base">
               Board
             </span>
-            <span className="flex flex-1 items-center justify-center px-2 py-2 text-base font-medium text-[#c2c2c2] lg:w-12.5 lg:flex-none lg:py-0.75 lg:text-[12px]">
+            <span className="flex w-12.5 items-center justify-center px-2 py-0.75 text-[12px] font-medium text-[#c2c2c2] max-lg:flex-1 max-lg:py-2 max-lg:text-base">
               List
             </span>
           </div>
 
-          <div className="hidden h-4 w-px shrink-0 bg-[#f2f2f2] lg:block dark:bg-zinc-700" />
+          <div className="h-4 w-px bg-[#f2f2f2] dark:bg-zinc-700 max-lg:hidden" />
 
-          <div className="flex w-full flex-col gap-2 lg:flex-row lg:items-center lg:gap-2.5">
+          <div className="flex items-center gap-2.5 max-lg:w-full max-lg:flex-col max-lg:gap-2">
             {FILTER_CONFIG.map(({ key, defaultLabel, options }) => (
               <FilterDropdown key={key} defaultLabel={defaultLabel} options={options} />
             ))}
@@ -868,7 +869,7 @@ export default function TasksBoard() {
           onAutoTriggerConsumed={() => setTriggerSubtasksAi(false)}
         />
       ) : (
-      <div className="flex flex-col gap-4 lg:h-167.75 lg:flex-row lg:items-stretch lg:gap-4">
+      <div className="flex h-167.75 items-stretch gap-4 max-lg:h-auto max-lg:flex-col">
         {COLUMNS.map((column) => {
           const Icon = column.icon;
           const { key, label } = column;
@@ -880,7 +881,7 @@ export default function TasksBoard() {
           return (
             <div
               key={key}
-              className="scrollbar-hidden relative flex w-full shrink-0 flex-col items-start gap-2.5 overflow-y-auto rounded-2xl border border-[#f2f2f2] bg-white p-3 max-lg:max-h-[min(70vh,560px)] lg:min-h-0 lg:flex-1 dark:border-zinc-700 dark:bg-zinc-800"
+              className="scrollbar-hidden relative flex w-full shrink-0 flex-col items-start gap-2.5 overflow-y-auto rounded-2xl border border-[#f2f2f2] bg-white p-3 lg:min-h-0 lg:flex-1 dark:border-zinc-700 dark:bg-zinc-800 max-lg:max-h-[min(70vh,560px)]"
             >
               <div className="flex w-full shrink-0 items-center justify-between">
                 <div className="flex min-w-0 items-center gap-2">
