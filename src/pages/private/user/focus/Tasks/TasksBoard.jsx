@@ -747,7 +747,7 @@ export default function TasksBoard() {
   };
 
   return (
-    <div className="p-7.5">
+    <div className="py-7.5">
       {/* Header */}
       <div className="mb-5 flex w-full items-start justify-between">
         <div className="flex flex-col items-start gap-2">
