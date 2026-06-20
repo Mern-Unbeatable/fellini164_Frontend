@@ -242,6 +242,7 @@ function GhostTaskMenu({ onRegenerate, onDismiss }) {
 
 function GhostTaskCard({ task, onDismiss, onRegenerate }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const cardRef = useRef(null);
 
   useEffect(() => {
@@ -252,18 +253,20 @@ function GhostTaskCard({ task, onDismiss, onRegenerate }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const isActive = menuOpen;
-  const faded = isActive ? 'opacity-100' : 'opacity-40 group-hover:opacity-100';
+  const isActive = menuOpen || isHovered;
+  const faded = isActive ? 'opacity-100' : 'opacity-40';
 
   return (
     <div
       ref={cardRef}
-      className={`group relative flex h-[174px] w-full flex-col justify-between overflow-hidden rounded-2xl border border-dashed border-[#e9e9e9] transition-all ${
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className={`group relative flex w-full flex-col justify-between overflow-hidden rounded-2xl border transition-all ${
         menuOpen ? 'overflow-visible' : ''
       } ${
         isActive
-          ? 'border-solid border-[#f2f2f2] bg-[#fcfcfc] shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)]'
-          : 'hover:border-solid hover:border-[#f2f2f2] hover:bg-[#fcfcfc] hover:shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)]'
+          ? 'h-auto border-solid border-[#f2f2f2] bg-[#fcfcfc] shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)]'
+          : 'h-[174px] border-dashed border-[#e9e9e9]'
       }`}
     >
       <div className="flex flex-col gap-2.5 p-3">
@@ -287,9 +290,7 @@ function GhostTaskCard({ task, onDismiss, onRegenerate }) {
                 aria-label="Ghost task menu"
                 aria-expanded={menuOpen}
                 className={`rounded-md p-1 text-[#a3a3a3] transition-opacity ${
-                  menuOpen
-                    ? 'bg-[#f2f2f2] opacity-100'
-                    : 'opacity-0 group-hover:opacity-100'
+                  isActive ? 'opacity-100' : 'opacity-0'
                 }`}
               >
                 <MoreHorizontal size={14} />
@@ -331,30 +332,34 @@ function GhostTaskCard({ task, onDismiss, onRegenerate }) {
         </div>
       </div>
 
-      <div className="relative h-[42px] w-full shrink-0 border-t border-dashed border-[#e9e9e9]">
+      <div
+        className={`relative h-[42px] w-full shrink-0 border-t px-3 py-2.5 ${
+          isActive ? 'border-solid border-[#f2f2f2]' : 'border-dashed border-[#e9e9e9]'
+        }`}
+      >
         <div
           className={`absolute inset-0 flex items-center px-3 py-2.5 transition-opacity duration-200 ${
-            isActive ? 'pointer-events-none opacity-0' : 'opacity-40 group-hover:opacity-0'
+            isActive ? 'pointer-events-none opacity-0' : 'opacity-40'
           }`}
         >
-          <p className="w-full text-[12px] font-medium leading-normal">
+          <p className="text-[12px] font-medium leading-normal">
             <span className="text-[#c2c2c2]">Due:</span>{' '}
             <span className="text-[#5d5d5d]">{task.due}</span>
           </p>
         </div>
         <div
           className={`absolute inset-0 flex items-center justify-between px-3 py-2.5 transition-opacity duration-200 ${
-            isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+            isActive ? 'opacity-100' : 'pointer-events-none opacity-0'
           }`}
         >
-          <p className="text-[12px] font-medium text-[#c2c2c2]">
+          <p className="shrink-0 text-[12px] font-medium text-[#c2c2c2]">
             AI suggested based on your profile
           </p>
           <button
             type="button"
-            className="flex items-center gap-1.5 rounded-md bg-[#f9f4ff] px-2 py-0.5 text-[12px] font-medium text-[#8022fe]"
+            className="flex shrink-0 items-center gap-1.5 rounded-[6px] bg-[#f9f4ff] px-[8px] py-[2px] text-[12px] font-medium text-[#8022fe]"
           >
-            Accept
+            Accept Task
             <Check size={10} strokeWidth={2.5} />
           </button>
         </div>
