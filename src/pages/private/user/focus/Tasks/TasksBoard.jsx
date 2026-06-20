@@ -18,7 +18,9 @@ import {
 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import TaskFormModal from './components/TaskFormModal';
+import TaskDetailPanel from './components/TaskDetailPanel';
 import TypewriterText from '../../../../../components/ui/TypewriterText';
+import { EXERCISE_ROUTINE_SUBTASKS, formatStepsProgress } from './utils/subtasks';
 
 const TASKS_SUBTITLE_PHRASES = [
   'Plan, prioritize, and complete your tasks in one place...',
@@ -130,6 +132,7 @@ const INITIAL_COLUMNS = {
       source: 'ai',
       category: 'Career',
       status: 'To Do',
+      subtasks: EXERCISE_ROUTINE_SUBTASKS.map((s) => ({ ...s })),
     },
     {
       id: 'task-2',
@@ -364,7 +367,7 @@ function GhostTaskCard({ task, onDismiss, onRegenerate }) {
 }
 
 // Rule 3 — three groups: Edit | ✦ Break into subtasks, ✦ Improve description | Delete
-function TaskCardMenu({ onClose, onEdit, onDelete }) {
+function TaskCardMenu({ onClose, onEdit, onDelete, onBreakIntoSubtasks }) {
   return (
     <div className="absolute right-0 top-full z-30 mt-1 flex min-w-37.5 flex-col overflow-hidden rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
       <button
@@ -377,7 +380,10 @@ function TaskCardMenu({ onClose, onEdit, onDelete }) {
       </button>
       <button
         type="button"
-        onClick={onClose}
+        onClick={() => {
+          onClose();
+          onBreakIntoSubtasks?.();
+        }}
         className="flex w-full items-center gap-1.5 px-2.5 py-1.5 text-left text-[12px] font-medium text-[#8022fe] hover:bg-[#fcfcfc] dark:hover:bg-zinc-700"
       >
         <Sparkles size={10} />
@@ -403,7 +409,7 @@ function TaskCardMenu({ onClose, onEdit, onDelete }) {
   );
 }
 
-function TaskCard({ task, onEdit, onDelete, isDoneColumn = false, isEntering = false }) {
+function TaskCard({ task, onEdit, onDelete, onSelect, onBreakIntoSubtasks, isDoneColumn = false, isEntering = false }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const cardRef = useRef(null);
 
@@ -420,7 +426,19 @@ function TaskCard({ task, onEdit, onDelete, isDoneColumn = false, isEntering = f
   return (
     <div
       ref={cardRef}
-      className={`group relative flex w-full flex-col rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] transition-shadow hover:shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800 ${
+      role="button"
+      tabIndex={0}
+      onClick={(e) => {
+        if (e.target.closest('button')) return;
+        onSelect?.(task);
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onSelect?.(task);
+        }
+      }}
+      className={`group relative flex w-full cursor-pointer flex-col rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] transition-shadow hover:shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800 ${
         isEntering ? 'animate-board-card-enter' : ''
       } ${
         menuOpen ? 'z-10 overflow-visible shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)]' : 'overflow-hidden'
@@ -466,6 +484,10 @@ function TaskCard({ task, onEdit, onDelete, isDoneColumn = false, isEntering = f
                   onDelete={() => {
                     setMenuOpen(false);
                     onDelete(task);
+                  }}
+                  onBreakIntoSubtasks={() => {
+                    setMenuOpen(false);
+                    onBreakIntoSubtasks?.(task);
                   }}
                 />
               )}
@@ -604,6 +626,46 @@ export default function TasksBoard() {
   const [ghostTasks, setGhostTasks] = useState(GHOST_TASKS);
   const [taskModal, setTaskModal] = useState({ open: false, mode: 'create', task: null });
   const [enteringTaskIds, setEnteringTaskIds] = useState(() => new Set());
+  const [selectedTaskId, setSelectedTaskId] = useState(null);
+  const [triggerSubtasksAi, setTriggerSubtasksAi] = useState(false);
+
+  const findTaskById = (id) => {
+    for (const key of ['todo', 'inProgress', 'done']) {
+      const found = columns[key].find((t) => t.id === id);
+      if (found) return found;
+    }
+    return null;
+  };
+
+  const selectedTask = selectedTaskId ? findTaskById(selectedTaskId) : null;
+
+  const openTaskDetail = (task, runSubtasksAi = false) => {
+    setSelectedTaskId(task.id);
+    setTriggerSubtasksAi(runSubtasksAi);
+  };
+
+  const closeTaskDetail = () => {
+    setSelectedTaskId(null);
+    setTriggerSubtasksAi(false);
+  };
+
+  const handleUpdateSubtasks = (taskId, subtasks) => {
+    setColumns((prev) => {
+      const next = {
+        todo: [...prev.todo],
+        inProgress: [...prev.inProgress],
+        done: [...prev.done],
+      };
+      for (const key of Object.keys(next)) {
+        next[key] = next[key].map((t) =>
+          t.id === taskId
+            ? { ...t, subtasks, steps: formatStepsProgress(subtasks) ?? t.steps }
+            : t
+        );
+      }
+      return next;
+    });
+  };
 
   const openNewTaskModal = () => setTaskModal({ open: true, mode: 'create', task: null });
   const openEditTaskModal = (task) => setTaskModal({ open: true, mode: 'edit', task });
@@ -730,7 +792,16 @@ export default function TasksBoard() {
         </div>
       </div>
 
-      {/* Columns */}
+      {/* Columns or task detail (Step 8) */}
+      {selectedTask ? (
+        <TaskDetailPanel
+          task={selectedTask}
+          onClose={closeTaskDetail}
+          onUpdateSubtasks={(subtasks) => handleUpdateSubtasks(selectedTask.id, subtasks)}
+          autoTriggerSubtasksAi={triggerSubtasksAi}
+          onAutoTriggerConsumed={() => setTriggerSubtasksAi(false)}
+        />
+      ) : (
       <div className="flex h-167.75 items-stretch gap-4">
         {COLUMNS.map((column) => {
           const Icon = column.icon;
@@ -789,6 +860,8 @@ export default function TasksBoard() {
                         task={task}
                         onEdit={openEditTaskModal}
                         onDelete={handleDeleteTask}
+                        onSelect={(t) => openTaskDetail(t)}
+                        onBreakIntoSubtasks={(t) => openTaskDetail(t, true)}
                         isDoneColumn={isDone}
                         isEntering={enteringTaskIds.has(task.id)}
                       />
@@ -801,6 +874,7 @@ export default function TasksBoard() {
           );
         })}
       </div>
+      )}
 
       {/* Modal */}
       {taskModal.open && (
