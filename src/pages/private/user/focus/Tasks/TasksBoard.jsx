@@ -62,8 +62,12 @@ const GHOST_TASKS = [
     priority: 'URGENT',
     title: 'Exercise Routine',
     description: 'Follow your fitness routine or do a workout session.',
-    tags: [{ label: 'Career' }, { label: 'Improve Rate', icon: TrendingUp }, { label: '60 Min', icon: Clock }],
-    steps: '0/4 Steps',
+    tags: [
+      { label: 'Career' },
+      { label: 'Improve Rate', icon: TrendingUp },
+      { label: '60 Min', icon: Clock },
+      { label: '0/4 Steps' },
+    ],
     due: 'Today',
   },
   {
@@ -72,8 +76,7 @@ const GHOST_TASKS = [
     title: 'Deliver message',
     description:
       'Communicate the expectations regarding maintaining a calm environment to the relevant individuals in a direct and respectful manner.',
-    tags: [{ label: 'Health' }],
-    steps: '0/8 Steps',
+    tags: [{ label: 'Health' }, { label: '0/8 Steps' }],
     due: 'Today',
   },
   {
@@ -250,30 +253,29 @@ function GhostTaskCard({ task, onDismiss, onRegenerate }) {
   }, []);
 
   const isActive = menuOpen;
+  const faded = isActive ? 'opacity-100' : 'opacity-40 group-hover:opacity-100';
 
   return (
     <div
       ref={cardRef}
-      className={`group relative flex h-43.5 w-full flex-col items-start justify-between rounded-2xl border bg-white transition-all dark:bg-zinc-800 ${
-        menuOpen ? 'overflow-visible' : 'overflow-hidden'
+      className={`group relative flex h-[174px] w-full flex-col justify-between overflow-hidden rounded-2xl border border-dashed border-[#e9e9e9] transition-all ${
+        menuOpen ? 'overflow-visible' : ''
       } ${
         isActive
-          ? 'border-solid border-[#f2f2f2] bg-[#fcfcfc] shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:bg-zinc-700'
-          : 'border-dashed border-[#e9e9e9] hover:border-solid hover:border-[#f2f2f2] hover:bg-[#fcfcfc] hover:shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:hover:bg-zinc-700'
+          ? 'border-solid border-[#f2f2f2] bg-[#fcfcfc] shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)]'
+          : 'hover:border-solid hover:border-[#f2f2f2] hover:bg-[#fcfcfc] hover:shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)]'
       }`}
     >
-      <div className="relative flex w-full flex-col items-start gap-2.5 p-3">
-        <div
-          className={`flex w-full flex-col items-start gap-2 transition-opacity ${isActive ? 'opacity-100' : 'opacity-40 group-hover:opacity-100'}`}
-        >
+      <div className="flex flex-col gap-2.5 p-3">
+        <div className={`flex flex-col gap-2 transition-opacity duration-200 ${faded}`}>
           <div className="flex w-full items-center justify-between">
             <div className="flex items-center gap-1">
               <span
-                className={`rounded-md px-1.5 py-0.5 text-[12px] font-medium uppercase ${PRIORITY_STYLES[task.priority]}`}
+                className={`rounded-[6px] px-[6px] py-[2px] text-[12px] font-medium uppercase ${PRIORITY_STYLES[task.priority]}`}
               >
                 {PRIORITY_LABELS[task.priority]}
               </span>
-              <span className="flex items-center gap-1 rounded-md bg-[#f9f4ff] px-1.5 py-0.5 text-[12px] font-medium text-[#8022fe]">
+              <span className="flex items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-[12px] font-medium text-[#8022fe]">
                 <Sparkles size={10} />
                 AI
               </span>
@@ -286,7 +288,7 @@ function GhostTaskCard({ task, onDismiss, onRegenerate }) {
                 aria-expanded={menuOpen}
                 className={`rounded-md p-1 text-[#a3a3a3] transition-opacity ${
                   menuOpen
-                    ? 'bg-[#f2f2f2] opacity-100 dark:bg-zinc-600'
+                    ? 'bg-[#f2f2f2] opacity-100'
                     : 'opacity-0 group-hover:opacity-100'
                 }`}
               >
@@ -306,43 +308,38 @@ function GhostTaskCard({ task, onDismiss, onRegenerate }) {
               )}
             </div>
           </div>
-          <div className="flex w-full flex-col items-start gap-1">
-            <p className="w-full text-[16px] font-medium text-[#181818] dark:text-white">{task.title}</p>
-            <p className="w-full overflow-hidden text-ellipsis text-[12px] whitespace-nowrap text-[#a3a3a3]">
+          <div className="flex w-full flex-col gap-1">
+            <p className="w-full text-[16px] font-medium leading-normal text-[#181818] dark:text-white">
+              {task.title}
+            </p>
+            <p className="w-full overflow-hidden text-ellipsis whitespace-nowrap text-[12px] leading-normal text-[#a3a3a3]">
               {task.description}
             </p>
           </div>
         </div>
-        <div
-          className={`flex items-center gap-1 transition-opacity ${isActive ? 'opacity-100' : 'opacity-40 group-hover:opacity-100'}`}
-        >
+
+        <div className={`flex flex-wrap items-center gap-1 transition-opacity duration-200 ${faded}`}>
           {task.tags.map((tag) => (
             <span
               key={tag.label}
-              className="flex items-center gap-1.5 rounded-md border border-[#f2f2f2] px-1.5 py-0.5 text-[12px] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300"
+              className="flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300"
             >
-              {tag.icon && <tag.icon size={12} />}
+              {tag.icon && <tag.icon size={12} className="shrink-0" />}
               {tag.label}
             </span>
           ))}
-          {task.steps && (
-            <span className="rounded-md border border-[#f2f2f2] px-1.5 py-0.5 text-[12px] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
-              {task.steps}
-            </span>
-          )}
         </div>
-
       </div>
 
-      {/* Footer: due date fades out on hover, Accept footer fades in */}
-      <div className="relative h-10.5 w-full shrink-0 border-t border-[#f2f2f2] dark:border-zinc-700">
+      <div className="relative h-[42px] w-full shrink-0 border-t border-dashed border-[#e9e9e9]">
         <div
-          className={`absolute inset-0 flex items-center justify-center border-t border-dashed border-[#e9e9e9] px-3 py-2.5 transition-opacity duration-200 ${
+          className={`absolute inset-0 flex items-center px-3 py-2.5 transition-opacity duration-200 ${
             isActive ? 'pointer-events-none opacity-0' : 'opacity-40 group-hover:opacity-0'
           }`}
         >
-          <p className="text-[12px]">
-            <span className="text-[#c2c2c2]">Due:</span> <span className="text-[#5d5d5d]">{task.due}</span>
+          <p className="w-full text-[12px] font-medium leading-normal">
+            <span className="text-[#c2c2c2]">Due:</span>{' '}
+            <span className="text-[#5d5d5d]">{task.due}</span>
           </p>
         </div>
         <div
@@ -350,7 +347,7 @@ function GhostTaskCard({ task, onDismiss, onRegenerate }) {
             isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
           }`}
         >
-          <p className="text-[12px] font-medium text-[#c2c2c2] dark:text-gray-400">
+          <p className="text-[12px] font-medium text-[#c2c2c2]">
             AI suggested based on your profile
           </p>
           <button
@@ -827,7 +824,7 @@ export default function TasksBoard() {
                   )}
                 </div>
                 {isTodo && showGhostCards ? (
-                  <span className="flex items-center gap-1 rounded-md bg-[#f9f4ff] px-1.5 py-0.5 text-[12px] font-medium text-[#8022fe]">
+                  <span className="flex items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-[12px] font-medium text-[#8022fe]">
                     <Sparkles size={10} />
                     {ghostTasks.length} AI Suggestions
                   </span>
