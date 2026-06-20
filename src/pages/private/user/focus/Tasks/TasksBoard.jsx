@@ -403,7 +403,7 @@ function TaskCardMenu({ onClose, onEdit, onDelete }) {
   );
 }
 
-function TaskCard({ task, onEdit, onDelete, isDoneColumn = false }) {
+function TaskCard({ task, onEdit, onDelete, isDoneColumn = false, isEntering = false }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const cardRef = useRef(null);
 
@@ -421,6 +421,8 @@ function TaskCard({ task, onEdit, onDelete, isDoneColumn = false }) {
     <div
       ref={cardRef}
       className={`group relative flex w-full flex-col rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] transition-shadow hover:shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800 ${
+        isEntering ? 'animate-board-card-enter' : ''
+      } ${
         menuOpen ? 'z-10 overflow-visible shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)]' : 'overflow-hidden'
       }`}
     >
@@ -601,6 +603,7 @@ export default function TasksBoard() {
   const [columns, setColumns] = useState(INITIAL_COLUMNS);
   const [ghostTasks, setGhostTasks] = useState(GHOST_TASKS);
   const [taskModal, setTaskModal] = useState({ open: false, mode: 'create', task: null });
+  const [enteringTaskIds, setEnteringTaskIds] = useState(() => new Set());
 
   const openNewTaskModal = () => setTaskModal({ open: true, mode: 'create', task: null });
   const openEditTaskModal = (task) => setTaskModal({ open: true, mode: 'edit', task });
@@ -630,6 +633,7 @@ export default function TasksBoard() {
   };
 
   const handleSubmitTask = (form) => {
+    const isCreate = taskModal.mode === 'create';
     const columnKey = STATUS_TO_COLUMN[form.status] || 'todo';
     const isAi = form.source === 'ai';
     const tags = [{ label: form.category }];
@@ -640,22 +644,24 @@ export default function TasksBoard() {
       tags.push({ label: form.linkedGoal, icon: TrendingUp });
     }
 
+    const taskId = isCreate ? Date.now() : taskModal.task.id;
+
     const taskData = {
-      ...(taskModal.mode === 'edit' ? taskModal.task : {}),
-      id: taskModal.mode === 'edit' ? taskModal.task.id : Date.now(),
+      ...(isCreate ? {} : taskModal.task),
+      id: taskId,
       priority: form.priority.toUpperCase(),
       title: form.title || 'Untitled Task',
       description: form.description,
       tags,
       due: form.dueLabel || (form.dueDate ? formatDate(form.dueDate) : 'No date'),
-      source: isAi ? 'ai' : taskModal.mode === 'edit' ? taskModal.task.source ?? 'manual' : 'manual',
+      source: isAi ? 'ai' : isCreate ? 'manual' : taskModal.task.source ?? 'manual',
       category: form.category,
       status: form.status || 'To Do',
     };
 
     setColumns((prev) => {
       const next = { todo: [...prev.todo], inProgress: [...prev.inProgress], done: [...prev.done] };
-      if (taskModal.mode === 'edit') {
+      if (!isCreate) {
         for (const key of Object.keys(next)) {
           next[key] = next[key].filter((t) => t.id !== taskData.id);
         }
@@ -663,6 +669,17 @@ export default function TasksBoard() {
       next[columnKey] = [...next[columnKey], taskData];
       return next;
     });
+
+    if (isCreate) {
+      setEnteringTaskIds((prev) => new Set(prev).add(taskId));
+      window.setTimeout(() => {
+        setEnteringTaskIds((prev) => {
+          const next = new Set(prev);
+          next.delete(taskId);
+          return next;
+        });
+      }, 300);
+    }
   };
 
   return (
@@ -773,6 +790,7 @@ export default function TasksBoard() {
                         onEdit={openEditTaskModal}
                         onDelete={handleDeleteTask}
                         isDoneColumn={isDone}
+                        isEntering={enteringTaskIds.has(task.id)}
                       />
                     ))
                   : null}
