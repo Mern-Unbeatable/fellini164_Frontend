@@ -64,7 +64,7 @@ const GHOST_TASKS = [
     description: 'Follow your fitness routine or do a workout session.',
     tags: [
       { label: 'Career' },
-      { label: 'Improve Rate', icon: TrendingUp },
+      { label: 'Improve Rate', icon: Target },
       { label: '60 Min', icon: Clock },
       { label: '0/4 Steps' },
     ],
@@ -127,7 +127,7 @@ const INITIAL_COLUMNS = {
       description: 'Follow your fitness routine or do a workout session.',
       tags: [
         { label: 'Career' },
-        { label: 'Improve Rate', icon: TrendingUp },
+        { label: 'Improve Rate', icon: Target },
         { label: '60 Min', icon: Clock },
       ],
       steps: '0/4 Steps',
@@ -261,7 +261,7 @@ function GhostTaskCard({ task, onDismiss, onRegenerate }) {
       ref={cardRef}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`group relative flex w-full flex-col justify-between overflow-hidden rounded-2xl border transition-all ${
+      className={`group relative flex w-full shrink-0 flex-col justify-between overflow-hidden rounded-2xl border transition-all ${
         menuOpen ? 'overflow-visible' : ''
       } ${
         isActive
@@ -271,43 +271,16 @@ function GhostTaskCard({ task, onDismiss, onRegenerate }) {
     >
       <div className="flex flex-col gap-2.5 p-3">
         <div className={`flex flex-col gap-2 transition-opacity duration-200 ${faded}`}>
-          <div className="flex w-full items-center justify-between">
-            <div className="flex items-center gap-1">
-              <span
-                className={`rounded-[6px] px-[6px] py-[2px] text-[12px] font-medium uppercase ${PRIORITY_STYLES[task.priority]}`}
-              >
-                {PRIORITY_LABELS[task.priority]}
-              </span>
-              <span className="flex items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-[12px] font-medium text-[#8022fe]">
-                <Sparkles size={10} />
-                AI
-              </span>
-            </div>
-            <div className="relative shrink-0">
-              <button
-                type="button"
-                onClick={() => setMenuOpen((o) => !o)}
-                aria-label="Ghost task menu"
-                aria-expanded={menuOpen}
-                className={`rounded-[6px] p-1 text-[#a3a3a3] transition-opacity ${
-                  isActive ? 'opacity-100' : 'opacity-0'
-                } ${menuOpen ? 'bg-[#f2f2f2]' : ''}`}
-              >
-                <MoreHorizontal size={14} />
-              </button>
-              {menuOpen && (
-                <GhostTaskMenu
-                  onRegenerate={() => {
-                    setMenuOpen(false);
-                    onRegenerate(task.id);
-                  }}
-                  onDismiss={() => {
-                    setMenuOpen(false);
-                    onDismiss(task.id);
-                  }}
-                />
-              )}
-            </div>
+          <div className="flex items-center gap-1">
+            <span
+              className={`rounded-[6px] px-[6px] py-[2px] text-[12px] font-medium uppercase ${PRIORITY_STYLES[task.priority]}`}
+            >
+              {PRIORITY_LABELS[task.priority]}
+            </span>
+            <span className="flex items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-[12px] font-medium text-[#8022fe]">
+              <Sparkles size={10} />
+              AI
+            </span>
           </div>
           <div className="flex w-full flex-col gap-1">
             <p className="w-full text-[16px] font-medium leading-normal text-[#181818] dark:text-white">
@@ -331,6 +304,35 @@ function GhostTaskCard({ task, onDismiss, onRegenerate }) {
           ))}
         </div>
       </div>
+
+      {isActive && (
+        <button
+          type="button"
+          onClick={() => setMenuOpen((o) => !o)}
+          aria-label="Ghost task menu"
+          aria-expanded={menuOpen}
+          className={`animate-fade-in absolute right-[11px] top-[12px] z-20 rounded-[6px] p-1 text-[#a3a3a3] ${
+            menuOpen ? 'bg-[#f2f2f2]' : 'hover:bg-[#f2f2f2]'
+          }`}
+        >
+          <MoreHorizontal size={14} />
+        </button>
+      )}
+
+      {menuOpen && (
+        <div className="absolute right-[11px] top-[37px] z-30">
+          <GhostTaskMenu
+            onRegenerate={() => {
+              setMenuOpen(false);
+              onRegenerate(task.id);
+            }}
+            onDismiss={() => {
+              setMenuOpen(false);
+              onDismiss(task.id);
+            }}
+          />
+        </div>
+      )}
 
       <div
         className={`relative h-[42px] w-full shrink-0 border-t px-3 py-2.5 ${
@@ -371,13 +373,16 @@ function GhostTaskCard({ task, onDismiss, onRegenerate }) {
 // Rule 3 — three groups: Edit | ✦ Break into subtasks, ✦ Improve description | Delete
 function TaskCardMenu({ onClose, onEdit, onDelete, onBreakIntoSubtasks }) {
   return (
-    <div className="absolute right-0 top-full z-30 mt-1 flex min-w-37.5 flex-col overflow-hidden rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
+    <div
+      className="flex w-max flex-col overflow-hidden rounded-[8px] border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800"
+      onMouseDown={(e) => e.stopPropagation()}
+    >
       <button
         type="button"
         onClick={onEdit}
-        className="flex w-full items-center gap-1.5 border-b border-[#f2f2f2] px-2.5 py-1.5 text-left text-[12px] font-medium text-[#5d5d5d] hover:bg-[#fcfcfc] dark:border-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-700"
+        className="flex w-full items-center gap-[6px] border-b border-[#f2f2f2] px-[10px] py-[6px] text-left text-[12px] font-medium leading-normal whitespace-nowrap text-[#5d5d5d] hover:bg-[#fcfcfc] dark:border-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-700"
       >
-        <Pencil size={10} />
+        <Pencil size={10} className="shrink-0" />
         Edit
       </button>
       <button
@@ -386,25 +391,25 @@ function TaskCardMenu({ onClose, onEdit, onDelete, onBreakIntoSubtasks }) {
           onClose();
           onBreakIntoSubtasks?.();
         }}
-        className="flex w-full items-center gap-1.5 px-2.5 py-1.5 text-left text-[12px] font-medium text-[#8022fe] hover:bg-[#fcfcfc] dark:hover:bg-zinc-700"
+        className="flex w-full items-center gap-[6px] px-[10px] py-[6px] text-left text-[12px] font-medium leading-normal whitespace-nowrap text-[#8022fe] hover:bg-[#fcfcfc] dark:hover:bg-zinc-700"
       >
-        <Sparkles size={10} />
+        <Sparkles size={10} className="shrink-0" />
         Break into subtasks
       </button>
       <button
         type="button"
         onClick={onClose}
-        className="flex w-full items-center gap-1.5 border-b border-[#f2f2f2] px-2.5 py-1.5 text-left text-[12px] font-medium text-[#8022fe] hover:bg-[#fcfcfc] dark:border-zinc-700 dark:hover:bg-zinc-700"
+        className="flex w-full items-center gap-[6px] border-b border-[#f2f2f2] px-[10px] py-[6px] text-left text-[12px] font-medium leading-normal whitespace-nowrap text-[#8022fe] hover:bg-[#fcfcfc] dark:border-zinc-700 dark:hover:bg-zinc-700"
       >
-        <Sparkles size={10} />
+        <Sparkles size={10} className="shrink-0" />
         Improve description
       </button>
       <button
         type="button"
         onClick={onDelete}
-        className="flex w-full items-center gap-1.5 px-2.5 py-1.5 text-left text-[12px] font-medium text-[#5d5d5d] hover:bg-[#fcfcfc] dark:text-gray-300 dark:hover:bg-zinc-700"
+        className="flex w-full items-center gap-[6px] px-[10px] py-[6px] text-left text-[12px] font-medium leading-normal whitespace-nowrap text-[#5d5d5d] hover:bg-[#fcfcfc] dark:text-gray-300 dark:hover:bg-zinc-700"
       >
-        <Trash2 size={10} />
+        <Trash2 size={10} className="shrink-0" />
         Delete
       </button>
     </div>
@@ -413,6 +418,7 @@ function TaskCardMenu({ onClose, onEdit, onDelete, onBreakIntoSubtasks }) {
 
 function TaskCard({ task, onEdit, onDelete, onSelect, onBreakIntoSubtasks, isDoneColumn = false, isEntering = false }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const cardRef = useRef(null);
 
   useEffect(() => {
@@ -424,12 +430,15 @@ function TaskCard({ task, onEdit, onDelete, onSelect, onBreakIntoSubtasks, isDon
   }, []);
 
   const faded = isDoneColumn;
+  const showMenuTrigger = isHovered || menuOpen;
 
   return (
     <div
       ref={cardRef}
       role="button"
       tabIndex={0}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       onClick={(e) => {
         if (e.target.closest('button')) return;
         onSelect?.(task);
@@ -440,70 +449,38 @@ function TaskCard({ task, onEdit, onDelete, onSelect, onBreakIntoSubtasks, isDon
           onSelect?.(task);
         }
       }}
-      className={`group relative flex w-full cursor-pointer flex-col rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] transition-shadow hover:shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800 ${
+      className={`group relative flex w-full shrink-0 cursor-pointer flex-col rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800 ${
         isEntering ? 'animate-board-card-enter' : ''
       } ${
-        menuOpen ? 'z-10 overflow-visible shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)]' : 'overflow-hidden'
+        menuOpen || isHovered
+          ? 'z-10 overflow-visible shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)]'
+          : 'overflow-hidden'
       }`}
     >
       <div className="flex flex-col gap-2.5 p-3">
         <div className={`flex w-full flex-col gap-2 ${faded ? 'opacity-50' : ''}`}>
-          <div className="flex w-full items-center justify-between">
-            <div className="flex items-center gap-1">
-              <span
-                className={`rounded-md px-1.5 py-0.5 text-[12px] font-medium uppercase ${PRIORITY_STYLES[task.priority]}`}
-              >
-                {PRIORITY_LABELS[task.priority]}
+          <div className="flex items-center gap-1">
+            <span
+              className={`rounded-[6px] px-[6px] py-[2px] text-[12px] font-medium uppercase ${PRIORITY_STYLES[task.priority]}`}
+            >
+              {PRIORITY_LABELS[task.priority]}
+            </span>
+            {task.source === 'ai' && (
+              <span className="flex items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-[12px] font-medium text-[#8022fe]">
+                <Sparkles size={10} className="shrink-0" />
+                AI
               </span>
-              {task.source === 'ai' && (
-                <span className="flex items-center gap-1 rounded-md bg-[#f9f4ff] px-1.5 py-0.5 text-[12px] font-medium text-[#8022fe]">
-                  <Sparkles size={10} />
-                  AI
-                </span>
-              )}
-            </div>
-            <div className="relative shrink-0">
-              <button
-                type="button"
-                onClick={() => setMenuOpen((o) => !o)}
-                aria-label="Task menu"
-                aria-expanded={menuOpen}
-                className={`rounded-md p-1 text-[#a3a3a3] transition-opacity ${
-                  menuOpen
-                    ? 'bg-[#f2f2f2] opacity-100 dark:bg-zinc-600'
-                    : 'opacity-0 group-hover:opacity-100'
-                }`}
-              >
-                <MoreHorizontal size={14} />
-              </button>
-              {menuOpen && (
-                <TaskCardMenu
-                  onClose={() => setMenuOpen(false)}
-                  onEdit={() => {
-                    setMenuOpen(false);
-                    onEdit(task);
-                  }}
-                  onDelete={() => {
-                    setMenuOpen(false);
-                    onDelete(task);
-                  }}
-                  onBreakIntoSubtasks={() => {
-                    setMenuOpen(false);
-                    onBreakIntoSubtasks?.(task);
-                  }}
-                />
-              )}
-            </div>
+            )}
           </div>
           <div className="flex w-full flex-col gap-1">
             <p
-              className={`w-full text-[16px] font-medium ${faded ? 'text-[#5d5d5d]' : 'text-[#181818]'} dark:text-white`}
+              className={`w-full text-[16px] font-medium leading-normal ${faded ? 'text-[#5d5d5d]' : 'text-[#181818]'} dark:text-white`}
             >
               {task.title}
             </p>
             {task.description && (
               <p
-                className={`w-full overflow-hidden text-ellipsis text-[12px] whitespace-nowrap ${faded ? 'text-[#c2c2c2]' : 'text-[#a3a3a3]'}`}
+                className={`w-full overflow-hidden text-ellipsis text-[12px] leading-normal whitespace-nowrap ${faded ? 'text-[#c2c2c2]' : 'text-[#a3a3a3]'}`}
               >
                 {task.description}
               </p>
@@ -516,14 +493,14 @@ function TaskCard({ task, onEdit, onDelete, onSelect, onBreakIntoSubtasks, isDon
             {task.tags?.map((tag) => (
               <span
                 key={tag.label}
-                className="flex items-center gap-1.5 rounded-md border border-[#f2f2f2] px-1.5 py-0.5 text-[12px] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300"
+                className="flex items-center gap-[6px] rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] font-medium leading-normal text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300"
               >
-                {tag.icon && <tag.icon size={12} />}
+                {tag.icon && <tag.icon size={12} className="shrink-0" />}
                 {tag.label}
               </span>
             ))}
             {task.steps && (
-              <span className="rounded-md border border-[#f2f2f2] px-1.5 py-0.5 text-[12px] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+              <span className="rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
                 {task.steps}
               </span>
             )}
@@ -532,7 +509,46 @@ function TaskCard({ task, onEdit, onDelete, onSelect, onBreakIntoSubtasks, isDon
 
       </div>
 
-      <div className="flex min-h-10.5 w-full items-center justify-between border-t border-[#f2f2f2] px-3 py-2.5 dark:border-zinc-700">
+      {/* Step 2 — ⋯ only on hover (Step 3 — stays while menu open) */}
+      {showMenuTrigger && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setMenuOpen((o) => !o);
+          }}
+          aria-label="Task menu"
+          aria-expanded={menuOpen}
+          className={`animate-fade-in absolute right-[11px] top-[12px] z-20 rounded-[6px] p-1 text-[#a3a3a3] ${
+            menuOpen ? 'bg-[#f2f2f2] dark:bg-zinc-600' : 'hover:bg-[#f2f2f2] dark:hover:bg-zinc-600'
+          }`}
+        >
+          <MoreHorizontal size={14} />
+        </button>
+      )}
+
+      {/* Step 3 — dropdown menu */}
+      {menuOpen && (
+        <div className="absolute right-[11px] top-[37px] z-30">
+          <TaskCardMenu
+            onClose={() => setMenuOpen(false)}
+            onEdit={() => {
+              setMenuOpen(false);
+              onEdit(task);
+            }}
+            onDelete={() => {
+              setMenuOpen(false);
+              onDelete(task);
+            }}
+            onBreakIntoSubtasks={() => {
+              setMenuOpen(false);
+              onBreakIntoSubtasks?.(task);
+            }}
+          />
+        </div>
+      )}
+
+      <div className="relative z-10 flex w-full shrink-0 items-center justify-between border-t border-[#f2f2f2] bg-[#fcfcfc] px-[12px] py-[10px] dark:border-zinc-700 dark:bg-zinc-800">
         {task.completed ? (
           <p className={`text-[12px] ${faded ? 'text-[#5d5d5d]' : ''}`}>
             <span className="text-[#c2c2c2]">Completed:</span>{' '}
@@ -540,13 +556,13 @@ function TaskCard({ task, onEdit, onDelete, onSelect, onBreakIntoSubtasks, isDon
           </p>
         ) : (
           <>
-            <p className="text-[12px]">
+            <p className="text-[12px] font-medium leading-normal">
               <span className="text-[#c2c2c2]">Due:</span>{' '}
               <span className="text-[#5d5d5d]">{task.due}</span>
             </p>
             {task.overdueDays != null && (
-              <span className="flex items-center gap-1.5 rounded-md bg-[rgba(220,38,38,0.05)] px-1.5 py-0.5 text-[12px] font-medium text-[#dc2626]">
-                <AlertCircle size={12} />
+              <span className="flex items-center gap-[6px] rounded-[6px] bg-[rgba(220,38,38,0.05)] px-[6px] py-[2px] text-[12px] font-medium leading-normal text-[#dc2626]">
+                <AlertCircle size={12} className="shrink-0" />
                 Overdue {task.overdueDays}d
               </span>
             )}
@@ -815,15 +831,15 @@ export default function TasksBoard() {
           return (
             <div
               key={key}
-              className="relative flex h-full flex-1 flex-col items-start gap-2.5 overflow-y-auto rounded-2xl border border-[#f2f2f2] bg-white p-3 dark:border-zinc-700 dark:bg-zinc-800"
+              className="scrollbar-hidden relative flex h-full min-h-0 flex-1 flex-col items-start gap-2.5 overflow-y-auto rounded-2xl border border-[#f2f2f2] bg-white p-3 dark:border-zinc-700 dark:bg-zinc-800"
             >
-              <div className="flex w-full items-center justify-between">
+              <div className="flex w-full shrink-0 items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Icon size={12} className="text-[#5d5d5d] dark:text-gray-300" />
-                  <p className="text-[14px] font-medium text-[#5d5d5d] dark:text-gray-300">{label}</p>
+                  <Icon size={12} className="shrink-0 text-[#5d5d5d] dark:text-gray-300" />
+                  <p className="text-[14px] font-medium leading-normal text-[#5d5d5d] dark:text-gray-300">{label}</p>
                   {isTodo && overdueCount > 0 && (
-                    <span className="flex items-center gap-1 rounded-md bg-[rgba(220,38,38,0.05)] px-1.5 py-0.5 text-[10px] font-semibold text-[#dc2626]">
-                      <span className="size-[3px] rounded-full bg-[#dc2626]" />
+                    <span className="flex items-center gap-1 rounded-[6px] bg-[rgba(220,38,38,0.05)] px-[6px] py-[2px] text-[10px] font-semibold leading-normal text-[#dc2626]">
+                      <span className="size-[3px] shrink-0 rounded-full bg-[#dc2626]" />
                       {overdueCount} Overdue
                     </span>
                   )}
@@ -834,7 +850,7 @@ export default function TasksBoard() {
                     {ghostTasks.length} AI Suggestions
                   </span>
                 ) : (
-                  <span className="flex w-5.5 items-center justify-center rounded-md bg-[#f2f2f2] px-1.5 py-0.5 text-[12px] font-medium text-[#5d5d5d] dark:bg-zinc-700 dark:text-gray-300">
+                  <span className="flex w-[22px] shrink-0 items-center justify-center rounded-[6px] bg-[#f2f2f2] px-[6px] py-[2px] text-[12px] font-medium leading-normal text-[#5d5d5d] dark:bg-zinc-700 dark:text-gray-300">
                     {cards.length}
                   </span>
                 )}
@@ -870,7 +886,7 @@ export default function TasksBoard() {
                     ))
                   : null}
               {isTodo && cards.length > 3 && (
-                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-15 bg-gradient-to-b from-transparent to-white dark:to-zinc-800" />
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[60px] rounded-b-2xl bg-gradient-to-b from-transparent to-white dark:to-zinc-800" />
               )}
             </div>
           );
