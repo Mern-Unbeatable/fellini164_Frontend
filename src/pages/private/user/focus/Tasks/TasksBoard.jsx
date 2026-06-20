@@ -219,21 +219,21 @@ const INITIAL_COLUMNS = {
 
 function GhostTaskMenu({ onRegenerate, onDismiss }) {
   return (
-    <div className="absolute right-0 top-full z-30 mt-1 flex min-w-37.5 flex-col overflow-hidden rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
+    <div className="absolute right-0 top-full z-30 mt-1 flex w-max flex-col overflow-hidden rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
       <button
         type="button"
         onClick={onRegenerate}
-        className="flex items-center gap-1.5 border-b border-[#f2f2f2] px-2.5 py-1.5 text-left text-[12px] font-medium text-[#8022fe] hover:bg-[#fcfcfc] dark:border-zinc-700 dark:hover:bg-zinc-700"
+        className="flex items-center gap-1.5 border-b border-[#f2f2f2] px-[10px] py-1.5 text-left text-[12px] font-medium whitespace-nowrap text-[#8022fe] hover:bg-[#fcfcfc] dark:border-zinc-700 dark:hover:bg-zinc-700"
       >
-        <Sparkles size={10} />
+        <Sparkles size={10} className="shrink-0" />
         Regenerate suggestion
       </button>
       <button
         type="button"
         onClick={onDismiss}
-        className="flex w-full items-center gap-1.5 px-2.5 py-1.5 text-left text-[12px] font-medium text-[#5d5d5d] hover:bg-[#fcfcfc] dark:text-gray-300 dark:hover:bg-zinc-700"
+        className="flex items-center gap-1.5 px-[10px] py-1.5 text-left text-[12px] font-medium whitespace-nowrap text-[#5d5d5d] hover:bg-[#fcfcfc] dark:text-gray-300 dark:hover:bg-zinc-700"
       >
-        <X size={10} />
+        <X size={10} className="shrink-0" />
         Dismiss
       </button>
     </div>
@@ -289,9 +289,9 @@ function GhostTaskCard({ task, onDismiss, onRegenerate }) {
                 onClick={() => setMenuOpen((o) => !o)}
                 aria-label="Ghost task menu"
                 aria-expanded={menuOpen}
-                className={`rounded-md p-1 text-[#a3a3a3] transition-opacity ${
+                className={`rounded-[6px] p-1 text-[#a3a3a3] transition-opacity ${
                   isActive ? 'opacity-100' : 'opacity-0'
-                }`}
+                } ${menuOpen ? 'bg-[#f2f2f2]' : ''}`}
               >
                 <MoreHorizontal size={14} />
               </button>
