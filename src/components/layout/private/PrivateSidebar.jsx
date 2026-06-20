@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import {
   ChevronLeft,
   ChevronRight,
-  CheckSquare,
+  ListTodo,
   RotateCcw,
   Target,
   Calendar,
@@ -12,15 +12,15 @@ import {
   PenSquare,
   LayoutDashboard,
   Megaphone,
-  Bot,
+  Sparkles,
   Activity,
   Bell,
 } from 'lucide-react';
 
 const WEEKDAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
-const MONTH_NAMES = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
+const SHORT_MONTH_NAMES = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
 ];
 
 const MAIN_ITEMS = [
@@ -33,13 +33,13 @@ const ORGANIZATION_ITEMS = [
 ];
 
 const WORK_ITEMS = [
-  { label: 'Tasks', icon: CheckSquare, path: '/user/tasks', match: ['/user/tasks'] },
+  { label: 'Tasks', icon: ListTodo, path: '/user/tasks', match: ['/user/tasks'] },
   { label: 'Habits', icon: RotateCcw, path: '/user/habits', match: ['/user/habits'] },
   { label: 'Goals', icon: Target, path: '/user/goals', match: ['/user/goals'] },
 ];
 
 const TOOLS_ITEMS = [
-  { label: 'AI Coach', icon: Bot },
+  { label: 'AI Coach', icon: Sparkles },
   { label: 'Activity', icon: Activity },
   { label: 'Notification', icon: Bell, badge: '+2' },
 ];
@@ -85,7 +85,7 @@ function MiniCalendar() {
     <div className="w-full rounded-[10px] border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800">
       <div className="flex w-full items-center justify-between border-b border-[#f2f2f2] px-2.5 py-1.5 dark:border-zinc-700">
         <p className="text-[12px] font-medium whitespace-nowrap text-[#5d5d5d] dark:text-gray-300">
-          {MONTH_NAMES[viewDate.getMonth()]} {viewDate.getFullYear()}
+          {SHORT_MONTH_NAMES[viewDate.getMonth()]} {viewDate.getFullYear()}
         </p>
         <div className="flex items-center gap-1">
           <button
@@ -107,11 +107,11 @@ function MiniCalendar() {
         </div>
       </div>
 
-      <div className="flex flex-wrap items-start justify-center gap-y-1 p-[8px]">
+      <div className="grid grid-cols-7 gap-x-[4.66px] gap-y-1 p-2">
         {WEEKDAYS.map((wd) => (
           <div
             key={wd}
-            className="flex size-[20px] shrink-0 items-center justify-center rounded-[5px] text-[10px] font-medium text-[#5d5d5d] dark:text-gray-300"
+            className="mx-auto flex size-[20px] items-center justify-center rounded-[5px] text-[10px] font-medium text-[#5d5d5d] dark:text-gray-300"
           >
             {wd}
           </div>
@@ -121,7 +121,7 @@ function MiniCalendar() {
           return (
             <div
               key={i}
-              className={`flex size-[20px] shrink-0 items-center justify-center rounded-[5px] text-[10px] font-medium ${
+              className={`mx-auto flex size-[20px] items-center justify-center rounded-[5px] text-[10px] font-medium ${
                 isToday
                   ? 'bg-[#f9f4ff] text-[#8022fe] dark:bg-purple-950 dark:text-purple-300'
                   : cell.faded
@@ -141,7 +141,7 @@ function MiniCalendar() {
 function SectionSubtitle({ children }) {
   return (
     <div className="flex w-full items-center px-2.5">
-      <p className="text-[12px] font-medium text-[#c2c2c2] dark:text-zinc-500">{children}</p>
+      <p className="flex-1 text-[12px] font-medium text-[#c2c2c2] dark:text-zinc-500">{children}</p>
     </div>
   );
 }
@@ -152,19 +152,19 @@ function NavItem({ item, isActive, collapsed, onNavigate }) {
     <Link
       to={item.path}
       onClick={onNavigate}
-      className={`relative flex h-8.25 w-full items-center gap-2 rounded-[10px] px-2.5 py-1.5 no-underline ${
+      className={`relative flex h-[33px] w-full items-center gap-2 rounded-[10px] px-2.5 py-1.5 no-underline ${
         isActive
           ? 'bg-[#f9f4ff] text-[#8022fe] dark:bg-purple-950 dark:text-purple-300'
-          : 'text-[#5d5d5d] hover:bg-[#fcfcfc] dark:text-gray-300 dark:hover:bg-zinc-800'
+          : 'bg-white text-[#5d5d5d] hover:bg-[#fcfcfc] dark:bg-zinc-900 dark:text-gray-300 dark:hover:bg-zinc-800'
       } ${collapsed ? 'justify-center' : ''}`}
       title={collapsed ? item.label : undefined}
     >
       {isActive && (
-        <span className="absolute left-0 top-[9px] h-[15px] w-[2px] rounded-full bg-[#8022fe]" />
+        <span className="absolute left-0 top-[9px] h-[15px] w-[2px] rounded-r-xl bg-[#8022fe]" />
       )}
-      <Icon size={18} className="shrink-0" />
+      <Icon size={18} className="shrink-0" strokeWidth={1.75} />
       {!collapsed && (
-        <p className="min-w-px flex-1 text-[14px] font-medium whitespace-nowrap">{item.label}</p>
+        <p className="min-w-0 flex-1 text-[14px] font-medium whitespace-nowrap">{item.label}</p>
       )}
     </Link>
   );
@@ -174,17 +174,17 @@ function InertNavItem({ item, collapsed }) {
   const Icon = item.icon;
   return (
     <div
-      className={`flex h-8.25 w-full items-center gap-2 rounded-[10px] bg-white px-2.5 py-1.5 text-[#5d5d5d] dark:bg-zinc-900 dark:text-gray-300 ${
+      className={`flex h-[33px] w-full items-center gap-2 rounded-[10px] bg-white px-2.5 py-1.5 text-[#5d5d5d] dark:bg-zinc-900 dark:text-gray-300 ${
         collapsed ? 'justify-center' : ''
       }`}
       title={collapsed ? item.label : undefined}
     >
-      <Icon size={18} className="shrink-0" />
+      <Icon size={18} className="shrink-0" strokeWidth={1.75} />
       {!collapsed && (
         <>
-          <p className="min-w-px flex-1 text-[14px] font-medium whitespace-nowrap">{item.label}</p>
+          <p className="min-w-0 flex-1 text-[14px] font-medium whitespace-nowrap">{item.label}</p>
           {item.badge && (
-            <span className="shrink-0 rounded-md bg-[rgba(220,38,38,0.05)] px-1.5 py-0.5 text-[12px] font-medium text-[#dc2626]">
+            <span className="shrink-0 rounded-md bg-[rgba(220,38,38,0.05)] px-1.5 py-0.5 text-[12px] font-medium uppercase leading-normal text-[#dc2626]">
               {item.badge}
             </span>
           )}
@@ -211,7 +211,7 @@ export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }
       <aside
         className={`fixed inset-y-0 left-0 z-50 flex h-screen flex-col overflow-y-auto border-r border-[#f2f2f2] bg-white transition-transform duration-300 ease-in-out dark:border-zinc-700 dark:bg-zinc-900 lg:static lg:translate-x-0 ${
           isMobileOpen ? 'translate-x-0' : '-translate-x-full'
-        } ${collapsed ? 'w-[72px]' : 'w-[200px]'}`}
+        } ${collapsed ? 'w-[72px]' : 'w-[220px]'}`}
       >
         <div className="flex w-full items-center justify-between border-b border-[#f2f2f2] p-[12px] dark:border-zinc-700">
           {!collapsed && (
@@ -234,9 +234,9 @@ export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }
             <MiniCalendar />
 
             {/* Create — visible per Figma, non-functional in MVP */}
-            <div className="flex h-8.25 w-full items-center gap-2 rounded-[10px] border border-[#f2f2f2] bg-[#fcfcfc] px-2.5 py-1.5 dark:border-zinc-700 dark:bg-zinc-800">
-              <PenSquare size={18} className="shrink-0 text-[#5d5d5d] dark:text-gray-300" />
-              <p className="min-w-px flex-1 text-[14px] font-medium whitespace-nowrap text-[#5d5d5d] dark:text-gray-300">
+            <div className="flex h-[33px] w-full items-center gap-2 rounded-[10px] border border-[#f2f2f2] bg-[#fcfcfc] px-2.5 py-1.5 dark:border-zinc-700 dark:bg-zinc-800">
+              <PenSquare size={18} className="shrink-0 text-[#5d5d5d] dark:text-gray-300" strokeWidth={1.75} />
+              <p className="min-w-0 flex-1 text-[14px] font-medium whitespace-nowrap text-[#5d5d5d] dark:text-gray-300">
                 Create
               </p>
               <p className="shrink-0 text-[10px] font-medium whitespace-nowrap text-[#c2c2c2] dark:text-zinc-500">

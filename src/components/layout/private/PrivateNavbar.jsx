@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Menu, ChevronRight, LogOut, Bell, Settings } from 'lucide-react';
+import { Menu, LogOut, Bell, Settings } from 'lucide-react';
 
 const BREADCRUMBS = [
   { prefix: '/user/tasks', section: 'Work', page: 'Tasks' },
@@ -55,13 +55,13 @@ export default function PrivateNavbar({ pathname, user, onOpenMobileSidebar, onL
         >
           <Menu size={20} />
         </button>
-        <div className="flex items-center gap-[10px]">
+        <div className="flex items-center gap-2.5">
           {section && (
             <>
               <p className="text-[12px] font-medium whitespace-nowrap text-[#5d5d5d] dark:text-gray-300">
                 {section}
               </p>
-              <ChevronRight size={12} className="text-[#c2c2c2] dark:text-zinc-600" />
+              <span className="text-[12px] font-medium text-[#c2c2c2] dark:text-zinc-600">/</span>
             </>
           )}
           <p className="text-[12px] font-medium whitespace-nowrap text-[#c2c2c2] dark:text-zinc-500">
@@ -73,8 +73,8 @@ export default function PrivateNavbar({ pathname, user, onOpenMobileSidebar, onL
       <div className="flex items-center gap-5">
         <div className="flex items-center gap-5">
           {/* Go to — visible per Figma, non-functional in MVP */}
-          <div className="flex w-26.25 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-[#f2f2f2] bg-[#fcfcfc] px-2.5 py-1.25 dark:border-zinc-700 dark:bg-zinc-800">
-            <p className="min-w-px flex-1 text-[12px] font-medium whitespace-nowrap text-[#5d5d5d] dark:text-gray-300">
+          <div className="flex w-[105px] shrink-0 items-center gap-1.5 rounded-lg border border-[#f2f2f2] bg-[#fcfcfc] px-2.5 py-[5px] dark:border-zinc-700 dark:bg-zinc-800">
+            <p className="min-w-0 flex-1 text-[12px] font-medium whitespace-nowrap text-[#5d5d5d] dark:text-gray-300">
               Go to...
             </p>
             <p className="shrink-0 text-[10px] font-medium whitespace-nowrap text-[#c2c2c2] dark:text-zinc-500">
@@ -82,14 +82,14 @@ export default function PrivateNavbar({ pathname, user, onOpenMobileSidebar, onL
             </p>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex w-[51px] items-center justify-between">
             {/* Notifications — visible per Figma, non-functional in MVP */}
             <div className="relative text-[#5d5d5d] dark:text-gray-300">
-              <Bell size={18} />
+              <Bell size={18} strokeWidth={1.75} />
               <span className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-red-500" />
             </div>
             {/* Settings — visible per Figma, non-functional in MVP */}
-            <Settings size={18} className="text-[#5d5d5d] dark:text-gray-300" />
+            <Settings size={18} className="text-[#5d5d5d] dark:text-gray-300" strokeWidth={1.75} />
           </div>
         </div>
 
