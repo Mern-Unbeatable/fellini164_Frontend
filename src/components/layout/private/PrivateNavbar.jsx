@@ -45,7 +45,7 @@ export default function PrivateNavbar({ pathname, user, onOpenMobileSidebar, onL
   }, []);
 
   return (
-    <div className="flex h-[48px] w-full shrink-0 items-center justify-between border-b border-[#f2f2f2] bg-white px-[30px] dark:border-zinc-700 dark:bg-zinc-900">
+    <div className="flex h-[52px] w-full shrink-0 items-center justify-between border-b border-[#f2f2f2] bg-white px-[30px] dark:border-zinc-700 dark:bg-zinc-900">
       <div className="flex items-center gap-3">
         <button
           type="button"

@@ -213,13 +213,19 @@ export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }
           isMobileOpen ? 'translate-x-0' : '-translate-x-full'
         } ${collapsed ? 'w-[72px]' : 'w-[220px]'}`}
       >
-        <div className="flex h-[48px] w-full shrink-0 items-center justify-between border-b border-[#f2f2f2] px-[12px] dark:border-zinc-700">
+        <div
+          className={`flex h-[52px] w-full shrink-0 items-center border-b border-[#f2f2f2] px-[12px] dark:border-zinc-700 ${
+            collapsed ? 'justify-center' : 'justify-between'
+          }`}
+        >
           {!collapsed && (
-            <Link to="/dashboard" className="flex shrink-0 items-center no-underline">
+            <Link to="/dashboard" className="flex h-[30px] w-[133px] shrink-0 items-center no-underline">
               <img
                 src="/logo.png"
                 alt="Elyxa.Ai"
-                className="h-[18px] w-[80px] object-contain object-left"
+                width={133}
+                height={30}
+                className="h-[30px] w-[133px] shrink-0 object-contain object-left"
               />
             </Link>
           )}
@@ -227,9 +233,13 @@ export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }
             type="button"
             onClick={() => setCollapsed((c) => !c)}
             aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            className="hidden shrink-0 rounded p-0.5 text-[#5d5d5d] hover:bg-[#f2f2f2] dark:text-gray-300 dark:hover:bg-zinc-800 lg:flex"
+            className="hidden shrink-0 text-[#c2c2c2] hover:text-[#5d5d5d] dark:text-zinc-500 dark:hover:text-gray-300 lg:flex"
           >
-            {collapsed ? <PanelLeft size={18} /> : <PanelLeftClose size={18} />}
+            {collapsed ? (
+              <PanelLeft size={18} strokeWidth={1.5} />
+            ) : (
+              <PanelLeftClose size={18} strokeWidth={1.5} />
+            )}
           </button>
         </div>
 
