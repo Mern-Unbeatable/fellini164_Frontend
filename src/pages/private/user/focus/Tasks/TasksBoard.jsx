@@ -16,7 +16,7 @@ import {
   AlertCircle,
   Target,
 } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import TaskFormModal from './components/TaskFormModal';
 import TaskDetailPanel from './components/TaskDetailPanel';
 import TypewriterText from '../../../../../components/ui/TypewriterText';
@@ -639,6 +639,30 @@ const COLUMNS = [
   { key: 'done', label: 'Done', icon: CheckCircle2 },
 ];
 
+function taskMatchesSearch(task, query) {
+  const q = query.trim().toLowerCase();
+  if (!q) return true;
+
+  const haystack = [
+    task.title,
+    task.description,
+    task.category,
+    task.status,
+    task.due,
+    task.completed,
+    task.steps,
+    task.priority,
+    PRIORITY_LABELS[task.priority],
+    task.source === 'ai' ? 'ai created by ai' : 'manual created manually',
+    ...(task.tags?.map((tag) => tag.label) ?? []),
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+
+  return haystack.includes(q);
+}
+
 export default function TasksBoard() {
   const [columns, setColumns] = useState(INITIAL_COLUMNS);
   const [ghostTasks, setGhostTasks] = useState(GHOST_TASKS);
@@ -646,6 +670,23 @@ export default function TasksBoard() {
   const [enteringTaskIds, setEnteringTaskIds] = useState(() => new Set());
   const [selectedTaskId, setSelectedTaskId] = useState(null);
   const [triggerSubtasksAi, setTriggerSubtasksAi] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredColumns = useMemo(() => {
+    if (!searchQuery.trim()) return columns;
+    return {
+      todo: columns.todo.filter((t) => taskMatchesSearch(t, searchQuery)),
+      inProgress: columns.inProgress.filter((t) => taskMatchesSearch(t, searchQuery)),
+      done: columns.done.filter((t) => taskMatchesSearch(t, searchQuery)),
+    };
+  }, [columns, searchQuery]);
+
+  const filteredGhostTasks = useMemo(() => {
+    if (!searchQuery.trim()) return ghostTasks;
+    return ghostTasks.filter((t) => taskMatchesSearch(t, searchQuery));
+  }, [ghostTasks, searchQuery]);
+
+  const isSearching = searchQuery.trim().length > 0;
 
   const findTaskById = (id) => {
     for (const key of ['todo', 'inProgress', 'done']) {
@@ -700,7 +741,7 @@ export default function TasksBoard() {
   const boardIsEmpty =
     columns.todo.length === 0 && columns.inProgress.length === 0 && columns.done.length === 0;
 
-  const showGhostCards = boardIsEmpty && ghostTasks.length > 0;
+  const showGhostCards = boardIsEmpty && filteredGhostTasks.length > 0;
 
   const handleDeleteTask = (task) => {
     setColumns((prev) => {
@@ -773,10 +814,17 @@ export default function TasksBoard() {
             className="text-[12px] font-medium text-[#c2c2c2] dark:text-gray-400"
           />
         </div>
-        <div className="flex w-62.5 items-center gap-2 rounded-lg border border-[#f2f2f2] px-3 py-1.75 dark:border-zinc-700">
-          <Search size={12} className="shrink-0 text-[#c2c2c2]" />
-          <p className="text-[12px] font-medium text-[#c2c2c2]">Search tasks in board...</p>
-        </div>
+        <label className="flex w-62.5 items-center gap-2 rounded-lg border border-[#f2f2f2] bg-white px-3 py-1.75 focus-within:border-[#e9e9e9] dark:border-zinc-700 dark:bg-zinc-800 dark:focus-within:border-zinc-600">
+          <Search size={12} className="shrink-0 text-[#c2c2c2]" aria-hidden />
+          <input
+            type="search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search tasks in board..."
+            aria-label="Search tasks in board"
+            className="w-full bg-transparent text-[12px] font-medium text-[#181818] outline-none placeholder:text-[#c2c2c2] dark:text-white"
+          />
+        </label>
       </div>
 
       {/* Action row */}
@@ -824,10 +872,11 @@ export default function TasksBoard() {
         {COLUMNS.map((column) => {
           const Icon = column.icon;
           const { key, label } = column;
-          const cards = columns[key];
+          const cards = filteredColumns[key];
           const isTodo = key === 'todo';
           const isDone = key === 'done';
           const overdueCount = isTodo ? cards.filter((t) => t.overdueDays != null).length : 0;
+          const hasSearchResults = cards.length > 0;
           return (
             <div
               key={key}
@@ -847,7 +896,7 @@ export default function TasksBoard() {
                 {isTodo && showGhostCards ? (
                   <span className="flex items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-[12px] font-medium text-[#8022fe]">
                     <Sparkles size={10} />
-                    {ghostTasks.length} AI Suggestions
+                    {filteredGhostTasks.length} AI Suggestions
                   </span>
                 ) : (
                   <span className="flex w-[22px] shrink-0 items-center justify-center rounded-[6px] bg-[#f2f2f2] px-[6px] py-[2px] text-[12px] font-medium leading-normal text-[#5d5d5d] dark:bg-zinc-700 dark:text-gray-300">
@@ -857,7 +906,7 @@ export default function TasksBoard() {
               </div>
 
               {isTodo && showGhostCards
-                ? ghostTasks.map((task) => (
+                ? filteredGhostTasks.map((task) => (
                     <GhostTaskCard
                       key={task.id}
                       task={task}
@@ -865,13 +914,17 @@ export default function TasksBoard() {
                       onRegenerate={handleRegenerateGhost}
                     />
                   ))
+                : !hasSearchResults && isSearching
+                  ? (
+                    <EmptyColumnPlaceholder text="No matching tasks" />
+                  )
                 : cards.length === 0 && !isTodo
                   ? (
                     <EmptyColumnPlaceholder
                       text={key === 'inProgress' ? 'No tasks in progress' : 'Completed tasks will appear here'}
                     />
                   )
-                  : cards.length > 0
+                  : hasSearchResults
                   ? cards.map((task) => (
                       <TaskCard
                         key={task.id}
