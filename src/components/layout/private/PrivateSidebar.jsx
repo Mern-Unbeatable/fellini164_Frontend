@@ -15,6 +15,7 @@ import {
   Sparkles,
   Activity,
   Bell,
+  X,
 } from 'lucide-react';
 
 const WEEKDAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
@@ -196,6 +197,7 @@ function InertNavItem({ item, collapsed }) {
 
 export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }) {
   const [collapsed, setCollapsed] = useState(false);
+  const showExpanded = !collapsed || isMobileOpen;
 
   const isItemActive = (item) => item.match.some((p) => pathname.startsWith(p));
 
@@ -209,17 +211,17 @@ export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex h-screen flex-col overflow-y-auto border-r border-[#f2f2f2] bg-white transition-transform duration-300 ease-in-out dark:border-zinc-700 dark:bg-zinc-900 lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 flex h-screen w-[220px] flex-col overflow-y-auto border-r border-[#f2f2f2] bg-white transition-transform duration-300 ease-in-out dark:border-zinc-700 dark:bg-zinc-900 lg:static lg:w-[220px] lg:translate-x-0 ${
           isMobileOpen ? 'translate-x-0' : '-translate-x-full'
-        } ${collapsed ? 'w-[72px]' : 'w-[220px]'}`}
+        } ${collapsed ? 'lg:w-[72px]' : ''}`}
       >
         <div
           className={`flex h-[52px] w-full shrink-0 items-center border-b border-[#f2f2f2] px-[12px] dark:border-zinc-700 ${
-            collapsed ? 'justify-center' : 'justify-between'
+            showExpanded ? 'justify-between' : 'justify-center'
           }`}
         >
-          {!collapsed && (
-            <Link to="/dashboard" className="flex h-[30px] w-[133px] shrink-0 items-center no-underline">
+          {showExpanded && (
+            <Link to="/dashboard" onClick={onCloseMobile} className="flex h-[30px] w-[133px] shrink-0 items-center no-underline">
               <img
                 src="/logo.png"
                 alt="Elyxa.Ai"
@@ -229,6 +231,14 @@ export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }
               />
             </Link>
           )}
+          <button
+            type="button"
+            onClick={onCloseMobile}
+            aria-label="Close sidebar"
+            className="inline-flex shrink-0 items-center justify-center rounded-lg p-1.5 text-[#5d5d5d] hover:bg-[#f2f2f2] lg:hidden dark:text-gray-300 dark:hover:bg-zinc-800"
+          >
+            <X size={18} strokeWidth={1.75} />
+          </button>
           <button
             type="button"
             onClick={() => setCollapsed((c) => !c)}
@@ -243,7 +253,7 @@ export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }
           </button>
         </div>
 
-        {!collapsed && (
+        {showExpanded && (
           <div className="flex w-full flex-col items-start gap-2 p-[8px]">
             <MiniCalendar />
 
@@ -261,31 +271,31 @@ export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }
         )}
 
         <div className="flex w-full flex-col items-start gap-1.5 px-2 py-3">
-          {!collapsed && <SectionSubtitle>Main</SectionSubtitle>}
+          {showExpanded && <SectionSubtitle>Main</SectionSubtitle>}
           <div className="flex w-full flex-col items-start gap-1">
             {MAIN_ITEMS.map((item) =>
               item.path ? (
                 <NavItem
                   key={item.label}
                   item={item}
-                  collapsed={collapsed}
+                  collapsed={!showExpanded}
                   isActive={isItemActive(item)}
                   onNavigate={onCloseMobile}
                 />
               ) : (
-                <InertNavItem key={item.label} item={item} collapsed={collapsed} />
+                <InertNavItem key={item.label} item={item} collapsed={!showExpanded} />
               )
             )}
           </div>
         </div>
 
         <div className="flex w-full flex-col items-start gap-1.5 px-2 py-3">
-          {!collapsed && <SectionSubtitle>Organization</SectionSubtitle>}
+          {showExpanded && <SectionSubtitle>Organization</SectionSubtitle>}
           {ORGANIZATION_ITEMS.map((item) => (
             <NavItem
               key={item.label}
               item={item}
-              collapsed={collapsed}
+              collapsed={!showExpanded}
               isActive={isItemActive(item)}
               onNavigate={onCloseMobile}
             />
@@ -293,13 +303,13 @@ export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }
         </div>
 
         <div className="flex w-full flex-col items-start gap-1.5 px-2 py-3">
-          {!collapsed && <SectionSubtitle>Work</SectionSubtitle>}
+          {showExpanded && <SectionSubtitle>Work</SectionSubtitle>}
           <div className="flex w-full flex-col items-start gap-1">
             {WORK_ITEMS.map((item) => (
               <NavItem
                 key={item.label}
                 item={item}
-                collapsed={collapsed}
+                collapsed={!showExpanded}
                 isActive={isItemActive(item)}
                 onNavigate={onCloseMobile}
               />
@@ -308,10 +318,10 @@ export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }
         </div>
 
         <div className="flex w-full flex-col items-start gap-1.5 px-2 py-3">
-          {!collapsed && <SectionSubtitle>Tools</SectionSubtitle>}
+          {showExpanded && <SectionSubtitle>Tools</SectionSubtitle>}
           <div className="flex w-full flex-col items-start gap-1">
             {TOOLS_ITEMS.map((item) => (
-              <InertNavItem key={item.label} item={item} collapsed={collapsed} />
+              <InertNavItem key={item.label} item={item} collapsed={!showExpanded} />
             ))}
           </div>
         </div>
