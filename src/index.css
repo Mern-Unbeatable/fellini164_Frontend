@@ -1,7 +1,7 @@
 /* ==================== */
 /* 1. GLOBAL IMPORTS    */
 /* ==================== */
-@import url('https://fonts.googleapis.com/css2?family=Bungee&family=Josefin+Sans:ital,wght@0,100..700;1,100..700&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Satisfy&family=Lato:wght@400;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bungee&family=Josefin+Sans:ital,wght@0,100..700;1,100..700&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Satisfy&family=Lato:wght@400;700;900&family=Inter:ital,wght@0,400;0,500;0,600;0,700&display=swap');
 @import 'tailwindcss';
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -16,6 +16,10 @@
   --font-secondary: 'Lato', system-ui, -apple-system, sans-serif;
   --font-display: 'Bungee', system-ui, -apple-system, sans-serif;
   --font-decorative: 'Satisfy', cursive;
+  /* User Dashboard (Tasks/Habits/Goals/Planner) Figma frames specify Inter, not Poppins —
+     applied via .dashboard-font on PrivateLayout, not globally, since marketing pages use
+     Poppins/Lato/Bungee by design. */
+  --font-dashboard: 'Inter', system-ui, -apple-system, sans-serif;
 
   /* Line Heights */
   --leading-tight: 1.2;
@@ -190,6 +194,14 @@
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
     @apply bg-white dark:bg-black;
+  }
+
+  /* User Dashboard (Tasks/Habits/Goals/Planner) — Figma frames specify Inter, scoped here
+     instead of overriding body so marketing pages keep Poppins/Lato/Bungee. */
+  .dashboard-font,
+  .dashboard-font input,
+  .dashboard-font button {
+    font-family: var(--font-dashboard);
   }
 
   /* TYPOGRAPHY SYSTEM */

@@ -18,7 +18,7 @@ export default function PrivateLayout() {
   };
 
   return (
-    <div className="flex h-screen bg-white dark:bg-zinc-900">
+    <div className="dashboard-font flex h-screen bg-white dark:bg-zinc-900">
       <PrivateSidebar
         pathname={pathname}
         isMobileOpen={isMobileSidebarOpen}

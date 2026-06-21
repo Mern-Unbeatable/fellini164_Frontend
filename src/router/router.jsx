@@ -71,10 +71,6 @@ const router = createBrowserRouter(
       </Route>
 
       {/* User Dashboard (Protected) */}
-      <Route element={<PrivateLayout />}>
-        <Route path="/__preview/habits" element={<Habits />} />
-      </Route>
-
       <Route
         element={
           <ProtectedRoute requiredRole="user">

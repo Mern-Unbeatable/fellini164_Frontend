@@ -136,9 +136,12 @@ dropdowns to filter the card list (currently they open/select visually but don't
 
 ## 2. Habits Board
 
+**Status (2026-06-21):** Step 1 (Empty States + Hover) ✅ done — visually confirmed by user
+against the Figma frames in `src/pages/private/user/focus/Habits/Habits.jsx`. Steps 2 and 3
+are not yet specified — confirm with the user before assuming scope.
+
 **Build plan (per user, 2026-06-21):** this board ships in 3 steps, each with sub-steps.
-Step 1 = Empty States (Figma frames below). Steps 2 and 3 are not yet specified — confirm
-with the user before assuming scope.
+Step 1 = Empty States (Figma frames below).
 
 - Step 1 frames: [Habits Board (1440) - 1 - Empty States](https://www.figma.com/design/VwgJovqBGtb90CEfNXkk2T/Elyxa.Ai--Phase-2---Copy-?node-id=1243-7175&m=dev)
   (default) and [...- Empty States - Hover](https://www.figma.com/design/VwgJovqBGtb90CEfNXkk2T/Elyxa.Ai--Phase-2---Copy-?node-id=1243-7663&m=dev)
@@ -177,6 +180,21 @@ Confirmed from Figma inspection 2026-06-21 (fileKey `VwgJovqBGtb90CEfNXkk2T`):
   ghost cards (§0 global rule: "same mechanics... share the component") but with habit-
   specific copy ("Accept Habit" instead of a footer + "Accept" button) — don't copy the
   Tasks ghost-card footer text verbatim onto Habits.
+- Ghost row three-dot menu reuses the Tasks ghost-card pattern exactly: **Regenerate
+  suggestion** / **Dismiss** (confirmed with user 2026-06-21, no separate Habits-specific
+  copy).
+- **Day-checkbox grid gotcha:** each ghost habit only shows checkboxes for the days it's
+  actually scheduled on — unscheduled days render as invisible (`opacity-0`) spacers so the
+  grid stays pixel-aligned with the Mon–Sun header columns, rather than evenly spacing
+  however many days are visible. Confirmed from the Figma frame's literal per-row spacer
+  divs: Drink Water hides Thu/Sat, Take Breaks shows all 7, Meditate hides Thu/Sun. Both the
+  header's day-of-week row and each row's checkbox grid use the same fixed `gap-7.5`
+  (30px) spacing, right-aligned, so they line up — don't switch either one to
+  `justify-between`/flexible spacing or they'll drift apart.
+- Icons: leading icon before the "✦ N AI Suggestions" pill is a refresh/loop icon (not part
+  of the pill itself); "Streak" column label uses a timer icon (not flame); reminder-time
+  tags ("7:00 AM", "6:30 PM") use a bell icon (not a clock); a linked-goal-style tag ("New
+  Job") uses a flag icon; a "days left" tag uses an hourglass icon.
 
 ### Habit card — overflow tags
 - When tags overflow available width, hide extras and show `+N`.
@@ -293,6 +311,25 @@ systems, not the Planner. If a planner action needs to change content, that's ou
 Post-MVP (do not build now): replacing some chat flows with dedicated popups / deeper contextual interactions.
 
 ---
+
+## 4.5 Font family — Inter, not Poppins (fixed 2026-06-21, applies to all boards)
+
+The whole private dashboard was rendering in **Poppins** (`--font-primary`, the marketing
+site's body font) because Inter was never imported, even though every dashboard Figma frame
+specifies **Inter**. Poppins vs Inter look close enough at a glance not to register as wrong
+until compared pixel-by-pixel against an actual Figma screenshot — boards can look subtly
+"off"/bulkier than Figma despite every padding/gap/px value matching, purely from this.
+
+Fixed: added Inter to the Google Fonts `@import` in `src/index.css`, plus a scoped
+`.dashboard-font` class (defined in `src/index.css`, applied to `PrivateLayout`'s root div
+in `src/components/layout/private/PrivateLayout.jsx`) — **not** a `body` override, since
+marketing pages intentionally keep Poppins/Lato/Bungee/Satisfy. If a new board still looks
+"off" from Figma after matching every spacing value, check computed `font-family` in
+DevTools before re-deriving spacing — it's an easy thing to overlook.
+
+Also fixed same day: `PrivateNavbar.jsx` was `h-[52px]`; every Figma frame specifies
+`h-[42px]`. This affects every private page (not just one board) — re-verify it didn't get
+reverted if `PrivateNavbar.jsx` is touched again.
 
 ## 5. Typography system (applies to all boards)
 

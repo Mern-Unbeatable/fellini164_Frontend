@@ -4,8 +4,10 @@ import {
   Sparkles,
   MoreHorizontal,
   ChevronDown,
-  Flame,
-  Clock,
+  RotateCw,
+  Timer,
+  Bell,
+  Flag,
   Hourglass,
   Check,
   X,
@@ -24,24 +26,30 @@ const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const TODAY_INDEX = (new Date().getDay() + 6) % 7; // Mon=0 ... Sun=6
 
 // AI-suggested ghost habits — shown only when the board has no real habits yet.
+// scheduledDays follows DAYS order (Mon..Sun); unscheduled days render as invisible
+// spacers so the checkbox grid stays pixel-aligned with the Mon..Sun header columns,
+// matching the exact per-habit gaps inspected in the Figma Empty States frame.
 const GHOST_HABITS = [
   {
     id: 'ghost-habit-1',
     title: 'Drink Water',
     description: 'Stay hydrated throughout the day',
-    tags: [{ label: 'Health' }, { label: '7:00 AM', icon: Clock }],
+    tags: [{ label: 'Health' }, { label: '7:00 AM', icon: Bell }],
+    scheduledDays: [true, true, true, false, true, false, true],
   },
   {
     id: 'ghost-habit-2',
     title: 'Take Breaks',
     description: 'Step away from your screen regularly',
-    tags: [{ label: 'Productivity' }, { label: '6:30 PM', icon: Clock }],
+    tags: [{ label: 'Productivity' }, { label: '6:30 PM', icon: Bell }, { label: 'New Job', icon: Flag }],
+    scheduledDays: [true, true, true, true, true, true, true],
   },
   {
     id: 'ghost-habit-3',
     title: 'Meditate',
     description: 'Practice mindfulness for mental clarity',
     tags: [{ label: 'Wellness' }, { label: '12 days left', icon: Hourglass }],
+    scheduledDays: [true, true, true, false, true, true, false],
   },
 ];
 
@@ -116,7 +124,7 @@ function GhostHabitRow({ habit, onDismiss, onRegenerate }) {
       ref={rowRef}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`relative flex w-full shrink-0 items-start gap-4 rounded-2xl border p-3 transition-all max-lg:flex-col max-lg:gap-3 ${
+      className={`relative flex w-full shrink-0 items-start rounded-2xl border p-3 transition-all max-lg:flex-col max-lg:gap-3 ${
         isActive
           ? 'border-solid border-[#f2f2f2] bg-[#fcfcfc] shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800'
           : 'border-dashed border-[#e9e9e9] dark:border-zinc-700'
@@ -131,7 +139,7 @@ function GhostHabitRow({ habit, onDismiss, onRegenerate }) {
               AI
             </span>
           </div>
-          <p className="overflow-hidden text-ellipsis whitespace-nowrap text-sm text-[#a3a3a3]">
+          <p className="overflow-hidden text-ellipsis whitespace-nowrap text-xs leading-normal text-[#a3a3a3]">
             {habit.description}
           </p>
         </div>
@@ -149,7 +157,7 @@ function GhostHabitRow({ habit, onDismiss, onRegenerate }) {
         {isActive && (
           <button
             type="button"
-            className="flex w-max items-center gap-1.5 rounded-[6px] bg-[#f9f4ff] px-[8px] py-[2px] text-sm font-medium text-[#8022fe]"
+            className="flex w-max items-center gap-1.5 rounded-[6px] bg-[#f9f4ff] px-[8px] py-[2px] text-xs font-medium text-[#8022fe]"
           >
             Accept Habit
             <Check size={10} strokeWidth={2.5} />
@@ -157,15 +165,17 @@ function GhostHabitRow({ habit, onDismiss, onRegenerate }) {
         )}
       </div>
 
-      <p className={`w-30 shrink-0 text-sm font-medium text-[#181818] transition-opacity duration-200 dark:text-white max-lg:w-auto ${isActive ? 'opacity-100' : 'opacity-40'}`}>
+      <p className={`w-[175px] shrink-0 text-sm font-medium text-[#181818] transition-opacity duration-200 dark:text-white max-lg:w-auto ${isActive ? 'opacity-100' : 'opacity-40'}`}>
         0 days
       </p>
 
-      <div className={`flex flex-1 items-center justify-between gap-2 transition-opacity duration-200 max-lg:w-full max-lg:flex-wrap ${isActive ? 'opacity-100' : 'opacity-40'}`}>
-        {DAYS.map((day) => (
+      <div className={`flex shrink-0 items-center gap-7.5 transition-opacity duration-200 max-lg:w-full max-lg:flex-wrap max-lg:gap-2 ${isActive ? 'opacity-100' : 'opacity-40'}`}>
+        {DAYS.map((day, i) => (
           <div
             key={day}
-            className="size-10 shrink-0 rounded-[10px] border border-[#e9e9e9] bg-white dark:border-zinc-600 dark:bg-zinc-700 max-lg:size-9"
+            className={`size-10 shrink-0 rounded-[10px] border border-[#e9e9e9] bg-white dark:border-zinc-600 dark:bg-zinc-700 max-lg:size-9 ${
+              habit.scheduledDays[i] ? '' : 'opacity-0 max-lg:hidden'
+            }`}
           />
         ))}
       </div>
@@ -330,18 +340,19 @@ export default function Habits() {
 
       {/* Board panel */}
       <div className="relative flex w-full flex-col gap-2.5 overflow-hidden rounded-2xl border border-[#f2f2f2] bg-white p-3 dark:border-zinc-700 dark:bg-zinc-800">
-        <div className="flex items-center justify-between gap-4 max-lg:flex-wrap max-lg:gap-2">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center max-lg:flex-wrap max-lg:gap-2">
+          <div className="flex w-100 shrink-0 items-center gap-2 max-lg:w-auto">
+            <RotateCw size={12} className="shrink-0 text-[#c2c2c2]" />
             <span className="flex shrink-0 items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-xs font-medium text-[#8022fe]">
               <Sparkles size={10} />
               {filteredGhostHabits.length} AI Suggestions
             </span>
           </div>
-          <div className="flex flex-1 items-center gap-2 max-lg:hidden">
-            <Flame size={12} className="shrink-0 text-[#5d5d5d] dark:text-gray-300" />
+          <div className="flex w-44 shrink-0 items-center gap-2 max-lg:hidden">
+            <Timer size={12} className="shrink-0 text-[#5d5d5d] dark:text-gray-300" />
             <p className="text-sm font-medium text-[#5d5d5d] dark:text-gray-300">Streak</p>
           </div>
-          <div className="flex items-center gap-7.5 max-lg:hidden">
+          <div className="flex shrink-0 items-center gap-7.5 max-lg:hidden">
             {DAYS.map((day, i) => (
               <div key={day} className="flex w-10 items-center justify-between">
                 <p
