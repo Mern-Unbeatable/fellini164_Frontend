@@ -182,7 +182,7 @@ export default function HabitRow({
       {isCompleted ? (
         <div
           className={`flex items-center justify-between max-lg:w-full max-lg:pr-0 ${
-            compact ? 'w-[460px] shrink-0' : `flex-1 ${showMenu ? 'pr-44' : ''}`
+            compact ? 'w-[460px] shrink-0' : `flex-1 ${showMenu ? 'pr-41' : ''}`
           }`}
         >
           <div className="flex h-10 w-full items-center justify-center gap-2.5 rounded-[10px] bg-[rgba(42,157,0,0.05)]">
@@ -193,7 +193,7 @@ export default function HabitRow({
       ) : (
         <div
           className={`flex items-center max-lg:w-full max-lg:flex-wrap max-lg:gap-2 max-lg:pr-0 ${
-            compact ? 'w-[460px] shrink-0 justify-between gap-7.5' : `flex-1 justify-between ${showMenu ? 'pr-44' : ''}`
+            compact ? 'w-[460px] shrink-0 justify-end gap-5' : `flex-1 justify-between ${showMenu ? 'pr-41' : ''}`
           }`}
         >
           {DAYS.map((day, i) => (

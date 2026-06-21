@@ -44,7 +44,12 @@ function mockGenerateHabit(prompt) {
       title: 'Drink Water',
       description: 'Stay hydrated throughout the day Stay hydrated throughout the day',
       category: 'Health',
-      tags: [{ label: 'Health' }, { label: 'New Job', icon: Flag }, { label: '12 days left', icon: Hourglass }, { label: '6:30 PM', icon: Bell }],
+      tags: [
+        { label: 'Health' },
+        { label: 'New Job', icon: Flag },
+        { label: '12 days left', icon: Hourglass },
+        { label: '6:30 PM', icon: Bell },
+      ],
     };
   }
   if (lower.includes('meditat') || lower.includes('mindful')) {
@@ -52,7 +57,12 @@ function mockGenerateHabit(prompt) {
       title: 'Meditate',
       description: 'Practice mindfulness for mental clarity',
       category: 'Wellness',
-      tags: [{ label: 'Wellness' }, { label: 'New Goal', icon: Flag }, { label: '12 days left', icon: Hourglass }, { label: '7:00 AM', icon: Bell }],
+      tags: [
+        { label: 'Wellness' },
+        { label: 'New Goal', icon: Flag },
+        { label: '12 days left', icon: Hourglass },
+        { label: '7:00 AM', icon: Bell },
+      ],
     };
   }
   if (lower.includes('read')) {
@@ -60,7 +70,12 @@ function mockGenerateHabit(prompt) {
       title: 'Read Before Bed',
       description: 'Wind down with a few pages each night',
       category: 'Personal',
-      tags: [{ label: 'Personal' }, { label: 'New Goal', icon: Flag }, { label: '12 days left', icon: Hourglass }, { label: '9:30 PM', icon: Bell }],
+      tags: [
+        { label: 'Personal' },
+        { label: 'New Goal', icon: Flag },
+        { label: '12 days left', icon: Hourglass },
+        { label: '9:30 PM', icon: Bell },
+      ],
     };
   }
   if (lower.includes('linkedin') || lower.includes('portfolio') || lower.includes('career')) {
@@ -68,7 +83,12 @@ function mockGenerateHabit(prompt) {
       title: 'Update LinkedIn Profile',
       description: 'Refresh headline, summary, and recent projects',
       category: 'Career',
-      tags: [{ label: 'Career' }, { label: 'New Job', icon: Flag }, { label: '12 days left', icon: Hourglass }, { label: '8:00 PM', icon: Bell }],
+      tags: [
+        { label: 'Career' },
+        { label: 'New Job', icon: Flag },
+        { label: '12 days left', icon: Hourglass },
+        { label: '8:00 PM', icon: Bell },
+      ],
     };
   }
   // Default — the canonical Figma example, so an unmatched prompt still renders the
@@ -77,7 +97,12 @@ function mockGenerateHabit(prompt) {
     title: 'Drink Water',
     description: 'Stay hydrated throughout the day',
     category: 'Health',
-    tags: [{ label: 'Health' }, { label: 'New Job', icon: Flag }, { label: '12 days left', icon: Hourglass }, { label: '6:30 PM', icon: Bell }],
+    tags: [
+      { label: 'Health' },
+      { label: 'New Job', icon: Flag },
+      { label: '12 days left', icon: Hourglass },
+      { label: '6:30 PM', icon: Bell },
+    ],
   };
 }
 
@@ -112,7 +137,9 @@ function TabToggle({ activeTab, onChange, disabled }) {
         disabled={disabled}
         onClick={() => onChange('manual')}
         className={`flex flex-1 items-center justify-center rounded-md px-2 py-1.5 text-[12px] font-medium disabled:cursor-default ${
-          activeTab === 'manual' ? 'bg-[#f2f2f2] text-[#181818] dark:bg-zinc-700 dark:text-white' : 'text-[#c2c2c2]'
+          activeTab === 'manual'
+            ? 'bg-[#f2f2f2] text-[#181818] dark:bg-zinc-700 dark:text-white'
+            : 'text-[#c2c2c2]'
         }`}
       >
         Manual
@@ -125,7 +152,9 @@ function ManualFormFields({ form, update }) {
   const toggleDay = (day) => {
     update(
       'targetDays',
-      form.targetDays.includes(day) ? form.targetDays.filter((d) => d !== day) : [...form.targetDays, day]
+      form.targetDays.includes(day)
+        ? form.targetDays.filter((d) => d !== day)
+        : [...form.targetDays, day]
     );
   };
 
@@ -143,7 +172,11 @@ function ManualFormFields({ form, update }) {
 
       <div className="grid grid-cols-2 gap-2">
         <Field label="Category">
-          <select value={form.category} onChange={(e) => update('category', e.target.value)} className={inputClasses}>
+          <select
+            value={form.category}
+            onChange={(e) => update('category', e.target.value)}
+            className={inputClasses}
+          >
             {CATEGORIES.map((c) => (
               <option key={c}>{c}</option>
             ))}
@@ -210,7 +243,11 @@ function ManualFormFields({ form, update }) {
       </Field>
 
       <Field label="Linked Goal">
-        <select value={form.linkedGoal} onChange={(e) => update('linkedGoal', e.target.value)} className={inputClasses}>
+        <select
+          value={form.linkedGoal}
+          onChange={(e) => update('linkedGoal', e.target.value)}
+          className={inputClasses}
+        >
           {LINKED_GOALS.map((g, i) => (
             <option key={g} value={g}>
               {i === 0 ? `✦ ${g} (AI recommended)` : g}
@@ -284,7 +321,10 @@ export default function NewHabitsModal({ open, onClose, onSave }) {
       title: form.title,
       description: form.description || 'New habit',
       category: form.category,
-      tags: [{ label: form.category }, { label: `${form.hour}:${form.minute} ${form.period}`, icon: Bell }],
+      tags: [
+        { label: form.category },
+        { label: `${form.hour}:${form.minute} ${form.period}`, icon: Bell },
+      ],
       source: 'manual',
     });
     handleClose();
@@ -321,7 +361,10 @@ export default function NewHabitsModal({ open, onClose, onSave }) {
   };
 
   return (
-    <div onClick={handleClose} className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div
+      onClick={handleClose}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+    >
       <div
         onClick={(e) => e.stopPropagation()}
         className={`flex w-full flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] transition-all dark:border-zinc-700 dark:bg-zinc-900 ${modalWidthClass}`}
@@ -349,9 +392,12 @@ export default function NewHabitsModal({ open, onClose, onSave }) {
             <div className="flex flex-col gap-4">
               <div className="flex items-center">
                 <div className="w-97 shrink-0" />
-                <div className="flex w-115 shrink-0 items-center justify-between gap-7.5">
+                <div className="flex w-115 shrink-0 items-center justify-end gap-5">
                   {TARGET_DAYS.map((day) => (
-                    <p key={day} className="w-10 text-sm font-medium text-[#5d5d5d] dark:text-gray-300">
+                    <p
+                      key={day}
+                      className="w-10 text-center text-sm font-medium text-[#5d5d5d] dark:text-gray-300"
+                    >
                       {day}
                     </p>
                   ))}
@@ -360,13 +406,17 @@ export default function NewHabitsModal({ open, onClose, onSave }) {
               <HabitRow habit={previewHabit} showMenu={false} compact />
               <div className="mx-auto flex w-full max-w-[430px] flex-col gap-2">
                 <div className="flex items-center justify-between">
-                  <p className="text-[12px] font-medium text-[#5d5d5d] dark:text-gray-300">Anything to change?</p>
+                  <p className="text-[12px] font-medium text-[#5d5d5d] dark:text-gray-300">
+                    Anything to change?
+                  </p>
                   <button
                     type="button"
                     onClick={handleUpdatePreview}
                     disabled={!changeRequest.trim()}
                     className={`rounded-md px-2 py-0.5 text-[12px] font-medium ${
-                      changeRequest.trim() ? 'bg-[#f9f4ff] text-[#8022fe]' : 'cursor-default bg-[#f9f4ff] text-[#8022fe] opacity-60'
+                      changeRequest.trim()
+                        ? 'bg-[#f9f4ff] text-[#8022fe]'
+                        : 'cursor-default bg-[#f9f4ff] text-[#8022fe] opacity-60'
                     }`}
                   >
                     Update
@@ -398,7 +448,9 @@ export default function NewHabitsModal({ open, onClose, onSave }) {
             </div>
           )}
 
-          <div className={`flex items-center gap-2.5 ${showAiPreview ? 'mx-auto w-full max-w-[430px]' : ''}`}>
+          <div
+            className={`flex items-center gap-2.5 ${showAiPreview ? 'mx-auto w-full max-w-[430px]' : ''}`}
+          >
             {showAiPreview ? (
               <>
                 <button
@@ -450,7 +502,9 @@ export default function NewHabitsModal({ open, onClose, onSave }) {
                     disabled={!canGenerate}
                     onClick={handleGenerate}
                     className={`flex flex-1 items-center justify-center rounded-lg px-3 py-2 text-[12px] font-semibold ${
-                      canGenerate ? 'bg-[#8022fe] text-white' : 'cursor-not-allowed bg-[#f1f1f1] text-[#dedede]'
+                      canGenerate
+                        ? 'bg-[#8022fe] text-white'
+                        : 'cursor-not-allowed bg-[#f1f1f1] text-[#dedede]'
                     }`}
                   >
                     Generate
@@ -461,7 +515,9 @@ export default function NewHabitsModal({ open, onClose, onSave }) {
                     disabled={!canSubmitManual}
                     onClick={handleManualSubmit}
                     className={`flex flex-1 items-center justify-center rounded-lg px-3 py-2 text-[12px] font-semibold ${
-                      canSubmitManual ? 'bg-[#8022fe] text-white' : 'cursor-not-allowed bg-[#f1f1f1] text-[#dedede]'
+                      canSubmitManual
+                        ? 'bg-[#8022fe] text-white'
+                        : 'cursor-not-allowed bg-[#f1f1f1] text-[#dedede]'
                     }`}
                   >
                     Create

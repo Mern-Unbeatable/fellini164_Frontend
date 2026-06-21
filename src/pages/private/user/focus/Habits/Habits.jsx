@@ -480,7 +480,7 @@ export default function Habits() {
           </div>
           <div className="flex flex-1 items-center justify-between pr-44 max-lg:hidden">
             {DAYS.map((day, i) => (
-              <div key={day} className="flex w-10 items-center justify-between">
+              <div key={day} className="flex w-10 items-center justify-center gap-1">
                 <p
                   className={`text-sm font-medium ${
                     i === TODAY_INDEX ? 'text-[#8022fe]' : 'text-[#5d5d5d] dark:text-gray-300'
