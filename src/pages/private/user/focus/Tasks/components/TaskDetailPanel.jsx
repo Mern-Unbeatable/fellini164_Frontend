@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Sparkles,
   MoreHorizontal,
@@ -171,6 +171,16 @@ function SubtasksSection({ task, onUpdateSubtasks, autoTriggerAi, onAutoTriggerC
 }
 
 function AiAssistantStub() {
+  const [prompt, setPrompt] = useState('');
+  const textareaRef = useRef(null);
+
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
+  }, [prompt]);
+
   return (
     <div className="flex h-full w-full flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-white dark:border-zinc-700 dark:bg-zinc-900">
       <div className="flex items-center justify-between border-b border-[#f2f2f2] px-3 py-2.5 dark:border-zinc-700">
@@ -192,9 +202,14 @@ function AiAssistantStub() {
             ✦ Improve description
           </span>
         </div>
-        <div className="rounded-xl border border-[#f2f2f2] px-3 py-2 dark:border-zinc-700">
-          <p className="text-[12px] text-[#c2c2c2]">Describe what you want to change...</p>
-        </div>
+        <textarea
+          ref={textareaRef}
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          placeholder="Describe what you want to change..."
+          rows={1}
+          className="max-h-30 w-full resize-none rounded-xl border border-[#f2f2f2] px-3 py-2 text-[12px] text-[#5d5d5d] placeholder:text-[#c2c2c2] focus:outline-none dark:border-zinc-700 dark:text-gray-300"
+        />
         <p className="text-center text-[10px] text-[#c2c2c2]">
           AI can make mistakes. Verify important info.
         </p>
@@ -218,7 +233,7 @@ export default function TaskDetailPanel({
 
   return (
     <div className="flex min-h-[min(60vh,520px)] w-full flex-col gap-4 lg:h-167.75 lg:flex-row lg:gap-7.5">
-      <div className="relative flex flex-1 flex-col gap-6 overflow-y-auto rounded-2xl border border-[#f2f2f2] bg-white p-4 sm:p-5 dark:border-zinc-700 dark:bg-zinc-900">
+      <div className="relative flex flex-1 flex-col gap-6 overflow-y-auto scrollbar-hidden rounded-2xl border border-[#f2f2f2] bg-white p-4 sm:p-5 dark:border-zinc-700 dark:bg-zinc-900">
         <button
           type="button"
           onClick={onClose}
