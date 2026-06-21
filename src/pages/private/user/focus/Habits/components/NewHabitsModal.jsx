@@ -350,6 +350,11 @@ export default function NewHabitsModal({ open, onClose, onSave }) {
   // State 3 (AI result preview) widens to fit the real board-row preview; states 1/2 stay compact.
   const modalWidthClass = showAiPreview ? 'max-w-[920px]' : 'max-w-[450px]';
 
+  // Mon, Tue, Wed, Fri, Sun visible; Thu, Sat hidden — matches the actual Figma render for
+  // this preview row exactly (confirmed via get_screenshot; get_metadata's layout geometry
+  // alone doesn't reveal that those two cells are set invisible in the design).
+  const PREVIEW_SCHEDULE = ['empty', 'empty', 'empty', 'unscheduled', 'empty', 'unscheduled', 'empty'];
+
   const previewHabit = generatedHabit && {
     id: 'preview',
     title: generatedHabit.title,
@@ -357,7 +362,7 @@ export default function NewHabitsModal({ open, onClose, onSave }) {
     tags: generatedHabit.tags,
     status: 'active',
     streak: 0,
-    days: Array(7).fill('empty'),
+    days: PREVIEW_SCHEDULE,
   };
 
   return (
@@ -390,20 +395,22 @@ export default function NewHabitsModal({ open, onClose, onSave }) {
             </div>
           ) : showAiPreview ? (
             <div className="flex flex-col gap-4">
-              <div className="flex items-center">
-                <div className="w-97 shrink-0" />
-                <div className="flex w-115 shrink-0 items-center justify-end gap-5">
-                  {TARGET_DAYS.map((day) => (
-                    <p
-                      key={day}
-                      className="w-10 text-center text-sm font-medium text-[#5d5d5d] dark:text-gray-300"
-                    >
-                      {day}
-                    </p>
-                  ))}
+              <div className="flex flex-col gap-2.5 rounded-2xl border border-[#f2f2f2] bg-white p-3 dark:border-zinc-700 dark:bg-zinc-900">
+                <div className="flex items-center pl-3">
+                  <div className="w-97 shrink-0" />
+                  <div className="flex w-115 shrink-0 items-center justify-end gap-5">
+                    {TARGET_DAYS.map((day) => (
+                      <p
+                        key={day}
+                        className="w-10 text-center text-sm font-medium text-[#5d5d5d] dark:text-gray-300"
+                      >
+                        {day}
+                      </p>
+                    ))}
+                  </div>
                 </div>
+                <HabitRow habit={previewHabit} showMenu={false} compact />
               </div>
-              <HabitRow habit={previewHabit} showMenu={false} compact />
               <div className="mx-auto flex w-full max-w-[430px] flex-col gap-2">
                 <div className="flex items-center justify-between">
                   <p className="text-[12px] font-medium text-[#5d5d5d] dark:text-gray-300">
