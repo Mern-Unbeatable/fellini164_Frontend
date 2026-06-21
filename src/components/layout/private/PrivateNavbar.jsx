@@ -22,7 +22,8 @@ function getBreadcrumb(pathname) {
 }
 
 function getInitials(user) {
-  const name = user?.name || user?.fullName || `${user?.firstName || ''} ${user?.lastName || ''}`.trim();
+  const name =
+    user?.name || user?.fullName || `${user?.firstName || ''} ${user?.lastName || ''}`.trim();
   if (!name) return 'U';
   const parts = name.trim().split(/\s+/);
   const initials = parts.length > 1 ? parts[0][0] + parts[1][0] : parts[0].slice(0, 2);
@@ -45,7 +46,7 @@ export default function PrivateNavbar({ pathname, user, onOpenMobileSidebar, onL
   }, []);
 
   return (
-    <div className="flex h-[42px] w-full shrink-0 items-center justify-between gap-3 border-b border-[#f2f2f2] bg-white px-[30px] dark:border-zinc-700 dark:bg-zinc-900 max-lg:px-4 max-lg:sm:px-6">
+    <div className="flex h-13 w-full shrink-0 items-center justify-between gap-3 border-b border-[#f2f2f2] bg-white px-10 max-lg:px-4 max-lg:sm:px-6 dark:border-zinc-700 dark:bg-zinc-900">
       <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
         <button
           type="button"
@@ -61,7 +62,9 @@ export default function PrivateNavbar({ pathname, user, onOpenMobileSidebar, onL
               <p className="truncate text-[12px] font-medium whitespace-nowrap text-[#5d5d5d] dark:text-gray-300">
                 {section}
               </p>
-              <span className="shrink-0 text-[12px] font-medium text-[#c2c2c2] dark:text-zinc-600">/</span>
+              <span className="shrink-0 text-[12px] font-medium text-[#c2c2c2] dark:text-zinc-600">
+                /
+              </span>
             </>
           )}
           <p className="truncate text-[12px] font-medium whitespace-nowrap text-[#c2c2c2] dark:text-zinc-500">
@@ -73,7 +76,7 @@ export default function PrivateNavbar({ pathname, user, onOpenMobileSidebar, onL
       <div className="flex shrink-0 items-center gap-5">
         <div className="flex items-center gap-5 max-lg:hidden">
           {/* Go to — visible per Figma, non-functional in MVP */}
-          <div className="flex w-[105px] shrink-0 items-center gap-1.5 rounded-lg border border-[#f2f2f2] bg-[#fcfcfc] px-2.5 py-[5px] dark:border-zinc-700 dark:bg-zinc-800">
+          <div className="flex w-26.25 shrink-0 items-center gap-1.5 rounded-lg border border-[#f2f2f2] bg-[#fcfcfc] px-2.5 py-1.25 dark:border-zinc-700 dark:bg-zinc-800">
             <p className="min-w-0 flex-1 text-[12px] font-medium whitespace-nowrap text-[#5d5d5d] dark:text-gray-300">
               Go to...
             </p>
@@ -82,7 +85,7 @@ export default function PrivateNavbar({ pathname, user, onOpenMobileSidebar, onL
             </p>
           </div>
 
-          <div className="flex w-[51px] items-center justify-between">
+          <div className="flex w-12.75 items-center justify-between">
             {/* Notifications — visible per Figma, non-functional in MVP */}
             <div className="relative text-[#5d5d5d] dark:text-gray-300">
               <Bell size={18} strokeWidth={1.75} />
@@ -93,7 +96,7 @@ export default function PrivateNavbar({ pathname, user, onOpenMobileSidebar, onL
           </div>
         </div>
 
-        <div className="h-4 w-px bg-[#f2f2f2] dark:bg-zinc-700 max-lg:hidden" />
+        <div className="h-4 w-px bg-[#f2f2f2] max-lg:hidden dark:bg-zinc-700" />
 
         {/* Mobile only */}
         <div className="hidden items-center gap-1.5 max-lg:flex">
@@ -123,7 +126,7 @@ export default function PrivateNavbar({ pathname, user, onOpenMobileSidebar, onL
           </button>
 
           {isMenuOpen && (
-            <div className="absolute right-0 top-8 z-50 w-36 rounded-lg border border-[#f2f2f2] bg-white py-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-800">
+            <div className="absolute top-8 right-0 z-50 w-36 rounded-lg border border-[#f2f2f2] bg-white py-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-800">
               <button
                 type="button"
                 onClick={onLogout}

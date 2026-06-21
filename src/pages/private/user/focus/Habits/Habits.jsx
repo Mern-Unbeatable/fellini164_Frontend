@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useState, useRef, useEffect, useMemo } from 'react';
 import NewHabitsModal from './components/NewHabitsModal';
+import HabitRow from './components/HabitRow';
 import TypewriterText from '../../../../../components/ui/TypewriterText';
 
 const HABITS_SUBTITLE_PHRASES = [
@@ -50,6 +51,76 @@ const GHOST_HABITS = [
     description: 'Practice mindfulness for mental clarity',
     tags: [{ label: 'Wellness' }, { label: '12 days left', icon: Hourglass }],
     scheduledDays: [true, true, true, false, true, true, false],
+  },
+];
+
+// Step 2 — populated board sample data (Figma node 1234-11897). Day-state per habit
+// follows DAYS order (Mon..Sun): 'empty' | 'checked' | 'today' | 'unscheduled'.
+const REAL_HABITS = [
+  {
+    id: 'habit-1',
+    title: 'Drink Water',
+    description: 'Stay hydrated throughout the day',
+    tags: [
+      { label: 'Health' },
+      { label: '7:00 AM • 8:00 PM', icon: Bell },
+      { label: '+3' },
+    ],
+    status: 'active',
+    streak: 4,
+    days: ['empty', 'checked', 'today', 'empty', 'empty', 'empty', 'empty'],
+    todayProgress: { done: 1, total: 2 },
+  },
+  {
+    id: 'habit-2',
+    title: 'Take Breaks',
+    description: 'Step away from your screen regularly',
+    tags: [{ label: 'Productivity' }, { label: '6:30 PM', icon: Bell }, { label: 'New Job', icon: Flag }],
+    status: 'active',
+    streak: 7,
+    days: ['checked', 'checked', 'checked', 'empty', 'empty', 'empty', 'empty'],
+  },
+  {
+    id: 'habit-3',
+    title: 'Meditate',
+    description: 'Practice mindfulness for mental clarity',
+    tags: [{ label: 'Wellness' }, { label: '12 days left', icon: Hourglass }],
+    status: 'paused',
+    streak: 3,
+    days: ['checked', 'checked', 'checked', 'unscheduled', 'empty', 'empty', 'unscheduled'],
+  },
+  {
+    id: 'habit-4',
+    title: 'Exercise',
+    description: 'Engage in physical activity',
+    tags: [
+      { label: 'Fitness' },
+      { label: '7:00 AM • 8:00 PM • +1', icon: Bell },
+      { label: '3x/Day' },
+    ],
+    status: 'active',
+    streak: 0,
+    days: ['empty', 'empty', 'today', 'empty', 'empty', 'empty', 'empty'],
+    todayProgress: { done: 2, total: 3 },
+  },
+  {
+    id: 'habit-5',
+    title: 'Drink Water',
+    description: 'Stay hydrated throughout the day',
+    tags: [{ label: 'Health' }, { label: 'Improve Rate', icon: Sparkles }],
+    status: 'completed',
+    streak: 21,
+    days: Array(7).fill('checked'),
+  },
+  {
+    id: 'habit-6',
+    title: 'Drink Water',
+    description: 'Stay hydrated throughout the day',
+    tags: [{ label: 'Health' }, { label: '7:00 AM • 8:00 PM', icon: Bell }, { label: '+3' }],
+    status: 'active',
+    streak: 4,
+    days: ['empty', 'checked', 'today', 'empty', 'empty', 'empty', 'empty'],
+    todayProgress: { done: 1, total: 2 },
   },
 ];
 
@@ -276,18 +347,41 @@ function habitMatchesSearch(habit, query) {
 export default function Habits() {
   const [modal, setModal] = useState(false);
   const [ghostHabits, setGhostHabits] = useState(GHOST_HABITS);
+  const [habits, setHabits] = useState(REAL_HABITS);
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleOpenModal = () => setModal(true);
   const handleCloseModal = () => setModal(false);
-  const handleSavePlan = (data) => {
-    console.log('Saved plan:', data);
+  const handleSaveHabit = (data) => {
+    setHabits((prev) => [
+      {
+        id: `habit-${Date.now()}`,
+        title: data.title,
+        description: data.description,
+        tags: data.tags,
+        status: 'active',
+        streak: 0,
+        days: Array(7).fill('empty'),
+      },
+      ...prev,
+    ]);
   };
+
+  const boardIsEmpty = habits.length === 0;
 
   const filteredGhostHabits = useMemo(
     () => ghostHabits.filter((h) => habitMatchesSearch(h, searchQuery)),
     [ghostHabits, searchQuery]
   );
+
+  const filteredHabits = useMemo(
+    () => habits.filter((h) => habitMatchesSearch(h, searchQuery)),
+    [habits, searchQuery]
+  );
+
+  const activeCount = habits.filter((h) => h.status === 'active').length;
+  const pausedCount = habits.filter((h) => h.status === 'paused').length;
+  const completedCount = habits.filter((h) => h.status === 'completed').length;
 
   const handleDismissGhost = (id) => {
     setGhostHabits((prev) => prev.filter((h) => h.id !== id));
@@ -295,6 +389,28 @@ export default function Habits() {
 
   const handleRegenerateGhost = () => {
     // Visual-only for Step 1 — AI regeneration wired in a later step.
+  };
+
+  const handleEditHabit = () => {
+    // Edit flow reuses the New Habit modal in a later step — visual-only for now.
+  };
+
+  const handleImproveHabit = () => {
+    // AI "Improve habit" action — visual-only for now.
+  };
+
+  const handleCompleteHabit = (habit) => {
+    setHabits((prev) => prev.map((h) => (h.id === habit.id ? { ...h, status: 'completed' } : h)));
+  };
+
+  const handlePauseHabit = (habit) => {
+    setHabits((prev) =>
+      prev.map((h) => (h.id === habit.id ? { ...h, status: h.status === 'paused' ? 'active' : 'paused' } : h))
+    );
+  };
+
+  const handleDeleteHabit = (habit) => {
+    setHabits((prev) => prev.filter((h) => h.id !== habit.id));
   };
 
   return (
@@ -341,13 +457,23 @@ export default function Habits() {
       {/* Board panel */}
       <div className="relative flex w-full flex-col gap-2.5 overflow-hidden rounded-2xl border border-[#f2f2f2] bg-white p-3 dark:border-zinc-700 dark:bg-zinc-800">
         <div className="flex items-center max-lg:flex-wrap max-lg:gap-2">
-          <div className="flex w-100 shrink-0 items-center gap-2 max-lg:w-auto">
-            <RotateCw size={12} className="shrink-0 text-[#c2c2c2]" />
-            <span className="flex shrink-0 items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-xs font-medium text-[#8022fe]">
-              <Sparkles size={10} />
-              {filteredGhostHabits.length} AI Suggestions
-            </span>
-          </div>
+          {boardIsEmpty ? (
+            <div className="flex w-100 shrink-0 items-center gap-2 max-lg:w-auto">
+              <RotateCw size={12} className="shrink-0 text-[#c2c2c2]" />
+              <span className="flex shrink-0 items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-xs font-medium text-[#8022fe]">
+                <Sparkles size={10} />
+                {filteredGhostHabits.length} AI Suggestions
+              </span>
+            </div>
+          ) : (
+            <div className="flex w-100 shrink-0 items-center gap-2 max-lg:w-auto">
+              <RotateCw size={12} className="shrink-0 text-[#c2c2c2]" />
+              <p className="text-sm font-medium text-[#5d5d5d] dark:text-gray-300">{activeCount} active</p>
+              <span className="rounded-[6px] bg-[#f2f2f2] px-[6px] py-[2px] text-xs font-medium text-[#5d5d5d] dark:bg-zinc-700 dark:text-gray-300">
+                {pausedCount} paused <span className="text-[#c2c2c2]">•</span> {completedCount} completed this month
+              </span>
+            </div>
+          )}
           <div className="flex w-44 shrink-0 items-center gap-2 max-lg:hidden">
             <Timer size={12} className="shrink-0 text-[#5d5d5d] dark:text-gray-300" />
             <p className="text-sm font-medium text-[#5d5d5d] dark:text-gray-300">Streak</p>
@@ -368,23 +494,47 @@ export default function Habits() {
           </div>
         </div>
 
-        {filteredGhostHabits.length === 0 ? (
-          <p className="py-10 text-center text-sm font-medium text-[#c2c2c2] dark:text-gray-500">
-            No habits to show yet.
-          </p>
-        ) : (
-          filteredGhostHabits.map((habit) => (
-            <GhostHabitRow
-              key={habit.id}
-              habit={habit}
-              onDismiss={handleDismissGhost}
-              onRegenerate={handleRegenerateGhost}
-            />
-          ))
+        <div className="scrollbar-hidden relative -mx-3 flex flex-col gap-2.5 overflow-y-auto px-3 max-h-[610px]">
+          {boardIsEmpty ? (
+            filteredGhostHabits.length === 0 ? (
+              <p className="py-10 text-center text-sm font-medium text-[#c2c2c2] dark:text-gray-500">
+                No habits to show yet.
+              </p>
+            ) : (
+              filteredGhostHabits.map((habit) => (
+                <GhostHabitRow
+                  key={habit.id}
+                  habit={habit}
+                  onDismiss={handleDismissGhost}
+                  onRegenerate={handleRegenerateGhost}
+                />
+              ))
+            )
+          ) : filteredHabits.length === 0 ? (
+            <p className="py-10 text-center text-sm font-medium text-[#c2c2c2] dark:text-gray-500">
+              No habits match your search.
+            </p>
+          ) : (
+            filteredHabits.map((habit) => (
+              <HabitRow
+                key={habit.id}
+                habit={habit}
+                onEdit={handleEditHabit}
+                onImprove={handleImproveHabit}
+                onComplete={handleCompleteHabit}
+                onPause={handlePauseHabit}
+                onDelete={handleDeleteHabit}
+              />
+            ))
+          )}
+        </div>
+
+        {!boardIsEmpty && filteredHabits.length > 0 && (
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-15 rounded-b-2xl bg-gradient-to-b from-transparent to-white dark:to-zinc-800" />
         )}
       </div>
 
-      <NewHabitsModal open={modal} onClose={handleCloseModal} onSave={handleSavePlan} />
+      <NewHabitsModal open={modal} onClose={handleCloseModal} onSave={handleSaveHabit} />
     </div>
   );
 }

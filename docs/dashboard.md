@@ -136,9 +136,13 @@ dropdowns to filter the card list (currently they open/select visually but don't
 
 ## 2. Habits Board
 
-**Status (2026-06-21):** Step 1 (Empty States + Hover) ✅ done — visually confirmed by user
-against the Figma frames in `src/pages/private/user/focus/Habits/Habits.jsx`. Steps 2 and 3
-are not yet specified — confirm with the user before assuming scope.
+**Status (2026-06-21):** Steps 1, 2, and 3 ✅ done — all visually verified against the Figma
+frames. Step 1 (Empty States + Hover) and Step 2 (Populated Board) live in
+`src/pages/private/user/focus/Habits/Habits.jsx`; the real habit row is extracted into
+`components/HabitRow.jsx` (reused by both the board and the Step 3 modal preview); Step 3
+(New Habit popup, 3 states) lives in `components/NewHabitsModal.jsx`. This was the last
+planned step for the Habits Board per the user's 3-step plan — no further steps specified
+as of this date.
 
 **Build plan (per user, 2026-06-21):** this board ships in 3 steps, each with sub-steps.
 Step 1 = Empty States (Figma frames below).
@@ -291,6 +295,89 @@ data can exceed visible rows (~5 rows fit before scroll/fade kicks in at this ca
 - ~~Times Per Day: MVP supports exactly **one** time per day.~~
 - ~~Reminder Time: exactly one reminder, tied to the single daily time. One time picker, 12h format.~~
 - ~~Not in MVP: multiple check-ins per day — habit completion is a single click/tap on the habit box.~~
+
+### Step 3 — New Habit popup (3 states)
+
+Figma source (fileKey `VwgJovqBGtb90CEfNXkk2T`), confirmed via `get_metadata` 2026-06-21:
+- node `1237-13457` ("...- 2") — **AI Generation tab**, initial/empty state. Modal
+  450×336px, centered.
+- node `1237-13935` ("...- 2.1") — **Manual tab**, all fields. Modal 450×564px, centered
+  (taller than the AI tab because of the extra fields).
+- node `1239-5884` ("...- 3") — **AI generation result/preview** state. Modal 920×446px,
+  centered (much wider — it embeds a live board-row-style preview of the generated habit).
+
+This is the same two-tab "AI Generation / Manual" pattern as Tasks board's `TaskFormModal`
+(§1) — reuse that component's structure/behavior (tab toggle, disabled-until-typed Generate
+button, typewriter placeholder, Cancel pairing) rather than building a parallel pattern from
+scratch, adapting only the fields themselves.
+
+#### Shared modal chrome (all 3 states)
+- Header: "New Habit" (left) + ✕ close (right), 38px tall, border-b.
+- Footer: two equal-width buttons side by side (`Cancel` / action), `gap-[10px]`-ish row.
+
+#### State 1 — AI Generation tab (node `1237-13457`)
+- Tab toggle row: "✦ AI Generation" (active/purple) | "Manual" (inactive), 50/50 split.
+- Label: "Describe the habit you want to generate".
+- Large textarea (140px tall) with rotating placeholder examples (typewriter animation,
+  reuse the shared component per global rule in §1) — e.g. "Create a habit for updating my
+  portfolio...".
+- Footer: `Cancel` (gray) / `Generate` (purple, **disabled until text is typed** — confirmed
+  from the screenshot showing it greyed out with empty textarea).
+
+#### State 2 — Manual tab (node `1237-13935`)
+Fields, top to bottom:
+1. **Title** — text input, placeholder e.g. "e.g. Update LinkedIn profile".
+2. **Category** + **Reminder Time** — side-by-side, 50/50 split. Category is a dropdown
+   (same category list as elsewhere — confirm exact options against the Filters list in
+   this doc). Reminder Time is a single time input with a clock icon, 12h-style.
+3. **Target Days** — 7 equal-width toggle buttons (Mon...Sun), each ~45px, **not stretched
+   to the full row width** (they total ~350px inside a 426px row, left-aligned — don't
+   stretch them to fill). Multi-select toggle (screenshot shows Tue + Thu selected/purple,
+   others unselected/white).
+4. **Linked Goal** — dropdown, full width. Reuse the existing Linked Goal pattern from
+   Tasks board (§1): first item "AI recommended"/"AI Suggested", last item "+ Create new
+   goal".
+5. **Description** — textarea, 80px tall.
+- Footer: `Cancel` / `Create` (disabled until required fields filled, per the screenshot
+  showing it greyed out).
+
+**Resolved 2026-06-21:** multi-time habits are **AI Generation-only** for this step. The
+Manual tab stays single-time exactly as captured in Figma (one "Reminder Time" field, no
+"+ add another time" control) — don't add one.
+
+#### State 3 — AI generation result / preview (node `1239-5884`)
+- Modal widens to 920px (vs 450px for states 1/2) to fit a **live preview of the generated
+  habit rendered as an actual board row** — same row component as the populated board
+  (Step 2): Mon–Sun header above, then the habit row with title/tags/streak-column-area/
+  day-checkboxes, literally reusing the board-row markup/component, not a simplified
+  summary card.
+- Below the preview: **"Anything to change?"** label with an inline **"Update"** link
+  (purple, top-right of that label) + a refinement textarea (70px, placeholder "Type
+  here...") — lets the user nudge the AI result without leaving the modal.
+- Footer: `Regenerate` (gray) / `Add to Board` (purple, active — not disabled, since a
+  result already exists to add).
+
+### Potential mistakes to flag for Step 3
+1. **Resolved:** the State 3 preview **reuses the real populated-board row component**
+   (Step 2), not a separate simplified card — confirmed 2026-06-21. Build Step 2's row
+   component first and import it into the modal, rather than duplicating row markup.
+2. **Stretching the Target Days buttons to full width** — Figma has them left-aligned at
+   their natural ~350px width inside the 426px row; don't `flex-1`/`justify-between` them to
+   fill the row (the same mistake already made and corrected twice this session on the
+   Mon–Sun day grid elsewhere — don't repeat it here).
+3. **Manual tab's single Reminder Time vs Step 2's multi-time reality** — see the open
+   question above; don't silently build single-time-only or silently invent a multi-time
+   UI without asking.
+4. **Category list mismatch** — confirm the Manual tab's Category dropdown options against
+   this doc's Habits Filters list (`Career/Health/Finance/Fitness/Wellness/Productivity/
+   Personal/Education`) rather than assuming it matches Tasks' shorter list.
+5. **Generate/Create button disabled-state logic** — Generate is disabled until the
+   textarea has text (State 1); Create is disabled until required Manual fields are filled
+   (State 2) — two different conditions, don't share one boolean.
+6. **Modal width/centering per state** — 450×336 (State 1), 450×564 (State 2), 920×446
+   (State 3) are each independently centered on screen, not a single fixed-size modal that
+   just changes content — get the resize/recenter transition right, or at minimum render
+   each state at its correct size.
 
 ### Filters (dropdown values — exact strings)
 - Category: All Category / Career / Health / Finance / Fitness / Wellness / Productivity / Personal / Education
