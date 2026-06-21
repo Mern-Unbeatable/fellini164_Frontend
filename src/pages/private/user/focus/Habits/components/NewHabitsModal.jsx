@@ -52,7 +52,7 @@ function mockGenerateHabit(prompt) {
       title: 'Meditate',
       description: 'Practice mindfulness for mental clarity',
       category: 'Wellness',
-      tags: [{ label: 'Wellness' }, { label: '7:00 AM', icon: Bell }],
+      tags: [{ label: 'Wellness' }, { label: 'New Goal', icon: Flag }, { label: '12 days left', icon: Hourglass }, { label: '7:00 AM', icon: Bell }],
     };
   }
   if (lower.includes('read')) {
@@ -60,14 +60,24 @@ function mockGenerateHabit(prompt) {
       title: 'Read Before Bed',
       description: 'Wind down with a few pages each night',
       category: 'Personal',
-      tags: [{ label: 'Personal' }, { label: '9:30 PM', icon: Bell }],
+      tags: [{ label: 'Personal' }, { label: 'New Goal', icon: Flag }, { label: '12 days left', icon: Hourglass }, { label: '9:30 PM', icon: Bell }],
     };
   }
+  if (lower.includes('linkedin') || lower.includes('portfolio') || lower.includes('career')) {
+    return {
+      title: 'Update LinkedIn Profile',
+      description: 'Refresh headline, summary, and recent projects',
+      category: 'Career',
+      tags: [{ label: 'Career' }, { label: 'New Job', icon: Flag }, { label: '12 days left', icon: Hourglass }, { label: '8:00 PM', icon: Bell }],
+    };
+  }
+  // Default — the canonical Figma example, so an unmatched prompt still renders the
+  // exact reference row instead of a sparser one.
   return {
-    title: 'Update LinkedIn Profile',
-    description: 'Refresh headline, summary, and recent projects',
-    category: 'Career',
-    tags: [{ label: 'Career' }, { label: '8:00 PM', icon: Bell }],
+    title: 'Drink Water',
+    description: 'Stay hydrated throughout the day',
+    category: 'Health',
+    tags: [{ label: 'Health' }, { label: 'New Job', icon: Flag }, { label: '12 days left', icon: Hourglass }, { label: '6:30 PM', icon: Bell }],
   };
 }
 
@@ -338,7 +348,7 @@ export default function NewHabitsModal({ open, onClose, onSave }) {
               <div className="flex items-center">
                 <div className="w-97 shrink-0" />
                 <div className="w-[175px] shrink-0" />
-                <div className="flex flex-1 items-center justify-between pr-44">
+                <div className="flex flex-1 items-center justify-between">
                   {TARGET_DAYS.map((day) => (
                     <p key={day} className="w-10 text-sm font-medium text-[#5d5d5d] dark:text-gray-300">
                       {day}

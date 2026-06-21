@@ -177,14 +177,16 @@ export default function HabitRow({
       </div>
 
       {isCompleted ? (
-        <div className="flex flex-1 items-center justify-between pr-44 max-lg:w-full max-lg:pr-0">
+        <div className={`flex flex-1 items-center justify-between max-lg:w-full max-lg:pr-0 ${showMenu ? 'pr-44' : ''}`}>
           <div className="flex h-10 w-full items-center justify-center gap-2.5 rounded-[10px] bg-[rgba(42,157,0,0.05)]">
             <p className="text-sm font-medium text-[#2a9d00]">Habit reached</p>
             <Check size={12} strokeWidth={3} className="text-[#2a9d00]" />
           </div>
         </div>
       ) : (
-        <div className="flex flex-1 items-center justify-between pr-44 max-lg:w-full max-lg:flex-wrap max-lg:justify-start max-lg:gap-2 max-lg:pr-0">
+        <div
+          className={`flex flex-1 items-center justify-between max-lg:w-full max-lg:flex-wrap max-lg:justify-start max-lg:gap-2 max-lg:pr-0 ${showMenu ? 'pr-44' : ''}`}
+        >
           {DAYS.map((day, i) => (
             <DayCell
               key={day}
