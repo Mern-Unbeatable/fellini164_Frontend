@@ -169,7 +169,7 @@ function GhostHabitRow({ habit, onDismiss, onRegenerate }) {
         0 days
       </p>
 
-      <div className={`flex shrink-0 items-center gap-7.5 transition-opacity duration-200 max-lg:w-full max-lg:flex-wrap max-lg:gap-2 ${isActive ? 'opacity-100' : 'opacity-40'}`}>
+      <div className={`flex flex-1 items-center justify-between pr-44 transition-opacity duration-200 max-lg:w-full max-lg:flex-wrap max-lg:justify-start max-lg:gap-2 max-lg:pr-0 ${isActive ? 'opacity-100' : 'opacity-40'}`}>
         {DAYS.map((day, i) => (
           <div
             key={day}
@@ -352,7 +352,7 @@ export default function Habits() {
             <Timer size={12} className="shrink-0 text-[#5d5d5d] dark:text-gray-300" />
             <p className="text-sm font-medium text-[#5d5d5d] dark:text-gray-300">Streak</p>
           </div>
-          <div className="flex shrink-0 items-center gap-7.5 max-lg:hidden">
+          <div className="flex flex-1 items-center justify-between pr-44 max-lg:hidden">
             {DAYS.map((day, i) => (
               <div key={day} className="flex w-10 items-center justify-between">
                 <p
