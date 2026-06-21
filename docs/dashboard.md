@@ -196,15 +196,101 @@ Confirmed from Figma inspection 2026-06-21 (fileKey `VwgJovqBGtb90CEfNXkk2T`):
   tags ("7:00 AM", "6:30 PM") use a bell icon (not a clock); a linked-goal-style tag ("New
   Job") uses a flag icon; a "days left" tag uses an hourglass icon.
 
+### Step 2 — Populated Board (real habits, not ghost/empty state)
+
+Figma source (fileKey `VwgJovqBGtb90CEfNXkk2T`): node `1234-11897` (default), node
+`1237-12542` (1.1 — Hover: cursor over a row, no menu open), node `1237-13017` (1.2 — Hover:
+three-dot menu open). Confirmed via `get_metadata` + targeted `get_design_context` calls,
+2026-06-21.
+
+**Resolved 2026-06-21 (supersedes the old single-time MVP rule above):** habits now support
+**multiple reminder times per day**. A habit can have 2+ times (tag shows
+"7:00 AM • 8:00 PM", or "7:00 AM • 8:00 PM • +1" when there are 3+), a schedule badge like
+"3x/Day", and today's cell shows fractional same-day progress — a left-aligned partial-fill
+bar (width ∝ completed/total) plus a centered `"{done}/{total}"` label below the cell (e.g.
+"1/2", "2/3"). The original "Habits popup" section's "Times Per Day: only one time per day"
+/ "one reminder per day" bullets are **stale** — multi-time is the current model as of Step
+2. Update that section when the New/Edit Habit popup (with its time-picker UI) is actually
+built, rather than relying on this note alone.
+
+#### Header (left side) — replaces the ghost-state "✦ N AI Suggestions" pill
+- Refresh icon + `"{N} active"` (gray-400, 14px, no pill background — plain text+icon, not
+  a colored badge like the ghost-state pill).
+- A separate gray pill (`bg-#f2f2f2`, 12px, gray-400 text) reading
+  `"{N} paused • {N} completed this month"` (the `•` separator is `#c2c2c2`, lighter than
+  the surrounding text).
+- Streak column header (icon + "Streak" label) and Mon–Sun day headers are **unchanged**
+  from Step 1 — same `w-44`/`flex-1 justify-between` columns, same today-highlight dot.
+
+#### Row anatomy (per habit, real data)
+- Card: `bg-#fcfcfc`, solid `border-#f2f2f2` (1px), `rounded-2xl`, `p-3` — **solid border
+  always** (not dashed — dashed is ghost-state only). No hover-only opacity flip like ghost
+  rows; real rows are always full opacity (paused rows are an exception, see below).
+- Title (16px) + optional status badge inline, then description (12px, `text-[#a3a3a3]`,
+  truncate), then a tag row (12px chips, `border-#f2f2f2`), matching Step 1's tag style
+  exactly (category chip, time chip with bell icon, linked-goal chip with flag icon,
+  `+N` overflow chip per the existing overflow-tag rule below).
+- Streak column (`w-[175px]`, same slot as ghost state's "0 days"): renders as
+  **`"{N} days"` plain gray-400 text** normally, but **with a small flame icon + orange
+  text (`#f97316`)** once a row has an active, non-zero, non-paused streak (confirmed on
+  "Take Breaks" → 🔥 `7 days` in `#f97316`; contrast with "Meditate" (paused) → plain
+  `3 days` in light gray `#c2c2c2`, no icon, and "Drink Water" (completed) → plain
+  `21 days` in `#c2c2c2`, no icon). So: flame+orange is **active-streak-only**, not a
+  universal streak indicator.
+- Day-of-week cells (same 40×40 squares, same `gap-7.5`/`pr-44` grid as Step 1): each cell
+  is one of — empty/unscheduled (plain bordered square), **checked** (filled square +
+  checkmark, purple), or **today-in-progress** (a left-aligned partial-fill bar inside the
+  square, width proportional to completed/total, with a small `"{done}/{total}"` label
+  centered just below the cell — only ever appears on the today column). Unscheduled days
+  use the same `opacity-0` spacer trick as Step 1's ghost rows.
+
+#### Status variants (same row shape, different state)
+- **Active** (default): full opacity, black title, flame+orange streak if streak > 0.
+- **Paused**: title color drops to gray-400, a `"PAUSED"` uppercase badge appears next to
+  the title (`bg-rgba(93,93,93,0.05)`, text `#5d5d5d`), description lightens to gray-200,
+  the whole tag row gets `opacity-50`, streak text has no flame icon and is plain
+  `#c2c2c2`, and scheduled-but-not-yet-done day cells render at `opacity-40` (vs full
+  opacity for active rows) — i.e. a paused row is dimmed throughout, not just the streak.
+- **Completed** (habit/streak goal reached): a `"COMPLETED"` uppercase badge next to the
+  title (`bg-rgba(42,157,0,0.05)`, text `#2a9d00`), streak text plain `#c2c2c2` (no flame).
+  **The entire 7-day checkbox grid is replaced** by a single full-width green banner
+  (`bg-rgba(42,157,0,0.05)`, `rounded-[10px]`, 40px tall, spans the same 460px the 7
+  checkboxes would occupy) reading **"Habit reached ✓"** (text `#2a9d00`, centered). Don't
+  render checkboxes *and* the banner together — it's one or the other.
+
+#### Three-dot menu (real row — different from ghost row's menu)
+Visible on hover, same position/trigger as Step 1. **5 items in 2 groups** (confirmed from
+`1237-13017`), not the ghost row's 2-item Regenerate/Dismiss menu:
+1. Edit (gray)
+2. ✦ Improve habit (purple, sparkle icon) — AI action, same visual treatment as Tasks
+   board's "Break into subtasks"/"Improve description"
+   — *(border below this group, like Tasks' 3-group menu pattern)*
+3. Complete (gray, checkmark icon)
+4. Pause (gray)
+5. Delete (gray)
+
+#### List overflow / scroll
+The panel has a **fixed-height content area with vertical scroll and a bottom fade-out
+gradient mask** (`rgba(255,255,255,0)` → white, ~60px tall) — present in every frame
+inspected so far (ghost-state and populated), confirming it's a permanent feature of the
+panel, not something that only appears once content overflows. Step 1's implementation
+doesn't have this yet (3 ghost rows fit without scrolling) — needs adding now that real
+data can exceed visible rows (~5 rows fit before scroll/fade kicks in at this card height).
+
 ### Habit card — overflow tags
 - When tags overflow available width, hide extras and show `+N`.
 - Hovering `+N` reveals all hidden tags via dropdown/tooltip — same hover pattern as the rest of the product (don't invent a new hover affordance here).
 - Reference screenshots show this on a card with `Health` tag + time range + `+3`, and on a Fitness card with `3x/Day` badge.
 
 ### Habits popup
-- **Times Per Day:** MVP supports exactly **one** time per day. Do not build a multi-time-per-day UI.
-- **Reminder Time:** exactly one reminder, tied to the single daily time. One time picker, **12h format**.
-- Not in MVP: multiple check-ins per day — habit completion is a single click/tap on the habit box.
+- **STALE as of 2026-06-21 — superseded by §2 Step 2 "Resolved" note above.** Multi-time
+  habits are now the confirmed model (multiple reminder times/day, fractional same-day
+  progress, "3x/Day"-style badges). The bullets below describe the *original* single-time
+  MVP rule and are kept only as history; don't follow them. Re-derive the actual New/Edit
+  Habit popup fields from Figma when that popup is built, rather than this note.
+- ~~Times Per Day: MVP supports exactly **one** time per day.~~
+- ~~Reminder Time: exactly one reminder, tied to the single daily time. One time picker, 12h format.~~
+- ~~Not in MVP: multiple check-ins per day — habit completion is a single click/tap on the habit box.~~
 
 ### Filters (dropdown values — exact strings)
 - Category: All Category / Career / Health / Finance / Fitness / Wellness / Productivity / Personal / Education
