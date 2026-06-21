@@ -96,6 +96,7 @@ function HabitRowMenu({ onEdit, onImprove, onComplete, onPause, onDelete }) {
 export default function HabitRow({
   habit,
   showMenu = true,
+  compact = false,
   onEdit,
   onImprove,
   onComplete,
@@ -163,21 +164,27 @@ export default function HabitRow({
         </div>
       </div>
 
-      <div className="flex w-[175px] shrink-0 items-center gap-1.5 max-lg:w-auto">
-        {habit.status === 'active' && habit.streak > 0 && (
-          <Flame size={12} className="shrink-0 text-[#f97316]" />
-        )}
-        <p
-          className={`text-sm font-medium ${
-            habit.status === 'active' && habit.streak > 0 ? 'text-[#f97316]' : 'text-[#c2c2c2]'
-          }`}
-        >
-          {habit.streak} days
-        </p>
-      </div>
+      {!compact && (
+        <div className="flex w-[175px] shrink-0 items-center gap-1.5 max-lg:w-auto">
+          {habit.status === 'active' && habit.streak > 0 && (
+            <Flame size={12} className="shrink-0 text-[#f97316]" />
+          )}
+          <p
+            className={`text-sm font-medium ${
+              habit.status === 'active' && habit.streak > 0 ? 'text-[#f97316]' : 'text-[#c2c2c2]'
+            }`}
+          >
+            {habit.streak} days
+          </p>
+        </div>
+      )}
 
       {isCompleted ? (
-        <div className={`flex flex-1 items-center justify-between max-lg:w-full max-lg:pr-0 ${showMenu ? 'pr-44' : ''}`}>
+        <div
+          className={`flex items-center justify-between max-lg:w-full max-lg:pr-0 ${
+            compact ? 'w-[460px] shrink-0' : `flex-1 ${showMenu ? 'pr-44' : ''}`
+          }`}
+        >
           <div className="flex h-10 w-full items-center justify-center gap-2.5 rounded-[10px] bg-[rgba(42,157,0,0.05)]">
             <p className="text-sm font-medium text-[#2a9d00]">Habit reached</p>
             <Check size={12} strokeWidth={3} className="text-[#2a9d00]" />
@@ -185,7 +192,9 @@ export default function HabitRow({
         </div>
       ) : (
         <div
-          className={`flex flex-1 items-center justify-between max-lg:w-full max-lg:flex-wrap max-lg:justify-start max-lg:gap-2 max-lg:pr-0 ${showMenu ? 'pr-44' : ''}`}
+          className={`flex items-center max-lg:w-full max-lg:flex-wrap max-lg:gap-2 max-lg:pr-0 ${
+            compact ? 'w-[460px] shrink-0 justify-between gap-7.5' : `flex-1 justify-between ${showMenu ? 'pr-44' : ''}`
+          }`}
         >
           {DAYS.map((day, i) => (
             <DayCell

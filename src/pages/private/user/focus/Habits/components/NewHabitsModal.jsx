@@ -42,7 +42,7 @@ function mockGenerateHabit(prompt) {
   if (lower.includes('water') || lower.includes('hydrat')) {
     return {
       title: 'Drink Water',
-      description: 'Stay hydrated throughout the day',
+      description: 'Stay hydrated throughout the day Stay hydrated throughout the day',
       category: 'Health',
       tags: [{ label: 'Health' }, { label: 'New Job', icon: Flag }, { label: '12 days left', icon: Hourglass }, { label: '6:30 PM', icon: Bell }],
     };
@@ -334,7 +334,9 @@ export default function NewHabitsModal({ open, onClose, onSave }) {
         </div>
 
         <div className="flex flex-col gap-6 p-3">
-          <TabToggle activeTab={activeTab} onChange={handleTabChange} disabled={isRevealing} />
+          <div className="mx-auto w-full max-w-[430px]">
+            <TabToggle activeTab={activeTab} onChange={handleTabChange} disabled={isRevealing} />
+          </div>
 
           {activeTab === 'manual' ? (
             <ManualFormFields form={form} update={update} />
@@ -347,8 +349,7 @@ export default function NewHabitsModal({ open, onClose, onSave }) {
             <div className="flex flex-col gap-4">
               <div className="flex items-center">
                 <div className="w-97 shrink-0" />
-                <div className="w-[175px] shrink-0" />
-                <div className="flex flex-1 items-center justify-between">
+                <div className="flex w-115 shrink-0 items-center justify-between gap-7.5">
                   {TARGET_DAYS.map((day) => (
                     <p key={day} className="w-10 text-sm font-medium text-[#5d5d5d] dark:text-gray-300">
                       {day}
@@ -356,8 +357,8 @@ export default function NewHabitsModal({ open, onClose, onSave }) {
                   ))}
                 </div>
               </div>
-              <HabitRow habit={previewHabit} showMenu={false} />
-              <div className="flex flex-col gap-2">
+              <HabitRow habit={previewHabit} showMenu={false} compact />
+              <div className="mx-auto flex w-full max-w-[430px] flex-col gap-2">
                 <div className="flex items-center justify-between">
                   <p className="text-[12px] font-medium text-[#5d5d5d] dark:text-gray-300">Anything to change?</p>
                   <button
@@ -397,7 +398,7 @@ export default function NewHabitsModal({ open, onClose, onSave }) {
             </div>
           )}
 
-          <div className="flex items-center gap-2.5">
+          <div className={`flex items-center gap-2.5 ${showAiPreview ? 'mx-auto w-full max-w-[430px]' : ''}`}>
             {showAiPreview ? (
               <>
                 <button

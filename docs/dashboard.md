@@ -315,6 +315,20 @@ scratch, adapting only the fields themselves.
 - Header: "New Habit" (left) + ✕ close (right), 38px tall, border-b.
 - Footer: two equal-width buttons side by side (`Cancel` / action), `gap-[10px]`-ish row.
 
+#### `HabitRow` reuse gotcha (found + fixed 2026-06-21)
+The State 3 preview embeds the real `HabitRow` (§2 Step 2), but the **modal's row is not
+just a narrower copy of the board's row** — per Figma metadata, the preview row drops the
+streak/"X days" column entirely (grid starts immediately after the title block, no 175px
+streak slot) and the 7-day grid is a **fixed** 460px width (40×7 + 30×6), not the board's
+responsive `flex-1`/stretch-to-edge grid. `HabitRow.jsx` has a `compact` prop for this:
+`compact` omits the streak column and switches the day grid to the fixed 460px layout;
+`showMenu` (separate prop) controls the three-dot menu. Board usage: neither prop (defaults
+apply). Modal preview usage: `compact` + `showMenu={false}`. Also: the tab toggle and the
+"Anything to change?" block in State 3 are each constrained to a **centered 430px column**
+(`mx-auto max-w-[430px]`) even though the modal body is 896px wide and the row preview
+itself stays full-width — don't assume every child of a wide modal should stretch full
+width, check Figma's per-element measurements.
+
 #### State 1 — AI Generation tab (node `1237-13457`)
 - Tab toggle row: "✦ AI Generation" (active/purple) | "Manual" (inactive), 50/50 split.
 - Label: "Describe the habit you want to generate".
