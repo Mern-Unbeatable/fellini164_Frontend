@@ -136,6 +136,48 @@ dropdowns to filter the card list (currently they open/select visually but don't
 
 ## 2. Habits Board
 
+**Build plan (per user, 2026-06-21):** this board ships in 3 steps, each with sub-steps.
+Step 1 = Empty States (Figma frames below). Steps 2 and 3 are not yet specified — confirm
+with the user before assuming scope.
+
+- Step 1 frames: [Habits Board (1440) - 1 - Empty States](https://www.figma.com/design/VwgJovqBGtb90CEfNXkk2T/Elyxa.Ai--Phase-2---Copy-?node-id=1243-7175&m=dev)
+  (default) and [...- Empty States - Hover](https://www.figma.com/design/VwgJovqBGtb90CEfNXkk2T/Elyxa.Ai--Phase-2---Copy-?node-id=1243-7663&m=dev)
+  (hover sub-step).
+
+### Step 1 — Empty States (board has zero real habits)
+Confirmed from Figma inspection 2026-06-21 (fileKey `VwgJovqBGtb90CEfNXkk2T`):
+
+- Page header: "Habits Board" (20px) + subtitle "Build daily habits and keep your streaks
+  alive..." (12px, gray-200), search input "Search habits in board..." top-right.
+- Toolbar row: purple **"+ New Habit"** button (left) — filters on the right, in this exact
+  order: **All Category / All Schedule / All Days Left**. Note: the **Streak filter from the
+  Filters annotation does not appear in this empty-state frame** — only 3 filter buttons are
+  visible here, not 4. Don't assume Streak filter is missing from the board entirely; it may
+  only show once habits exist, or may need to be confirmed separately.
+- List header row inside the card panel: a **"✦ 3 AI Suggestions"** purple pill (left,
+  next to a small icon) + a "Streak" column label (with icon) + day-of-week column headers
+  Mon–Sun (current day, e.g. "Wed", highlighted purple with a dot).
+- When the board has **zero real habits**, exactly 3 AI-suggested ghost habit rows render
+  (Drink Water / Take Breaks / Meditate in the inspected frame — illustrative content, not
+  fixed copy) at **opacity-40** with a **dashed gray-100 border**, each row showing: title +
+  small purple "AI" pill, one-line description (truncated), category tag + time/streak-info
+  tag, a "0 days" streak readout, and a row of 7 empty day-checkbox squares (40×40,
+  `border-[#e9e9e9]`, two of the seven are `opacity-0` spacers to align under the correct
+  weekday column).
+- **Default state:** ghost row is opacity-40, dashed border, no "Accept" affordance visible,
+  no three-dot menu visible.
+- **Hover state (sub-step):** the hovered ghost row flips to **full opacity**, **solid**
+  gray-100 border, `bg-gray-50`, and a subtle shadow (`0px 2px 4px rgba(0,0,0,0.03)`); a new
+  **"Accept Habit ✓"** pill (purple text, checkmark icon) appears under the tags; a
+  three-dot **"⋯"** menu appears at the far right of that row (visible on hover only — exact
+  menu items not yet confirmed for ghost habit rows, but Tasks board's ghost-card pattern is
+  "Regenerate suggestion" / "Dismiss" and is the most likely match per [[project-dashboard-spec]]).
+  Non-hovered rows stay opacity-40/dashed.
+- This is the same "ghost card, hover reveals AI accept action" mechanic as Tasks/Goals
+  ghost cards (§0 global rule: "same mechanics... share the component") but with habit-
+  specific copy ("Accept Habit" instead of a footer + "Accept" button) — don't copy the
+  Tasks ghost-card footer text verbatim onto Habits.
+
 ### Habit card — overflow tags
 - When tags overflow available width, hide extras and show `+N`.
 - Hovering `+N` reveals all hidden tags via dropdown/tooltip — same hover pattern as the rest of the product (don't invent a new hover affordance here).

@@ -1,209 +1,379 @@
-import React, { useState } from 'react';
-import { Flame, Plus, Trash2 } from 'lucide-react';
+import {
+  Plus,
+  Search,
+  Sparkles,
+  MoreHorizontal,
+  ChevronDown,
+  Flame,
+  Clock,
+  Hourglass,
+  Check,
+  X,
+} from 'lucide-react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import NewHabitsModal from './components/NewHabitsModal';
+import TypewriterText from '../../../../../components/ui/TypewriterText';
+
+const HABITS_SUBTITLE_PHRASES = [
+  'Build daily habits and keep your streaks alive...',
+  'Let AI suggest habits based on your goals...',
+  'Stay consistent, one check-in at a time...',
+];
+
+const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const TODAY_INDEX = (new Date().getDay() + 6) % 7; // Mon=0 ... Sun=6
+
+// AI-suggested ghost habits — shown only when the board has no real habits yet.
+const GHOST_HABITS = [
+  {
+    id: 'ghost-habit-1',
+    title: 'Drink Water',
+    description: 'Stay hydrated throughout the day',
+    tags: [{ label: 'Health' }, { label: '7:00 AM', icon: Clock }],
+  },
+  {
+    id: 'ghost-habit-2',
+    title: 'Take Breaks',
+    description: 'Step away from your screen regularly',
+    tags: [{ label: 'Productivity' }, { label: '6:30 PM', icon: Clock }],
+  },
+  {
+    id: 'ghost-habit-3',
+    title: 'Meditate',
+    description: 'Practice mindfulness for mental clarity',
+    tags: [{ label: 'Wellness' }, { label: '12 days left', icon: Hourglass }],
+  },
+];
+
+const FILTER_CONFIG = [
+  {
+    key: 'Category',
+    defaultLabel: 'All Category',
+    options: [
+      'All Category',
+      'Career',
+      'Health',
+      'Finance',
+      'Fitness',
+      'Wellness',
+      'Productivity',
+      'Personal',
+      'Education',
+    ],
+  },
+  {
+    key: 'Schedule',
+    defaultLabel: 'All Schedule',
+    options: ['All Schedule', 'Daily', 'Weekly', 'Monthly', 'Custom'],
+  },
+  {
+    key: 'Days Left',
+    defaultLabel: 'All Days Left',
+    options: ['All Days Left', '1-7 days', '8-30 days', '30+ days'],
+  },
+];
+
+function GhostHabitMenu({ onRegenerate, onDismiss }) {
+  return (
+    <div className="absolute right-0 top-full z-30 mt-1 flex w-max flex-col overflow-hidden rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
+      <button
+        type="button"
+        onClick={onRegenerate}
+        className="flex items-center gap-1.5 border-b border-[#f2f2f2] px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#8022fe] hover:bg-[#fcfcfc] dark:border-zinc-700 dark:hover:bg-zinc-700"
+      >
+        <Sparkles size={10} className="shrink-0" />
+        Regenerate suggestion
+      </button>
+      <button
+        type="button"
+        onClick={onDismiss}
+        className="flex items-center gap-1.5 px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#5d5d5d] hover:bg-[#fcfcfc] dark:text-gray-300 dark:hover:bg-zinc-700"
+      >
+        <X size={10} className="shrink-0" />
+        Dismiss
+      </button>
+    </div>
+  );
+}
+
+function GhostHabitRow({ habit, onDismiss, onRegenerate }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const rowRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (rowRef.current && !rowRef.current.contains(e.target)) setMenuOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const isActive = menuOpen || isHovered;
+
+  return (
+    <div
+      ref={rowRef}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className={`relative flex w-full shrink-0 items-start gap-4 rounded-2xl border p-3 transition-all max-lg:flex-col max-lg:gap-3 ${
+        isActive
+          ? 'border-solid border-[#f2f2f2] bg-[#fcfcfc] shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800'
+          : 'border-dashed border-[#e9e9e9] dark:border-zinc-700'
+      }`}
+    >
+      <div className={`flex w-97 shrink-0 flex-col gap-2.5 transition-opacity duration-200 max-lg:w-full ${isActive ? 'opacity-100' : 'opacity-40'}`}>
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-2">
+            <p className="text-base font-medium text-[#181818] dark:text-white">{habit.title}</p>
+            <span className="flex items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-xs font-medium text-[#8022fe]">
+              <Sparkles size={10} />
+              AI
+            </span>
+          </div>
+          <p className="overflow-hidden text-ellipsis whitespace-nowrap text-sm text-[#a3a3a3]">
+            {habit.description}
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-1">
+          {habit.tags.map((tag) => (
+            <span
+              key={tag.label}
+              className="flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-xs font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300"
+            >
+              {tag.icon && <tag.icon size={11} className="shrink-0" />}
+              {tag.label}
+            </span>
+          ))}
+        </div>
+        {isActive && (
+          <button
+            type="button"
+            className="flex w-max items-center gap-1.5 rounded-[6px] bg-[#f9f4ff] px-[8px] py-[2px] text-sm font-medium text-[#8022fe]"
+          >
+            Accept Habit
+            <Check size={10} strokeWidth={2.5} />
+          </button>
+        )}
+      </div>
+
+      <p className={`w-30 shrink-0 text-sm font-medium text-[#181818] transition-opacity duration-200 dark:text-white max-lg:w-auto ${isActive ? 'opacity-100' : 'opacity-40'}`}>
+        0 days
+      </p>
+
+      <div className={`flex flex-1 items-center justify-between gap-2 transition-opacity duration-200 max-lg:w-full max-lg:flex-wrap ${isActive ? 'opacity-100' : 'opacity-40'}`}>
+        {DAYS.map((day) => (
+          <div
+            key={day}
+            className="size-10 shrink-0 rounded-[10px] border border-[#e9e9e9] bg-white dark:border-zinc-600 dark:bg-zinc-700 max-lg:size-9"
+          />
+        ))}
+      </div>
+
+      {isActive && (
+        <button
+          type="button"
+          onClick={() => setMenuOpen((o) => !o)}
+          aria-label="Ghost habit menu"
+          aria-expanded={menuOpen}
+          className={`animate-fade-in absolute right-3 top-3 z-20 shrink-0 rounded-[6px] p-1 text-[#a3a3a3] ${
+            menuOpen ? 'bg-[#f2f2f2]' : 'hover:bg-[#f2f2f2]'
+          }`}
+        >
+          <MoreHorizontal size={14} />
+        </button>
+      )}
+
+      {menuOpen && (
+        <div className="absolute right-3 top-9 z-50">
+          <GhostHabitMenu
+            onRegenerate={() => {
+              setMenuOpen(false);
+              onRegenerate(habit.id);
+            }}
+            onDismiss={() => {
+              setMenuOpen(false);
+              onDismiss(habit.id);
+            }}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FilterDropdown({ defaultLabel, options }) {
+  const [open, setOpen] = useState(false);
+  const [selected, setSelected] = useState(options[0]);
+  const [hovered, setHovered] = useState(null);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const displayLabel = selected === options[0] ? defaultLabel : selected;
+
+  return (
+    <div ref={ref} className="relative max-lg:w-full">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-30 items-center justify-between rounded-lg border border-[#f2f2f2] bg-white px-3 py-1.75 text-[12px] font-medium text-[#181818] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white max-lg:w-full max-lg:gap-2 max-lg:py-2.5 max-lg:text-base"
+      >
+        <span className="truncate max-lg:min-w-0 max-lg:flex-1 max-lg:text-center">{displayLabel}</span>
+        <ChevronDown size={10} className="shrink-0 text-[#a3a3a3]" />
+      </button>
+
+      {open && (
+        <div className="absolute left-0 top-8 z-50 max-h-60 w-30 overflow-y-auto rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800 max-lg:right-0 max-lg:top-full max-lg:mt-1 max-lg:w-auto">
+          {options.map((opt) => (
+            <button
+              key={opt}
+              type="button"
+              onMouseEnter={() => setHovered(opt)}
+              onMouseLeave={() => setHovered(null)}
+              onClick={() => {
+                setSelected(opt);
+                setOpen(false);
+              }}
+              className={`flex w-full items-center px-2 py-1.5 text-left text-[12px] font-medium whitespace-nowrap text-[#181818] dark:text-white max-lg:text-sm ${
+                hovered === opt ? 'bg-[#f2f2f2] dark:bg-zinc-700' : ''
+              }`}
+            >
+              {opt === options[0] ? defaultLabel : opt}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function habitMatchesSearch(habit, query) {
+  const q = query.trim().toLowerCase();
+  if (!q) return true;
+  const haystack = [habit.title, habit.description, ...habit.tags.map((t) => t.label)]
+    .join(' ')
+    .toLowerCase();
+  return haystack.includes(q);
+}
 
 export default function Habits() {
   const [modal, setModal] = useState(false);
+  const [ghostHabits, setGhostHabits] = useState(GHOST_HABITS);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleOpenModal = () => setModal(true);
   const handleCloseModal = () => setModal(false);
-
   const handleSavePlan = (data) => {
     console.log('Saved plan:', data);
   };
 
-  const [tasks, setTasks] = useState([
-    {
-      id: 1,
-      name: 'Drink 2L Water',
-      streak: 12,
-      bg: 'bg-[#EDFFE9] dark:bg-[#1F3326]',
-      checkedDays: [1, 3, 4, 6, 7],
-      checked: false,
-    },
-    {
-      id: 2,
-      name: 'Read 30 mins',
-      streak: 8,
-      bg: 'bg-[#E9F4FF] dark:bg-[#1A2A3D]',
-      checkedDays: [1, 2, 3, 4, 5, 7],
-      checked: false,
-    },
-    {
-      id: 3,
-      name: 'No Sugar',
-      streak: 12,
-      bg: 'bg-[#FFE9E9] dark:bg-[#3F1A1A]',
-      checkedDays: [1, 3, 4, 5, 7],
-      checked: true,
-    },
-  ]);
+  const filteredGhostHabits = useMemo(
+    () => ghostHabits.filter((h) => habitMatchesSearch(h, searchQuery)),
+    [ghostHabits, searchQuery]
+  );
 
-  const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-
-  const toggleCheck = (id) => {
-    setTasks(
-      tasks.map((task) =>
-        task.id === id ? { ...task, checked: !task.checked } : task
-      )
-    );
+  const handleDismissGhost = (id) => {
+    setGhostHabits((prev) => prev.filter((h) => h.id !== id));
   };
 
-  const deleteTask = (id) => {
-    setTasks(tasks.filter((task) => task.id !== id));
+  const handleRegenerateGhost = () => {
+    // Visual-only for Step 1 — AI regeneration wired in a later step.
   };
 
   return (
-    <div className="min-h-screen  p-4 sm:p-6 lg:p-8">
-      <div className="mb-6 flex items-start justify-between gap-4 sm:items-center">
-        <h1 className="text-xl md:text-2xl font-semibold text-black dark:text-white">Tasks Board</h1>
+    <div className="py-7.5 max-lg:py-4 max-lg:sm:py-6">
+      {/* Header */}
+      <div className="mb-5 flex w-full items-start justify-between max-lg:mb-4 max-lg:flex-col max-lg:gap-4">
+        <div className="flex flex-col items-start gap-2">
+          <p className="text-[20px] font-medium text-[#181818] dark:text-white">Habits Board</p>
+          <TypewriterText
+            phrases={HABITS_SUBTITLE_PHRASES}
+            className="text-[12px] font-medium text-[#c2c2c2] dark:text-gray-400 max-lg:text-sm"
+          />
+        </div>
+        <label className="flex w-62.5 items-center gap-2 rounded-lg border border-[#f2f2f2] bg-white px-3 py-1.75 focus-within:border-[#e9e9e9] dark:border-zinc-700 dark:bg-zinc-800 dark:focus-within:border-zinc-600 max-lg:w-full max-lg:py-2">
+          <Search size={12} className="shrink-0 text-[#c2c2c2]" aria-hidden />
+          <input
+            type="search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search habits in board..."
+            aria-label="Search habits in board"
+            className="w-full bg-transparent text-[12px] font-medium text-[#181818] outline-none placeholder:text-[#c2c2c2] dark:text-white max-lg:text-base"
+          />
+        </label>
+      </div>
+
+      {/* Action row */}
+      <div className="mb-5 flex w-full items-center justify-between max-lg:mb-4 max-lg:flex-col max-lg:items-stretch max-lg:gap-4">
         <button
           onClick={handleOpenModal}
-          className="flex items-center gap-2 rounded-lg bg-purple-600 px-2 md:px-6 py-2 font-semibold text-white hover:bg-purple-700"
+          className="flex items-center gap-2 rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] font-semibold text-white max-lg:w-full max-lg:justify-center max-lg:py-2.5 max-lg:text-base"
         >
-          <Plus size={20} /> New Task
+          <Plus size={10} />
+          New Habit
         </button>
+
+        <div className="flex items-center gap-2.5 max-lg:w-full max-lg:flex-col max-lg:gap-2">
+          {FILTER_CONFIG.map(({ key, defaultLabel, options }) => (
+            <FilterDropdown key={key} defaultLabel={defaultLabel} options={options} />
+          ))}
+        </div>
       </div>
 
-      {/* Desktop Table */}
-      <div className="hidden overflow-x-auto rounded-lg bg-white dark:bg-zinc-800 shadow-sm sm:block">
-        <table className="w-full min-w-[700px]">
-          <thead>
-            <tr className="border-b border-gray-200 dark:border-zinc-500">
-              <th className="px-6 py-4 text-left text-lg text-gray-700 dark:text-white">
-                HABIT NAME
-              </th>
-              <th className="px-6 py-4 text-left  text-gray-700 dark:text-white">
-                STREAK
-              </th>
-              {days.map((day, i) => (
-                <th
-                  key={i}
-                  className=" py-4 text-center font-semibold text-gray-700 dark:text-white"
-                >
-                  {day}
-                </th>
-              ))}
-              <th className="px-6 py-4 text-right font-semibold text-gray-700 dark:text-white">
-                Action
-              </th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {tasks.map((task) => (
-              <tr
-                key={task.id}
-                className="border-b border-gray-200 hover:bg-gray-50 dark:border-zinc-500 dark:hover:bg-zinc-700"
-              >
-                <td className="px-6 py-4 text-lg  text-gray-900 dark:text-white">
-                  {task.name}
-                </td>
-
-                <td className=" py-4">
-                  <div className="flex ">
-                    <span
-                      className={`flex items-center justify-center gap-2 
-      w-[110px] h-[44px] 
-      rounded-full font-bold text-lg text-black dark:text-white ${task.bg}`}
-                    >
-                      {String(task.streak).padStart(2, '0')}
-                      {/* <Flame className="text-orange-500" size={20} /> */}
-                    </span>
-                  </div>
-                </td>
-
-                {days.map((_, dayIdx) => (
-                  <td key={dayIdx} className=" py-4 text-center">
-                    <div
-                      className={`mx-auto h-8 w-8 rounded-md ${task.checkedDays.includes(dayIdx + 1)
-                        ? 'bg-green-500 dark:bg-[#166534]'
-                        : 'bg-gray-200 dark:bg-[#4B5563]'
-                        }`}
-                    />
-                  </td>
-                ))}
-
-                <td className="flex items-center justify-end gap-2 px-6 py-4">
-                  <button
-                    onClick={() => toggleCheck(task.id)}
-                    className={`rounded-full px-4 py-1.5 text-sm font-semibold ${task.checked
-                      ? 'bg-pink-100 text-pink-700 hover:bg-pink-200'
-                      : 'bg-purple-600 text-white hover:bg-purple-700'
-                      }`}
-                  >
-                    {task.checked ? 'Undo' : 'Check In'}
-                  </button>
-
-                  <button
-                    onClick={() => deleteTask(task.id)}
-                    className="text-gray-400 hover:text-red-500 dark:text-white dark:hover:text-red-500"
-                  >
-                    <Trash2 size={22} />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Mobile Cards */}
-      <div className="space-y-4 sm:hidden">
-        {tasks.map((task) => (
-          <div key={task.id} className="rounded-lg bg-white dark:bg-zinc-800 p-4 shadow">
-            <div className="mb-2 flex items-center justify-between ">
-              <h2 className="text-base font-semibold text-gray-900 dark:text-white">
-                {task.name}
-              </h2>
-              <button
-                onClick={() => deleteTask(task.id)}
-                className="text-gray-400 hover:text-red-500 dark:text-white dark:hover:text-red-500"
-              >
-                <Trash2 size={18} />
-              </button>
-            </div>
-            <div className="mb-3 flex items-center gap-2 ">
-              <span
-                className={`flex items-center justify-center gap-2 w-[110px] h-[44px]  rounded-full font-bold text-lg text-black dark:text-white ${task.bg}`}
-              >
-                {String(task.streak).padStart(2, '0')}
-                {/* <Flame className="text-orange-500" size={20} /> */}
-              </span>
-            </div>
-
-            <div className="mb-3 flex gap-2">
-              {days.map((day, dayIdx) => (
-                <div
-                  key={dayIdx}
-                  className={`flex h-8 w-8 items-center justify-center rounded-md text-white ${task.checkedDays.includes(dayIdx + 1)
-                     ? 'bg-green-500 dark:bg-[#166534]'
-                        : 'bg-gray-200 dark:bg-[#4B5563]'
-                    }`}
-                >
-                  {day}
-                </div>
-              ))}
-            </div>
-
-            <button
-              onClick={() => toggleCheck(task.id)}
-              className={`w-full rounded-full py-2 text-base ${task.checked
-                ? 'bg-pink-100 text-pink-700 hover:bg-pink-200'
-                : 'bg-purple-600 text-white hover:bg-purple-700'
-                }`}
-            >
-              {task.checked ? 'Undo' : 'Check In'}
-            </button>
+      {/* Board panel */}
+      <div className="relative flex w-full flex-col gap-2.5 overflow-hidden rounded-2xl border border-[#f2f2f2] bg-white p-3 dark:border-zinc-700 dark:bg-zinc-800">
+        <div className="flex items-center justify-between gap-4 max-lg:flex-wrap max-lg:gap-2">
+          <div className="flex items-center gap-2">
+            <span className="flex shrink-0 items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-xs font-medium text-[#8022fe]">
+              <Sparkles size={10} />
+              {filteredGhostHabits.length} AI Suggestions
+            </span>
           </div>
-        ))}
+          <div className="flex flex-1 items-center gap-2 max-lg:hidden">
+            <Flame size={12} className="shrink-0 text-[#5d5d5d] dark:text-gray-300" />
+            <p className="text-sm font-medium text-[#5d5d5d] dark:text-gray-300">Streak</p>
+          </div>
+          <div className="flex items-center gap-7.5 max-lg:hidden">
+            {DAYS.map((day, i) => (
+              <div key={day} className="flex w-10 items-center justify-between">
+                <p
+                  className={`text-sm font-medium ${
+                    i === TODAY_INDEX ? 'text-[#8022fe]' : 'text-[#5d5d5d] dark:text-gray-300'
+                  }`}
+                >
+                  {day}
+                </p>
+                {i === TODAY_INDEX && <span className="size-1 shrink-0 rounded-full bg-[#8022fe]" />}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {filteredGhostHabits.length === 0 ? (
+          <p className="py-10 text-center text-sm font-medium text-[#c2c2c2] dark:text-gray-500">
+            No habits to show yet.
+          </p>
+        ) : (
+          filteredGhostHabits.map((habit) => (
+            <GhostHabitRow
+              key={habit.id}
+              habit={habit}
+              onDismiss={handleDismissGhost}
+              onRegenerate={handleRegenerateGhost}
+            />
+          ))
+        )}
       </div>
 
-      <NewHabitsModal
-        open={modal}
-        onClose={handleCloseModal}
-        onSave={handleSavePlan}
-      />
+      <NewHabitsModal open={modal} onClose={handleCloseModal} onSave={handleSavePlan} />
     </div>
   );
 }
