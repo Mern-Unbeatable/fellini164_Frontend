@@ -21,13 +21,13 @@ export default function WeeklyView() {
             key={dayObj.num}
             className="flex flex-col items-center justify-center border-r border-[#F2F2F2] bg-white py-3 text-center last:border-r-0 dark:border-zinc-800/80 dark:bg-zinc-900"
           >
-            <span className="text-xs font-medium tracking-wider text-[#C2C2C2]  dark:text-gray-500">
+            <span className="text-xs font-medium tracking-wider text-[#C2C2C2] dark:text-gray-500">
               {dayObj.name}
             </span>
             <span
               className={`mt-1 flex h-8 w-8 items-center justify-center rounded-lg text-base font-medium ${
                 dayObj.active
-                  ? 'text-primary bg-[#F9F4FF] dark:bg-primary dark:text-purple-400'
+                  ? 'text-primary dark:bg-primary bg-[#F9F4FF] dark:text-purple-400'
                   : 'text-[#5D5D5D] dark:text-gray-200'
               }`}
             >
