@@ -266,7 +266,6 @@ export const FIGMA_PAGE_TASKS = [
       'Communicate the expectations regarding maintaining a calm environment to the relevant individuals in a direct and respectful manner.',
     tags: [{ label: 'Health' }, { label: '25 Min', icon: 'clock' }],
     due: 'May 13, 2026',
-    overdueLabel: 'Overdue',
   },
   {
     id: 'pt-3',
@@ -290,6 +289,7 @@ export const FIGMA_PAGE_TASKS = [
     tags: [{ label: 'Finance' }, { label: '30 Min', icon: 'clock' }],
     due: 'Tomorrow',
     overdueLabel: 'Overdue',
+    overdueOrange: true,
   },
 ];
 

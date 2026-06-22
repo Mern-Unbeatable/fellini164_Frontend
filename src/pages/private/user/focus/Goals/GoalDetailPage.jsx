@@ -34,6 +34,8 @@ const PRIORITY_LABELS = {
   LOW: 'Low',
 };
 
+const TODAY_INDEX = 2;
+
 function DueDetailPill({ goal }) {
   if (goal.dueDetail) {
     const parts = goal.dueDetail.split('•');
@@ -102,46 +104,54 @@ function MetaTag({ tag }) {
 }
 
 function PageTaskCard({ task }) {
+  const isDone = task.faded;
+
   return (
-    <div
-      className={`flex flex-col overflow-hidden rounded-xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800 ${
-        task.faded ? 'opacity-50' : ''
-      }`}
-    >
+    <div className="flex flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800">
       <div className="flex flex-col gap-2.5 p-3">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex flex-wrap items-center gap-2.5">
-            <div className="flex items-center gap-1">
-              <span
-                className={`rounded-md px-1.5 py-0.5 text-[12px] font-medium uppercase ${PRIORITY_STYLES[task.priority]}`}
-              >
-                {PRIORITY_LABELS[task.priority]}
-              </span>
-              {task.source === 'ai' && (
-                <span className="flex items-center gap-1 rounded-md bg-[#f9f4ff] px-1.5 py-0.5 text-[12px] font-medium text-[#8022fe]">
-                  <Sparkles size={10} />
-                  AI
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className={`flex items-center gap-1 ${isDone ? 'opacity-40' : ''}`}>
+                <span
+                  className={`rounded-md px-1.5 py-0.5 text-[12px] font-medium uppercase ${PRIORITY_STYLES[task.priority]}`}
+                >
+                  {PRIORITY_LABELS[task.priority]}
                 </span>
+                {task.source === 'ai' && (
+                  <span className="flex items-center gap-1 rounded-md bg-[#f9f4ff] px-1.5 py-0.5 text-[12px] font-medium text-[#8022fe]">
+                    <Sparkles size={10} />
+                    AI
+                  </span>
+                )}
+              </div>
+              {task.status && (
+                <>
+                  <span className="h-3 w-px bg-[#e9e9e9] dark:bg-zinc-600" />
+                  <span
+                    className={`rounded-md bg-[#f2f2f2] px-1.5 py-0.5 text-[12px] font-medium text-[#a3a3a3] dark:bg-zinc-700 ${
+                      task.statusUppercase ? 'uppercase' : ''
+                    }`}
+                  >
+                    {task.status}
+                  </span>
+                </>
               )}
             </div>
-            {task.status && (
-              <>
-                <span className="h-3 w-px bg-[#e9e9e9] dark:bg-zinc-600" />
-                <span
-                  className={`rounded-md bg-[#f2f2f2] px-1.5 py-0.5 text-[12px] font-medium text-[#a3a3a3] dark:bg-zinc-700 ${
-                    task.statusUppercase ? 'uppercase' : ''
-                  }`}
-                >
-                  {task.status}
-                </span>
-              </>
-            )}
+            <MoreHorizontal size={15} className="shrink-0 text-[#a3a3a3]" />
           </div>
-          <MoreHorizontal size={15} className="shrink-0 text-[#a3a3a3]" />
-        </div>
-        <div className="flex flex-col gap-1">
-          <p className="text-[16px] font-medium text-[#5d5d5d] dark:text-gray-300">{task.title}</p>
-          <p className="line-clamp-1 text-[12px] font-medium text-[#c2c2c2]">{task.description}</p>
+          <div className="flex flex-col gap-1">
+            <p
+              className={`text-[16px] font-medium ${isDone ? 'text-[#5d5d5d] opacity-40' : 'text-[#181818]'} dark:text-gray-300`}
+            >
+              {task.title}
+            </p>
+            <p
+              className={`line-clamp-1 text-[12px] font-medium ${isDone ? 'text-[#a3a3a3] opacity-40' : 'text-[#a3a3a3]'}`}
+            >
+              {task.description}
+            </p>
+          </div>
         </div>
         {task.tags?.length > 0 && (
           <div className="flex flex-wrap items-center gap-1">
@@ -169,7 +179,13 @@ function PageTaskCard({ task }) {
               </span>
             )}
             {task.overdueLabel && (
-              <span className="flex items-center gap-1.5 rounded-md bg-[rgba(220,38,38,0.05)] px-1.5 py-0.5 text-[12px] font-medium text-[#dc2626]">
+              <span
+                className={`flex items-center gap-1.5 rounded-md px-1.5 py-0.5 text-[12px] font-medium ${
+                  task.overdueOrange
+                    ? 'bg-[rgba(249,115,22,0.05)] text-[#f97316]'
+                    : 'bg-[rgba(220,38,38,0.05)] text-[#dc2626]'
+                }`}
+              >
                 <History size={12} />
                 {task.overdueLabel}
               </span>
@@ -190,13 +206,12 @@ function HabitDayCell({ state, todayProgress }) {
     );
   }
   if (state === 'today' && todayProgress) {
-    const pct = Math.round((todayProgress.done / todayProgress.total) * 100);
     return (
-      <div className="flex shrink-0 flex-col items-center gap-1">
+      <div className="flex shrink-0 flex-col items-center gap-2">
         <div className="relative size-[30px] overflow-hidden rounded-lg border border-[#e9e9e9] bg-white dark:border-zinc-600">
-          <div className="absolute inset-y-0 left-0 bg-[#f9f4ff]" style={{ width: `${pct}%` }} />
+          <div className="absolute inset-y-0 left-0 w-1/2 rounded-br rounded-tr-sm bg-[#f9f4ff]" />
         </div>
-        <p className="text-[10px] font-medium text-[#5d5d5d]">
+        <p className="text-[10px] font-medium text-[#181818] dark:text-gray-200">
           {todayProgress.done}/{todayProgress.total}
         </p>
       </div>
@@ -209,45 +224,51 @@ function HabitDayCell({ state, todayProgress }) {
 
 function PageHabitRow({ habit }) {
   return (
-    <div className="flex items-start gap-3 rounded-xl border border-[#f2f2f2] bg-[#fcfcfc] p-3 dark:border-zinc-700 dark:bg-zinc-800">
-      <div className="w-full min-w-0 max-w-[250px] shrink-0">
-        <div className="flex flex-col gap-1">
-          <p className="text-[16px] font-medium text-[#5d5d5d] dark:text-gray-300">{habit.title}</p>
-          <p className="truncate text-[12px] font-medium text-[#c2c2c2]">{habit.description}</p>
+    <div className="flex items-start justify-between gap-3 rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] p-3 dark:border-zinc-700 dark:bg-zinc-800">
+      <div className="flex min-w-0 flex-1 items-start gap-5">
+        <div className="w-full max-w-[250px] shrink-0 pr-5">
+          <div className="flex flex-col gap-2.5">
+            <div className="flex flex-col gap-1">
+              <p className="text-[16px] font-medium text-[#181818] dark:text-white">{habit.title}</p>
+              <p className="truncate text-[12px] font-medium text-[#a3a3a3]">{habit.description}</p>
+            </div>
+            <div className="flex flex-wrap items-center gap-1">
+              {habit.tags.map((tag) => {
+                const Icon =
+                  tag.icon === 'flame' ? Flame : tag.icon === 'hourglass' ? Hourglass : null;
+                return (
+                  <span
+                    key={tag.label}
+                    className="flex items-center gap-1.5 rounded-md border border-[#f2f2f2] px-1.5 py-0.5 text-[12px] font-medium dark:border-zinc-700"
+                  >
+                    {Icon && (
+                      <Icon
+                        size={11}
+                        className={`shrink-0 ${tag.accent ? 'text-[#f97316]' : 'text-[#5d5d5d]'}`}
+                      />
+                    )}
+                    <span
+                      className={tag.accent ? 'text-[#f97316]' : 'text-[#5d5d5d] dark:text-gray-300'}
+                    >
+                      {tag.label}
+                    </span>
+                  </span>
+                );
+              })}
+            </div>
+          </div>
         </div>
-        <div className="mt-2.5 flex flex-wrap items-center gap-1">
-          {habit.tags.map((tag) => {
-            const Icon =
-              tag.icon === 'flame' ? Flame : tag.icon === 'hourglass' ? Hourglass : null;
-            return (
-              <span
-                key={tag.label}
-                className="flex items-center gap-1.5 rounded-md border border-[#f2f2f2] px-1.5 py-0.5 text-[12px] font-medium dark:border-zinc-700"
-              >
-                {Icon && (
-                  <Icon
-                    size={11}
-                    className={`shrink-0 ${tag.accent ? 'text-[#f97316]' : 'text-[#5d5d5d]'}`}
-                  />
-                )}
-                <span className={tag.accent ? 'text-[#f97316]' : 'text-[#5d5d5d] dark:text-gray-300'}>
-                  {tag.label}
-                </span>
-              </span>
-            );
-          })}
+        <div className="hidden items-start gap-5 lg:flex">
+          {habit.days.map((day, i) => (
+            <HabitDayCell
+              key={WEEKDAY_LABELS[i]}
+              state={day}
+              todayProgress={day === 'today' ? habit.todayProgress : null}
+            />
+          ))}
         </div>
       </div>
-      <div className="hidden min-w-0 flex-1 items-start justify-center gap-5 lg:flex">
-        {habit.days.map((day, i) => (
-          <HabitDayCell
-            key={WEEKDAY_LABELS[i]}
-            state={day}
-            todayProgress={day === 'today' ? habit.todayProgress : null}
-          />
-        ))}
-      </div>
-      <MoreHorizontal size={15} className="ml-auto shrink-0 text-[#a3a3a3]" />
+      <MoreHorizontal size={15} className="shrink-0 text-[#a3a3a3]" />
     </div>
   );
 }
@@ -264,9 +285,14 @@ function LinkedSectionHeader({ label, count, weekdays, onAdd, onAi }) {
         )}
       </div>
       {weekdays && (
-        <div className="hidden min-w-0 flex-1 items-center justify-center gap-5 lg:flex">
-          {weekdays.map((day) => (
-            <span key={day} className="w-[30px] text-center text-[12px] font-medium text-[#c2c2c2]">
+        <div className="hidden min-w-0 flex-1 items-center justify-center gap-5 pl-[178px] lg:flex">
+          {weekdays.map((day, i) => (
+            <span
+              key={day}
+              className={`w-[30px] text-center text-[12px] font-medium ${
+                i === TODAY_INDEX ? 'text-[#8022fe]' : 'text-[#5d5d5d] dark:text-gray-300'
+              }`}
+            >
               {day}
             </span>
           ))}
@@ -286,7 +312,7 @@ function LinkedSectionHeader({ label, count, weekdays, onAdd, onAi }) {
 
 function EmptyLinkedState({ message }) {
   return (
-    <div className="flex min-h-[81px] w-full items-center justify-center rounded-xl border border-dashed border-[#e9e9e9] bg-[#fcfcfc] px-3 py-4 dark:border-zinc-700 dark:bg-zinc-800">
+    <div className="flex min-h-[81px] w-full items-center justify-center rounded-2xl border border-dashed border-[#e9e9e9] bg-[#fcfcfc] px-3 py-4 dark:border-zinc-700 dark:bg-zinc-800">
       <p className="text-[12px] font-medium text-[#c2c2c2]">{message}</p>
     </div>
   );
@@ -313,9 +339,9 @@ export default function GoalDetailPage() {
   const hasDue = goal.dueDetail || goal.due;
 
   return (
-    <div className="-mx-10 -mt-0 flex min-h-[calc(100vh-3.25rem)] flex-col py-7.5 max-lg:-mx-4 max-lg:py-4 max-lg:sm:-mx-6 max-lg:sm:py-6">
-      <div className="flex flex-1 flex-col gap-7.5 lg:flex-row lg:gap-[30px]">
-        <div className="scrollbar-hidden flex min-h-[min(70vh,798px)] min-w-0 flex-1 flex-col overflow-y-auto rounded-2xl border border-[#f2f2f2] bg-white py-5 pl-5 pr-[26px] dark:border-zinc-700 dark:bg-zinc-900">
+    <div className="-mx-10 flex min-h-[calc(100vh-3.25rem)] flex-col py-7.5 max-lg:-mx-4 max-lg:py-4 max-lg:sm:-mx-6 max-lg:sm:py-6">
+      <div className="flex flex-1 flex-col gap-[30px] lg:flex-row">
+        <div className="scrollbar-hidden flex min-h-[min(70vh,798px)] min-w-0 flex-1 flex-col gap-6 overflow-y-auto rounded-2xl border border-[#f2f2f2] bg-white py-5 pl-5 pr-[26px] dark:border-zinc-700 dark:bg-zinc-900">
           <div className="flex flex-col gap-3">
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between">
@@ -354,7 +380,7 @@ export default function GoalDetailPage() {
               </div>
               <div className="flex flex-col gap-2">
                 <h1 className="text-[20px] font-medium text-[#181818] dark:text-white">{goal.title}</h1>
-                <p className="text-[14px] font-medium text-[#a3a3a3]">{goal.description}</p>
+                <p className="text-[12px] font-medium text-[#c2c2c2]">{goal.description}</p>
               </div>
             </div>
 
@@ -374,10 +400,10 @@ export default function GoalDetailPage() {
             )}
           </div>
 
-          <div className="my-6 h-px w-full bg-[#f2f2f2] dark:bg-zinc-700" />
+          <div className="h-px w-full bg-[#f2f2f2] dark:bg-zinc-700" />
 
-          <div className="flex flex-col gap-6">
-            <div className="grid gap-6 sm:grid-cols-2">
+          <div className="flex flex-col gap-[50px]">
+            <div className="flex flex-col gap-6">
               <div className="flex flex-col gap-1.5">
                 <p className="text-[12px] font-medium text-[#c2c2c2]">Category</p>
                 <PillBadge>{goal.category}</PillBadge>
@@ -391,35 +417,35 @@ export default function GoalDetailPage() {
                   </PillBadge>
                 </div>
               )}
-            </div>
 
-            <div className="flex flex-col gap-1.5">
-              <LinkedSectionHeader
-                label="Linked Tasks"
-                count={goal.tasks ?? tasks.length}
-                onAdd={() => {}}
-                onAi={() => {}}
-              />
-              {tasks.length === 0 ? (
-                <EmptyLinkedState message="No linked tasks yet" />
-              ) : (
-                <>
-                  <div className="grid grid-cols-1 gap-2.5 md:grid-cols-2">
-                    {tasks.map((task) => (
-                      <PageTaskCard key={task.id} task={task} />
-                    ))}
+              <div className="flex flex-col gap-1.5">
+                <LinkedSectionHeader
+                  label="Linked Tasks"
+                  count={goal.tasks ?? tasks.length}
+                  onAdd={() => {}}
+                  onAi={() => {}}
+                />
+                {tasks.length === 0 ? (
+                  <EmptyLinkedState message="No linked tasks yet" />
+                ) : (
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="grid w-full grid-cols-1 gap-2.5 md:grid-cols-2">
+                      {tasks.map((task) => (
+                        <PageTaskCard key={task.id} task={task} />
+                      ))}
+                    </div>
+                    {(goal.tasks ?? 0) > tasks.length && (
+                      <button
+                        type="button"
+                        className="flex items-center gap-2 text-[12px] font-medium text-[#c2c2c2] hover:text-[#8022fe]"
+                      >
+                        View All {goal.tasks} tasks
+                        <ChevronDown size={10} />
+                      </button>
+                    )}
                   </div>
-                  {(goal.tasks ?? 0) > tasks.length && (
-                    <button
-                      type="button"
-                      className="mx-auto flex items-center gap-1.5 text-[12px] font-medium text-[#5d5d5d] hover:text-[#8022fe] dark:text-gray-300"
-                    >
-                      View All {goal.tasks} tasks
-                      <ChevronDown size={10} />
-                    </button>
-                  )}
-                </>
-              )}
+                )}
+              </div>
             </div>
 
             <div className="flex flex-col gap-1.5">
