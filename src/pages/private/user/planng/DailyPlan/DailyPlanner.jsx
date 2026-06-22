@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import NewPlanModal from './components/NewPlanModal';
 import PlannerBoard from './components/PlannerBoard';
 import AIAssistant from './components/AIAssistant';
+import PlannerHeader from './components/PlannerHeader';
+import PlannerControls from './components/PlannerControls';
 
 export default function DailyPlanner() {
   const [modle, setModle] = useState(false);
@@ -211,23 +213,31 @@ export default function DailyPlanner() {
     <div className="py-7.5 max-lg:py-4 max-lg:sm:py-6">
       <div className="mx-auto flex flex-col lg:flex-row gap-6">
         
-        {/* Planner Board */}
-        <PlannerBoard
-          currentDate={currentDate}
-          selectedDate={selectedDate}
-          setSelectedDate={setSelectedDate}
-          viewMode={viewMode}
-          setViewMode={setViewMode}
-          dropdownOpen={dropdownOpen}
-          setDropdownOpen={setDropdownOpen}
-          plans={plans}
-          calendarDays={calendarDays}
-          navigateMonth={navigateMonth}
-          handleOpenModal={handleOpenModal}
-          handleQuickAction={handleQuickAction}
-          getFormattedDateString={getFormattedDateString}
-          months={months}
-        />
+        {/* Left Side: Header, Controls, and Board */}
+        <div className="flex-1 flex flex-col">
+          <PlannerHeader />
+          <PlannerControls
+            currentDate={currentDate}
+            setSelectedDate={setSelectedDate}
+            viewMode={viewMode}
+            setViewMode={setViewMode}
+            dropdownOpen={dropdownOpen}
+            setDropdownOpen={setDropdownOpen}
+            navigateMonth={navigateMonth}
+            handleOpenModal={handleOpenModal}
+            handleQuickAction={handleQuickAction}
+            months={months}
+          />
+          <PlannerBoard
+            currentDate={currentDate}
+            selectedDate={selectedDate}
+            setSelectedDate={setSelectedDate}
+            viewMode={viewMode}
+            plans={plans}
+            calendarDays={calendarDays}
+            getFormattedDateString={getFormattedDateString}
+          />
+        </div>
 
         {/* AI Assistant Sidebar */}
         <AIAssistant
