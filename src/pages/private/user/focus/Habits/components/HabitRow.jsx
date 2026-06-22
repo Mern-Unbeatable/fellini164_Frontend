@@ -7,7 +7,10 @@ const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 // 'checked' (completed), 'today' (partial-fill bar + "{done}/{total}" label).
 function DayCell({ state, todayProgress, dimmed }) {
   if (state === 'unscheduled') {
-    return <div className="size-10 shrink-0 rounded-[10px] opacity-0 max-lg:hidden" />;
+    // opacity-0 only — must stay in the layout flow (not display:none) so it still
+    // occupies its grid/flex slot, keeping the visible cells aligned under the
+    // correct weekday at every breakpoint.
+    return <div className="size-10 shrink-0 rounded-[10px] opacity-0 max-lg:size-9" />;
   }
 
   if (state === 'today' && todayProgress) {

@@ -409,6 +409,16 @@ export default function NewHabitsModal({ open, onClose, onSave }) {
                     ))}
                   </div>
                 </div>
+                <div className="grid grid-cols-7 gap-1 px-3 lg:hidden">
+                  {TARGET_DAYS.map((day) => (
+                    <p
+                      key={day}
+                      className="text-center text-[11px] font-medium text-[#5d5d5d] dark:text-gray-300"
+                    >
+                      {day}
+                    </p>
+                  ))}
+                </div>
                 <HabitRow habit={previewHabit} showMenu={false} compact />
               </div>
               <div className="mx-auto flex w-full max-w-[430px] flex-col gap-2">
