@@ -11,22 +11,22 @@ export default function PlannerControls({
   navigateMonth,
   handleOpenModal,
   handleQuickAction,
-  months
+  months,
 }) {
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 mb-2">
+    <div className="mb-2 flex flex-col justify-between gap-4 pb-6 sm:flex-row sm:items-center">
       {/* Action Buttons */}
       <div className="flex items-center gap-2.5">
-        <button 
+        <button
           onClick={() => handleQuickAction('monthly_plan')}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-sm font-medium transition-colors"
+          className="bg-primary flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors"
         >
           <Sparkles size={14} className="fill-white/20" />
           <span>+ AI Actions</span>
         </button>
-        <button 
+        <button
           onClick={handleOpenModal}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-lg border border-gray-200 dark:border-zinc-700 bg-white hover:bg-gray-50 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-gray-200 text-sm font-medium transition-colors"
+          className="flex items-center gap-1.5 rounded-lg border border-[#F2F2F2] bg-[#F2F2F2] px-4 py-2 text-sm font-medium text-[#5D5D5D] transition-colors dark:border-zinc-700 dark:text-gray-200"
         >
           <Plus size={14} />
           <span>Create Plan</span>
@@ -34,47 +34,49 @@ export default function PlannerControls({
       </div>
 
       {/* Navigation and Dropdown */}
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2 bg-gray-50 dark:bg-zinc-800/80 px-2.5 py-1.5 rounded-lg border border-gray-100 dark:border-zinc-800">
-          <button 
-            onClick={() => {
-              setSelectedDate(new Date(2026, 4, 13));
-            }}
-            className="px-2.5 py-1 text-xs font-semibold text-slate-700 dark:text-gray-200 hover:bg-white dark:hover:bg-zinc-700 rounded transition-colors"
+      <div className="flex items-center gap-3.5">
+        <button
+          onClick={() => {
+            setSelectedDate(new Date(2026, 4, 13));
+          }}
+          className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-gray-50 dark:border-zinc-700 dark:bg-zinc-850 dark:text-gray-200 dark:hover:bg-zinc-800"
+        >
+          Today
+        </button>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => navigateMonth(-1)}
+            className="text-[#5D5D5D] "
           >
-            Today
+            <ChevronLeft size={32} />
           </button>
-          <div className="flex items-center gap-1.5">
-            <button 
-              onClick={() => navigateMonth(-1)}
-              className="p-1 hover:bg-white dark:hover:bg-zinc-700 rounded text-gray-500 dark:text-gray-400 transition-colors"
-            >
-              <ChevronLeft size={14} />
-            </button>
-            <span className="text-xs font-semibold min-w-[90px] text-center text-slate-800 dark:text-gray-100">
-              {months[currentDate.getMonth()]} {currentDate.getDate()}, {currentDate.getFullYear()}
-            </span>
-            <button 
-              onClick={() => navigateMonth(1)}
-              className="p-1 hover:bg-white dark:hover:bg-zinc-700 rounded text-gray-500 dark:text-gray-400 transition-colors"
-            >
-              <ChevronRight size={14} />
-            </button>
-          </div>
+          <span className="min-w-[100px] text-center text-sm md:text-xl  text-[#5D5D5D] dark:text-gray-200">
+            {months[currentDate.getMonth()]} {currentDate.getDate()}, {currentDate.getFullYear()}
+          </span>
+          <button
+            onClick={() => navigateMonth(1)}
+            className="text-[#5D5D5D] "
+          >
+            <ChevronRight size={32} />
+          </button>
         </div>
+
+        {/* Divider */}
+        <div className="h-6 w-[2px] bg-[#F2F2F2] dark:bg-zinc-800" />
 
         {/* View Dropdown */}
         <div className="relative">
-          <button 
+          <button
             onClick={() => setDropdownOpen(!dropdownOpen)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-zinc-700 text-slate-700 dark:text-gray-200 text-xs font-semibold hover:bg-gray-50 dark:hover:bg-zinc-700 transition-colors"
+            className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-gray-50 dark:border-zinc-700 dark:bg-zinc-850 dark:text-gray-200 dark:hover:bg-zinc-800"
           >
             <span>{viewMode}</span>
-            <ChevronDown size={12} />
+            <ChevronDown size={18} className="text-gray-400" />
           </button>
-          
+
           {dropdownOpen && (
-            <div className="absolute right-0 mt-1.5 w-32 bg-white dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700 rounded-lg shadow-md py-1 z-10">
+            <div className="absolute right-0 z-10 mt-1.5 w-32 rounded-lg border border-gray-100 bg-white py-1 shadow-md dark:border-zinc-700 dark:bg-zinc-800">
               {['Daily', 'Weekly', 'Monthly'].map((mode) => (
                 <button
                   key={mode}
@@ -82,7 +84,7 @@ export default function PlannerControls({
                     setViewMode(mode);
                     setDropdownOpen(false);
                   }}
-                  className="w-full text-left px-3.5 py-1.5 text-xs text-slate-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-zinc-700/80 transition-colors"
+                  className="w-full px-3.5 py-1.5 text-left text-xs text-slate-700 transition-colors hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-zinc-700/80"
                 >
                   {mode}
                 </button>

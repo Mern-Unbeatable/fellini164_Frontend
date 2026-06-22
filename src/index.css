@@ -37,7 +37,7 @@
   /* COLORS */
   /* ------ */
   /* Primary Palette */
-  --color-primary-50: #fff9e6;
+  --color-primary: #8022FE;
   --color-primary-100: #fff2cc;
   --color-primary-200: #ffe699;
   --color-primary-300: #ffd966;
@@ -156,7 +156,7 @@
   --font-family-secondary: var(--font-secondary);
 
   /* Colors */
-  --color-primary: var(--color-primary-500);
+  --color-primary: var(--color-primary);
   --color-secondary: var(--color-secondary-500);
   --color-background: var(--color-bg-secondary);
 

@@ -210,7 +210,7 @@ export default function DailyPlanner() {
   };
 
   return (
-    <div className="py-7.5 max-lg:py-4 max-lg:sm:py-6">
+    <div className="py-7.5 max-lg:py-4 max-lg:sm:py-6 ">
       <div className="mx-auto flex flex-col lg:flex-row gap-6">
         
         {/* Left Side: Header, Controls, and Board */}
