@@ -62,16 +62,18 @@ const EMPTY_FORM = {
   linkedHabits: [],
 };
 
+const FIGMA_PREVIEW_GOAL = {
+  priority: 'MEDIUM',
+  title: 'Finish the work',
+  description: 'Stick to your professional growth plan or engage in a skill-building session.',
+  category: 'Career',
+  due: 'May 28, 2026',
+};
+
 function mockGenerateGoal(prompt) {
   const lower = prompt.toLowerCase();
-  if (lower.includes('portfolio') || lower.includes('linkedin') || lower.includes('career')) {
-    return {
-      priority: 'HIGH',
-      title: 'Improve Rate',
-      description: 'Stick to your professional growth plan or engage in a skill-building session.',
-      category: 'Career',
-      due: 'In 6 days',
-    };
+  if (lower.includes('portfolio') || lower.includes('linkedin') || lower.includes('career') || lower.includes('work')) {
+    return { ...FIGMA_PREVIEW_GOAL };
   }
   if (lower.includes('marathon') || lower.includes('fitness') || lower.includes('workout')) {
     return {
@@ -91,13 +93,7 @@ function mockGenerateGoal(prompt) {
       due: 'Dec 31, 2026',
     };
   }
-  return {
-    priority: 'MEDIUM',
-    title: 'Update LinkedIn Profile',
-    description: 'Refresh headline, summary, and recent projects on your profile.',
-    category: 'Career',
-    due: 'May 27, 2026',
-  };
+  return { ...FIGMA_PREVIEW_GOAL };
 }
 
 function formatDueDate(value) {
@@ -295,63 +291,96 @@ function AIGeneratedGoalPreviewCard({ goal, revealStep = 3 }) {
   const showMeta = revealStep >= 3;
 
   return (
-    <div className="flex w-full flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-white dark:border-zinc-700 dark:bg-zinc-800">
+    <div className="flex w-full flex-col overflow-hidden rounded-[16px] border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800">
       <div className="flex flex-col gap-[10px] p-3">
-        <div className="flex w-full items-center justify-between">
-          <div className="flex items-center gap-1">
-            {showMeta ? (
-              <>
-                <span
-                  className={`rounded-[6px] px-[6px] py-[2px] text-[12px] font-medium uppercase leading-[1.5] ${PRIORITY_STYLES[goal.priority]}`}
-                >
-                  {PRIORITY_LABELS[goal.priority]}
-                </span>
-                <span className="flex items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-[12px] font-medium leading-[1.5] text-[#8022fe]">
-                  <Sparkles size={10} />
-                  AI
-                </span>
-              </>
+        <div className="flex flex-col gap-[8px]">
+          <div className="flex w-full items-center justify-between">
+            <div className="flex items-center gap-[4px]">
+              {showMeta ? (
+                <>
+                  <span
+                    className={`rounded-[6px] px-[6px] py-[2px] text-[12px] font-medium uppercase leading-[1.5] ${PRIORITY_STYLES[goal.priority]}`}
+                  >
+                    {PRIORITY_LABELS[goal.priority]}
+                  </span>
+                  <span className="flex items-center gap-[4px] rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-[12px] font-medium leading-[1.5] text-[#8022fe]">
+                    <Sparkles size={10} />
+                    AI
+                  </span>
+                </>
+              ) : (
+                <SkeletonBar className="h-[22px] w-24" />
+              )}
+            </div>
+            <MoreHorizontal size={14} className="text-[#a3a3a3]" />
+          </div>
+          <div className="flex flex-col gap-1">
+            {showTitle ? (
+              <p className="text-[16px] font-medium leading-[1.5] text-[#181818] dark:text-white">{goal.title}</p>
             ) : (
-              <SkeletonBar className="h-5 w-24" />
+              <SkeletonBar className="h-6 w-[75%]" />
+            )}
+            {showDescription ? (
+              <p className="overflow-hidden text-ellipsis whitespace-nowrap text-[12px] font-medium leading-[1.5] text-[#a3a3a3]">
+                {goal.description}
+              </p>
+            ) : (
+              <SkeletonBar className="h-[18px] w-full" />
             )}
           </div>
-          <MoreHorizontal size={14} className="text-[#a3a3a3]" />
-        </div>
-        <div className="flex flex-col gap-1">
-          {showTitle ? (
-            <p className="text-[16px] font-medium leading-[1.5] text-[#181818] dark:text-white">{goal.title}</p>
-          ) : (
-            <SkeletonBar className="h-5 w-[75%]" />
-          )}
-          {showDescription ? (
-            <p className="overflow-hidden text-ellipsis whitespace-nowrap text-[12px] font-medium leading-[1.5] text-[#a3a3a3]">
-              {goal.description}
-            </p>
-          ) : (
-            <SkeletonBar className="h-3 w-full" />
-          )}
         </div>
         {showMeta && (
-          <div className="flex flex-wrap items-center gap-1">
+          <div className="flex items-center gap-[4px]">
             <span className="rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
               {goal.category}
             </span>
-            <span className="flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
-              <Flag size={12} />
+            <span className="flex items-center gap-[6px] rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+              <Flag size={12} className="h-3 w-2 shrink-0" />
               {goal.due}
             </span>
           </div>
         )}
       </div>
       <div className="border-t border-[#f2f2f2] px-3 pt-[10px] pb-3 dark:border-zinc-700">
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-[6px]">
           <div className="flex items-center justify-between text-[12px] font-medium leading-[1.5]">
             <span className="text-[#c2c2c2]">Progress</span>
             <span className="text-[#5d5d5d] dark:text-gray-300">0%</span>
           </div>
-          <div className="h-2 w-full rounded-[40px] bg-[#e9e9e9] dark:bg-zinc-600" />
+          <div className="h-[8px] w-full rounded-[40px] bg-[#e9e9e9] dark:bg-zinc-600" />
         </div>
       </div>
+    </div>
+  );
+}
+
+function AiPreviewChangeSection({ changeRequest, onChange, onUpdate }) {
+  return (
+    <div className="flex w-full flex-col gap-[8px]">
+      <div className="flex h-[22px] items-center justify-between">
+        <p className="text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:text-gray-300">
+          Anything to change?
+        </p>
+        <button
+          type="button"
+          onClick={onUpdate}
+          disabled={!changeRequest.trim()}
+          className={`rounded-[6px] px-[8px] py-[2px] text-[12px] font-medium leading-[1.5] ${
+            changeRequest.trim()
+              ? 'bg-[#f9f4ff] text-[#8022fe]'
+              : 'cursor-default bg-[#f9f4ff] text-[#8022fe] opacity-60'
+          }`}
+        >
+          Update
+        </button>
+      </div>
+      <textarea
+        rows={3}
+        value={changeRequest}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="Type here..."
+        className={`${inputClasses} h-[70px] resize-none rounded-[12px] p-[12px]`}
+      />
     </div>
   );
 }
@@ -660,7 +689,8 @@ export default function NewGoalModal({ open, onClose, onSave }) {
   const showAiPreview = activeTab === 'ai' && aiPhase === 'preview';
   const showAiGenerating = activeTab === 'ai' && aiPhase === 'generating';
   const isAiInput = activeTab === 'ai' && aiPhase === 'input';
-  const tabContentGap = isAiInput ? 'mt-[20px]' : 'mt-[24px]';
+  const isAiPreviewState = showAiPreview || showAiGenerating;
+  const tabContentGap = isAiInput || isAiPreviewState ? 'mt-[20px]' : 'mt-[24px]';
 
   const renderBodyContent = () => {
     if (activeTab === 'manual') {
@@ -688,34 +718,13 @@ export default function NewGoalModal({ open, onClose, onSave }) {
 
     if (showAiPreview) {
       return (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-[16px]">
           <AIGeneratedGoalPreviewCard goal={generatedGoal} />
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <p className="text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:text-gray-300">
-                Anything to change?
-              </p>
-              <button
-                type="button"
-                onClick={handleUpdatePreview}
-                disabled={!changeRequest.trim()}
-                className={`rounded-md px-2 py-0.5 text-[12px] font-medium ${
-                  changeRequest.trim()
-                    ? 'bg-[#f9f4ff] text-[#8022fe]'
-                    : 'cursor-default bg-[#f9f4ff] text-[#8022fe] opacity-60'
-                }`}
-              >
-                Update
-              </button>
-            </div>
-            <textarea
-              rows={3}
-              value={changeRequest}
-              onChange={(e) => setChangeRequest(e.target.value)}
-              placeholder="Type here..."
-              className={`${inputClasses} h-[70px] resize-none rounded-[12px]`}
-            />
-          </div>
+          <AiPreviewChangeSection
+            changeRequest={changeRequest}
+            onChange={setChangeRequest}
+            onUpdate={handleUpdatePreview}
+          />
         </div>
       );
     }
@@ -745,9 +754,15 @@ export default function NewGoalModal({ open, onClose, onSave }) {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className={`flex w-full flex-col overflow-hidden rounded-[16px] border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-900 ${
-          activeTab === 'manual' ? 'max-h-[90vh] sm:h-auto sm:max-h-[635px] sm:w-[450px]' : 'sm:w-[450px]'
-        } max-w-[450px]`}
+        className={`flex w-full flex-col overflow-hidden rounded-[16px] border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-900 max-w-[450px] sm:w-[450px] ${
+          activeTab === 'manual'
+            ? 'max-h-[90vh] sm:max-h-[635px]'
+            : showAiPreview
+              ? 'sm:max-h-[474px]'
+              : isAiInput
+                ? 'sm:max-h-[336px]'
+                : ''
+        }`}
       >
         <div className="flex shrink-0 items-center justify-between border-b border-[#f2f2f2] px-[12px] py-[10px] dark:border-zinc-700">
           <p className="text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:text-gray-300">New Goal</p>
@@ -756,11 +771,10 @@ export default function NewGoalModal({ open, onClose, onSave }) {
           </button>
         </div>
 
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-[12px]">
-          <TabToggle activeTab={activeTab} onChange={handleTabChange} disabled={isRevealing} />
-
-          <div className={`min-h-0 flex-1 overflow-y-auto ${tabContentGap} ${activeTab === 'manual' ? 'mb-[24px]' : 'mb-[24px]'}`}>
-            {renderBodyContent()}
+        <div className="flex min-h-0 flex-1 flex-col gap-[24px] overflow-hidden p-[12px]">
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            <TabToggle activeTab={activeTab} onChange={handleTabChange} disabled={isRevealing} />
+            <div className={`min-h-0 flex-1 overflow-y-auto ${tabContentGap}`}>{renderBodyContent()}</div>
           </div>
 
           <ModalFooter
