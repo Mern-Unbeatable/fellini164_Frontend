@@ -1,4 +1,5 @@
 import React from 'react';
+import { MessageSquare, Clock } from 'lucide-react';
 
 export default function WeeklyView() {
   return (
@@ -83,7 +84,8 @@ export default function WeeklyView() {
                     <div className="bg-white dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700 shadow-sm rounded-lg p-2.5 flex flex-col gap-1.5">
                       <div>
                         <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-gray-50 dark:bg-zinc-700 border border-gray-100 dark:border-zinc-600 rounded-full text-[8px] font-semibold text-gray-500 dark:text-gray-400">
-                          💬 1 Habit
+                          <MessageSquare size={10} className="text-gray-400" />
+                          <span>1 Habit</span>
                         </span>
                       </div>
                       <span className="text-xs text-slate-700 dark:text-gray-300 font-semibold leading-snug">
@@ -93,8 +95,9 @@ export default function WeeklyView() {
                         <span className="text-[8px] font-bold px-1.5 py-0.5 rounded bg-gray-50 text-gray-405 border border-gray-100 dark:bg-zinc-700 dark:text-gray-400 dark:border-none">LOW</span>
                         <span className="text-[8px] font-bold px-1.5 py-0.5 rounded bg-gray-50 text-gray-500 border border-gray-100 dark:bg-zinc-700 dark:text-gray-300 dark:border-none">IN PROGRESS</span>
                         <span className="text-[8px] font-bold px-1.5 py-0.5 rounded border border-gray-200 text-gray-400 dark:border-zinc-700">Health</span>
-                        <span className="text-[8px] font-bold text-gray-400 dark:text-gray-500 flex items-center gap-0.5 ml-1">
-                          🕒 115 Min
+                        <span className="text-[8px] font-bold text-gray-400 dark:text-gray-500 flex items-center gap-1 ml-1">
+                          <Clock size={10} className="text-gray-400" />
+                          <span>115 Min</span>
                         </span>
                       </div>
                     </div>
