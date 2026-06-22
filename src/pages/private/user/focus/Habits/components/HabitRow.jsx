@@ -192,7 +192,7 @@ export default function HabitRow({
         </div>
       ) : (
         <div
-          className={`flex items-center max-lg:w-full max-lg:flex-wrap max-lg:gap-2 max-lg:pr-0 ${
+          className={`flex items-center max-lg:grid max-lg:w-full max-lg:grid-cols-7 max-lg:place-items-center max-lg:gap-1 max-lg:pr-0 ${
             compact ? 'w-[460px] shrink-0 justify-end gap-5' : `flex-1 justify-between ${showMenu ? 'pr-41' : ''}`
           }`}
         >
