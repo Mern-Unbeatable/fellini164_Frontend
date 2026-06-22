@@ -358,29 +358,24 @@ function AIGeneratedGoalPreviewCard({ goal, revealStep = 3 }) {
 function AiPreviewChangeSection({ changeRequest, onChange, onUpdate }) {
   return (
     <div className="flex w-full flex-col gap-[8px]">
-      <div className="flex h-[22px] items-center justify-between">
-        <p className="text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:text-gray-300">
+      <div className="flex w-full items-center justify-between">
+        <p className="shrink-0 whitespace-nowrap text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:text-gray-300">
           Anything to change?
         </p>
         <button
           type="button"
           onClick={onUpdate}
           disabled={!changeRequest.trim()}
-          className={`rounded-[6px] px-[8px] py-[2px] text-[12px] font-medium leading-[1.5] ${
-            changeRequest.trim()
-              ? 'bg-[#f9f4ff] text-[#8022fe]'
-              : 'cursor-default bg-[#f9f4ff] text-[#8022fe] opacity-60'
-          }`}
+          className="shrink-0 rounded-[6px] bg-[#f9f4ff] px-[8px] pt-[2px] pb-[3px] text-[12px] font-medium leading-[1.5] text-[#8022fe] disabled:cursor-default disabled:opacity-60"
         >
           Update
         </button>
       </div>
       <textarea
-        rows={3}
         value={changeRequest}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Type here..."
-        className={`${textareaClasses} h-[70px] resize-none`}
+        className="h-[70px] w-full resize-none rounded-[12px] border border-[#f2f2f2] bg-white p-[12px] text-[12px] font-medium leading-normal text-[#181818] outline-none placeholder:font-medium placeholder:leading-normal placeholder:text-[#c2c2c2] focus:border-[#8022fe] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
       />
     </div>
   );
@@ -537,7 +532,7 @@ function ModalFooter({
             type="button"
             onClick={onRegenerate}
             disabled={isRevealing}
-            className="flex min-h-[31px] flex-1 items-center justify-center rounded-[8px] bg-[#f2f2f2] px-[12px] py-[8px] text-[12px] font-medium leading-normal text-[#5d5d5d] disabled:opacity-60 dark:bg-zinc-700 dark:text-gray-300"
+            className="flex h-[31px] flex-1 items-center justify-center rounded-[8px] bg-[#f2f2f2] px-[12px] text-[12px] font-medium leading-normal text-[#5d5d5d] disabled:opacity-60 dark:bg-zinc-700 dark:text-gray-300"
           >
             Regenerate
           </button>
@@ -545,7 +540,7 @@ function ModalFooter({
             type="button"
             onClick={onAddGeneratedToBoard}
             disabled={isRevealing}
-            className="flex min-h-[31px] flex-1 items-center justify-center rounded-[8px] bg-[#8022fe] px-[12px] py-[8px] text-[12px] font-semibold leading-normal text-white disabled:opacity-60"
+            className="flex h-[31px] flex-1 items-center justify-center rounded-[8px] bg-[#8022fe] px-[12px] text-[12px] font-semibold leading-normal text-white disabled:opacity-60"
           >
             Add to Board
           </button>
@@ -555,14 +550,14 @@ function ModalFooter({
           <button
             type="button"
             disabled
-            className="flex min-h-[31px] flex-1 cursor-not-allowed items-center justify-center rounded-[8px] bg-[#f2f2f2] px-[12px] py-[8px] text-[12px] font-medium leading-normal text-[#5d5d5d] opacity-60 dark:bg-zinc-700 dark:text-gray-300"
+            className="flex h-[31px] flex-1 cursor-not-allowed items-center justify-center rounded-[8px] bg-[#f2f2f2] px-[12px] text-[12px] font-medium leading-normal text-[#5d5d5d] opacity-60 dark:bg-zinc-700 dark:text-gray-300"
           >
             Cancel
           </button>
           <button
             type="button"
             disabled
-            className="flex min-h-[31px] flex-1 cursor-not-allowed items-center justify-center rounded-[8px] bg-[#f1f1f1] px-[12px] py-[8px] text-[12px] font-semibold leading-normal text-[#dedede]"
+            className="flex h-[31px] flex-1 cursor-not-allowed items-center justify-center rounded-[8px] bg-[#f1f1f1] px-[12px] text-[12px] font-semibold leading-normal text-[#dedede]"
           >
             Generating...
           </button>
@@ -572,7 +567,7 @@ function ModalFooter({
           <button
             type="button"
             onClick={onClose}
-            className="flex min-h-[31px] flex-1 items-center justify-center rounded-[8px] bg-[#f2f2f2] px-[12px] py-[8px] text-[12px] font-medium leading-normal text-[#5d5d5d] dark:bg-zinc-700 dark:text-gray-300"
+            className="flex h-[31px] flex-1 items-center justify-center rounded-[8px] bg-[#f2f2f2] px-[12px] text-[12px] font-medium leading-normal text-[#5d5d5d] dark:bg-zinc-700 dark:text-gray-300"
           >
             Cancel
           </button>
@@ -581,7 +576,7 @@ function ModalFooter({
               type="button"
               disabled={!canGenerate}
               onClick={onGenerate}
-              className={`flex min-h-[31px] flex-1 items-center justify-center rounded-[8px] px-[12px] py-[8px] text-[12px] font-semibold leading-normal ${
+              className={`flex h-[31px] flex-1 items-center justify-center rounded-[8px] px-[12px] text-[12px] font-semibold leading-normal ${
                 canGenerate
                   ? 'bg-[#8022fe] text-white'
                   : 'cursor-not-allowed bg-[#f1f1f1] text-[#dedede]'
@@ -594,7 +589,7 @@ function ModalFooter({
               type="button"
               disabled={!canSubmitManual}
               onClick={onManualSubmit}
-              className={`flex min-h-[31px] flex-1 items-center justify-center rounded-[8px] px-[12px] py-[8px] text-[12px] font-semibold leading-normal ${
+              className={`flex h-[31px] flex-1 items-center justify-center rounded-[8px] px-[12px] text-[12px] font-semibold leading-normal ${
                 canSubmitManual
                   ? 'bg-[#8022fe] text-white'
                   : 'cursor-not-allowed bg-[#f1f1f1] text-[#dedede]'
@@ -715,8 +710,7 @@ export default function NewGoalModal({ open, onClose, onSave }) {
   const showAiPreview = activeTab === 'ai' && aiPhase === 'preview';
   const showAiGenerating = activeTab === 'ai' && aiPhase === 'generating';
   const isAiInput = activeTab === 'ai' && aiPhase === 'input';
-  const isAiPreviewState = showAiPreview || showAiGenerating;
-  const tabContentGap = isAiInput || isAiPreviewState ? 'mt-[20px]' : 'mt-[24px]';
+  const isManualTab = activeTab === 'manual';
 
   const renderBodyContent = () => {
     if (activeTab === 'manual') {
@@ -744,7 +738,7 @@ export default function NewGoalModal({ open, onClose, onSave }) {
 
     if (showAiPreview) {
       return (
-        <div className="flex flex-col gap-[16px]">
+        <div className="flex w-full flex-col items-start gap-[16px]">
           <AIGeneratedGoalPreviewCard goal={generatedGoal} />
           <AiPreviewChangeSection
             changeRequest={changeRequest}
@@ -762,10 +756,10 @@ export default function NewGoalModal({ open, onClose, onSave }) {
         </p>
         <div className="relative">
           <textarea
-            rows={5}
             value={aiPrompt}
             onChange={(e) => setAiPrompt(e.target.value)}
-            className={`${textareaClasses} relative z-10 h-[140px] resize-none`}
+            placeholder="Type here..."
+            className="relative z-10 h-[140px] w-full resize-none rounded-[12px] border border-[#f2f2f2] bg-white p-[12px] text-[12px] font-medium leading-normal text-[#181818] outline-none placeholder:font-medium placeholder:leading-normal placeholder:text-[#c2c2c2] focus:border-[#8022fe] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
           />
           <TypewriterPlaceholder phrases={AI_PROMPT_PHRASES} visible={!aiPrompt.trim()} className="p-[12px]" />
         </div>
@@ -776,15 +770,27 @@ export default function NewGoalModal({ open, onClose, onSave }) {
   const modalHeightClass =
     activeTab === 'manual'
       ? 'max-h-[90vh]'
-      : showAiPreview
-        ? 'sm:h-[474px]'
+      : showAiPreview || showAiGenerating
+        ? 'sm:min-h-[474px]'
         : isAiInput
-          ? 'sm:h-[336px]'
-          : showAiGenerating
-            ? 'sm:h-[474px]'
-            : '';
+          ? 'sm:min-h-[336px]'
+          : '';
 
-  const isManualTab = activeTab === 'manual';
+  const modalFooter = (
+    <ModalFooter
+      showAiPreview={showAiPreview}
+      showAiGenerating={showAiGenerating}
+      activeTab={activeTab}
+      isRevealing={isRevealing}
+      canGenerate={canGenerate}
+      canSubmitManual={canSubmitManual}
+      onClose={handleClose}
+      onRegenerate={handleRegenerate}
+      onAddGeneratedToBoard={handleAddGeneratedToBoard}
+      onGenerate={handleGenerate}
+      onManualSubmit={handleManualSubmit}
+    />
+  );
 
   return (
     <div
@@ -793,7 +799,7 @@ export default function NewGoalModal({ open, onClose, onSave }) {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className={`flex w-full flex-col rounded-[16px] border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-900 max-w-[450px] sm:w-[450px] ${isManualTab ? 'overflow-visible' : 'overflow-hidden'} ${modalHeightClass}`}
+        className={`flex w-full flex-col overflow-visible rounded-[16px] border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-900 max-w-[450px] sm:w-[450px] ${modalHeightClass}`}
       >
         <div className="flex shrink-0 items-center justify-between border-b border-[#f2f2f2] px-[12px] py-[10px] dark:border-zinc-700">
           <p className="text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:text-gray-300">New Goal</p>
@@ -806,40 +812,15 @@ export default function NewGoalModal({ open, onClose, onSave }) {
           <div className="flex flex-col gap-[24px] overflow-visible p-[12px] max-sm:max-h-[calc(90vh-38px)] max-sm:overflow-y-auto">
             <TabToggle activeTab={activeTab} onChange={handleTabChange} disabled={isRevealing} />
             {renderBodyContent()}
-            <ModalFooter
-              showAiPreview={showAiPreview}
-              showAiGenerating={showAiGenerating}
-              activeTab={activeTab}
-              isRevealing={isRevealing}
-              canGenerate={canGenerate}
-              canSubmitManual={canSubmitManual}
-              onClose={handleClose}
-              onRegenerate={handleRegenerate}
-              onAddGeneratedToBoard={handleAddGeneratedToBoard}
-              onGenerate={handleGenerate}
-              onManualSubmit={handleManualSubmit}
-            />
+            {modalFooter}
           </div>
         ) : (
-          <div className="flex min-h-0 flex-1 flex-col gap-[24px] overflow-hidden p-[12px]">
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className="flex shrink-0 flex-col gap-[24px] p-[12px]">
+            <div className="flex flex-col gap-[20px]">
               <TabToggle activeTab={activeTab} onChange={handleTabChange} disabled={isRevealing} />
-              <div className={`min-h-0 flex-1 overflow-hidden ${tabContentGap}`}>{renderBodyContent()}</div>
+              {renderBodyContent()}
             </div>
-
-            <ModalFooter
-              showAiPreview={showAiPreview}
-              showAiGenerating={showAiGenerating}
-              activeTab={activeTab}
-              isRevealing={isRevealing}
-              canGenerate={canGenerate}
-              canSubmitManual={canSubmitManual}
-              onClose={handleClose}
-              onRegenerate={handleRegenerate}
-              onAddGeneratedToBoard={handleAddGeneratedToBoard}
-              onGenerate={handleGenerate}
-              onManualSubmit={handleManualSubmit}
-            />
+            <div className="shrink-0">{modalFooter}</div>
           </div>
         )}
       </div>
