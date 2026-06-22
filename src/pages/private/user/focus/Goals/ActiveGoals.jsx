@@ -2,11 +2,11 @@ import {
   Plus,
   Search,
   Sparkles,
-  RotateCw,
+  Target,
   ChevronDown,
   ListTodo,
   Repeat,
-  CalendarDays,
+  Flag,
   Check,
   MoreHorizontal,
   X,
@@ -72,7 +72,7 @@ const PRIORITY_LABELS = { URGENT: 'Urgent', HIGH: 'High', MEDIUM: 'Medium', LOW:
 const FILTER_CONFIG = [
   {
     key: 'Status',
-    defaultLabel: 'All Statuses',
+    defaultLabel: 'All Status',
     options: ['All Statuses', 'Active', 'Paused', 'Completed'],
   },
   {
@@ -82,22 +82,22 @@ const FILTER_CONFIG = [
   },
   {
     key: 'Priority',
-    defaultLabel: 'All Priorities',
+    defaultLabel: 'All Priority',
     options: ['All Priorities', 'Urgent', 'High', 'Medium', 'Low'],
   },
   {
     key: 'Category',
-    defaultLabel: 'All Categories',
+    defaultLabel: 'All Category',
     options: ['All Categories', 'Career', 'Health', 'Finance', 'Personal', 'Education'],
   },
   {
     key: 'Source',
-    defaultLabel: 'All Sources',
+    defaultLabel: 'All Source',
     options: ['All Sources', 'Created by AI', 'Created manually'],
   },
   {
     key: 'Date',
-    defaultLabel: 'All Dates',
+    defaultLabel: 'All Date',
     options: ['All Dates', 'Today', 'Tomorrow', 'This week', 'This month', 'Overdue'],
   },
 ];
@@ -139,6 +139,7 @@ function GhostGoalCard({ goal, onDismiss, onRegenerate }) {
   }, []);
 
   const isActive = isHovered || menuOpen;
+  const faded = isActive ? 'opacity-100' : 'opacity-50';
 
   return (
     <div
@@ -149,12 +150,12 @@ function GhostGoalCard({ goal, onDismiss, onRegenerate }) {
         menuOpen ? 'overflow-visible' : ''
       } ${
         isActive
-          ? 'border-solid border-[#e9e9e9] bg-[#fcfcfc] shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800'
-          : 'border-dashed border-[#e9e9e9] dark:border-zinc-700'
+          ? 'h-auto border-solid border-[#e9e9e9] bg-[#fcfcfc] shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800'
+          : 'h-[186px] border-dashed border-[#e9e9e9] dark:border-zinc-700'
       }`}
     >
       <div className="flex flex-col gap-2.5 p-3">
-        <div className={`flex flex-col gap-2 transition-opacity duration-200 ${isActive ? 'opacity-100' : 'opacity-40'}`}>
+        <div className={`flex flex-col gap-2 transition-opacity duration-200 ${faded}`}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1">
               <span
@@ -176,7 +177,7 @@ function GhostGoalCard({ goal, onDismiss, onRegenerate }) {
           </div>
         </div>
 
-        <div className={`flex flex-wrap items-center gap-1 transition-opacity duration-200 ${isActive ? 'opacity-100' : 'opacity-40'}`}>
+        <div className={`flex flex-wrap items-center gap-1 transition-opacity duration-200 ${faded}`}>
           <span className="rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-xs font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
             {goal.category}
           </span>
@@ -189,7 +190,7 @@ function GhostGoalCard({ goal, onDismiss, onRegenerate }) {
             {goal.habits} Habits
           </span>
           <span className="flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-xs font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
-            <CalendarDays size={12} className="shrink-0" />
+            <Flag size={12} className="shrink-0" />
             {goal.due}
           </span>
         </div>
@@ -204,7 +205,7 @@ function GhostGoalCard({ goal, onDismiss, onRegenerate }) {
           }}
           aria-label="Ghost goal menu"
           aria-expanded={menuOpen}
-          className={`animate-fade-in absolute right-3 top-3 z-20 shrink-0 rounded-[6px] p-1 text-[#a3a3a3] ${
+          className={`animate-fade-in absolute right-3 top-3 z-20 shrink-0 rounded-[6px] p-1 text-[#5d5d5d] ${
             menuOpen ? 'bg-[#f2f2f2]' : 'hover:bg-[#f2f2f2]'
           }`}
         >
@@ -234,7 +235,7 @@ function GhostGoalCard({ goal, onDismiss, onRegenerate }) {
       >
         <div
           className={`absolute inset-0 flex w-full flex-col gap-1.5 px-3 py-2.5 transition-opacity duration-200 ${
-            isActive ? 'pointer-events-none opacity-0' : 'opacity-40'
+            isActive ? 'pointer-events-none opacity-0' : faded
           }`}
         >
           <div className="flex w-full items-center justify-between text-xs font-medium">
@@ -244,11 +245,11 @@ function GhostGoalCard({ goal, onDismiss, onRegenerate }) {
           <div className="h-2 w-full rounded-full bg-[#e9e9e9] dark:bg-zinc-600" />
         </div>
         <div
-          className={`absolute inset-0 flex w-full items-center justify-between px-3 py-2.5 transition-opacity duration-200 ${
+          className={`absolute inset-0 flex w-full items-center justify-between gap-2 px-3 py-2.5 transition-opacity duration-200 ${
             isActive ? 'opacity-100' : 'pointer-events-none opacity-0'
           }`}
         >
-          <p className="shrink-0 text-xs font-medium text-[#c2c2c2]">AI suggested based on your profile</p>
+          <p className="min-w-0 truncate text-xs font-medium text-[#c2c2c2]">AI suggested based on your profile</p>
           <button
             type="button"
             className="flex shrink-0 items-center gap-1.5 rounded-[6px] bg-[#f9f4ff] px-[8px] py-[2px] text-xs font-medium text-[#8022fe]"
@@ -322,6 +323,7 @@ function goalMatchesSearch(goal, query) {
 }
 
 export default function ActiveGoals() {
+  const [goals] = useState([]);
   const [modal, setModal] = useState(false);
   const [modalProgress, setModalProgress] = useState(false);
   const [ghostGoals, setGhostGoals] = useState(GHOST_GOALS);
@@ -346,6 +348,14 @@ export default function ActiveGoals() {
     () => ghostGoals.filter((g) => goalMatchesSearch(g, searchQuery)),
     [ghostGoals, searchQuery]
   );
+
+  const boardIsEmpty = goals.length === 0;
+  const isSearching = searchQuery.trim().length > 0;
+  const showGhostCards = boardIsEmpty && filteredGhostGoals.length > 0;
+
+  const activeCount = goals.filter((g) => g.status === 'active').length;
+  const pausedCount = goals.filter((g) => g.status === 'paused').length;
+  const completedThisMonth = goals.filter((g) => g.status === 'completed').length;
 
   return (
     <div className="py-7.5 max-lg:py-4 max-lg:sm:py-6">
@@ -391,28 +401,46 @@ export default function ActiveGoals() {
       {/* Board panel */}
       <div className="relative flex w-full flex-col gap-2.5 rounded-2xl border border-[#f2f2f2] bg-white p-3 dark:border-zinc-700 dark:bg-zinc-800">
         <div className="flex items-center gap-2">
-          <RotateCw size={12} className="shrink-0 text-[#c2c2c2]" />
-          <span className="flex shrink-0 items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-xs font-medium text-[#8022fe]">
-            <Sparkles size={10} />
-            {filteredGhostGoals.length} AI Suggestions
-          </span>
+          {showGhostCards ? (
+            <>
+              <Target size={13} className="shrink-0 text-[#c2c2c2]" />
+              <span className="flex shrink-0 items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-xs font-medium text-[#8022fe]">
+                <Sparkles size={10} />
+                {filteredGhostGoals.length} AI Suggestions
+              </span>
+            </>
+          ) : (
+            <>
+              <Target size={13} className="shrink-0 text-[#c2c2c2]" />
+              <p className="text-sm font-medium text-[#5d5d5d] dark:text-gray-300">{activeCount} active</p>
+              <span className="rounded-[6px] bg-[#f2f2f2] px-[6px] py-[2px] text-xs font-medium text-[#5d5d5d] dark:bg-zinc-700 dark:text-gray-300">
+                {pausedCount} paused <span className="text-[#c2c2c2]">•</span> {completedThisMonth} completed this month
+              </span>
+            </>
+          )}
         </div>
 
-        {filteredGhostGoals.length === 0 ? (
-          <p className="py-10 text-center text-sm font-medium text-[#c2c2c2] dark:text-gray-500">
-            No goals to show yet.
-          </p>
+        {showGhostCards ? (
+          filteredGhostGoals.length === 0 && isSearching ? (
+            <p className="py-10 text-center text-sm font-medium text-[#c2c2c2] dark:text-gray-500">
+              No matching goals.
+            </p>
+          ) : (
+            <div className="scrollbar-hidden grid grid-cols-1 gap-2.5 overflow-y-auto sm:grid-cols-2 lg:grid-cols-3 lg:max-h-[610px]">
+              {filteredGhostGoals.map((goal) => (
+                <GhostGoalCard
+                  key={goal.id}
+                  goal={goal}
+                  onDismiss={handleDismissGhost}
+                  onRegenerate={handleRegenerateGhost}
+                />
+              ))}
+            </div>
+          )
         ) : (
-          <div className="scrollbar-hidden grid grid-cols-1 gap-2.5 overflow-y-auto sm:grid-cols-2 lg:grid-cols-3 lg:max-h-[610px]">
-            {filteredGhostGoals.map((goal) => (
-              <GhostGoalCard
-                key={goal.id}
-                goal={goal}
-                onDismiss={handleDismissGhost}
-                onRegenerate={handleRegenerateGhost}
-              />
-            ))}
-          </div>
+          <p className="py-10 text-center text-sm font-medium text-[#c2c2c2] dark:text-gray-500">
+            {isSearching ? 'No matching goals.' : 'No goals to show yet.'}
+          </p>
         )}
       </div>
 
