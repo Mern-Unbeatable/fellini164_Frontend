@@ -476,42 +476,36 @@ function GhostGoalCard({ goal, onDismiss, onRegenerate }) {
   );
 }
 
-// Requirement #2 — three groups: Edit goal | ✦ Improve goal | Pause goal / Delete
-function GoalCardMenu({ onEdit, onImprove, onPause, onDelete, isPaused }) {
+// Figma hover frame 1250:10104 — menu: Edit | Add Task, Add Habit | Complete, Pause, Delete
+function GoalCardMenu({ onEdit, onAddTask, onAddHabit, onComplete, onPause, onDelete }) {
+  const itemBase =
+    'flex w-full items-center gap-1.5 px-[10px] py-1.5 text-left text-[12px] font-medium leading-[1.5] whitespace-nowrap hover:bg-[#fcfcfc] dark:hover:bg-zinc-700';
   return (
     <div
       className="flex w-max flex-col overflow-hidden rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800"
       onMouseDown={(e) => e.stopPropagation()}
     >
-      <button
-        type="button"
-        onClick={onEdit}
-        className="flex w-full items-center gap-1.5 border-b border-[#f2f2f2] px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#5d5d5d] hover:bg-[#fcfcfc] lg:text-[12px] dark:border-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-700"
-      >
+      <button type="button" onClick={onEdit} className={`${itemBase} border-b border-[#f2f2f2] text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300`}>
         <Pencil size={10} className="shrink-0" />
-        Edit goal
+        Edit
       </button>
-      <button
-        type="button"
-        onClick={onImprove}
-        className="flex w-full items-center gap-1.5 border-b border-[#f2f2f2] px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#8022fe] hover:bg-[#fcfcfc] lg:text-[12px] dark:border-zinc-700 dark:hover:bg-zinc-700"
-      >
+      <button type="button" onClick={onAddTask} className={`${itemBase} text-[#8022fe]`}>
         <Sparkles size={10} className="shrink-0" />
-        Improve goal
+        Add Task
       </button>
-      <button
-        type="button"
-        onClick={onPause}
-        className="flex w-full items-center gap-1.5 px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#5d5d5d] hover:bg-[#fcfcfc] lg:text-[12px] dark:text-gray-300 dark:hover:bg-zinc-700"
-      >
+      <button type="button" onClick={onAddHabit} className={`${itemBase} text-[#8022fe]`}>
+        <Sparkles size={10} className="shrink-0" />
+        Add Habit
+      </button>
+      <button type="button" onClick={onComplete} className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}>
+        <Check size={10} className="shrink-0" />
+        Complete
+      </button>
+      <button type="button" onClick={onPause} className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}>
         <Pause size={10} className="shrink-0" />
-        {isPaused ? 'Resume goal' : 'Pause goal'}
+        Pause
       </button>
-      <button
-        type="button"
-        onClick={onDelete}
-        className="flex w-full items-center gap-1.5 px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#5d5d5d] hover:bg-[#fcfcfc] lg:text-[12px] dark:text-gray-300 dark:hover:bg-zinc-700"
-      >
+      <button type="button" onClick={onDelete} className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}>
         <Trash2 size={10} className="shrink-0" />
         Delete
       </button>
@@ -519,7 +513,7 @@ function GoalCardMenu({ onEdit, onImprove, onPause, onDelete, isPaused }) {
   );
 }
 
-function GoalCard({ goal, onEdit, onImprove, onPause, onDelete }) {
+function GoalCard({ goal, onEdit, onAddTask, onAddHabit, onComplete, onPause, onDelete }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const cardRef = useRef(null);
@@ -542,35 +536,35 @@ function GoalCard({ goal, onEdit, onImprove, onPause, onDelete }) {
       ref={cardRef}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`relative flex w-full flex-col justify-between overflow-hidden rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800 ${
+      className={`relative flex min-h-[186px] w-full flex-col justify-between overflow-hidden rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800 ${
         menuOpen || isHovered
           ? 'z-10 shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)]'
           : ''
       } ${menuOpen ? 'overflow-visible' : ''}`}
     >
-      <div className="flex flex-col gap-2.5 p-3">
+      <div className="flex flex-col gap-[10px] p-3">
         <div className={`flex flex-col gap-2 ${faded}`}>
           <div className="flex items-center justify-between">
             <div className="flex flex-wrap items-center gap-1">
               {!isCompleted && (
                 <span
-                  className={`rounded-[6px] px-[6px] py-[2px] text-xs font-medium uppercase ${PRIORITY_STYLES[goal.priority]}`}
+                  className={`rounded-[6px] px-[6px] py-[2px] text-[12px] font-medium uppercase leading-[1.5] ${PRIORITY_STYLES[goal.priority]}`}
                 >
                   {PRIORITY_LABELS[goal.priority]}
                 </span>
               )}
               {isPaused && (
-                <span className={`rounded-[6px] px-[6px] py-[2px] text-xs font-medium uppercase ${STATUS_STYLES.paused}`}>
+                <span className={`rounded-[6px] px-[6px] py-[2px] text-[12px] font-medium leading-[1.5] ${STATUS_STYLES.paused}`}>
                   Paused
                 </span>
               )}
               {isCompleted && (
-                <span className={`rounded-[6px] px-[6px] py-[2px] text-xs font-medium uppercase ${STATUS_STYLES.completed}`}>
+                <span className={`rounded-[6px] px-[6px] py-[2px] text-[12px] font-medium leading-[1.5] ${STATUS_STYLES.completed}`}>
                   Completed
                 </span>
               )}
               {goal.source === 'ai' && (
-                <span className="flex items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-xs font-medium text-[#8022fe]">
+                <span className="flex items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-[12px] font-medium leading-[1.5] text-[#8022fe]">
                   <Sparkles size={10} />
                   AI
                 </span>
@@ -579,12 +573,12 @@ function GoalCard({ goal, onEdit, onImprove, onPause, onDelete }) {
           </div>
           <div className="flex flex-col gap-1">
             <p
-              className={`text-base font-medium ${isPaused ? 'text-[#5d5d5d] dark:text-gray-400' : 'text-[#181818] dark:text-white'}`}
+              className={`text-[16px] font-medium leading-[1.5] ${isPaused ? 'text-[#5d5d5d] dark:text-gray-400' : 'text-[#181818] dark:text-white'}`}
             >
               {goal.title}
             </p>
             <p
-              className={`overflow-hidden text-ellipsis whitespace-nowrap text-xs leading-normal ${isPaused ? 'text-[#c2c2c2]' : 'text-[#a3a3a3]'}`}
+              className={`overflow-hidden text-ellipsis whitespace-nowrap text-[12px] font-medium leading-[1.5] ${isPaused ? 'text-[#c2c2c2]' : 'text-[#a3a3a3]'}`}
             >
               {goal.description}
             </p>
@@ -592,23 +586,23 @@ function GoalCard({ goal, onEdit, onImprove, onPause, onDelete }) {
         </div>
 
         <div className={`flex flex-wrap items-center gap-1 ${faded}`}>
-          <span className="rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-xs font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+          <span className="rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
             {goal.category}
           </span>
           {goal.tasks > 0 && (
-            <span className="flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-xs font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+            <span className="flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
               <ListTodo size={12} className="shrink-0" />
               {goal.tasks} Tasks
             </span>
           )}
           {goal.habits > 0 && (
-            <span className="flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-xs font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+            <span className="flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
               <Repeat size={12} className="shrink-0" />
               {goal.habits} Habits
             </span>
           )}
           {goal.due && (
-            <span className="flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-xs font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+            <span className="flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
               <Flag size={12} className="shrink-0" />
               {goal.due}
             </span>
@@ -625,7 +619,7 @@ function GoalCard({ goal, onEdit, onImprove, onPause, onDelete }) {
           }}
           aria-label="Goal menu"
           aria-expanded={menuOpen}
-          className={`animate-fade-in absolute right-3 top-3 z-20 shrink-0 rounded-[6px] p-1 text-[#a3a3a3] ${
+          className={`animate-fade-in absolute right-3 top-3 z-20 shrink-0 rounded-[6px] p-1 text-[#5d5d5d] ${
             menuOpen ? 'bg-[#f2f2f2] dark:bg-zinc-600' : 'hover:bg-[#f2f2f2] dark:hover:bg-zinc-600'
           }`}
         >
@@ -636,14 +630,21 @@ function GoalCard({ goal, onEdit, onImprove, onPause, onDelete }) {
       {menuOpen && (
         <div className="absolute right-3 top-9 z-50">
           <GoalCardMenu
-            isPaused={isPaused}
             onEdit={() => {
               setMenuOpen(false);
               onEdit(goal);
             }}
-            onImprove={() => {
+            onAddTask={() => {
               setMenuOpen(false);
-              onImprove(goal);
+              onAddTask(goal);
+            }}
+            onAddHabit={() => {
+              setMenuOpen(false);
+              onAddHabit(goal);
+            }}
+            onComplete={() => {
+              setMenuOpen(false);
+              onComplete(goal);
             }}
             onPause={() => {
               setMenuOpen(false);
@@ -658,22 +659,22 @@ function GoalCard({ goal, onEdit, onImprove, onPause, onDelete }) {
       )}
 
       {isCompleted ? (
-        <div className="border-t border-[#f2f2f2] px-3 py-2.5 dark:border-zinc-700">
+        <div className="border-t border-[#f2f2f2] px-3 pt-[10px] pb-3 dark:border-zinc-700">
           <div className="flex h-8 items-center justify-center gap-2 rounded-lg bg-[rgba(42,157,0,0.05)]">
-            <p className="text-xs font-medium text-[#2a9d00]">Completed {goal.completedDate}</p>
+            <p className="text-[12px] font-medium leading-[1.5] text-[#2a9d00]">Completed {goal.completedDate}</p>
             <Check size={11} className="shrink-0 text-[#2a9d00]" strokeWidth={2.5} />
           </div>
         </div>
       ) : (
-        <div className="border-t border-[#f2f2f2] px-3 py-2.5 dark:border-zinc-700">
+        <div className="border-t border-[#f2f2f2] px-3 pt-[10px] pb-3 dark:border-zinc-700">
           <div className={`flex flex-col gap-1.5 ${faded}`}>
-            <div className="flex w-full items-center justify-between text-xs font-medium">
+            <div className="flex w-full items-center justify-between text-[12px] font-medium leading-[1.5]">
               <p className="text-[#c2c2c2]">Progress</p>
               <p className="text-[#5d5d5d] dark:text-gray-300">{goal.progress}%</p>
             </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-[#e9e9e9] dark:bg-zinc-600">
+            <div className="h-2 w-full overflow-hidden rounded-[40px] bg-[#e9e9e9] dark:bg-zinc-600">
               <div
-                className={`h-full rounded-full ${isPaused ? 'bg-[#c2c2c2]' : 'bg-[#8022fe]'}`}
+                className={`h-full rounded-[18px] ${isPaused ? 'bg-[#c2c2c2]' : 'bg-[#8022fe]'}`}
                 style={{ width: `${goal.progress}%` }}
               />
             </div>
@@ -705,7 +706,7 @@ function FilterDropdown({ defaultLabel, options }) {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-30 items-center justify-between rounded-lg border border-[#f2f2f2] bg-white px-3 py-1.75 text-[12px] font-medium text-[#181818] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white max-lg:w-full max-lg:gap-2 max-lg:py-2.5 max-lg:text-base"
+        className="flex w-[120px] items-center justify-between rounded-lg border border-[#f2f2f2] bg-white px-3 py-[7px] text-[12px] font-medium leading-[1.5] text-[#181818] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white max-lg:w-full max-lg:gap-2 max-lg:py-2.5 max-lg:text-base"
       >
         <span className="truncate max-lg:min-w-0 max-lg:flex-1 max-lg:text-center">{displayLabel}</span>
         <ChevronDown size={10} className="shrink-0 text-[#a3a3a3]" />
@@ -769,8 +770,22 @@ export default function ActiveGoals() {
     setModal(true);
   };
 
-  const handleImproveGoal = () => {
+  const handleAddTask = () => {
     // Wired in a later step.
+  };
+
+  const handleAddHabit = () => {
+    // Wired in a later step.
+  };
+
+  const handleCompleteGoal = (goal) => {
+    setGoals((prev) =>
+      prev.map((g) =>
+        g.id === goal.id
+          ? { ...g, status: 'completed', progress: 100, completedDate: 'May 8, 2026' }
+          : g
+      )
+    );
   };
 
   const handlePauseGoal = (goal) => {
@@ -801,9 +816,9 @@ export default function ActiveGoals() {
   const isSearching = searchQuery.trim().length > 0;
   const showGhostCards = boardIsEmpty && filteredGhostGoals.length > 0;
 
-  const activeCount = goals.filter((g) => g.status === 'active').length;
-  const pausedCount = goals.filter((g) => g.status === 'paused').length;
-  const completedThisMonth = goals.filter((g) => g.status === 'completed').length;
+  const activeCount = FIGMA_BOARD_STATS.active;
+  const pausedCount = FIGMA_BOARD_STATS.paused;
+  const completedThisMonth = FIGMA_BOARD_STATS.completedThisMonth;
 
   return (
     <div className="py-7.5 max-lg:py-4 max-lg:sm:py-6">
@@ -822,8 +837,8 @@ export default function ActiveGoals() {
             type="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search goals in board..."
-            aria-label="Search goals in board"
+            placeholder="Search habits in board..."
+            aria-label="Search habits in board"
             className="w-full bg-transparent text-[12px] font-medium text-[#181818] outline-none placeholder:text-[#c2c2c2] dark:text-white max-lg:text-base"
           />
         </label>
@@ -833,13 +848,13 @@ export default function ActiveGoals() {
       <div className="mb-5 flex w-full items-center justify-between max-lg:mb-4 max-lg:flex-col max-lg:items-stretch max-lg:gap-4">
         <button
           onClick={handleOpenModal}
-          className="flex items-center gap-2 rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] font-semibold text-white max-lg:w-full max-lg:justify-center max-lg:py-2.5 max-lg:text-base"
+          className="flex items-center gap-2 rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] font-semibold leading-normal text-white max-lg:w-full max-lg:justify-center max-lg:py-2.5 max-lg:text-base"
         >
           <Plus size={10} />
           New Goal
         </button>
 
-        <div className="flex flex-wrap items-center justify-end gap-2.5 max-lg:w-full max-lg:flex-col max-lg:gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-[10px] max-lg:w-full max-lg:flex-col max-lg:gap-2">
           {FILTER_CONFIG.map(({ key, defaultLabel, options }) => (
             <FilterDropdown key={key} defaultLabel={defaultLabel} options={options} />
           ))}
@@ -847,21 +862,21 @@ export default function ActiveGoals() {
       </div>
 
       {/* Board panel */}
-      <div className="relative flex w-full flex-col gap-2.5 rounded-2xl border border-[#f2f2f2] bg-white p-3 dark:border-zinc-700 dark:bg-zinc-800">
+      <div className="relative flex w-full flex-col gap-[10px] rounded-2xl border border-[#f2f2f2] bg-white p-3 dark:border-zinc-700 dark:bg-zinc-800">
         <div className="flex items-center gap-2">
           {showGhostCards ? (
             <>
               <Target size={13} className="shrink-0 text-[#c2c2c2]" />
-              <span className="flex shrink-0 items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-xs font-medium text-[#8022fe]">
+              <span className="flex shrink-0 items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-[12px] font-medium leading-[1.5] text-[#8022fe]">
                 <Sparkles size={10} />
                 {filteredGhostGoals.length} AI Suggestions
               </span>
             </>
           ) : (
             <>
-              <Target size={13} className="shrink-0 text-[#c2c2c2]" />
-              <p className="text-sm font-medium text-[#5d5d5d] dark:text-gray-300">{activeCount} active</p>
-              <span className="rounded-[6px] bg-[#f2f2f2] px-[6px] py-[2px] text-xs font-medium text-[#5d5d5d] dark:bg-zinc-700 dark:text-gray-300">
+              <Target size={13} className="shrink-0 text-[#5d5d5d] dark:text-gray-300" />
+              <p className="text-[14px] font-medium leading-[1.5] text-[#5d5d5d] dark:text-gray-300">{activeCount} active</p>
+              <span className="rounded-[6px] bg-[#f2f2f2] px-[6px] py-[2px] text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:bg-zinc-700 dark:text-gray-300">
                 {pausedCount} paused <span className="text-[#c2c2c2]">•</span> {completedThisMonth} completed this month
               </span>
             </>
@@ -874,7 +889,7 @@ export default function ActiveGoals() {
               No matching goals.
             </p>
           ) : (
-            <div className="scrollbar-hidden grid grid-cols-1 gap-2.5 overflow-y-auto sm:grid-cols-2 lg:grid-cols-3 lg:max-h-[610px]">
+            <div className="scrollbar-hidden grid grid-cols-1 gap-[10px] overflow-y-auto sm:grid-cols-2 lg:grid-cols-3 lg:max-h-[610px]">
               {filteredGhostGoals.map((goal) => (
                 <GhostGoalCard
                   key={goal.id}
@@ -890,13 +905,15 @@ export default function ActiveGoals() {
             {isSearching ? 'No matching goals.' : 'No goals to show yet.'}
           </p>
         ) : (
-          <div className="scrollbar-hidden grid grid-cols-1 gap-2.5 overflow-y-auto sm:grid-cols-2 lg:grid-cols-3 lg:max-h-[610px]">
+          <div className="scrollbar-hidden grid grid-cols-1 gap-[10px] overflow-y-auto sm:grid-cols-2 lg:grid-cols-3 lg:max-h-[610px]">
             {filteredGoals.map((goal) => (
               <GoalCard
                 key={goal.id}
                 goal={goal}
                 onEdit={handleEditGoal}
-                onImprove={handleImproveGoal}
+                onAddTask={handleAddTask}
+                onAddHabit={handleAddHabit}
+                onComplete={handleCompleteGoal}
                 onPause={handlePauseGoal}
                 onDelete={(g) => handleDeleteGoal(g.id)}
               />
