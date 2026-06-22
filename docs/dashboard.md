@@ -406,12 +406,46 @@ Fitness, Wellness, Productivity) — don't copy-paste the Tasks filter list here
 
 ## 3. Goals Board
 
-### Ghost goal cards (empty state)
-- Opacity 50%, dashed border.
-- Counter shows `✦ 3` (or whatever the AI-suggested count is).
-- On hover: footer "AI suggested based on your profile" + Accept button — same mechanics as Task ghost cards (share the component).
+**Status (2026-06-21):** Step 1 (Empty States + Hover) starting now. Figma source
+(fileKey `VwgJovqBGtb90CEfNXkk2T`): node `1250-6857` (default) and node `1250-7794`
+(hover), confirmed via `get_metadata` + targeted `get_design_context`. Steps 2+ (populated
+board, New Goal popup, Goal preview popup, detail-page empty states — i.e. everything in
+§"New Goal popup" / "Goal preview popup" / "Empty state" below) are **not in scope yet** —
+documented ahead of time per the user's requirement doc, but don't build them until told.
 
-### Three-dot menu — goal card
+### Step 1 — Empty States (board has zero real goals)
+- **Layout: a 3-column card grid**, not a list (unlike Tasks' kanban columns or Habits'
+  single-column rows). Each ghost card is exactly **378.6px × 186px** at desktop, 3 across
+  filling the 1156px panel content width (2 gaps between, ~10px each, matching the
+  panel's existing `gap-2.5` convention) — confirm exact gap once building, Figma's
+  per-card x-offsets are 0 / 388.6 / 777.2 (≈10px gutter each).
+- Header row above the grid: same convention as Tasks/Habits — leading small icon (13×13,
+  refresh/loop style) + **"✦ N AI Suggestions"** purple pill (here genuinely "3 AI
+  Suggestions", no Streak/day-of-week columns since Goals has no weekly schedule concept).
+- **Default (non-hover) ghost card:**
+  - Card: **dashed** `#e9e9e9` border, `rounded-2xl`, **no background fill** (transparent,
+    not even the gray-50 used elsewhere) at rest.
+  - Top content block (priority+AI badge row, title, description) and the tags row are both
+    at **opacity-40**.
+  - A tiny decorative dash (19×3px) sits top-right of the card — **not a three-dot menu**;
+    visually it's just a short horizontal line, unrelated to the real Step-2 three-dot menu
+    (§ below). Don't wire it as a menu trigger in Step 1.
+  - Footer (54px tall, dashed top border): **"Progress" / "0%"** label row + an empty
+    `#e9e9e9` progress-bar track (`h-2 rounded-full`) — at opacity-40 too. So unlike Habits'
+    ghost rows (which show *nothing* in the footer until hover), **Goals' ghost cards show a
+    dimmed empty progress bar by default.**
+  - Tags row: category chip + "{N} Tasks" + "{N} Habits" + due-date chip (e.g.
+    "May 21, 2026" or relative "In 2 days") — four chips, all dimmed with the rest.
+- **Hover state:** card flips to **solid** `#e9e9e9` border, `bg-#fcfcfc` fill, subtle
+  shadow (`0px 2px 4px rgba(0,0,0,0.03)`), and **full opacity** on the top block + tags.
+  The **entire footer is replaced** (not appended to) by **"AI suggested based on your
+  profile"** (left) + a purple **"Accept Goal"** pill with a chevron (right) — the progress
+  bar/percentage disappears entirely on hover, matching Tasks/Habits' "footer swaps, doesn't
+  stack" convention.
+- Sample card content from Figma (illustrative, not fixed copy): "Fitness Regimen" (Urgent),
+  "Physical Activity" (High), "Improve Rate" (Medium) — each "✦ AI" tagged.
+
+### Three-dot menu — goal card (Step 2, not Step 1 — documented ahead of time)
 - 3 groups: 1) Edit goal · 2) ✦ Improve goal · 3) Pause goal / Delete.
 
 ### New Goal popup — AI generation scope

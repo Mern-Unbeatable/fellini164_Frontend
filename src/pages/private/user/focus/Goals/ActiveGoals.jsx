@@ -1,129 +1,341 @@
-import { Plus, Edit2, Trash2, LogIn, SquareArrowUpRight } from 'lucide-react';
-import { useState } from 'react';
+import {
+  Plus,
+  Search,
+  Sparkles,
+  RotateCw,
+  ChevronDown,
+  ListTodo,
+  Repeat,
+  CalendarDays,
+  Check,
+} from 'lucide-react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import NewGoalModal from './components/NewGoalModal';
-// import NewHabitsModal from '../Habits/NewHabitsModal';
 import GoalProgressModal from './components/GoalProgressModal';
+import TypewriterText from '../../../../../components/ui/TypewriterText';
 
-export default function ActiveGoals() {
+// First phrase matches the Figma frame's static subtitle text exactly; the rest are the
+// user's explicitly suggested rotation phrases.
+const GOALS_SUBTITLE_PHRASES = [
+  'Set goals, track progress, and stay accountable...',
+  'Set your goals and let AI build the path...',
+  'Track progress across tasks and habits...',
+  'AI helps you stay on track every day...',
+];
 
-const [modle, setModle] = useState(false);
+// AI-suggested ghost goals — shown only when the board has no real goals yet.
+// Sample content from the Figma "Empty States" frame (illustrative, not fixed copy).
+const GHOST_GOALS = [
+  {
+    id: 'ghost-goal-1',
+    priority: 'URGENT',
+    title: 'Fitness Regimen',
+    description: 'Adhere to your workout schedule or participate in a fitness class.',
+    category: 'Fitness',
+    tasks: 1,
+    habits: 6,
+    due: 'May 21, 2026',
+  },
+  {
+    id: 'ghost-goal-2',
+    priority: 'HIGH',
+    title: 'Physical Activity',
+    description: 'Commit to your fitness routine or join a workout session.',
+    category: 'Health',
+    tasks: 4,
+    habits: 2,
+    due: 'In 2 days',
+  },
+  {
+    id: 'ghost-goal-3',
+    priority: 'MEDIUM',
+    title: 'Improve Rate',
+    description: 'Stick to your professional growth plan or engage in a skill-building session.',
+    category: 'Career',
+    tasks: 6,
+    habits: 2,
+    due: 'In 6 days',
+  },
+];
 
-const [modleProgress, setModleProgress] = useState(false);
+const PRIORITY_STYLES = {
+  URGENT: 'bg-[rgba(220,38,38,0.05)] text-[#dc2626]',
+  HIGH: 'bg-[rgba(249,115,22,0.05)] text-[#f97316]',
+  MEDIUM: 'bg-[rgba(202,138,4,0.05)] text-[#ca8a04]',
+  LOW: 'bg-[rgba(107,114,128,0.05)] text-[#6b7280]',
+};
 
+const PRIORITY_LABELS = { URGENT: 'Urgent', HIGH: 'High', MEDIUM: 'Medium', LOW: 'Low' };
 
-  const handleOpenModal = () => setModle(true);
-  const handleOpenModalProgress = () => setModleProgress(true);
+const FILTER_CONFIG = [
+  {
+    key: 'Status',
+    defaultLabel: 'All Statuses',
+    options: ['All Statuses', 'Active', 'Paused', 'Completed'],
+  },
+  {
+    key: 'Progress',
+    defaultLabel: 'All Progress',
+    options: ['Any', '0-25%', '26-50%', '51-75%', '76-100%'],
+  },
+  {
+    key: 'Priority',
+    defaultLabel: 'All Priorities',
+    options: ['All Priorities', 'Urgent', 'High', 'Medium', 'Low'],
+  },
+  {
+    key: 'Category',
+    defaultLabel: 'All Categories',
+    options: ['All Categories', 'Career', 'Health', 'Finance', 'Personal', 'Education'],
+  },
+  {
+    key: 'Source',
+    defaultLabel: 'All Sources',
+    options: ['All Sources', 'Created by AI', 'Created manually'],
+  },
+  {
+    key: 'Date',
+    defaultLabel: 'All Dates',
+    options: ['All Dates', 'Today', 'Tomorrow', 'This week', 'This month', 'Overdue'],
+  },
+];
 
-const handleCloseModalProgress = () => setModleProgress(false);
-
-
-  const handleCloseModal = () => setModle(false);
-
-  const handleSavePlan = (data) => {
-    console.log("Saved plan:", data);
-    
-  };
-
-
-  const goals = [
-    {
-      id: 1,
-      category: 'PERSONAL',
-      categoryColor: 'bg-[#E7EBFF] text-[#3657FF]',
-      title: 'Review Goals',
-      date: 'Sun, Dec 14',
-      current: 33,
-      total: 100,
-      progressColor: 'bg-purple-600'
-    },
-    {
-      id: 2,
-      category: 'FINANCE',
-      categoryColor: 'bg-[#FEFCE8] text-[#CD8A04]',
-      title: 'Save $10,000',
-      progress: '8500 / 10000 USD',
-      current: 65,
-      total: 100,
-      progressColor: 'bg-purple-600'
-    },
-    {
-      id: 3,
-      category: 'HEALTH',
-      categoryColor: 'bg-[#F0FDF4] text-[#16A34A]',
-      title: 'Run 500km',
-      progress: '120 / 500 km',
-      current: 65,
-      total: 100,
-      progressColor: 'bg-purple-600'
-    }
-  ];
+function GhostGoalCard({ goal }) {
+  const [isHovered, setIsHovered] = useState(false);
+  const cardRef = useRef(null);
 
   return (
-    <div className=" min-h-screen p-4 sm:p-6 lg:p-8">
-      <div className="">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-xl md:text-2xl  font-semibold text-gray-900 dark:text-white">Active Goals</h1>
-          <button onClick={handleOpenModal} className="bg-purple-600  text-white font-medium py-2 md:py-3 px-2 rounded-lg flex items-center gap-2 transition ">
-            <Plus size={20} />
-            New Task
-          </button>
+    <div
+      ref={cardRef}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className={`relative flex w-full flex-col justify-between overflow-hidden rounded-2xl border transition-all ${
+        isHovered
+          ? 'border-solid border-[#e9e9e9] bg-[#fcfcfc] shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800'
+          : 'border-dashed border-[#e9e9e9] dark:border-zinc-700'
+      }`}
+    >
+      <div className="flex flex-col gap-2.5 p-3">
+        <div className={`flex flex-col gap-2 transition-opacity duration-200 ${isHovered ? 'opacity-100' : 'opacity-40'}`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1">
+              <span
+                className={`rounded-[6px] px-[6px] py-[2px] text-xs font-medium uppercase ${PRIORITY_STYLES[goal.priority]}`}
+              >
+                {PRIORITY_LABELS[goal.priority]}
+              </span>
+              <span className="flex items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-xs font-medium text-[#8022fe]">
+                <Sparkles size={10} />
+                AI
+              </span>
+            </div>
+            <span className="h-[3px] w-[19px] shrink-0 rounded-full bg-[#e9e9e9] dark:bg-zinc-600" aria-hidden />
+          </div>
+          <div className="flex flex-col gap-1">
+            <p className="text-base font-medium text-[#181818] dark:text-white">{goal.title}</p>
+            <p className="overflow-hidden text-ellipsis whitespace-nowrap text-xs leading-normal text-[#a3a3a3]">
+              {goal.description}
+            </p>
+          </div>
         </div>
 
-        {/* Goals Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {goals.map((goal) => (
-            <div key={goal.id} className="bg-white dark:bg-zinc-800  rounded-lg shadow-sm p-6 hover:shadow-md transition">
-              {/* Category Header */}
-              <div className="flex justify-between items-start mb-4">
-                <span className={`text-xs  px-3 py-1 rounded ${goal.categoryColor}`}>
-                  {goal.category}
-                </span>
-                <div className="flex gap-2">
-                  <button className="text-gray-400 dark:text-white  p-1">
-                    <Edit2 size={18} />
-                  </button>
-                  <button className="text-gray-400 dark:text-white  p-1">
-                    <Trash2 size={18} />
-                  </button>
-                </div>
-              </div>
+        <div className={`flex flex-wrap items-center gap-1 transition-opacity duration-200 ${isHovered ? 'opacity-100' : 'opacity-40'}`}>
+          <span className="rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-xs font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+            {goal.category}
+          </span>
+          <span className="flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-xs font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+            <ListTodo size={12} className="shrink-0" />
+            {goal.tasks} Tasks
+          </span>
+          <span className="flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-xs font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+            <Repeat size={12} className="shrink-0" />
+            {goal.habits} Habits
+          </span>
+          <span className="flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-xs font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+            <CalendarDays size={12} className="shrink-0" />
+            {goal.due}
+          </span>
+        </div>
+      </div>
 
-              {/* Title */}
-              <h3 className=" text-lg md:text-xl font-medium text-gray-900 dark:text-white mb-1">{goal.title}</h3>
+      <div
+        className={`relative flex h-[54px] w-full shrink-0 items-center px-3 py-2.5 ${
+          isHovered ? 'border-t border-solid border-[#e9e9e9] dark:border-zinc-700' : 'border-t border-dashed border-[#e9e9e9] dark:border-zinc-700'
+        }`}
+      >
+        <div
+          className={`absolute inset-0 flex w-full flex-col gap-1.5 px-3 py-2.5 transition-opacity duration-200 ${
+            isHovered ? 'pointer-events-none opacity-0' : 'opacity-40'
+          }`}
+        >
+          <div className="flex w-full items-center justify-between text-xs font-medium">
+            <p className="text-[#c2c2c2]">Progress</p>
+            <p className="text-[#5d5d5d] dark:text-gray-300">0%</p>
+          </div>
+          <div className="h-2 w-full rounded-full bg-[#e9e9e9] dark:bg-zinc-600" />
+        </div>
+        <div
+          className={`absolute inset-0 flex w-full items-center justify-between px-3 py-2.5 transition-opacity duration-200 ${
+            isHovered ? 'opacity-100' : 'pointer-events-none opacity-0'
+          }`}
+        >
+          <p className="shrink-0 text-xs font-medium text-[#c2c2c2]">AI suggested based on your profile</p>
+          <button
+            type="button"
+            className="flex shrink-0 items-center gap-1.5 rounded-[6px] bg-[#f9f4ff] px-[8px] py-[2px] text-xs font-medium text-[#8022fe]"
+          >
+            Accept Goal
+            <Check size={10} strokeWidth={2.5} />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-              {/* Date/Progress Info */}
-              <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                {goal.date || goal.progress}
-              </p>
+function FilterDropdown({ defaultLabel, options }) {
+  const [open, setOpen] = useState(false);
+  const [selected, setSelected] = useState(options[0]);
+  const [hovered, setHovered] = useState(null);
+  const ref = useRef(null);
 
-              {/* Progress Info */}
-              <div className="mb-4">
-                <p className="text-sm   mb-2 dark:text-white">
-                  {goal.current}% Completed
-                </p>
-                {/* Progress Bar */}
-                <div className="w-full bg-[#DBC7FF] dark:bg-[#45357A] rounded-full h-2 my-6">
-                  <div
-                    className={`${goal.progressColor} h-2 rounded-full`}
-                    style={{ width: `${goal.current}%` }}
-                  />
-                </div>
-              </div>
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
-              {/* Log Daily Progress Button */}
-              <button  onClick={handleOpenModalProgress} className="w-full bg-[#E0E5ED] hover:bg-gray-200 dark:bg-zinc-700 dark:hover:bg-zinc-600 text-gray-700 dark:text-white font-semibold mt-8 py-3 rounded-lg flex items-center justify-center gap-2 transition">
-                <SquareArrowUpRight size={18} />
-                Log Daily Progress
-              </button>
-            </div>
+  const displayLabel = selected === options[0] ? defaultLabel : selected;
+
+  return (
+    <div ref={ref} className="relative max-lg:w-full">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-30 items-center justify-between rounded-lg border border-[#f2f2f2] bg-white px-3 py-1.75 text-[12px] font-medium text-[#181818] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white max-lg:w-full max-lg:gap-2 max-lg:py-2.5 max-lg:text-base"
+      >
+        <span className="truncate max-lg:min-w-0 max-lg:flex-1 max-lg:text-center">{displayLabel}</span>
+        <ChevronDown size={10} className="shrink-0 text-[#a3a3a3]" />
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-8 z-50 max-h-60 w-30 overflow-y-auto rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800 max-lg:top-full max-lg:mt-1 max-lg:w-auto lg:left-0 lg:right-auto">
+          {options.map((opt) => (
+            <button
+              key={opt}
+              type="button"
+              onMouseEnter={() => setHovered(opt)}
+              onMouseLeave={() => setHovered(null)}
+              onClick={() => {
+                setSelected(opt);
+                setOpen(false);
+              }}
+              className={`flex w-full items-center px-2 py-1.5 text-left text-[12px] font-medium whitespace-nowrap text-[#181818] dark:text-white max-lg:text-sm ${
+                hovered === opt ? 'bg-[#f2f2f2] dark:bg-zinc-700' : ''
+              }`}
+            >
+              {opt === options[0] ? defaultLabel : opt}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function goalMatchesSearch(goal, query) {
+  const q = query.trim().toLowerCase();
+  if (!q) return true;
+  const haystack = [goal.title, goal.description, goal.category].join(' ').toLowerCase();
+  return haystack.includes(q);
+}
+
+export default function ActiveGoals() {
+  const [modal, setModal] = useState(false);
+  const [modalProgress, setModalProgress] = useState(false);
+  const [ghostGoals] = useState(GHOST_GOALS);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const handleOpenModal = () => setModal(true);
+  const handleCloseModal = () => setModal(false);
+  const handleCloseModalProgress = () => setModalProgress(false);
+  const handleSavePlan = (data) => {
+    console.log('Saved plan:', data);
+  };
+
+  const filteredGhostGoals = useMemo(
+    () => ghostGoals.filter((g) => goalMatchesSearch(g, searchQuery)),
+    [ghostGoals, searchQuery]
+  );
+
+  return (
+    <div className="py-7.5 max-lg:py-4 max-lg:sm:py-6">
+      {/* Header */}
+      <div className="mb-5 flex w-full items-start justify-between max-lg:mb-4 max-lg:flex-col max-lg:gap-4">
+        <div className="flex flex-col items-start gap-2">
+          <p className="text-[20px] font-medium text-[#181818] dark:text-white">Goals Board</p>
+          <TypewriterText
+            phrases={GOALS_SUBTITLE_PHRASES}
+            className="text-[12px] font-medium text-[#c2c2c2] dark:text-gray-400 max-lg:text-sm"
+          />
+        </div>
+        <label className="flex w-62.5 items-center gap-2 rounded-lg border border-[#f2f2f2] bg-white px-3 py-1.75 focus-within:border-[#e9e9e9] dark:border-zinc-700 dark:bg-zinc-800 dark:focus-within:border-zinc-600 max-lg:w-full max-lg:py-2">
+          <Search size={12} className="shrink-0 text-[#c2c2c2]" aria-hidden />
+          <input
+            type="search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search goals in board..."
+            aria-label="Search goals in board"
+            className="w-full bg-transparent text-[12px] font-medium text-[#181818] outline-none placeholder:text-[#c2c2c2] dark:text-white max-lg:text-base"
+          />
+        </label>
+      </div>
+
+      {/* Action row */}
+      <div className="mb-5 flex w-full items-center justify-between max-lg:mb-4 max-lg:flex-col max-lg:items-stretch max-lg:gap-4">
+        <button
+          onClick={handleOpenModal}
+          className="flex items-center gap-2 rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] font-semibold text-white max-lg:w-full max-lg:justify-center max-lg:py-2.5 max-lg:text-base"
+        >
+          <Plus size={10} />
+          New Goal
+        </button>
+
+        <div className="flex flex-wrap items-center justify-end gap-2.5 max-lg:w-full max-lg:flex-col max-lg:gap-2">
+          {FILTER_CONFIG.map(({ key, defaultLabel, options }) => (
+            <FilterDropdown key={key} defaultLabel={defaultLabel} options={options} />
           ))}
         </div>
       </div>
-      <GoalProgressModal open={modleProgress}  onClose={handleCloseModalProgress} onSave={handleSavePlan} />
-      <NewGoalModal onClose={handleCloseModal} onSave={handleSavePlan} open={modle}/>
 
+      {/* Board panel */}
+      <div className="relative flex w-full flex-col gap-2.5 rounded-2xl border border-[#f2f2f2] bg-white p-3 dark:border-zinc-700 dark:bg-zinc-800">
+        <div className="flex items-center gap-2">
+          <RotateCw size={12} className="shrink-0 text-[#c2c2c2]" />
+          <span className="flex shrink-0 items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-xs font-medium text-[#8022fe]">
+            <Sparkles size={10} />
+            {filteredGhostGoals.length} AI Suggestions
+          </span>
+        </div>
 
+        {filteredGhostGoals.length === 0 ? (
+          <p className="py-10 text-center text-sm font-medium text-[#c2c2c2] dark:text-gray-500">
+            No goals to show yet.
+          </p>
+        ) : (
+          <div className="scrollbar-hidden grid grid-cols-1 gap-2.5 overflow-y-auto sm:grid-cols-2 lg:grid-cols-3 lg:max-h-[610px]">
+            {filteredGhostGoals.map((goal) => (
+              <GhostGoalCard key={goal.id} goal={goal} />
+            ))}
+          </div>
+        )}
+      </div>
+
+      <GoalProgressModal open={modalProgress} onClose={handleCloseModalProgress} onSave={handleSavePlan} />
+      <NewGoalModal open={modal} onClose={handleCloseModal} onSave={handleSavePlan} />
     </div>
   );
 }
