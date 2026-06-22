@@ -1,185 +1,245 @@
-import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, Plus, Check } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
 import NewPlanModal from './components/NewPlanModal';
-// import NewPlanModal from "../../../public/public_modle/components/NewPlanModal";
+import PlannerBoard from './components/PlannerBoard';
+import AIAssistant from './components/AIAssistant';
 
 export default function DailyPlanner() {
   const [modle, setModle] = useState(false);
   const handleOpenModal = () => setModle(true);
   const handleCloseModal = () => setModle(false);
 
-  const handleSavePlan = (data) => {
-    console.log('Saved plan:', data);
-  };
-  const scheduleItems = Array.from({ length: 6 });
+  // Selected date (May 13, 2026)
+  const [currentDate, setCurrentDate] = useState(new Date(2026, 4, 13));
+  const [selectedDate, setSelectedDate] = useState(new Date(2026, 4, 13));
+  const [viewMode, setViewMode] = useState('Monthly');
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  const [tasks, setTasks] = useState([
+  // Plans/tasks data mapping
+  const [plans, setPlans] = useState({
+    '2026-05-13': [
+      { id: '1', title: 'Morning Workout...' },
+      { id: '2', title: 'Complete Work T...' },
+      { id: '3', title: 'Exercise Routine' }
+    ]
+  });
+
+  // AI chat history
+  const [chatInput, setChatInput] = useState('');
+  const [messages, setMessages] = useState([
     {
-      id: 1,
-      title: 'Review Goals',
-      time: '09:00',
-      done: true,
-      tag: 'Work',
-      tagStyle: 'bg-green-100 text-green-600',
-    },
-    {
-      id: 2,
-      title: 'Review Goals',
-      time: '09:00',
-      done: true,
-      tag: 'Work',
-      tagStyle: 'bg-green-100 text-green-600',
-    },
-    {
-      id: 3,
-      title: 'Review Goals',
-      time: '11:00',
-      done: false,
-      tag: 'Processing',
-      tagStyle: 'bg-yellow-100 text-yellow-700',
-    },
-    {
-      id: 4,
-      title: 'Review Goals',
-      time: '11:00',
-      done: false,
-      tag: 'Processing',
-      tagStyle: 'bg-yellow-100 text-yellow-700',
-    },
-    {
-      id: 5,
-      title: 'Review Goals',
-      time: '11:00',
-      done: false,
-      tag: 'Processing',
-      tagStyle: 'bg-yellow-100 text-yellow-700',
-    },
+      id: 'm1',
+      sender: 'ai',
+      text: "I've built a suggested plan for your day based on your tasks, habits, and priorities.\n\nDo you want to keep it?",
+      timestamp: 'Tuesday, May 5 • 7:39 PM',
+      actions: [
+        { label: 'Accept plan', actionId: 'accept_initial' },
+        { label: 'Dismiss', actionId: 'dismiss_initial' }
+      ]
+    }
   ]);
 
-  const toggleTask = (id) => {
-    setTasks((prev) => prev.map((task) => (task.id === id ? { ...task, done: !task.done } : task)));
+  const chatEndRef = useRef(null);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  const handleSavePlan = (data) => {
+    const dateKey = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
+    const newPlan = {
+      id: Date.now().toString(),
+      title: data.title || 'Untitled Plan'
+    };
+    
+    setPlans(prev => ({
+      ...prev,
+      [dateKey]: [...(prev[dateKey] || []), newPlan]
+    }));
+  };
+
+  const getDaysInMonth = (year, month) => {
+    const startDay = new Date(year, month, 1).getDay();
+    const totalDays = new Date(year, month + 1, 0).getDate();
+    const prevMonthTotalDays = new Date(year, month, 0).getDate();
+    const days = [];
+
+    // Prev month overflow
+    for (let i = startDay - 1; i >= 0; i--) {
+      days.push({
+        day: prevMonthTotalDays - i,
+        month: month - 1,
+        year: year,
+        isCurrentMonth: false
+      });
+    }
+
+    // Current month days
+    for (let i = 1; i <= totalDays; i++) {
+      days.push({
+        day: i,
+        month: month,
+        year: year,
+        isCurrentMonth: true
+      });
+    }
+
+    // Next month overflow
+    const totalCells = days.length > 35 ? 42 : 35;
+    const remaining = totalCells - days.length;
+    for (let i = 1; i <= remaining; i++) {
+      days.push({
+        day: i,
+        month: month + 1,
+        year: year,
+        isCurrentMonth: false
+      });
+    }
+
+    return days;
+  };
+
+  const calendarDays = getDaysInMonth(currentDate.getFullYear(), currentDate.getMonth());
+
+  const handleQuickAction = (actionType) => {
+    let userMsg = '';
+    let aiResponse = '';
+    
+    if (actionType === 'balance') {
+      userMsg = 'Balance my schedule';
+      aiResponse = "I've re-distributed your tasks for May 13 to allow for better work-life balance and deep focus time. Do you want to keep it?";
+    } else if (actionType === 'free_evening') {
+      userMsg = 'Free up my evening';
+      aiResponse = "I've moved evening tasks to tomorrow morning to ensure you have a relaxed evening.";
+      setTimeout(() => {
+        setPlans(prev => {
+          const updated = { ...prev };
+          const eveningPlans = updated['2026-05-13'] || [];
+          updated['2026-05-14'] = [...(updated['2026-05-14'] || []), ...eveningPlans];
+          updated['2026-05-13'] = [];
+          return updated;
+        });
+      }, 1000);
+    } else if (actionType === 'monthly_plan') {
+      userMsg = 'Generate Monthly Plan';
+      aiResponse = "I've generated focus blocks for May 2026. The calendar has been updated with these slots.";
+    }
+
+    const timestamp = 'Today • ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const userMsgId = Date.now().toString();
+    
+    setMessages(prev => [
+      ...prev,
+      { id: userMsgId, sender: 'user', text: userMsg, timestamp },
+      { id: userMsgId + '_ai', sender: 'ai', text: aiResponse, timestamp }
+    ]);
+  };
+
+  const handleActionClick = (actionId) => {
+    const timestamp = 'Today • ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    if (actionId === 'accept_initial') {
+      setMessages(prev => [
+        ...prev,
+        { id: 'user_accept', sender: 'user', text: 'Accept plan', timestamp },
+        { 
+          id: 'ai_accept_reply', 
+          sender: 'ai', 
+          text: 'Great. Your day is set. You can adjust anything by typing here or using the actions above.', 
+          timestamp,
+          links: [{ label: 'Undo changes', actionId: 'undo_initial' }] 
+        }
+      ]);
+    } else if (actionId === 'undo_initial') {
+      setMessages(prev => [
+        ...prev,
+        { id: 'user_undo', sender: 'user', text: 'Undo changes', timestamp },
+        { id: 'ai_undo_reply', sender: 'ai', text: 'Restored your previous schedule settings.', timestamp }
+      ]);
+    } else if (actionId === 'dismiss_initial') {
+      setMessages(prev => [
+        ...prev,
+        { id: 'user_dismiss', sender: 'user', text: 'Dismiss plan', timestamp },
+        { id: 'ai_dismiss_reply', sender: 'ai', text: 'Suggested plan dismissed. Let me know how else I can help.', timestamp }
+      ]);
+    }
+  };
+
+  const handleSendMessage = (e) => {
+    e.preventDefault();
+    if (!chatInput.trim()) return;
+
+    const userText = chatInput;
+    setChatInput('');
+    const timestamp = 'Today • ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const msgId = Date.now().toString();
+
+    setMessages(prev => [
+      ...prev,
+      { id: msgId, sender: 'user', text: userText, timestamp }
+    ]);
+
+    setTimeout(() => {
+      setMessages(prev => [
+        ...prev,
+        { 
+          id: msgId + '_ai', 
+          sender: 'ai', 
+          text: `I've updated your schedule preferences based on: "${userText}".`, 
+          timestamp 
+        }
+      ]);
+    }, 1000);
+  };
+
+  const months = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+
+  const navigateMonth = (direction) => {
+    setCurrentDate(prev => {
+      const newDate = new Date(prev);
+      newDate.setMonth(prev.getMonth() + direction);
+      return newDate;
+    });
+  };
+
+  const getFormattedDateString = (dayObj) => {
+    return `${dayObj.year}-${String(dayObj.month + 1).padStart(2, '0')}-${String(dayObj.day).padStart(2, '0')}`;
   };
 
   return (
-    <div className="min-h-screen p-4 sm:p-6 lg:p-8">
-      <div className="">
-        {/* Header */}
-        <h1 className="text-xl font-semibold sm:text-2xl dark:text-gray-100">Daily </h1>
+    <div className="py-7.5 max-lg:py-4 max-lg:sm:py-6">
+      <div className="mx-auto flex flex-col lg:flex-row gap-6">
+        
+        {/* Planner Board */}
+        <PlannerBoard
+          currentDate={currentDate}
+          selectedDate={selectedDate}
+          setSelectedDate={setSelectedDate}
+          viewMode={viewMode}
+          setViewMode={setViewMode}
+          dropdownOpen={dropdownOpen}
+          setDropdownOpen={setDropdownOpen}
+          plans={plans}
+          calendarDays={calendarDays}
+          navigateMonth={navigateMonth}
+          handleOpenModal={handleOpenModal}
+          handleQuickAction={handleQuickAction}
+          getFormattedDateString={getFormattedDateString}
+          months={months}
+        />
 
-        {/* Date Bar */}
-        <div className="flex flex-col items-start justify-between gap-6 py-4 lg:flex-row lg:py-7.5">
-          <div className="flex w-full items-center justify-center gap-4 lg:justify-start">
-            <ChevronLeft className="cursor-pointer text-[#141B34] dark:text-gray-300" />
-            <div className="text-center">
-              <h3 className="text-lg font-semibold sm:text-xl dark:text-gray-200">
-                5 Plans Scheduled
-              </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-300">Sunday, December 14</p>
-            </div>
-            <ChevronRight className="cursor-pointer text-[#141B34] dark:text-gray-100" />
-          </div>
+        {/* AI Assistant Sidebar */}
+        <AIAssistant
+          messages={messages}
+          chatInput={chatInput}
+          setChatInput={setChatInput}
+          handleSendMessage={handleSendMessage}
+          handleActionClick={handleActionClick}
+          handleQuickAction={handleQuickAction}
+          chatEndRef={chatEndRef}
+        />
 
-          <div className="flex w-full items-center justify-end gap-4">
-            <button className="w-full rounded-lg border border-[#868686] px-5 py-3 text-sm font-semibold sm:w-auto dark:text-gray-100">
-              Today
-            </button>
-            <button
-              onClick={handleOpenModal}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#7C3AED] px-5 py-3.5 text-sm font-semibold text-white sm:w-auto"
-            >
-              <Plus size={18} /> Add Plan
-            </button>
-          </div>
-        </div>
-
-        {/* Body */}
-        <div className="flex flex-col gap-6 xl:flex-row">
-          {/* Schedule */}
-          <div className="flex-1 space-y-8 rounded-3xl bg-white p-4 shadow-sm sm:p-6 dark:bg-zinc-800">
-            {scheduleItems.map((_, i) => (
-              <div
-                key={i}
-                className="flex flex-col gap-2 border-t-2 border-dashed border-gray-300 pt-6 sm:flex-row sm:items-center sm:gap-16 dark:border-gray-700"
-              >
-                <span className="w-20 text-sm text-gray-600 dark:text-gray-300">07:00 am</span>
-
-                <div className="flex-1">
-                  <div className="flex items-center justify-between rounded-lg border-l-4 border-violet-600 bg-[#F0E6FF] p-4 dark:bg-[#5D5669]">
-                    <div>
-                      <h4 className="text-sm font-bold dark:text-gray-100">Morning Meditation</h4>
-                      <p className="text-xs text-gray-500 dark:text-gray-200">
-                        Focus on breathing.
-                      </p>
-                    </div>
-                    <span className="text-xs font-semibold text-gray-600 dark:text-gray-300">
-                      09:00
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Tasks */}
-          <div className="w-full rounded-2xl bg-white p-4 shadow-sm sm:p-6 xl:w-120 dark:bg-zinc-800">
-            <div className="mb-6 flex items-center justify-between">
-              <h3 className="text-lg font-bold sm:text-xl dark:text-gray-100">Tasks List</h3>
-              <span className="rounded-lg bg-[#ece9ff] px-3 py-1 text-xs font-bold text-violet-600">
-                {tasks.length.toString().padStart(2, '0')}
-              </span>
-            </div>
-
-            <div className="space-y-3">
-              {tasks.map((t) => (
-                <div
-                  key={t.id}
-                  className={`flex gap-3 rounded-xl p-4 transition-all ${
-                    t.done ? 'bg-[#ece9ff] dark:bg-[#61585e]' : 'bg-pink-50 dark:bg-[#5d5669]'
-                  }`}
-                >
-                  {/* Checkbox */}
-                  <div
-                    onClick={() => toggleTask(t.id)}
-                    className={`mt-1 flex h-5 w-5 cursor-pointer items-center justify-center rounded-md border-2 transition-colors ${
-                      t.done
-                        ? 'border-[#5415a1] dark:border-[#6b0edd]'
-                        : 'border-gray-300 dark:border-[#5d05c9]'
-                    } `}
-                  >
-                    {t.done && (
-                      <Check
-                        size={14}
-                        className="stroke-[3px] text-[#5415a1] dark:text-[#653a99]"
-                      />
-                    )}
-                  </div>
-
-                  {/* Content */}
-                  <div className="flex-1">
-                    <h4
-                      className={`text-base font-bold sm:text-lg ${
-                        t.done
-                          ? 'text-gray-600 line-through dark:text-gray-100 '
-                          : 'text-slate-800 dark:text-gray-100'
-                      }`}
-                    >
-                      {t.title}
-                    </h4>
-
-                    <div className="mt-2 flex flex-wrap items-center gap-2">
-                      <span className="rounded bg-[#F3F4F6] px-2 py-0.5 text-sm font-bold text-gray-400 dark:text-gray-600">
-                        {t.time}
-                      </span>
-                      <span className={`rounded px-2 py-0.5 text-sm font-bold ${t.tagStyle}`}>
-                        {t.tag}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
       </div>
 
       <NewPlanModal open={modle} onClose={handleCloseModal} onSave={handleSavePlan} />
