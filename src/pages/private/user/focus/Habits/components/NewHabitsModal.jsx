@@ -170,7 +170,7 @@ function ManualFormFields({ form, update }) {
         />
       </Field>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <Field label="Category">
           <select
             value={form.category}
@@ -221,7 +221,7 @@ function ManualFormFields({ form, update }) {
       </div>
 
       <Field label="Target Days">
-        <div className="flex w-max flex-wrap gap-1.5">
+        <div className="grid w-full grid-cols-7 gap-1 sm:gap-1.5">
           {TARGET_DAYS.map((day) => {
             const selected = form.targetDays.includes(day);
             return (
@@ -229,7 +229,7 @@ function ManualFormFields({ form, update }) {
                 key={day}
                 type="button"
                 onClick={() => toggleDay(day)}
-                className={`flex w-11 items-center justify-center rounded-lg border px-2 py-2 text-[12px] font-medium ${
+                className={`flex items-center justify-center rounded-lg border px-1 py-2 text-[11px] font-medium sm:text-[12px] ${
                   selected
                     ? 'border-[#8022fe] bg-[#f9f4ff] text-[#8022fe]'
                     : 'border-[#f2f2f2] text-[#181818] dark:border-zinc-700 dark:text-white'
@@ -372,16 +372,16 @@ export default function NewHabitsModal({ open, onClose, onSave }) {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className={`flex w-full flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] transition-all dark:border-zinc-700 dark:bg-zinc-900 ${modalWidthClass}`}
+        className={`flex max-h-[90vh] w-full flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] transition-all dark:border-zinc-700 dark:bg-zinc-900 ${modalWidthClass}`}
       >
-        <div className="flex items-center justify-between border-b border-[#f2f2f2] px-3 py-2.5 dark:border-zinc-700">
+        <div className="flex shrink-0 items-center justify-between border-b border-[#f2f2f2] px-3 py-2.5 dark:border-zinc-700">
           <p className="text-[12px] font-medium text-[#5d5d5d] dark:text-gray-300">New Habit</p>
           <button type="button" onClick={handleClose} className="text-[#5d5d5d] dark:text-gray-300">
             <X size={14} />
           </button>
         </div>
 
-        <div className="flex flex-col gap-6 p-3">
+        <div className="flex flex-col gap-6 overflow-y-auto p-3">
           <div className="mx-auto w-full max-w-[430px]">
             <TabToggle activeTab={activeTab} onChange={handleTabChange} disabled={isRevealing} />
           </div>
@@ -396,7 +396,7 @@ export default function NewHabitsModal({ open, onClose, onSave }) {
           ) : showAiPreview ? (
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-2.5 rounded-2xl border border-[#f2f2f2] bg-white p-3 dark:border-zinc-700 dark:bg-zinc-900">
-                <div className="flex items-center pl-3">
+                <div className="flex items-center pl-3 max-lg:hidden">
                   <div className="w-97 shrink-0" />
                   <div className="flex w-115 shrink-0 items-center justify-end gap-5">
                     {TARGET_DAYS.map((day) => (
@@ -408,6 +408,16 @@ export default function NewHabitsModal({ open, onClose, onSave }) {
                       </p>
                     ))}
                   </div>
+                </div>
+                <div className="grid grid-cols-7 gap-1 px-3 lg:hidden">
+                  {TARGET_DAYS.map((day) => (
+                    <p
+                      key={day}
+                      className="text-center text-[11px] font-medium text-[#5d5d5d] dark:text-gray-300"
+                    >
+                      {day}
+                    </p>
+                  ))}
                 </div>
                 <HabitRow habit={previewHabit} showMenu={false} compact />
               </div>

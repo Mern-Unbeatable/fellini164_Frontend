@@ -25,22 +25,22 @@ export default function NewPlanModal({ open, onClose, onSave }) {
       {/* Modal Container */}
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-xl rounded-[24px] bg-white p-6 shadow-xl"
+        className="w-full max-w-[500px] rounded-[24px] bg-white p-7 shadow-xl"
       >
         {/* Header */}
-        <div className="flex items-center justify-between pb-4">
-          <h2 className="text-sm font-medium text-gray-700">New Plan</h2>
+        <div className="flex items-center justify-between pb-5">
+          <h2 className="text-[17px] font-medium text-zinc-700">New Plan</h2>
           <button 
             onClick={onClose} 
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-zinc-400 hover:text-zinc-600 transition-colors"
           >
-            <X size={22} />
+            <X size={20} strokeWidth={2} />
           </button>
         </div>
 
         {/* Input Field Section */}
         <div className="mb-5">
-          <label className="mb-2 block text-xs font-medium text-[#C2C2C2]">
+          <label className="mb-2.5 block text-[13px] font-medium text-[#C2C2C2]">
             What do you want to plan?
           </label>
           <textarea
@@ -48,13 +48,13 @@ export default function NewPlanModal({ open, onClose, onSave }) {
             onChange={(e) => setPlanText(e.target.value)}
             placeholder="Need to updating my portfolio..."
             rows="5"
-            className="w-full resize-none rounded-2xl border border-gray-200 p-4 text-gray-700 outline-none focus:border-gray-300 placeholder:text-gray-300"
+            className="w-full resize-none rounded-[18px] border border-zinc-200 p-4 text-[15px] text-zinc-800 placeholder-zinc-300/90 outline-none focus:border-zinc-300"
           />
         </div>
 
         {/* Date Range Options */}
         <div className="mb-6">
-          <label className="mb-2 block text-xs font-medium text-[#C2C2C2]">
+          <label className="mb-2.5 block text-[13px] font-medium text-[#C2C2C2]">
             Date range
           </label>
           <div className="flex flex-wrap gap-2">
@@ -63,10 +63,10 @@ export default function NewPlanModal({ open, onClose, onSave }) {
                 key={option}
                 type="button"
                 onClick={() => setDateRange(option)}
-                className={`rounded-xl border px-4 py-2 text-sm font-medium transition-colors ${
+                className={`rounded-[14px] border px-4.5 py-2 text-[14px] font-medium transition-colors ${
                   dateRange === option
-                    ? 'border-primary bg-primary text-white' // Active state (optional tweak)
-                    : 'border-gray-200 text-gray-800 hover:bg-gray-50'
+                    ? 'border-zinc-800 text-zinc-900 bg-white' 
+                    : 'border-zinc-200 text-zinc-800 hover:bg-zinc-50'
                 }`}
               >
                 {option}
@@ -76,20 +76,20 @@ export default function NewPlanModal({ open, onClose, onSave }) {
         </div>
 
         {/* Action Buttons Footer */}
-        <div className="flex gap-4">
+        <div className="flex gap-3.5">
           <button
             onClick={onClose}
-            className="flex-1 rounded-xl bg-gray-100 py-3 font-medium text-gray-600 hover:bg-gray-200/80 transition-colors"
+            className="flex-1 rounded-[16px] bg-[#F5F5F7] py-3.5 text-[15px] font-medium text-zinc-700 hover:bg-zinc-200/80 transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={handleCreate}
             disabled={!planText.trim()}
-            className={`flex-1 rounded-xl py-3 font-medium transition-colors ${
+            className={`flex-1 rounded-[16px] py-3.5 text-[15px] font-medium transition-colors ${
               planText.trim()
-                ? 'bg-primary text-white hover:bg-gray-200/80' 
-                : 'bg-gray-200 text-white cursor-not-allowed'
+                ? 'bg-zinc-900 text-white hover:bg-zinc-800' 
+                : 'bg-[#F5F5F7] text-zinc-300 cursor-not-allowed'
             }`}
           >
             Create

@@ -494,7 +494,7 @@ export default function Habits() {
           </div>
         </div>
 
-        <div className="scrollbar-hidden relative -mx-3 flex flex-col gap-2.5 overflow-y-auto px-3 max-h-[610px]">
+        <div className="scrollbar-hidden relative -mx-3 flex flex-col gap-2.5 overflow-y-auto px-3 lg:max-h-[610px] max-lg:max-h-[min(70vh,560px)]">
           {boardIsEmpty ? (
             filteredGhostHabits.length === 0 ? (
               <p className="py-10 text-center text-sm font-medium text-[#c2c2c2] dark:text-gray-500">

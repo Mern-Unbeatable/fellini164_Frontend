@@ -7,7 +7,10 @@ const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 // 'checked' (completed), 'today' (partial-fill bar + "{done}/{total}" label).
 function DayCell({ state, todayProgress, dimmed }) {
   if (state === 'unscheduled') {
-    return <div className="size-10 shrink-0 rounded-[10px] opacity-0 max-lg:hidden" />;
+    // opacity-0 only — must stay in the layout flow (not display:none) so it still
+    // occupies its grid/flex slot, keeping the visible cells aligned under the
+    // correct weekday at every breakpoint.
+    return <div className="size-10 shrink-0 rounded-[10px] opacity-0 max-lg:size-9" />;
   }
 
   if (state === 'today' && todayProgress) {
@@ -192,7 +195,7 @@ export default function HabitRow({
         </div>
       ) : (
         <div
-          className={`flex items-center max-lg:w-full max-lg:flex-wrap max-lg:gap-2 max-lg:pr-0 ${
+          className={`flex items-center max-lg:grid max-lg:w-full max-lg:grid-cols-7 max-lg:place-items-center max-lg:gap-1 max-lg:pr-0 ${
             compact ? 'w-[460px] shrink-0 justify-end gap-5' : `flex-1 justify-between ${showMenu ? 'pr-41' : ''}`
           }`}
         >
