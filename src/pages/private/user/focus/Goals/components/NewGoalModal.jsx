@@ -115,6 +115,9 @@ function Field({ label, children }) {
 const inputClasses =
   'w-full min-h-[31px] rounded-[8px] border border-[#f2f2f2] bg-white px-[12px] py-[8px] text-[12px] font-medium text-[#181818] outline-none placeholder:font-medium placeholder:text-[#c2c2c2] focus:border-[#8022fe] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white';
 
+const textareaClasses =
+  'w-full rounded-[12px] border border-[#f2f2f2] bg-white p-[12px] text-[12px] font-medium text-[#181818] outline-none placeholder:font-medium placeholder:text-[#c2c2c2] focus:border-[#8022fe] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white';
+
 function TabToggle({ activeTab, onChange, disabled }) {
   return (
     <div className="flex w-full items-center justify-between rounded-[10px] border border-[#f2f2f2] bg-white p-[4px] dark:border-zinc-700 dark:bg-zinc-800">
@@ -314,7 +317,7 @@ function AIGeneratedGoalPreviewCard({ goal, revealStep = 3 }) {
             </div>
             <MoreHorizontal size={14} className="text-[#a3a3a3]" />
           </div>
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-[4px]">
             {showTitle ? (
               <p className="text-[16px] font-medium leading-[1.5] text-[#181818] dark:text-white">{goal.title}</p>
             ) : (
@@ -341,7 +344,7 @@ function AIGeneratedGoalPreviewCard({ goal, revealStep = 3 }) {
           </div>
         )}
       </div>
-      <div className="border-t border-[#f2f2f2] px-3 pt-[10px] pb-3 dark:border-zinc-700">
+      <div className="border-t border-[#f2f2f2] px-3 pt-[10px] pb-[12px] dark:border-zinc-700">
         <div className="flex flex-col gap-[6px]">
           <div className="flex items-center justify-between text-[12px] font-medium leading-[1.5]">
             <span className="text-[#c2c2c2]">Progress</span>
@@ -379,7 +382,7 @@ function AiPreviewChangeSection({ changeRequest, onChange, onUpdate }) {
         value={changeRequest}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Type here..."
-        className={`${inputClasses} h-[70px] resize-none rounded-[12px] p-[12px]`}
+        className={`${textareaClasses} h-[70px] resize-none`}
       />
     </div>
   );
@@ -483,7 +486,7 @@ function ManualFormFields({ form, update, tasksOpen, habitsOpen, setTasksOpen, s
           value={form.description}
           onChange={(e) => update('description', e.target.value)}
           placeholder="Add details..."
-          className={`${inputClasses} h-[80px] resize-none rounded-[12px]`}
+          className={`${textareaClasses} h-[80px] resize-none`}
         />
       </Field>
     </div>
@@ -739,13 +742,25 @@ export default function NewGoalModal({ open, onClose, onSave }) {
             rows={5}
             value={aiPrompt}
             onChange={(e) => setAiPrompt(e.target.value)}
-            className={`${inputClasses} relative z-10 h-[140px] resize-none rounded-[12px] bg-transparent p-[12px]`}
+            className={`${textareaClasses} relative z-10 h-[140px] resize-none`}
           />
           <TypewriterPlaceholder phrases={AI_PROMPT_PHRASES} visible={!aiPrompt.trim()} className="p-[12px]" />
         </div>
       </div>
     );
   };
+
+  const modalHeightClass =
+    activeTab === 'manual'
+      ? 'max-h-[90vh] sm:h-[635px]'
+      : showAiPreview
+        ? 'sm:h-[474px]'
+        : isAiInput
+          ? 'sm:h-[336px]'
+          : '';
+
+  const contentOverflowClass =
+    activeTab === 'manual' ? 'overflow-y-auto' : 'overflow-hidden';
 
   return (
     <div
@@ -754,15 +769,7 @@ export default function NewGoalModal({ open, onClose, onSave }) {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className={`flex w-full flex-col overflow-hidden rounded-[16px] border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-900 max-w-[450px] sm:w-[450px] ${
-          activeTab === 'manual'
-            ? 'max-h-[90vh] sm:max-h-[635px]'
-            : showAiPreview
-              ? 'sm:max-h-[474px]'
-              : isAiInput
-                ? 'sm:max-h-[336px]'
-                : ''
-        }`}
+        className={`flex w-full flex-col overflow-hidden rounded-[16px] border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-900 max-w-[450px] sm:w-[450px] ${modalHeightClass}`}
       >
         <div className="flex shrink-0 items-center justify-between border-b border-[#f2f2f2] px-[12px] py-[10px] dark:border-zinc-700">
           <p className="text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:text-gray-300">New Goal</p>
@@ -774,7 +781,9 @@ export default function NewGoalModal({ open, onClose, onSave }) {
         <div className="flex min-h-0 flex-1 flex-col gap-[24px] overflow-hidden p-[12px]">
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
             <TabToggle activeTab={activeTab} onChange={handleTabChange} disabled={isRevealing} />
-            <div className={`min-h-0 flex-1 overflow-y-auto ${tabContentGap}`}>{renderBodyContent()}</div>
+            <div className={`min-h-0 flex-1 ${contentOverflowClass} ${tabContentGap}`}>
+              {renderBodyContent()}
+            </div>
           </div>
 
           <ModalFooter
