@@ -755,7 +755,23 @@ export default function ActiveGoals() {
   const handleCloseModal = () => setModal(false);
   const handleCloseModalProgress = () => setModalProgress(false);
   const handleSavePlan = (data) => {
-    console.log('Saved plan:', data);
+    if (!data?.title) return;
+    setGoals((prev) => [
+      {
+        id: `goal-${Date.now()}`,
+        priority: data.priority || 'MEDIUM',
+        title: data.title,
+        description: data.description || '',
+        category: data.category || 'Career',
+        tasks: 0,
+        habits: 0,
+        due: data.due || 'Today',
+        progress: 0,
+        status: 'active',
+        source: data.source || 'manual',
+      },
+      ...prev,
+    ]);
   };
 
   const handleDismissGhost = (id) => {

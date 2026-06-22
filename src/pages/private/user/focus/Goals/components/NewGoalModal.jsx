@@ -1,215 +1,719 @@
-import { useState } from 'react';
-import { X, ChevronDown } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import {
+  X,
+  Sparkles,
+  ChevronDown,
+  Calendar,
+  MoreHorizontal,
+  Flag,
+  Plus,
+  Check,
+} from 'lucide-react';
+import TypewriterPlaceholder from '../../../../../../components/ui/TypewriterPlaceholder';
+import SkeletonBar from '../../../../../../components/ui/SkeletonBar';
+import { useAiGenerationReveal } from '../../../../../../hooks/useAiGenerationReveal';
 
-export default function NewGoalModal( { open, onClose, onSave }) {
+const PRIORITIES = ['Low', 'Medium', 'High', 'Urgent'];
+const CATEGORIES = ['Career', 'Health', 'Finance', 'Personal', 'Education'];
 
+const AI_PROMPT_PHRASES = [
+  'Create a goal for updating my portfolio...',
+  'Set a goal to run a half marathon...',
+  'Build a savings goal for this year...',
+  'Create a goal to learn a new skill...',
+];
 
+const TASK_OPTIONS = [
+  { id: 'task-1', label: 'Exercise Routine', aiSuggested: true },
+  { id: 'task-2', label: 'Deliver message' },
+  { id: 'task-3', label: 'Work 3' },
+  { id: 'task-4', label: 'Update LinkedIn profile' },
+];
 
-  const [formData, setFormData] = useState({
-    goalTitle: '',
-    targetAmount: '',
-    unit: '',
-    currentProgress: '',
-    deadline: '',
-    category: 'Personal',
-    description: ''
-  });
-  if (!open) return null;
+const HABIT_OPTIONS = [
+  { id: 'habit-1', label: 'Drink Water', aiSuggested: true },
+  { id: 'habit-2', label: 'Take Breaks' },
+  { id: 'habit-3', label: 'Meditate', status: 'paused' },
+  { id: 'habit-4', label: 'Exercise' },
+  { id: 'habit-5', label: 'Drink Water 2', status: 'completed' },
+];
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+const PRIORITY_STYLES = {
+  URGENT: 'bg-[rgba(220,38,38,0.05)] text-[#dc2626]',
+  HIGH: 'bg-[rgba(249,115,22,0.05)] text-[#f97316]',
+  MEDIUM: 'bg-[rgba(202,138,4,0.05)] text-[#ca8a04]',
+  LOW: 'bg-[rgba(107,114,128,0.05)] text-[#6b7280]',
+};
+
+const PRIORITY_LABELS = {
+  URGENT: 'Urgent',
+  HIGH: 'High',
+  MEDIUM: 'Medium',
+  LOW: 'Low',
+};
+
+const EMPTY_FORM = {
+  title: '',
+  priority: 'Medium',
+  category: 'Career',
+  dueDate: '',
+  description: '',
+  linkedTasks: [],
+  linkedHabits: [],
+};
+
+function mockGenerateGoal(prompt) {
+  const lower = prompt.toLowerCase();
+  if (lower.includes('portfolio') || lower.includes('linkedin') || lower.includes('career')) {
+    return {
+      priority: 'HIGH',
+      title: 'Improve Rate',
+      description: 'Stick to your professional growth plan or engage in a skill-building session.',
+      category: 'Career',
+      due: 'In 6 days',
+    };
+  }
+  if (lower.includes('marathon') || lower.includes('fitness') || lower.includes('workout')) {
+    return {
+      priority: 'URGENT',
+      title: 'Fitness Regimen',
+      description: 'Adhere to your workout schedule or participate in a fitness class.',
+      category: 'Health',
+      due: 'May 27, 2026',
+    };
+  }
+  if (lower.includes('savings') || lower.includes('finance') || lower.includes('budget')) {
+    return {
+      priority: 'MEDIUM',
+      title: 'Save $10,000',
+      description: 'Build consistent savings habits and track monthly contributions.',
+      category: 'Finance',
+      due: 'Dec 31, 2026',
+    };
+  }
+  return {
+    priority: 'MEDIUM',
+    title: 'Update LinkedIn Profile',
+    description: 'Refresh headline, summary, and recent projects on your profile.',
+    category: 'Career',
+    due: 'May 27, 2026',
+  };
+}
+
+function formatDueDate(value) {
+  if (!value) return '';
+  const date = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function Field({ label, children }) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <p className="text-[12px] font-medium leading-[1.5] text-[#c2c2c2] dark:text-zinc-500">{label}</p>
+      {children}
+    </div>
+  );
+}
+
+const inputClasses =
+  'w-full rounded-lg border border-[#f2f2f2] bg-white px-3 py-2 text-[12px] text-[#181818] outline-none focus:border-[#8022fe] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white';
+
+function TabToggle({ activeTab, onChange, disabled }) {
+  return (
+    <div className="flex w-full items-center justify-between rounded-[10px] border border-[#f2f2f2] bg-white p-1 dark:border-zinc-700 dark:bg-zinc-800">
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => onChange('ai')}
+        className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-[12px] font-medium disabled:cursor-default ${
+          activeTab === 'ai' ? 'bg-[#f9f4ff] text-[#8022fe]' : 'text-[#c2c2c2]'
+        }`}
+      >
+        <Sparkles size={10} />
+        AI Generation
+      </button>
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => onChange('manual')}
+        className={`flex flex-1 items-center justify-center rounded-md px-2 py-1.5 text-[12px] font-medium disabled:cursor-default ${
+          activeTab === 'manual'
+            ? 'bg-[#f2f2f2] text-[#181818] dark:bg-zinc-700 dark:text-white'
+            : 'text-[#c2c2c2]'
+        }`}
+      >
+        Manual
+      </button>
+    </div>
+  );
+}
+
+function OptionBadge({ type }) {
+  if (type === 'aiSuggested') {
+    return (
+      <span className="flex items-center gap-1 rounded px-1 py-px text-[10px] font-medium text-[#8022fe] bg-[#f9f4ff]">
+        <Sparkles size={8} />
+        AI Suggested
+      </span>
+    );
+  }
+  if (type === 'paused') {
+    return (
+      <span className="rounded px-1 py-px text-[10px] font-medium uppercase text-[#5d5d5d] bg-[rgba(93,93,93,0.05)]">
+        Paused
+      </span>
+    );
+  }
+  if (type === 'completed') {
+    return (
+      <span className="rounded px-1 py-px text-[10px] font-medium uppercase text-[#2a9d00] bg-[rgba(42,157,0,0.05)]">
+        Completed
+      </span>
+    );
+  }
+  return null;
+}
+
+function LinkedMultiSelect({ label, placeholder, options, selectedIds, onChange, open, onToggle }) {
+  const containerRef = useRef(null);
+  const selected = options.filter((o) => selectedIds.includes(o.id));
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        if (open) onToggle(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [open, onToggle]);
+
+  const toggleOption = (id) => {
+    onChange(
+      selectedIds.includes(id) ? selectedIds.filter((x) => x !== id) : [...selectedIds, id]
+    );
   };
 
-  const handleSave = () => {
-    console.log('Form Data:', formData);
-    onSave()
-     onClose();
-
-    // Handle save logic here
-  };
-  
-
-
-  const handleCancel = () => {
-    setFormData({
-      goalTitle: '',
-      targetAmount: '',
-      unit: '',
-      currentProgress: '',
-      deadline: '',
-      category: 'Personal',
-      description: '',
-         
-    });
-    onClose();
+  const removeTag = (id, e) => {
+    e.stopPropagation();
+    onChange(selectedIds.filter((x) => x !== id));
   };
 
   return (
-  <div
-  onClick={handleCancel}
-  className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 sm:p-6 "
->
-  {/* Modal */}
-  <div
-    onClick={(e) => e.stopPropagation()}
-    className="flex max-h-[90vh] w-full max-w-xl flex-col  bg-white dark:bg-zinc-800 shadow-lg  rounded-2xl"
-  >
-    {/* ================= HEADER (FIXED) ================= */}
-    <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 bg-white dark:border-zinc-500 dark:bg-zinc-800 p-6  rounded-t-lg ">
-      <h2 className="text-xl font-bold text-gray-900 dark:text-white">New Goal</h2>
+    <div ref={containerRef} className="relative flex flex-col gap-1.5">
+      <p className="text-[12px] font-medium leading-[1.5] text-[#c2c2c2] dark:text-zinc-500">{label}</p>
       <button
-        onClick={handleCancel}
-        className="text-gray-400 hover:text-gray-600 dark:text-white dark:hover:text-white transition-colors"
+        type="button"
+        onClick={() => onToggle(!open)}
+        className={`flex min-h-[31px] w-full items-center gap-2 rounded-lg border border-[#f2f2f2] bg-white px-1.5 py-1.5 text-left dark:border-zinc-700 dark:bg-zinc-800 ${
+          selected.length > 0 ? 'pr-1.5' : 'px-3'
+        }`}
       >
-        <X size={24} />
+        {selected.length === 0 ? (
+          <>
+            <span className="flex-1 text-[12px] font-medium text-[#c2c2c2]">{placeholder}</span>
+            <ChevronDown size={12} className={`shrink-0 text-[#a3a3a3] transition-transform ${open ? 'rotate-180' : ''}`} />
+          </>
+        ) : (
+          <>
+            <div className="relative flex min-w-0 flex-1 items-center gap-1 overflow-hidden">
+              {selected.map((item) => (
+                <span
+                  key={item.id}
+                  className="flex shrink-0 items-center gap-1.5 rounded bg-[#f2f2f2] px-1.5 py-0.5 text-[12px] font-medium text-[#181818] dark:bg-zinc-700 dark:text-white"
+                >
+                  {item.label}
+                  <button
+                    type="button"
+                    onClick={(e) => removeTag(item.id, e)}
+                    className="text-[#5d5d5d] hover:text-[#181818] dark:hover:text-white"
+                    aria-label={`Remove ${item.label}`}
+                  >
+                    <X size={10} />
+                  </button>
+                </span>
+              ))}
+              <div className="pointer-events-none absolute inset-y-0 right-0 w-[60px] bg-gradient-to-l from-white to-transparent dark:from-zinc-800" />
+            </div>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggle(true);
+              }}
+              className="flex shrink-0 items-center gap-1.5 rounded bg-[#f9f4ff] px-1.5 py-0.5 text-[12px] font-medium text-[#8022fe]"
+            >
+              <Plus size={8} />
+              Add
+            </button>
+          </>
+        )}
       </button>
-    </div>
 
-    {/* ================= FORM CONTENT (SCROLL) ================= */}
-    <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-5">
-      {/* Goal Title */}
-      <div>
-        <label className="mb-2 block text-sm font-semibold text-gray-900 dark:text-white">
-          Goal Title
-        </label>
+      {open && (
+        <div className="absolute left-0 right-0 top-full z-20 mt-1 overflow-hidden rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
+          {options.map((option) => {
+            const checked = selectedIds.includes(option.id);
+            return (
+              <button
+                key={option.id}
+                type="button"
+                onClick={() => toggleOption(option.id)}
+                className="flex w-full items-center gap-1.5 px-2.5 py-1.5 text-left hover:bg-[#fcfcfc] dark:hover:bg-zinc-700"
+              >
+                <span
+                  className={`flex size-3.5 shrink-0 items-center justify-center rounded border ${
+                    checked
+                      ? 'border-[#8022fe] bg-[#8022fe] text-white'
+                      : 'border-[#e9e9e9] bg-white dark:border-zinc-600 dark:bg-zinc-800'
+                  }`}
+                >
+                  {checked && <Check size={10} strokeWidth={3} />}
+                </span>
+                <span className="text-[12px] font-medium text-[#5d5d5d] dark:text-gray-300">{option.label}</span>
+                {option.aiSuggested && <OptionBadge type="aiSuggested" />}
+                {option.status === 'paused' && <OptionBadge type="paused" />}
+                {option.status === 'completed' && <OptionBadge type="completed" />}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AIGeneratedGoalPreviewCard({ goal, revealStep = 3 }) {
+  const showTitle = revealStep >= 1;
+  const showDescription = revealStep >= 2;
+  const showMeta = revealStep >= 3;
+
+  return (
+    <div className="flex w-full flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-white dark:border-zinc-700 dark:bg-zinc-800">
+      <div className="flex flex-col gap-2.5 p-3">
+        <div className="flex w-full items-center justify-between">
+          <div className="flex items-center gap-1">
+            {showMeta ? (
+              <>
+                <span
+                  className={`rounded-md px-1.5 py-0.5 text-[12px] font-medium uppercase ${PRIORITY_STYLES[goal.priority]}`}
+                >
+                  {PRIORITY_LABELS[goal.priority]}
+                </span>
+                <span className="flex items-center gap-1 rounded-md bg-[#f9f4ff] px-1.5 py-0.5 text-[12px] font-medium text-[#8022fe]">
+                  <Sparkles size={10} />
+                  AI
+                </span>
+              </>
+            ) : (
+              <SkeletonBar className="h-5 w-24" />
+            )}
+          </div>
+          <MoreHorizontal size={14} className="text-[#a3a3a3]" />
+        </div>
+        <div className="flex flex-col gap-1">
+          {showTitle ? (
+            <p className="text-[16px] font-medium leading-[1.5] text-[#181818] dark:text-white">{goal.title}</p>
+          ) : (
+            <SkeletonBar className="h-5 w-[75%]" />
+          )}
+          {showDescription ? (
+            <p className="overflow-hidden text-ellipsis whitespace-nowrap text-[12px] text-[#a3a3a3]">
+              {goal.description}
+            </p>
+          ) : (
+            <SkeletonBar className="h-3 w-full" />
+          )}
+        </div>
+        {showMeta && (
+          <div className="flex flex-wrap items-center gap-1">
+            <span className="rounded-md border border-[#f2f2f2] px-1.5 py-0.5 text-[12px] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+              {goal.category}
+            </span>
+            <span className="flex items-center gap-1.5 rounded-md border border-[#f2f2f2] px-1.5 py-0.5 text-[12px] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+              <Flag size={12} />
+              {goal.due}
+            </span>
+          </div>
+        )}
+      </div>
+      <div className="border-t border-[#f2f2f2] px-3 pt-2.5 pb-3 dark:border-zinc-700">
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center justify-between text-[12px] font-medium leading-[1.5]">
+            <span className="text-[#c2c2c2]">Progress</span>
+            <span className="text-[#5d5d5d] dark:text-gray-300">0%</span>
+          </div>
+          <div className="h-2 w-full rounded-[40px] bg-[#e9e9e9] dark:bg-zinc-600" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ManualFormFields({ form, update, tasksOpen, habitsOpen, setTasksOpen, setHabitsOpen }) {
+  return (
+    <div className="flex flex-col gap-4">
+      <Field label="Title">
         <input
           type="text"
-          name="goalTitle"
-          placeholder="e.g. Save Money"
-          value={formData.goalTitle}
-          onChange={handleChange}
-          className="w-full rounded-lg border border-gray-300 dark:border-zinc-500 bg-[#F8FBFE] dark:bg-zinc-700 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:placeholder:text-gray-300 dark:text-white"
+          value={form.title}
+          onChange={(e) => update('title', e.target.value)}
+          placeholder="e.g. Update LinkedIn profile"
+          className={inputClasses}
         />
+      </Field>
+
+      <div className="grid grid-cols-2 gap-2">
+        <Field label="Priority">
+          <div className="relative">
+            <select
+              value={form.priority}
+              onChange={(e) => update('priority', e.target.value)}
+              className={`${inputClasses} appearance-none pr-8`}
+            >
+              {PRIORITIES.map((p) => (
+                <option key={p}>{p}</option>
+              ))}
+            </select>
+            <ChevronDown
+              size={12}
+              className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-[#a3a3a3]"
+            />
+          </div>
+        </Field>
+        <Field label="Category">
+          <div className="relative">
+            <select
+              value={form.category}
+              onChange={(e) => update('category', e.target.value)}
+              className={`${inputClasses} appearance-none pr-8`}
+            >
+              {CATEGORIES.map((c) => (
+                <option key={c}>{c}</option>
+              ))}
+            </select>
+            <ChevronDown
+              size={12}
+              className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-[#a3a3a3]"
+            />
+          </div>
+        </Field>
       </div>
 
-      {/* Target & Unit */}
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="mb-2 block text-sm font-semibold text-gray-900 dark:text-white">
-            Target Amount
-          </label>
+      <Field label="Due Date">
+        <div className="relative">
           <input
-            type="number"
-            name="targetAmount"
-            placeholder="100"
-            value={formData.targetAmount}
-            onChange={handleChange}
-            className="w-full rounded-lg border border-gray-300 dark:border-zinc-500 bg-[#F8FBFE] dark:bg-zinc-700 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:placeholder:text-gray-300 dark:text-white"
+            type="date"
+            value={form.dueDate}
+            onChange={(e) => update('dueDate', e.target.value)}
+            className={`${inputClasses} pr-8`}
+          />
+          <Calendar
+            size={12}
+            className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-[#a3a3a3]"
           />
         </div>
+      </Field>
 
-        <div>
-          <label className="mb-2 block text-sm font-semibold text-gray-900 dark:text-white  ">
-            Unit
-          </label>
-          <div className="relative">
-            <input
-              type="text"
-              name="unit"
-              placeholder="e.g. USD, kg"
-              value={formData.unit}
-              onChange={handleChange}
-              className="w-full rounded-lg border border-gray-300 dark:border-zinc-500 bg-[#F8FBFE] dark:bg-zinc-700 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:placeholder:text-gray-300 dark:text-white"
+      <LinkedMultiSelect
+        label="Linked Tasks"
+        placeholder="Select Tasks"
+        options={TASK_OPTIONS}
+        selectedIds={form.linkedTasks}
+        onChange={(ids) => update('linkedTasks', ids)}
+        open={tasksOpen}
+        onToggle={setTasksOpen}
+      />
+
+      <LinkedMultiSelect
+        label="Linked Habits"
+        placeholder="Select Habits"
+        options={HABIT_OPTIONS}
+        selectedIds={form.linkedHabits}
+        onChange={(ids) => update('linkedHabits', ids)}
+        open={habitsOpen}
+        onToggle={setHabitsOpen}
+      />
+
+      <Field label="Description">
+        <textarea
+          rows={3}
+          value={form.description}
+          onChange={(e) => update('description', e.target.value)}
+          placeholder="Add details..."
+          className={`${inputClasses} h-20 resize-none rounded-xl`}
+        />
+      </Field>
+    </div>
+  );
+}
+
+export default function NewGoalModal({ open, onClose, onSave }) {
+  const [activeTab, setActiveTab] = useState('ai');
+  const [aiPhase, setAiPhase] = useState('input');
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [changeRequest, setChangeRequest] = useState('');
+  const [generatedGoal, setGeneratedGoal] = useState(null);
+  const [pendingGoal, setPendingGoal] = useState(null);
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [tasksOpen, setTasksOpen] = useState(false);
+  const [habitsOpen, setHabitsOpen] = useState(false);
+  const { revealStep, isRevealing, startReveal, resetReveal } = useAiGenerationReveal();
+
+  const resetState = () => {
+    setActiveTab('ai');
+    setAiPhase('input');
+    setAiPrompt('');
+    setChangeRequest('');
+    setGeneratedGoal(null);
+    setPendingGoal(null);
+    setForm(EMPTY_FORM);
+    setTasksOpen(false);
+    setHabitsOpen(false);
+    resetReveal();
+  };
+
+  useEffect(() => {
+    if (!open) resetState();
+  }, [open]);
+
+  if (!open) return null;
+
+  const update = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
+
+  const runAiGeneration = async (prompt) => {
+    const goal = mockGenerateGoal(prompt);
+    setPendingGoal(goal);
+    setAiPhase('generating');
+    setChangeRequest('');
+    await startReveal();
+    setGeneratedGoal(goal);
+    setPendingGoal(null);
+    setAiPhase('preview');
+  };
+
+  const handleClose = () => {
+    resetState();
+    onClose();
+  };
+
+  const handleGenerate = () => {
+    if (!aiPrompt.trim() || isRevealing) return;
+    runAiGeneration(aiPrompt);
+  };
+
+  const handleRegenerate = () => {
+    if (isRevealing) return;
+    runAiGeneration(`${aiPrompt}${Date.now()}`);
+  };
+
+  const handleUpdatePreview = () => {
+    if (!changeRequest.trim() || isRevealing) return;
+    runAiGeneration(`${aiPrompt} ${changeRequest}`);
+  };
+
+  const handleAddGeneratedToBoard = () => {
+    if (!generatedGoal) return;
+    onSave({
+      title: generatedGoal.title,
+      description: generatedGoal.description,
+      priority: generatedGoal.priority,
+      category: generatedGoal.category,
+      due: generatedGoal.due,
+      linkedTasks: [],
+      linkedHabits: [],
+      source: 'ai',
+    });
+    handleClose();
+  };
+
+  const handleManualSubmit = () => {
+    onSave({
+      title: form.title,
+      description: form.description,
+      priority: form.priority.toUpperCase(),
+      category: form.category,
+      due: form.dueDate ? formatDueDate(form.dueDate) : 'Today',
+      linkedTasks: form.linkedTasks,
+      linkedHabits: form.linkedHabits,
+      source: 'manual',
+    });
+    handleClose();
+  };
+
+  const handleTabChange = (tab) => {
+    if (isRevealing) return;
+    setActiveTab(tab);
+    setTasksOpen(false);
+    setHabitsOpen(false);
+    if (tab === 'ai') setAiPhase(generatedGoal ? 'preview' : 'input');
+  };
+
+  const canSubmitManual = form.title.trim().length > 0;
+  const canGenerate = aiPrompt.trim().length > 0 && !isRevealing;
+  const showAiPreview = activeTab === 'ai' && aiPhase === 'preview';
+  const showAiGenerating = activeTab === 'ai' && aiPhase === 'generating';
+
+  return (
+    <div
+      onClick={handleClose}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="flex max-h-[90vh] w-full max-w-[450px] flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-900"
+      >
+        <div className="flex shrink-0 items-center justify-between border-b border-[#f2f2f2] px-3 py-2.5 dark:border-zinc-700">
+          <p className="text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:text-gray-300">New Goal</p>
+          <button type="button" onClick={handleClose} className="text-[#5d5d5d] dark:text-gray-300">
+            <X size={14} />
+          </button>
+        </div>
+
+        <div className="flex flex-col gap-6 overflow-y-auto p-3">
+          <TabToggle activeTab={activeTab} onChange={handleTabChange} disabled={isRevealing} />
+
+          {activeTab === 'manual' ? (
+            <ManualFormFields
+              form={form}
+              update={update}
+              tasksOpen={tasksOpen}
+              habitsOpen={habitsOpen}
+              setTasksOpen={(next) => {
+                setTasksOpen(next);
+                if (next) setHabitsOpen(false);
+              }}
+              setHabitsOpen={(next) => {
+                setHabitsOpen(next);
+                if (next) setTasksOpen(false);
+              }}
             />
-            
+          ) : showAiGenerating ? (
+            <AIGeneratedGoalPreviewCard goal={pendingGoal || generatedGoal || {}} revealStep={revealStep} />
+          ) : showAiPreview ? (
+            <div className="flex flex-col gap-4">
+              <AIGeneratedGoalPreviewCard goal={generatedGoal} />
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-[12px] font-medium text-[#5d5d5d] dark:text-gray-300">Anything to change?</p>
+                  <button
+                    type="button"
+                    onClick={handleUpdatePreview}
+                    disabled={!changeRequest.trim()}
+                    className={`rounded-md px-2 py-0.5 text-[12px] font-medium ${
+                      changeRequest.trim()
+                        ? 'bg-[#f9f4ff] text-[#8022fe]'
+                        : 'cursor-default bg-[#f9f4ff] text-[#8022fe] opacity-60'
+                    }`}
+                  >
+                    Update
+                  </button>
+                </div>
+                <textarea
+                  rows={3}
+                  value={changeRequest}
+                  onChange={(e) => setChangeRequest(e.target.value)}
+                  placeholder="Type here..."
+                  className={`${inputClasses} h-[70px] resize-none rounded-xl`}
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-1.5">
+              <p className="text-[12px] font-medium leading-[1.5] text-[#c2c2c2] dark:text-zinc-500">
+                Describe the goal you want to generate
+              </p>
+              <div className="relative">
+                <textarea
+                  rows={5}
+                  value={aiPrompt}
+                  onChange={(e) => setAiPrompt(e.target.value)}
+                  className={`${inputClasses} relative z-10 h-[140px] resize-none rounded-xl bg-transparent`}
+                />
+                <TypewriterPlaceholder phrases={AI_PROMPT_PHRASES} visible={!aiPrompt.trim()} />
+              </div>
+            </div>
+          )}
+
+          <div className="flex shrink-0 items-center gap-2.5">
+            {showAiPreview ? (
+              <>
+                <button
+                  type="button"
+                  onClick={handleRegenerate}
+                  disabled={isRevealing}
+                  className="flex flex-1 items-center justify-center rounded-lg bg-[#f2f2f2] px-3 py-2 text-[12px] font-medium text-[#5d5d5d] disabled:opacity-60 dark:bg-zinc-700 dark:text-gray-300"
+                >
+                  Regenerate
+                </button>
+                <button
+                  type="button"
+                  onClick={handleAddGeneratedToBoard}
+                  disabled={isRevealing}
+                  className="flex flex-1 items-center justify-center rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] font-semibold text-white disabled:opacity-60"
+                >
+                  Add to Board
+                </button>
+              </>
+            ) : showAiGenerating ? (
+              <>
+                <button
+                  type="button"
+                  disabled
+                  className="flex flex-1 cursor-not-allowed items-center justify-center rounded-lg bg-[#f2f2f2] px-3 py-2 text-[12px] font-medium text-[#5d5d5d] opacity-60 dark:bg-zinc-700 dark:text-gray-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled
+                  className="flex flex-1 cursor-not-allowed items-center justify-center rounded-lg bg-[#f1f1f1] px-3 py-2 text-[12px] font-semibold text-[#dedede]"
+                >
+                  Generating...
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  className="flex flex-1 items-center justify-center rounded-lg bg-[#f2f2f2] px-3 py-2 text-[12px] font-medium text-[#5d5d5d] dark:bg-zinc-700 dark:text-gray-300"
+                >
+                  Cancel
+                </button>
+                {activeTab === 'ai' ? (
+                  <button
+                    type="button"
+                    disabled={!canGenerate}
+                    onClick={handleGenerate}
+                    className={`flex flex-1 items-center justify-center rounded-lg px-3 py-2 text-[12px] font-semibold ${
+                      canGenerate
+                        ? 'bg-[#8022fe] text-white'
+                        : 'cursor-not-allowed bg-[#f1f1f1] text-[#dedede]'
+                    }`}
+                  >
+                    Generate
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={!canSubmitManual}
+                    onClick={handleManualSubmit}
+                    className={`flex flex-1 items-center justify-center rounded-lg px-3 py-2 text-[12px] font-semibold ${
+                      canSubmitManual
+                        ? 'bg-[#8022fe] text-white'
+                        : 'cursor-not-allowed bg-[#f1f1f1] text-[#dedede]'
+                    }`}
+                  >
+                    Create
+                  </button>
+                )}
+              </>
+            )}
           </div>
         </div>
       </div>
-
-      {/* Progress & Deadline */}
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="mb-2 block text-sm font-semibold text-gray-900 dark:text-white">
-            Current Progress
-          </label>
-          <input
-            type="number"
-            name="currentProgress"
-            placeholder="00"
-            value={formData.currentProgress}
-            onChange={handleChange}
-            className="w-full rounded-lg border border-gray-300 dark:border-zinc-500 bg-[#F8FBFE] dark:bg-zinc-700 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:placeholder:text-gray-300 dark:text-white"
-          />
-        </div>
-
-        <div>
-          <label className="mb-2 block text-sm font-semibold text-gray-900 dark:text-white">
-            Deadline
-          </label>
-          <input
-            type="text"
-            name="deadline"
-            placeholder="mm/dd/yyyy"
-            value={formData.deadline}
-            onChange={handleChange}
-            className="w-full rounded-lg border border-gray-300 dark:border-zinc-500 bg-[#F8FBFE] dark:bg-zinc-700 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:placeholder:text-gray-300 dark:text-white"
-          />
-        </div>
-      </div>
-
-      {/* Category */}
-      <div>
-        <label className="mb-2 block text-sm font-semibold text-gray-900 dark:text-white">
-          Category
-        </label>
-        <div className="relative">
-          <select
-            name="category"
-            value={formData.category}
-            onChange={handleChange}
-            className="w-full appearance-none rounded-lg border border-gray-300 dark:border-zinc-500 bg-[#F8FBFE] dark:bg-zinc-700 px-4 py-2 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-          >
-            <option>Personal</option>
-            <option>Health</option>
-            <option>Finance</option>
-            <option>Education</option>
-            <option>Other</option>
-          </select>
-          <ChevronDown
-            size={18}
-            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white"
-          />
-        </div>
-      </div>
-
-      {/* Description */}
-      <div>
-        <label className="mb-2 block text-sm font-semibold text-gray-900 dark:text-white">
-          Description
-        </label>
-        <textarea
-          name="description"
-          placeholder="Add details"
-          value={formData.description}
-          onChange={handleChange}
-          className="w-full rounded-lg border border-gray-300 dark:border-zinc-500 bg-[#F8FBFE] dark:bg-zinc-700 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:placeholder:text-gray-300 dark:text-white"
-        />
-      </div>
     </div>
-
-    {/* ================= FOOTER (FIXED) ================= */}
-    <div className="sticky bottom-0 border-t border-gray-200 bg-white dark:border-zinc-500 dark:bg-zinc-800 p-6 rounded-b-lg">
-      <div className="flex gap-3">
-        <button
-          onClick={handleCancel}
-          className="flex-1 rounded-lg border border-gray-300 dark:border-zinc-500 px-4 py-2 font-semibold text-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-zinc-700 transition"
-        >
-          Cancel
-        </button>
-        <button
-          onClick={handleSave}
-          className="flex-1 rounded-lg bg-purple-600 px-4 py-2 font-semibold text-white hover:bg-purple-700 transition"
-        >
-          Save Goal
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
   );
 }
