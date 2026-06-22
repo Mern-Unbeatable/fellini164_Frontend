@@ -4,7 +4,6 @@ import {
   Sparkles,
   ChevronDown,
   Calendar,
-  MoreHorizontal,
   Flag,
   Plus,
   Check,
@@ -297,7 +296,7 @@ function AIGeneratedGoalPreviewCard({ goal, revealStep = 3 }) {
     <div className="flex w-full flex-col overflow-hidden rounded-[16px] border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800">
       <div className="flex flex-col gap-[10px] p-3">
         <div className="flex flex-col gap-[8px]">
-          <div className="flex w-full items-center justify-between">
+          <div className="flex w-full items-center">
             <div className="flex items-center gap-[4px]">
               {showMeta ? (
                 <>
@@ -315,7 +314,6 @@ function AIGeneratedGoalPreviewCard({ goal, revealStep = 3 }) {
                 <SkeletonBar className="h-[22px] w-24" />
               )}
             </div>
-            <MoreHorizontal size={14} className="text-[#a3a3a3]" />
           </div>
           <div className="flex flex-col gap-[4px]">
             {showTitle ? (
