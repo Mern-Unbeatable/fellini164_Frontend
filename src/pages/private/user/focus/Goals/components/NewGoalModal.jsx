@@ -386,7 +386,22 @@ function AiPreviewChangeSection({ changeRequest, onChange, onUpdate }) {
   );
 }
 
+function openDatePicker(input) {
+  if (!input) return;
+  if (typeof input.showPicker === 'function') {
+    try {
+      input.showPicker();
+    } catch {
+      input.focus();
+    }
+  } else {
+    input.focus();
+  }
+}
+
 function ManualFormFields({ form, update, tasksOpen, habitsOpen, setTasksOpen, setHabitsOpen }) {
+  const dueDateRef = useRef(null);
+
   return (
     <div className="flex flex-col gap-[16px]">
       <Field label="Title">
@@ -439,10 +454,12 @@ function ManualFormFields({ form, update, tasksOpen, habitsOpen, setTasksOpen, s
       <Field label="Due Date">
         <div className="relative">
           <input
+            ref={dueDateRef}
             type="date"
             value={form.dueDate}
             onChange={(e) => update('dueDate', e.target.value)}
-            className={`${inputClasses} pr-8 text-transparent`}
+            onClick={(e) => openDatePicker(e.currentTarget)}
+            className={`${inputClasses} cursor-pointer appearance-none pr-8 text-transparent [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:top-0 [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:w-8 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0`}
           />
           <span
             className={`pointer-events-none absolute top-1/2 left-[12px] -translate-y-1/2 text-[12px] font-medium ${
@@ -451,10 +468,14 @@ function ManualFormFields({ form, update, tasksOpen, habitsOpen, setTasksOpen, s
           >
             {form.dueDate ? formatDueDate(form.dueDate) : ''}
           </span>
-          <Calendar
-            size={12}
-            className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-[#a3a3a3]"
-          />
+          <button
+            type="button"
+            onClick={() => openDatePicker(dueDateRef.current)}
+            aria-label="Open date picker"
+            className="absolute top-1/2 right-3 -translate-y-1/2 text-[#a3a3a3]"
+          >
+            <Calendar size={12} />
+          </button>
         </div>
       </Field>
 
