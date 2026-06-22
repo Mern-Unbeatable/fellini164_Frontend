@@ -31,6 +31,7 @@ import MonthlyPlanner from '../pages/private/user/planng/MonthlyPlan/MonthlyPlan
 import TasksBoard from '../pages/private/user/focus/Tasks/TasksBoard';
 import Habits from '../pages/private/user/focus/Habits/Habits';
 import ActiveGoals from '../pages/private/user/focus/Goals/ActiveGoals';
+import GoalDetailPage from '../pages/private/user/focus/Goals/GoalDetailPage';
 import SystemControls from '../pages/private/admin/system/SystemControls';
 import TransactionTable from '../pages/private/admin/operation/TransactionTable';
 import WaitingList from '../pages/private/admin/management/WaitingList';
@@ -91,6 +92,7 @@ const router = createBrowserRouter(
         <Route path="/user/tasks" element={<TasksBoard />} />
         <Route path="/user/habits" element={<Habits />} />
         <Route path="/user/goals" element={<ActiveGoals />} />
+        <Route path="/user/goals/:goalId" element={<GoalDetailPage />} />
       </Route>
 
       {/* Admin Dashboard (Protected) */}

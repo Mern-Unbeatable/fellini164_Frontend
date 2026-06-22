@@ -301,6 +301,7 @@ function PillBadge({ children, className = '' }) {
 export default function GoalDetailPanel({
   goal,
   onClose,
+  onOpenFullPage,
   onEdit,
   onImprove,
   onPause,
@@ -347,7 +348,12 @@ export default function GoalDetailPanel({
         aria-label="Goal detail"
       >
         <div className="flex shrink-0 items-center justify-between border-b border-[#f2f2f2] px-5 py-4 dark:border-zinc-700">
-          <button type="button" aria-label="Open goal in new tab" className="text-[#a3a3a3] hover:text-[#5d5d5d]">
+          <button
+            type="button"
+            onClick={() => onOpenFullPage?.(goal)}
+            aria-label="Open goal in new tab"
+            className="text-[#a3a3a3] hover:text-[#5d5d5d]"
+          >
             <ExternalLink size={14} />
           </button>
           <button

@@ -15,10 +15,12 @@ import {
   Trash2,
 } from 'lucide-react';
 import { useState, useRef, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import NewGoalModal from './components/NewGoalModal';
 import GoalProgressModal from './components/GoalProgressModal';
 import GoalDetailPanel from './components/GoalDetailPanel';
 import TypewriterText from '../../../../../components/ui/TypewriterText';
+import { GHOST_GOALS, INITIAL_GOALS, FIGMA_BOARD_STATS } from './goalsData';
 
 // First phrase matches the Figma frame's static subtitle text exactly; the rest are the
 // user's explicitly suggested rotation phrases.
@@ -28,247 +30,6 @@ const GOALS_SUBTITLE_PHRASES = [
   'Track progress across tasks and habits...',
   'AI helps you stay on track every day...',
 ];
-
-// AI-suggested ghost goals — shown only when the board has no real goals yet.
-// Sample content from the Figma "Empty States" frame (illustrative, not fixed copy).
-const GHOST_GOALS = [
-  {
-    id: 'ghost-goal-1',
-    priority: 'URGENT',
-    title: 'Fitness Regimen',
-    description: 'Adhere to your workout schedule or participate in a fitness class.',
-    category: 'Fitness',
-    tasks: 1,
-    habits: 6,
-    due: 'May 21, 2026',
-  },
-  {
-    id: 'ghost-goal-2',
-    priority: 'HIGH',
-    title: 'Physical Activity',
-    description: 'Commit to your fitness routine or join a workout session.',
-    category: 'Health',
-    tasks: 4,
-    habits: 2,
-    due: 'In 2 days',
-  },
-  {
-    id: 'ghost-goal-3',
-    priority: 'MEDIUM',
-    title: 'Improve Rate',
-    description: 'Stick to your professional growth plan or engage in a skill-building session.',
-    category: 'Career',
-    tasks: 6,
-    habits: 2,
-    due: 'In 6 days',
-  },
-];
-
-// Populated board sample data — from Figma frame 1250:8499 (Goals Board 1440 - 1).
-const INITIAL_GOALS = [
-  {
-    id: 'goal-1',
-    priority: 'MEDIUM',
-    title: 'Improve Rate',
-    description: 'Stick to your professional growth plan or engage in a skill-building session.',
-    category: 'Career',
-    tasks: 6,
-    habits: 2,
-    due: 'In 6 days',
-    dueDetail: 'May 19, 2026 • In 6 days',
-    progress: 70,
-    status: 'active',
-    source: 'ai',
-  },
-  {
-    id: 'goal-2',
-    priority: 'LOW',
-    title: 'Workout',
-    description: 'Stick to your exercise plan or engage in a training session.',
-    category: 'Fitness',
-    tasks: 0,
-    habits: 1,
-    due: 'May 8, 2026',
-    progress: 20,
-    status: 'paused',
-    source: 'manual',
-  },
-  {
-    id: 'goal-3',
-    priority: 'URGENT',
-    title: 'Fitness Regimen',
-    description: 'Adhere to your workout schedule or participate in a fitness class.',
-    category: 'Fitness',
-    tasks: 1,
-    habits: 6,
-    due: 'May 25, 2026',
-    progress: 43,
-    status: 'active',
-    source: 'ai',
-  },
-  {
-    id: 'goal-4',
-    priority: 'URGENT',
-    title: 'Training Schedule',
-    description: 'Follow your exercise routine or take part in a workout.',
-    category: 'Education',
-    tasks: 21,
-    habits: 0,
-    due: 'May 18, 2026',
-    progress: 20,
-    status: 'paused',
-    source: 'manual',
-  },
-  {
-    id: 'goal-5',
-    priority: 'HIGH',
-    title: 'Physical Activity',
-    description: 'Commit to your fitness routine or join a workout session.',
-    category: 'Health',
-    tasks: 4,
-    habits: 2,
-    due: 'In 2 days',
-    progress: 24,
-    status: 'active',
-    source: 'manual',
-  },
-  {
-    id: 'goal-6',
-    priority: 'LOW',
-    title: 'Exercise Program',
-    description: 'Maintain your fitness regimen or engage in a workout.',
-    category: 'Health',
-    tasks: 2,
-    habits: 0,
-    due: null,
-    progress: 100,
-    status: 'completed',
-    completedDate: 'May 8, 2026',
-    source: 'manual',
-  },
-  {
-    id: 'goal-7',
-    priority: 'LOW',
-    title: 'Fitness Schedule',
-    description: 'Keep up with your exercise plan or do a training session.',
-    category: 'Career',
-    tasks: 1,
-    habits: 1,
-    due: 'Today',
-    progress: 7,
-    status: 'active',
-    source: 'manual',
-  },
-  {
-    id: 'goal-8',
-    priority: 'LOW',
-    title: 'Workout Strategy',
-    description: 'Stick to your fitness routine or participate in a workout.',
-    category: 'Personal',
-    tasks: 2,
-    habits: 0,
-    due: null,
-    progress: 100,
-    status: 'completed',
-    completedDate: 'May 11, 2026',
-    source: 'ai',
-  },
-  {
-    id: 'goal-9',
-    priority: 'LOW',
-    title: 'Exercise Agenda',
-    description: 'Follow your workout plan or engage in a fitness session.',
-    category: 'Education',
-    tasks: 0,
-    habits: 4,
-    due: 'May 27, 2026',
-    progress: 89,
-    status: 'active',
-    source: 'ai',
-  },
-  {
-    id: 'goal-10',
-    priority: 'URGENT',
-    title: 'Exercise Routine',
-    description: 'Follow your fitness routine or do a workout session.',
-    category: 'Career',
-    tasks: 2,
-    habits: 4,
-    due: '04.12.26',
-    progress: 70,
-    status: 'active',
-    source: 'ai',
-  },
-  {
-    id: 'goal-11',
-    priority: 'MEDIUM',
-    title: 'Improve Rate',
-    description: 'Stick to your professional growth plan or engage in a skill-building session.',
-    category: 'Career',
-    tasks: 2,
-    habits: 4,
-    due: 'In 6 days',
-    progress: 70,
-    status: 'active',
-    source: 'ai',
-  },
-  {
-    id: 'goal-12',
-    priority: 'LOW',
-    title: 'Exercise Routine',
-    description: 'Follow your fitness routine or do a workout session.',
-    category: 'Career',
-    tasks: 2,
-    habits: 4,
-    due: '04.12.26',
-    progress: 20,
-    status: 'active',
-    source: 'manual',
-  },
-  {
-    id: 'goal-13',
-    priority: 'LOW',
-    title: 'Workout',
-    description: 'Stick to your exercise plan or engage in a training session.',
-    category: 'Fitness',
-    tasks: 0,
-    habits: 1,
-    due: 'May 8, 2026',
-    progress: 20,
-    status: 'active',
-    source: 'manual',
-  },
-  {
-    id: 'goal-14',
-    priority: 'LOW',
-    title: 'Exercise Routine',
-    description: 'Follow your fitness routine or do a workout session.',
-    category: 'Career',
-    tasks: 2,
-    habits: 4,
-    due: '04.12.26',
-    progress: 100,
-    status: 'completed',
-    completedDate: 'May 8, 2026',
-    source: 'ai',
-  },
-  {
-    id: 'goal-15',
-    priority: 'URGENT',
-    title: 'Fitness Regimen',
-    description: 'Adhere to your workout schedule or participate in a fitness class.',
-    category: 'Fitness',
-    tasks: 1,
-    habits: 6,
-    due: 'May 8, 2026',
-    progress: 43,
-    status: 'active',
-    source: 'ai',
-  },
-];
-
-// Figma frame 1250:8499 stats bar copy (decorative counts in design).
-const FIGMA_BOARD_STATS = { active: 12, paused: 2, completedThisMonth: 3 };
 
 const STATUS_STYLES = {
   paused: 'bg-[rgba(93,93,93,0.05)] text-[#5d5d5d]',
@@ -759,6 +520,7 @@ function goalMatchesSearch(goal, query) {
 }
 
 export default function ActiveGoals() {
+  const navigate = useNavigate();
   const [goals, setGoals] = useState(INITIAL_GOALS);
   const [modal, setModal] = useState(false);
   const [modalProgress, setModalProgress] = useState(false);
@@ -841,6 +603,7 @@ export default function ActiveGoals() {
 
   const handleSelectGoal = (goal) => setSelectedGoalId(goal.id);
   const handleCloseGoalDetail = () => setSelectedGoalId(null);
+  const handleOpenGoalPage = (goal) => navigate(`/user/goals/${goal.id}`);
 
   const filteredGoals = useMemo(
     () => goals.filter((g) => goalMatchesSearch(g, searchQuery)),
@@ -972,6 +735,7 @@ export default function ActiveGoals() {
         <GoalDetailPanel
           goal={selectedGoal}
           onClose={handleCloseGoalDetail}
+          onOpenFullPage={handleOpenGoalPage}
           onEdit={handleEditGoal}
           onImprove={handleEditGoal}
           onPause={handlePauseGoal}

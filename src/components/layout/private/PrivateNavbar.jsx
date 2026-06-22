@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { LogOut, Bell, Settings, PanelLeft } from 'lucide-react';
+import { getGoalById } from '../../../pages/private/user/focus/Goals/goalsData';
 
 const BREADCRUMBS = [
   { prefix: '/user/tasks', section: 'Work', page: 'Tasks' },
@@ -18,6 +19,15 @@ const BREADCRUMBS = [
 ];
 
 function getBreadcrumb(pathname) {
+  const goalDetailMatch = pathname.match(/^\/user\/goals\/([^/]+)$/);
+  if (goalDetailMatch) {
+    const goal = getGoalById(goalDetailMatch[1]);
+    return {
+      section: 'Work',
+      page: 'Goals',
+      detail: goal?.title ?? 'Goal',
+    };
+  }
   return BREADCRUMBS.find((b) => pathname.startsWith(b.prefix)) || { page: '' };
 }
 
@@ -31,7 +41,7 @@ function getInitials(user) {
 }
 
 export default function PrivateNavbar({ pathname, user, onOpenMobileSidebar, onLogout }) {
-  const { section, page } = getBreadcrumb(pathname);
+  const { section, page, detail } = getBreadcrumb(pathname);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
@@ -67,9 +77,23 @@ export default function PrivateNavbar({ pathname, user, onOpenMobileSidebar, onL
               </span>
             </>
           )}
-          <p className="truncate text-[12px] font-medium whitespace-nowrap text-[#c2c2c2] dark:text-zinc-500">
+          <p
+            className={`truncate text-[12px] font-medium whitespace-nowrap ${
+              detail ? 'text-[#5d5d5d] dark:text-gray-300' : 'text-[#c2c2c2] dark:text-zinc-500'
+            }`}
+          >
             {page}
           </p>
+          {detail && (
+            <>
+              <span className="shrink-0 text-[12px] font-medium text-[#c2c2c2] dark:text-zinc-600">
+                /
+              </span>
+              <p className="truncate text-[12px] font-medium whitespace-nowrap text-[#c2c2c2] dark:text-zinc-500">
+                {detail}
+              </p>
+            </>
+          )}
         </div>
       </div>
 
