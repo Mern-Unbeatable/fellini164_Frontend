@@ -8,6 +8,8 @@ import {
   Repeat,
   CalendarDays,
   Check,
+  MoreHorizontal,
+  X,
 } from 'lucide-react';
 import { useState, useRef, useEffect, useMemo } from 'react';
 import NewGoalModal from './components/NewGoalModal';
@@ -100,9 +102,43 @@ const FILTER_CONFIG = [
   },
 ];
 
-function GhostGoalCard({ goal }) {
+function GhostGoalMenu({ onRegenerate, onDismiss }) {
+  return (
+    <div className="absolute right-0 top-full z-30 mt-1 flex w-max flex-col overflow-hidden rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
+      <button
+        type="button"
+        onClick={onRegenerate}
+        className="flex items-center gap-1.5 border-b border-[#f2f2f2] px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#8022fe] hover:bg-[#fcfcfc] dark:border-zinc-700 dark:hover:bg-zinc-700"
+      >
+        <Sparkles size={10} className="shrink-0" />
+        Regenerate suggestion
+      </button>
+      <button
+        type="button"
+        onClick={onDismiss}
+        className="flex items-center gap-1.5 px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#5d5d5d] hover:bg-[#fcfcfc] dark:text-gray-300 dark:hover:bg-zinc-700"
+      >
+        <X size={10} className="shrink-0" />
+        Dismiss
+      </button>
+    </div>
+  );
+}
+
+function GhostGoalCard({ goal, onDismiss, onRegenerate }) {
   const [isHovered, setIsHovered] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const cardRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (cardRef.current && !cardRef.current.contains(e.target)) setMenuOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const isActive = isHovered || menuOpen;
 
   return (
     <div
@@ -110,13 +146,15 @@ function GhostGoalCard({ goal }) {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className={`relative flex w-full flex-col justify-between overflow-hidden rounded-2xl border transition-all ${
-        isHovered
+        menuOpen ? 'overflow-visible' : ''
+      } ${
+        isActive
           ? 'border-solid border-[#e9e9e9] bg-[#fcfcfc] shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800'
           : 'border-dashed border-[#e9e9e9] dark:border-zinc-700'
       }`}
     >
       <div className="flex flex-col gap-2.5 p-3">
-        <div className={`flex flex-col gap-2 transition-opacity duration-200 ${isHovered ? 'opacity-100' : 'opacity-40'}`}>
+        <div className={`flex flex-col gap-2 transition-opacity duration-200 ${isActive ? 'opacity-100' : 'opacity-40'}`}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1">
               <span
@@ -129,7 +167,6 @@ function GhostGoalCard({ goal }) {
                 AI
               </span>
             </div>
-            <span className="h-[3px] w-[19px] shrink-0 rounded-full bg-[#e9e9e9] dark:bg-zinc-600" aria-hidden />
           </div>
           <div className="flex flex-col gap-1">
             <p className="text-base font-medium text-[#181818] dark:text-white">{goal.title}</p>
@@ -139,7 +176,7 @@ function GhostGoalCard({ goal }) {
           </div>
         </div>
 
-        <div className={`flex flex-wrap items-center gap-1 transition-opacity duration-200 ${isHovered ? 'opacity-100' : 'opacity-40'}`}>
+        <div className={`flex flex-wrap items-center gap-1 transition-opacity duration-200 ${isActive ? 'opacity-100' : 'opacity-40'}`}>
           <span className="rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-xs font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
             {goal.category}
           </span>
@@ -158,14 +195,46 @@ function GhostGoalCard({ goal }) {
         </div>
       </div>
 
+      {isActive && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setMenuOpen((o) => !o);
+          }}
+          aria-label="Ghost goal menu"
+          aria-expanded={menuOpen}
+          className={`animate-fade-in absolute right-3 top-3 z-20 shrink-0 rounded-[6px] p-1 text-[#a3a3a3] ${
+            menuOpen ? 'bg-[#f2f2f2]' : 'hover:bg-[#f2f2f2]'
+          }`}
+        >
+          <MoreHorizontal size={14} />
+        </button>
+      )}
+
+      {menuOpen && (
+        <div className="absolute right-3 top-9 z-50">
+          <GhostGoalMenu
+            onRegenerate={() => {
+              setMenuOpen(false);
+              onRegenerate(goal.id);
+            }}
+            onDismiss={() => {
+              setMenuOpen(false);
+              onDismiss(goal.id);
+            }}
+          />
+        </div>
+      )}
+
       <div
         className={`relative flex h-[54px] w-full shrink-0 items-center px-3 py-2.5 ${
-          isHovered ? 'border-t border-solid border-[#e9e9e9] dark:border-zinc-700' : 'border-t border-dashed border-[#e9e9e9] dark:border-zinc-700'
+          isActive ? 'border-t border-solid border-[#e9e9e9] dark:border-zinc-700' : 'border-t border-dashed border-[#e9e9e9] dark:border-zinc-700'
         }`}
       >
         <div
           className={`absolute inset-0 flex w-full flex-col gap-1.5 px-3 py-2.5 transition-opacity duration-200 ${
-            isHovered ? 'pointer-events-none opacity-0' : 'opacity-40'
+            isActive ? 'pointer-events-none opacity-0' : 'opacity-40'
           }`}
         >
           <div className="flex w-full items-center justify-between text-xs font-medium">
@@ -176,7 +245,7 @@ function GhostGoalCard({ goal }) {
         </div>
         <div
           className={`absolute inset-0 flex w-full items-center justify-between px-3 py-2.5 transition-opacity duration-200 ${
-            isHovered ? 'opacity-100' : 'pointer-events-none opacity-0'
+            isActive ? 'opacity-100' : 'pointer-events-none opacity-0'
           }`}
         >
           <p className="shrink-0 text-xs font-medium text-[#c2c2c2]">AI suggested based on your profile</p>
@@ -255,7 +324,7 @@ function goalMatchesSearch(goal, query) {
 export default function ActiveGoals() {
   const [modal, setModal] = useState(false);
   const [modalProgress, setModalProgress] = useState(false);
-  const [ghostGoals] = useState(GHOST_GOALS);
+  const [ghostGoals, setGhostGoals] = useState(GHOST_GOALS);
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleOpenModal = () => setModal(true);
@@ -263,6 +332,14 @@ export default function ActiveGoals() {
   const handleCloseModalProgress = () => setModalProgress(false);
   const handleSavePlan = (data) => {
     console.log('Saved plan:', data);
+  };
+
+  const handleDismissGhost = (id) => {
+    setGhostGoals((prev) => prev.filter((g) => g.id !== id));
+  };
+
+  const handleRegenerateGhost = () => {
+    // Visual-only for Step 1 — AI regeneration wired in a later step.
   };
 
   const filteredGhostGoals = useMemo(
@@ -328,7 +405,12 @@ export default function ActiveGoals() {
         ) : (
           <div className="scrollbar-hidden grid grid-cols-1 gap-2.5 overflow-y-auto sm:grid-cols-2 lg:grid-cols-3 lg:max-h-[610px]">
             {filteredGhostGoals.map((goal) => (
-              <GhostGoalCard key={goal.id} goal={goal} />
+              <GhostGoalCard
+                key={goal.id}
+                goal={goal}
+                onDismiss={handleDismissGhost}
+                onRegenerate={handleRegenerateGhost}
+              />
             ))}
           </div>
         )}

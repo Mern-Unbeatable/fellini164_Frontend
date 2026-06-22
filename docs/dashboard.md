@@ -427,9 +427,16 @@ documented ahead of time per the user's requirement doc, but don't build them un
     not even the gray-50 used elsewhere) at rest.
   - Top content block (priority+AI badge row, title, description) and the tags row are both
     at **opacity-40**.
-  - A tiny decorative dash (19×3px) sits top-right of the card — **not a three-dot menu**;
-    visually it's just a short horizontal line, unrelated to the real Step-2 three-dot menu
-    (§ below). Don't wire it as a menu trigger in Step 1.
+  - **Corrected 2026-06-21 — this *is* a real three-dot menu, not decorative:** the 19×3px
+    element top-right is a `MoreHorizontal`-style ⋯ icon exported as SVG with
+    `opacity="0"` baked into the default-state asset (confirmed by downloading and reading
+    the raw SVG, not just eyeballing its bounding box — `get_metadata`'s width/height alone
+    don't reveal this). In the hover frame the *same* icon has no opacity override (i.e.
+    opacity 1) and fill `#5d5d5d`. So: hidden at rest, fades in on hover — same convention
+    as the Tasks/Habits ghost-card three-dot trigger. **Wired in Step 1** with the same
+    Regenerate suggestion / Dismiss menu as Tasks/Habits ghost cards (corrects the earlier
+    "purely decorative" decision from this same day — that was based on guessing the icon's
+    appearance from its bounding box instead of opening the actual SVG asset).
   - Footer (54px tall, dashed top border): **"Progress" / "0%"** label row + an empty
     `#e9e9e9` progress-bar track (`h-2 rounded-full`) — at opacity-40 too. So unlike Habits'
     ghost rows (which show *nothing* in the footer until hover), **Goals' ghost cards show a
