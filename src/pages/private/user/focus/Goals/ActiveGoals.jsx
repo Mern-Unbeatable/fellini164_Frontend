@@ -263,33 +263,10 @@ const INITIAL_GOALS = [
     status: 'active',
     source: 'ai',
   },
-  {
-    id: 'goal-16',
-    priority: 'MEDIUM',
-    title: 'Career Growth',
-    description: 'Advance your professional skills through structured learning.',
-    category: 'Career',
-    tasks: 3,
-    habits: 1,
-    due: 'This week',
-    progress: 55,
-    status: 'active',
-    source: 'manual',
-  },
-  {
-    id: 'goal-17',
-    priority: 'HIGH',
-    title: 'Health Milestone',
-    description: 'Reach your monthly health and wellness targets.',
-    category: 'Health',
-    tasks: 5,
-    habits: 3,
-    due: 'This month',
-    progress: 62,
-    status: 'active',
-    source: 'manual',
-  },
 ];
+
+// Figma frame 1250:8499 stats bar copy (decorative counts in design).
+const FIGMA_BOARD_STATS = { active: 12, paused: 2, completedThisMonth: 3 };
 
 const STATUS_STYLES = {
   paused: 'bg-[rgba(93,93,93,0.05)] text-[#5d5d5d]',
@@ -375,7 +352,7 @@ function GhostGoalCard({ goal, onDismiss, onRegenerate }) {
   }, []);
 
   const isActive = isHovered || menuOpen;
-  const faded = isActive ? 'opacity-100' : 'opacity-50';
+  const faded = isActive ? 'opacity-100' : 'opacity-40';
 
   return (
     <div
@@ -386,46 +363,46 @@ function GhostGoalCard({ goal, onDismiss, onRegenerate }) {
         menuOpen ? 'overflow-visible' : ''
       } ${
         isActive
-          ? 'h-auto border-solid border-[#e9e9e9] bg-[#fcfcfc] shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800'
-          : 'h-[186px] border-dashed border-[#e9e9e9] dark:border-zinc-700'
+          ? 'min-h-[186px] border-solid border-[#e9e9e9] bg-[#fcfcfc] shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800'
+          : 'h-[186px] border-dashed border-[#e9e9e9] bg-transparent dark:border-zinc-700'
       }`}
     >
-      <div className="flex flex-col gap-2.5 p-3">
+      <div className="flex flex-col gap-[10px] p-3">
         <div className={`flex flex-col gap-2 transition-opacity duration-200 ${faded}`}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1">
               <span
-                className={`rounded-[6px] px-[6px] py-[2px] text-xs font-medium uppercase ${PRIORITY_STYLES[goal.priority]}`}
+                className={`rounded-[6px] px-[6px] py-[2px] text-[12px] font-medium uppercase leading-[1.5] ${PRIORITY_STYLES[goal.priority]}`}
               >
                 {PRIORITY_LABELS[goal.priority]}
               </span>
-              <span className="flex items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-xs font-medium text-[#8022fe]">
+              <span className="flex items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-[12px] font-medium leading-[1.5] text-[#8022fe]">
                 <Sparkles size={10} />
                 AI
               </span>
             </div>
           </div>
           <div className="flex flex-col gap-1">
-            <p className="text-base font-medium text-[#181818] dark:text-white">{goal.title}</p>
-            <p className="overflow-hidden text-ellipsis whitespace-nowrap text-xs leading-normal text-[#a3a3a3]">
+            <p className="text-[16px] font-medium leading-[1.5] text-[#181818] dark:text-white">{goal.title}</p>
+            <p className="overflow-hidden text-ellipsis whitespace-nowrap text-[12px] font-medium leading-[1.5] text-[#a3a3a3]">
               {goal.description}
             </p>
           </div>
         </div>
 
         <div className={`flex flex-wrap items-center gap-1 transition-opacity duration-200 ${faded}`}>
-          <span className="rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-xs font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+          <span className="rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
             {goal.category}
           </span>
-          <span className="flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-xs font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+          <span className="flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
             <ListTodo size={12} className="shrink-0" />
             {goal.tasks} Tasks
           </span>
-          <span className="flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-xs font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+          <span className="flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
             <Repeat size={12} className="shrink-0" />
             {goal.habits} Habits
           </span>
-          <span className="flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-xs font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+          <span className="flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
             <Flag size={12} className="shrink-0" />
             {goal.due}
           </span>
@@ -465,30 +442,30 @@ function GhostGoalCard({ goal, onDismiss, onRegenerate }) {
       )}
 
       <div
-        className={`relative flex h-[54px] w-full shrink-0 items-center px-3 py-2.5 ${
+        className={`relative flex h-[54px] w-full shrink-0 items-center px-3 pt-[10px] pb-3 ${
           isActive ? 'border-t border-solid border-[#e9e9e9] dark:border-zinc-700' : 'border-t border-dashed border-[#e9e9e9] dark:border-zinc-700'
         }`}
       >
         <div
-          className={`absolute inset-0 flex w-full flex-col gap-1.5 px-3 py-2.5 transition-opacity duration-200 ${
+          className={`absolute inset-0 flex w-full flex-col gap-1.5 px-3 pt-[10px] pb-3 transition-opacity duration-200 ${
             isActive ? 'pointer-events-none opacity-0' : faded
           }`}
         >
-          <div className="flex w-full items-center justify-between text-xs font-medium">
+          <div className="flex w-full items-center justify-between text-[12px] font-medium leading-[1.5]">
             <p className="text-[#c2c2c2]">Progress</p>
             <p className="text-[#5d5d5d] dark:text-gray-300">0%</p>
           </div>
-          <div className="h-2 w-full rounded-full bg-[#e9e9e9] dark:bg-zinc-600" />
+          <div className="h-2 w-full rounded-[40px] bg-[#e9e9e9] dark:bg-zinc-600" />
         </div>
         <div
-          className={`absolute inset-0 flex w-full items-center justify-between gap-2 px-3 py-2.5 transition-opacity duration-200 ${
+          className={`absolute inset-0 flex w-full items-center justify-between gap-2 px-3 pt-[10px] pb-3 transition-opacity duration-200 ${
             isActive ? 'opacity-100' : 'pointer-events-none opacity-0'
           }`}
         >
-          <p className="min-w-0 truncate text-xs font-medium text-[#c2c2c2]">AI suggested based on your profile</p>
+          <p className="min-w-0 truncate text-[12px] font-medium leading-[1.5] text-[#c2c2c2]">AI suggested based on your profile</p>
           <button
             type="button"
-            className="flex shrink-0 items-center gap-1.5 rounded-[6px] bg-[#f9f4ff] px-[8px] py-[2px] text-xs font-medium text-[#8022fe]"
+            className="flex shrink-0 items-center gap-1.5 rounded-[6px] bg-[#f9f4ff] px-2 py-0.5 text-[12px] font-medium leading-[1.5] text-[#8022fe]"
           >
             Accept Goal
             <Check size={10} strokeWidth={2.5} />
