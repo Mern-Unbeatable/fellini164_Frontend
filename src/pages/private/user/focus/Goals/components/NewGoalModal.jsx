@@ -113,7 +113,7 @@ function Field({ label, children }) {
 }
 
 const inputClasses =
-  'w-full min-h-[31px] rounded-[8px] border border-[#f2f2f2] bg-white px-[12px] py-[8px] text-[12px] font-medium text-[#181818] outline-none placeholder:font-medium placeholder:text-[#c2c2c2] focus:border-[#8022fe] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white';
+  'w-full h-[31px] rounded-[8px] border border-[#f2f2f2] bg-white px-[12px] py-[8px] text-[12px] font-medium leading-normal text-[#181818] outline-none placeholder:font-medium placeholder:text-[#c2c2c2] focus:border-[#8022fe] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white';
 
 const textareaClasses =
   'w-full rounded-[12px] border border-[#f2f2f2] bg-white p-[12px] text-[12px] font-medium text-[#181818] outline-none placeholder:font-medium placeholder:text-[#c2c2c2] focus:border-[#8022fe] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white';
@@ -752,15 +752,16 @@ export default function NewGoalModal({ open, onClose, onSave }) {
 
   const modalHeightClass =
     activeTab === 'manual'
-      ? 'max-h-[90vh] sm:h-[635px]'
+      ? 'max-h-[90vh]'
       : showAiPreview
         ? 'sm:h-[474px]'
         : isAiInput
           ? 'sm:h-[336px]'
-          : '';
+          : showAiGenerating
+            ? 'sm:h-[474px]'
+            : '';
 
-  const contentOverflowClass =
-    activeTab === 'manual' ? 'overflow-y-auto' : 'overflow-hidden';
+  const isManualTab = activeTab === 'manual';
 
   return (
     <div
@@ -778,28 +779,46 @@ export default function NewGoalModal({ open, onClose, onSave }) {
           </button>
         </div>
 
-        <div className="flex min-h-0 flex-1 flex-col gap-[24px] overflow-hidden p-[12px]">
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        {isManualTab ? (
+          <div className="flex flex-col gap-[24px] p-[12px] max-sm:max-h-[calc(90vh-38px)] max-sm:overflow-y-auto">
             <TabToggle activeTab={activeTab} onChange={handleTabChange} disabled={isRevealing} />
-            <div className={`min-h-0 flex-1 ${contentOverflowClass} ${tabContentGap}`}>
-              {renderBodyContent()}
-            </div>
+            {renderBodyContent()}
+            <ModalFooter
+              showAiPreview={showAiPreview}
+              showAiGenerating={showAiGenerating}
+              activeTab={activeTab}
+              isRevealing={isRevealing}
+              canGenerate={canGenerate}
+              canSubmitManual={canSubmitManual}
+              onClose={handleClose}
+              onRegenerate={handleRegenerate}
+              onAddGeneratedToBoard={handleAddGeneratedToBoard}
+              onGenerate={handleGenerate}
+              onManualSubmit={handleManualSubmit}
+            />
           </div>
+        ) : (
+          <div className="flex min-h-0 flex-1 flex-col gap-[24px] overflow-hidden p-[12px]">
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+              <TabToggle activeTab={activeTab} onChange={handleTabChange} disabled={isRevealing} />
+              <div className={`min-h-0 flex-1 overflow-hidden ${tabContentGap}`}>{renderBodyContent()}</div>
+            </div>
 
-          <ModalFooter
-            showAiPreview={showAiPreview}
-            showAiGenerating={showAiGenerating}
-            activeTab={activeTab}
-            isRevealing={isRevealing}
-            canGenerate={canGenerate}
-            canSubmitManual={canSubmitManual}
-            onClose={handleClose}
-            onRegenerate={handleRegenerate}
-            onAddGeneratedToBoard={handleAddGeneratedToBoard}
-            onGenerate={handleGenerate}
-            onManualSubmit={handleManualSubmit}
-          />
-        </div>
+            <ModalFooter
+              showAiPreview={showAiPreview}
+              showAiGenerating={showAiGenerating}
+              activeTab={activeTab}
+              isRevealing={isRevealing}
+              canGenerate={canGenerate}
+              canSubmitManual={canSubmitManual}
+              onClose={handleClose}
+              onRegenerate={handleRegenerate}
+              onAddGeneratedToBoard={handleAddGeneratedToBoard}
+              onGenerate={handleGenerate}
+              onManualSubmit={handleManualSubmit}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
