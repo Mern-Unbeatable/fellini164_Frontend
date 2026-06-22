@@ -27,7 +27,7 @@ const TASK_OPTIONS = [
   { id: 'task-1', label: 'Exercise Routine', aiSuggested: true },
   { id: 'task-2', label: 'Deliver message' },
   { id: 'task-3', label: 'Work 3' },
-  { id: 'task-4', label: 'Update LinkedIn profile' },
+  { id: 'task-4', label: 'Work 3' },
 ];
 
 const HABIT_OPTIONS = [
@@ -109,7 +109,7 @@ function formatDueDate(value) {
 
 function Field({ label, children }) {
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex flex-col gap-[6px]">
       <p className="text-[12px] font-medium leading-[1.5] text-[#c2c2c2] dark:text-zinc-500">{label}</p>
       {children}
     </div>
@@ -117,17 +117,17 @@ function Field({ label, children }) {
 }
 
 const inputClasses =
-  'w-full rounded-lg border border-[#f2f2f2] bg-white px-3 py-2 text-[12px] text-[#181818] outline-none focus:border-[#8022fe] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white';
+  'w-full min-h-[31px] rounded-[8px] border border-[#f2f2f2] bg-white px-[12px] py-[8px] text-[12px] font-medium text-[#181818] outline-none placeholder:font-medium placeholder:text-[#c2c2c2] focus:border-[#8022fe] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white';
 
 function TabToggle({ activeTab, onChange, disabled }) {
   return (
-    <div className="flex w-full items-center justify-between rounded-[10px] border border-[#f2f2f2] bg-white p-1 dark:border-zinc-700 dark:bg-zinc-800">
+    <div className="flex w-full items-center justify-between rounded-[10px] border border-[#f2f2f2] bg-white p-[4px] dark:border-zinc-700 dark:bg-zinc-800">
       <button
         type="button"
         disabled={disabled}
         onClick={() => onChange('ai')}
-        className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-[12px] font-medium disabled:cursor-default ${
-          activeTab === 'ai' ? 'bg-[#f9f4ff] text-[#8022fe]' : 'text-[#c2c2c2]'
+        className={`flex flex-1 items-center justify-center gap-[6px] rounded-[6px] px-[8px] py-[6px] text-[12px] font-medium leading-normal disabled:cursor-default ${
+          activeTab === 'ai' ? 'bg-[#f9f4ff] text-[#8022fe]' : 'rounded-[4px] text-[#c2c2c2]'
         }`}
       >
         <Sparkles size={10} />
@@ -137,10 +137,10 @@ function TabToggle({ activeTab, onChange, disabled }) {
         type="button"
         disabled={disabled}
         onClick={() => onChange('manual')}
-        className={`flex flex-1 items-center justify-center rounded-md px-2 py-1.5 text-[12px] font-medium disabled:cursor-default ${
+        className={`flex flex-1 items-center justify-center rounded-[6px] px-[8px] py-[6px] text-[12px] font-medium leading-normal disabled:cursor-default ${
           activeTab === 'manual'
             ? 'bg-[#f2f2f2] text-[#181818] dark:bg-zinc-700 dark:text-white'
-            : 'text-[#c2c2c2]'
+            : 'rounded-[4px] text-[#c2c2c2]'
         }`}
       >
         Manual
@@ -152,7 +152,7 @@ function TabToggle({ activeTab, onChange, disabled }) {
 function OptionBadge({ type }) {
   if (type === 'aiSuggested') {
     return (
-      <span className="flex items-center gap-1 rounded px-1 py-px text-[10px] font-medium text-[#8022fe] bg-[#f9f4ff]">
+      <span className="flex items-center gap-[4px] rounded-[4px] bg-[#f9f4ff] px-[4px] py-px text-[10px] font-medium leading-[1.5] text-[#8022fe]">
         <Sparkles size={8} />
         AI Suggested
       </span>
@@ -160,14 +160,14 @@ function OptionBadge({ type }) {
   }
   if (type === 'paused') {
     return (
-      <span className="rounded px-1 py-px text-[10px] font-medium uppercase text-[#5d5d5d] bg-[rgba(93,93,93,0.05)]">
+      <span className="rounded-[4px] bg-[rgba(93,93,93,0.05)] px-[4px] py-px text-[10px] font-medium uppercase leading-[1.5] text-[#5d5d5d]">
         Paused
       </span>
     );
   }
   if (type === 'completed') {
     return (
-      <span className="rounded px-1 py-px text-[10px] font-medium uppercase text-[#2a9d00] bg-[rgba(42,157,0,0.05)]">
+      <span className="rounded-[4px] bg-[rgba(42,157,0,0.05)] px-[4px] py-px text-[10px] font-medium uppercase leading-[1.5] text-[#2a9d00]">
         Completed
       </span>
     );
@@ -201,27 +201,30 @@ function LinkedMultiSelect({ label, placeholder, options, selectedIds, onChange,
   };
 
   return (
-    <div ref={containerRef} className="relative flex flex-col gap-1.5">
+    <div ref={containerRef} className="relative flex flex-col gap-[6px]">
       <p className="text-[12px] font-medium leading-[1.5] text-[#c2c2c2] dark:text-zinc-500">{label}</p>
       <button
         type="button"
         onClick={() => onToggle(!open)}
-        className={`flex min-h-[31px] w-full items-center gap-2 rounded-lg border border-[#f2f2f2] bg-white px-1.5 py-1.5 text-left dark:border-zinc-700 dark:bg-zinc-800 ${
-          selected.length > 0 ? 'pr-1.5' : 'px-3'
+        className={`flex h-[31px] w-full items-center rounded-[8px] border border-[#f2f2f2] bg-white text-left dark:border-zinc-700 dark:bg-zinc-800 ${
+          selected.length > 0 ? 'gap-[16px] px-[6px] py-[8px]' : 'justify-between px-[12px] py-[8px]'
         }`}
       >
         {selected.length === 0 ? (
           <>
-            <span className="flex-1 text-[12px] font-medium text-[#c2c2c2]">{placeholder}</span>
-            <ChevronDown size={12} className={`shrink-0 text-[#a3a3a3] transition-transform ${open ? 'rotate-180' : ''}`} />
+            <span className="text-[12px] font-medium leading-normal text-[#c2c2c2]">{placeholder}</span>
+            <ChevronDown
+              size={8}
+              className={`shrink-0 text-[#a3a3a3] transition-transform ${open ? 'rotate-180' : ''}`}
+            />
           </>
         ) : (
           <>
-            <div className="relative flex min-w-0 flex-1 items-center gap-1 overflow-hidden">
+            <div className="relative flex min-w-0 flex-1 items-center gap-[4px] overflow-hidden">
               {selected.map((item) => (
                 <span
                   key={item.id}
-                  className="flex shrink-0 items-center gap-1.5 rounded bg-[#f2f2f2] px-1.5 py-0.5 text-[12px] font-medium text-[#181818] dark:bg-zinc-700 dark:text-white"
+                  className="flex shrink-0 items-center gap-[6px] rounded-[4px] bg-[#f2f2f2] px-[6px] py-[2px] text-[12px] font-medium leading-normal text-[#181818] dark:bg-zinc-700 dark:text-white"
                 >
                   {item.label}
                   <button
@@ -230,7 +233,7 @@ function LinkedMultiSelect({ label, placeholder, options, selectedIds, onChange,
                     className="text-[#5d5d5d] hover:text-[#181818] dark:hover:text-white"
                     aria-label={`Remove ${item.label}`}
                   >
-                    <X size={10} />
+                    <X size={6} strokeWidth={2.5} />
                   </button>
                 </span>
               ))}
@@ -242,9 +245,9 @@ function LinkedMultiSelect({ label, placeholder, options, selectedIds, onChange,
                 e.stopPropagation();
                 onToggle(true);
               }}
-              className="flex shrink-0 items-center gap-1.5 rounded bg-[#f9f4ff] px-1.5 py-0.5 text-[12px] font-medium text-[#8022fe]"
+              className="flex shrink-0 items-center gap-[6px] rounded-[4px] bg-[#f9f4ff] px-[6px] py-[2px] text-[12px] font-medium leading-normal text-[#8022fe]"
             >
-              <Plus size={8} />
+              <Plus size={8} strokeWidth={2.5} />
               Add
             </button>
           </>
@@ -252,7 +255,7 @@ function LinkedMultiSelect({ label, placeholder, options, selectedIds, onChange,
       </button>
 
       {open && (
-        <div className="absolute left-0 right-0 top-full z-20 mt-1 overflow-hidden rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
+        <div className="absolute left-0 right-0 top-full z-20 mt-1 overflow-hidden rounded-[8px] border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
           {options.map((option) => {
             const checked = selectedIds.includes(option.id);
             return (
@@ -260,10 +263,10 @@ function LinkedMultiSelect({ label, placeholder, options, selectedIds, onChange,
                 key={option.id}
                 type="button"
                 onClick={() => toggleOption(option.id)}
-                className="flex w-full items-center gap-1.5 px-2.5 py-1.5 text-left hover:bg-[#fcfcfc] dark:hover:bg-zinc-700"
+                className="flex h-[30px] w-full items-center gap-[6px] px-[10px] py-[6px] text-left hover:bg-[#fcfcfc] dark:hover:bg-zinc-700"
               >
                 <span
-                  className={`flex size-3.5 shrink-0 items-center justify-center rounded border ${
+                  className={`flex size-[14px] shrink-0 items-center justify-center rounded-[4px] border ${
                     checked
                       ? 'border-[#8022fe] bg-[#8022fe] text-white'
                       : 'border-[#e9e9e9] bg-white dark:border-zinc-600 dark:bg-zinc-800'
@@ -271,7 +274,9 @@ function LinkedMultiSelect({ label, placeholder, options, selectedIds, onChange,
                 >
                   {checked && <Check size={10} strokeWidth={3} />}
                 </span>
-                <span className="text-[12px] font-medium text-[#5d5d5d] dark:text-gray-300">{option.label}</span>
+                <span className="text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:text-gray-300">
+                  {option.label}
+                </span>
                 {option.aiSuggested && <OptionBadge type="aiSuggested" />}
                 {option.status === 'paused' && <OptionBadge type="paused" />}
                 {option.status === 'completed' && <OptionBadge type="completed" />}
@@ -291,17 +296,17 @@ function AIGeneratedGoalPreviewCard({ goal, revealStep = 3 }) {
 
   return (
     <div className="flex w-full flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-white dark:border-zinc-700 dark:bg-zinc-800">
-      <div className="flex flex-col gap-2.5 p-3">
+      <div className="flex flex-col gap-[10px] p-3">
         <div className="flex w-full items-center justify-between">
           <div className="flex items-center gap-1">
             {showMeta ? (
               <>
                 <span
-                  className={`rounded-md px-1.5 py-0.5 text-[12px] font-medium uppercase ${PRIORITY_STYLES[goal.priority]}`}
+                  className={`rounded-[6px] px-[6px] py-[2px] text-[12px] font-medium uppercase leading-[1.5] ${PRIORITY_STYLES[goal.priority]}`}
                 >
                   {PRIORITY_LABELS[goal.priority]}
                 </span>
-                <span className="flex items-center gap-1 rounded-md bg-[#f9f4ff] px-1.5 py-0.5 text-[12px] font-medium text-[#8022fe]">
+                <span className="flex items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-[12px] font-medium leading-[1.5] text-[#8022fe]">
                   <Sparkles size={10} />
                   AI
                 </span>
@@ -319,7 +324,7 @@ function AIGeneratedGoalPreviewCard({ goal, revealStep = 3 }) {
             <SkeletonBar className="h-5 w-[75%]" />
           )}
           {showDescription ? (
-            <p className="overflow-hidden text-ellipsis whitespace-nowrap text-[12px] text-[#a3a3a3]">
+            <p className="overflow-hidden text-ellipsis whitespace-nowrap text-[12px] font-medium leading-[1.5] text-[#a3a3a3]">
               {goal.description}
             </p>
           ) : (
@@ -328,17 +333,17 @@ function AIGeneratedGoalPreviewCard({ goal, revealStep = 3 }) {
         </div>
         {showMeta && (
           <div className="flex flex-wrap items-center gap-1">
-            <span className="rounded-md border border-[#f2f2f2] px-1.5 py-0.5 text-[12px] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+            <span className="rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
               {goal.category}
             </span>
-            <span className="flex items-center gap-1.5 rounded-md border border-[#f2f2f2] px-1.5 py-0.5 text-[12px] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+            <span className="flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
               <Flag size={12} />
               {goal.due}
             </span>
           </div>
         )}
       </div>
-      <div className="border-t border-[#f2f2f2] px-3 pt-2.5 pb-3 dark:border-zinc-700">
+      <div className="border-t border-[#f2f2f2] px-3 pt-[10px] pb-3 dark:border-zinc-700">
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between text-[12px] font-medium leading-[1.5]">
             <span className="text-[#c2c2c2]">Progress</span>
@@ -353,7 +358,7 @@ function AIGeneratedGoalPreviewCard({ goal, revealStep = 3 }) {
 
 function ManualFormFields({ form, update, tasksOpen, habitsOpen, setTasksOpen, setHabitsOpen }) {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-[16px]">
       <Field label="Title">
         <input
           type="text"
@@ -364,7 +369,7 @@ function ManualFormFields({ form, update, tasksOpen, habitsOpen, setTasksOpen, s
         />
       </Field>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-[8px]">
         <Field label="Priority">
           <div className="relative">
             <select
@@ -377,7 +382,7 @@ function ManualFormFields({ form, update, tasksOpen, habitsOpen, setTasksOpen, s
               ))}
             </select>
             <ChevronDown
-              size={12}
+              size={8}
               className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-[#a3a3a3]"
             />
           </div>
@@ -394,7 +399,7 @@ function ManualFormFields({ form, update, tasksOpen, habitsOpen, setTasksOpen, s
               ))}
             </select>
             <ChevronDown
-              size={12}
+              size={8}
               className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-[#a3a3a3]"
             />
           </div>
@@ -407,8 +412,15 @@ function ManualFormFields({ form, update, tasksOpen, habitsOpen, setTasksOpen, s
             type="date"
             value={form.dueDate}
             onChange={(e) => update('dueDate', e.target.value)}
-            className={`${inputClasses} pr-8`}
+            className={`${inputClasses} pr-8 text-transparent`}
           />
+          <span
+            className={`pointer-events-none absolute top-1/2 left-[12px] -translate-y-1/2 text-[12px] font-medium ${
+              form.dueDate ? 'text-[#181818] dark:text-white' : 'text-[#c2c2c2]'
+            }`}
+          >
+            {form.dueDate ? formatDueDate(form.dueDate) : ''}
+          </span>
           <Calendar
             size={12}
             className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-[#a3a3a3]"
@@ -442,9 +454,102 @@ function ManualFormFields({ form, update, tasksOpen, habitsOpen, setTasksOpen, s
           value={form.description}
           onChange={(e) => update('description', e.target.value)}
           placeholder="Add details..."
-          className={`${inputClasses} h-20 resize-none rounded-xl`}
+          className={`${inputClasses} h-[80px] resize-none rounded-[12px]`}
         />
       </Field>
+    </div>
+  );
+}
+
+function ModalFooter({
+  showAiPreview,
+  showAiGenerating,
+  activeTab,
+  isRevealing,
+  canGenerate,
+  canSubmitManual,
+  onClose,
+  onRegenerate,
+  onAddGeneratedToBoard,
+  onGenerate,
+  onManualSubmit,
+}) {
+  return (
+    <div className="flex shrink-0 items-center gap-[10px]">
+      {showAiPreview ? (
+        <>
+          <button
+            type="button"
+            onClick={onRegenerate}
+            disabled={isRevealing}
+            className="flex min-h-[31px] flex-1 items-center justify-center rounded-[8px] bg-[#f2f2f2] px-[12px] py-[8px] text-[12px] font-medium leading-normal text-[#5d5d5d] disabled:opacity-60 dark:bg-zinc-700 dark:text-gray-300"
+          >
+            Regenerate
+          </button>
+          <button
+            type="button"
+            onClick={onAddGeneratedToBoard}
+            disabled={isRevealing}
+            className="flex min-h-[31px] flex-1 items-center justify-center rounded-[8px] bg-[#8022fe] px-[12px] py-[8px] text-[12px] font-semibold leading-normal text-white disabled:opacity-60"
+          >
+            Add to Board
+          </button>
+        </>
+      ) : showAiGenerating ? (
+        <>
+          <button
+            type="button"
+            disabled
+            className="flex min-h-[31px] flex-1 cursor-not-allowed items-center justify-center rounded-[8px] bg-[#f2f2f2] px-[12px] py-[8px] text-[12px] font-medium leading-normal text-[#5d5d5d] opacity-60 dark:bg-zinc-700 dark:text-gray-300"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            disabled
+            className="flex min-h-[31px] flex-1 cursor-not-allowed items-center justify-center rounded-[8px] bg-[#f1f1f1] px-[12px] py-[8px] text-[12px] font-semibold leading-normal text-[#dedede]"
+          >
+            Generating...
+          </button>
+        </>
+      ) : (
+        <>
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex min-h-[31px] flex-1 items-center justify-center rounded-[8px] bg-[#f2f2f2] px-[12px] py-[8px] text-[12px] font-medium leading-normal text-[#5d5d5d] dark:bg-zinc-700 dark:text-gray-300"
+          >
+            Cancel
+          </button>
+          {activeTab === 'ai' ? (
+            <button
+              type="button"
+              disabled={!canGenerate}
+              onClick={onGenerate}
+              className={`flex min-h-[31px] flex-1 items-center justify-center rounded-[8px] px-[12px] py-[8px] text-[12px] font-semibold leading-normal ${
+                canGenerate
+                  ? 'bg-[#8022fe] text-white'
+                  : 'cursor-not-allowed bg-[#f1f1f1] text-[#dedede]'
+              }`}
+            >
+              Generate
+            </button>
+          ) : (
+            <button
+              type="button"
+              disabled={!canSubmitManual}
+              onClick={onManualSubmit}
+              className={`flex min-h-[31px] flex-1 items-center justify-center rounded-[8px] px-[12px] py-[8px] text-[12px] font-semibold leading-normal ${
+                canSubmitManual
+                  ? 'bg-[#8022fe] text-white'
+                  : 'cursor-not-allowed bg-[#f1f1f1] text-[#dedede]'
+              }`}
+            >
+              Create
+            </button>
+          )}
+        </>
+      )}
     </div>
   );
 }
@@ -554,6 +659,84 @@ export default function NewGoalModal({ open, onClose, onSave }) {
   const canGenerate = aiPrompt.trim().length > 0 && !isRevealing;
   const showAiPreview = activeTab === 'ai' && aiPhase === 'preview';
   const showAiGenerating = activeTab === 'ai' && aiPhase === 'generating';
+  const isAiInput = activeTab === 'ai' && aiPhase === 'input';
+  const tabContentGap = isAiInput ? 'mt-[20px]' : 'mt-[24px]';
+
+  const renderBodyContent = () => {
+    if (activeTab === 'manual') {
+      return (
+        <ManualFormFields
+          form={form}
+          update={update}
+          tasksOpen={tasksOpen}
+          habitsOpen={habitsOpen}
+          setTasksOpen={(next) => {
+            setTasksOpen(next);
+            if (next) setHabitsOpen(false);
+          }}
+          setHabitsOpen={(next) => {
+            setHabitsOpen(next);
+            if (next) setTasksOpen(false);
+          }}
+        />
+      );
+    }
+
+    if (showAiGenerating) {
+      return <AIGeneratedGoalPreviewCard goal={pendingGoal || generatedGoal || {}} revealStep={revealStep} />;
+    }
+
+    if (showAiPreview) {
+      return (
+        <div className="flex flex-col gap-4">
+          <AIGeneratedGoalPreviewCard goal={generatedGoal} />
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <p className="text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:text-gray-300">
+                Anything to change?
+              </p>
+              <button
+                type="button"
+                onClick={handleUpdatePreview}
+                disabled={!changeRequest.trim()}
+                className={`rounded-md px-2 py-0.5 text-[12px] font-medium ${
+                  changeRequest.trim()
+                    ? 'bg-[#f9f4ff] text-[#8022fe]'
+                    : 'cursor-default bg-[#f9f4ff] text-[#8022fe] opacity-60'
+                }`}
+              >
+                Update
+              </button>
+            </div>
+            <textarea
+              rows={3}
+              value={changeRequest}
+              onChange={(e) => setChangeRequest(e.target.value)}
+              placeholder="Type here..."
+              className={`${inputClasses} h-[70px] resize-none rounded-[12px]`}
+            />
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex flex-col gap-[6px]">
+        <p className="text-[12px] font-medium leading-[1.5] text-[#c2c2c2] dark:text-zinc-500">
+          Describe the goal you want to generate
+        </p>
+        <div className="relative">
+          <textarea
+            rows={5}
+            value={aiPrompt}
+            onChange={(e) => setAiPrompt(e.target.value)}
+            className={`${inputClasses} relative z-10 h-[140px] resize-none rounded-[12px] bg-transparent p-[12px]`}
+          />
+          <TypewriterPlaceholder phrases={AI_PROMPT_PHRASES} visible={!aiPrompt.trim()} className="p-[12px]" />
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div
@@ -562,156 +745,37 @@ export default function NewGoalModal({ open, onClose, onSave }) {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="flex max-h-[90vh] w-full max-w-[450px] flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-900"
+        className={`flex w-full flex-col overflow-hidden rounded-[16px] border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-900 ${
+          activeTab === 'manual' ? 'max-h-[90vh] sm:h-auto sm:max-h-[635px] sm:w-[450px]' : 'sm:w-[450px]'
+        } max-w-[450px]`}
       >
-        <div className="flex shrink-0 items-center justify-between border-b border-[#f2f2f2] px-3 py-2.5 dark:border-zinc-700">
+        <div className="flex shrink-0 items-center justify-between border-b border-[#f2f2f2] px-[12px] py-[10px] dark:border-zinc-700">
           <p className="text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:text-gray-300">New Goal</p>
           <button type="button" onClick={handleClose} className="text-[#5d5d5d] dark:text-gray-300">
-            <X size={14} />
+            <X size={10} strokeWidth={2} />
           </button>
         </div>
 
-        <div className="flex flex-col gap-6 overflow-y-auto p-3">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-[12px]">
           <TabToggle activeTab={activeTab} onChange={handleTabChange} disabled={isRevealing} />
 
-          {activeTab === 'manual' ? (
-            <ManualFormFields
-              form={form}
-              update={update}
-              tasksOpen={tasksOpen}
-              habitsOpen={habitsOpen}
-              setTasksOpen={(next) => {
-                setTasksOpen(next);
-                if (next) setHabitsOpen(false);
-              }}
-              setHabitsOpen={(next) => {
-                setHabitsOpen(next);
-                if (next) setTasksOpen(false);
-              }}
-            />
-          ) : showAiGenerating ? (
-            <AIGeneratedGoalPreviewCard goal={pendingGoal || generatedGoal || {}} revealStep={revealStep} />
-          ) : showAiPreview ? (
-            <div className="flex flex-col gap-4">
-              <AIGeneratedGoalPreviewCard goal={generatedGoal} />
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between">
-                  <p className="text-[12px] font-medium text-[#5d5d5d] dark:text-gray-300">Anything to change?</p>
-                  <button
-                    type="button"
-                    onClick={handleUpdatePreview}
-                    disabled={!changeRequest.trim()}
-                    className={`rounded-md px-2 py-0.5 text-[12px] font-medium ${
-                      changeRequest.trim()
-                        ? 'bg-[#f9f4ff] text-[#8022fe]'
-                        : 'cursor-default bg-[#f9f4ff] text-[#8022fe] opacity-60'
-                    }`}
-                  >
-                    Update
-                  </button>
-                </div>
-                <textarea
-                  rows={3}
-                  value={changeRequest}
-                  onChange={(e) => setChangeRequest(e.target.value)}
-                  placeholder="Type here..."
-                  className={`${inputClasses} h-[70px] resize-none rounded-xl`}
-                />
-              </div>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-1.5">
-              <p className="text-[12px] font-medium leading-[1.5] text-[#c2c2c2] dark:text-zinc-500">
-                Describe the goal you want to generate
-              </p>
-              <div className="relative">
-                <textarea
-                  rows={5}
-                  value={aiPrompt}
-                  onChange={(e) => setAiPrompt(e.target.value)}
-                  className={`${inputClasses} relative z-10 h-[140px] resize-none rounded-xl bg-transparent`}
-                />
-                <TypewriterPlaceholder phrases={AI_PROMPT_PHRASES} visible={!aiPrompt.trim()} />
-              </div>
-            </div>
-          )}
-
-          <div className="flex shrink-0 items-center gap-2.5">
-            {showAiPreview ? (
-              <>
-                <button
-                  type="button"
-                  onClick={handleRegenerate}
-                  disabled={isRevealing}
-                  className="flex flex-1 items-center justify-center rounded-lg bg-[#f2f2f2] px-3 py-2 text-[12px] font-medium text-[#5d5d5d] disabled:opacity-60 dark:bg-zinc-700 dark:text-gray-300"
-                >
-                  Regenerate
-                </button>
-                <button
-                  type="button"
-                  onClick={handleAddGeneratedToBoard}
-                  disabled={isRevealing}
-                  className="flex flex-1 items-center justify-center rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] font-semibold text-white disabled:opacity-60"
-                >
-                  Add to Board
-                </button>
-              </>
-            ) : showAiGenerating ? (
-              <>
-                <button
-                  type="button"
-                  disabled
-                  className="flex flex-1 cursor-not-allowed items-center justify-center rounded-lg bg-[#f2f2f2] px-3 py-2 text-[12px] font-medium text-[#5d5d5d] opacity-60 dark:bg-zinc-700 dark:text-gray-300"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  disabled
-                  className="flex flex-1 cursor-not-allowed items-center justify-center rounded-lg bg-[#f1f1f1] px-3 py-2 text-[12px] font-semibold text-[#dedede]"
-                >
-                  Generating...
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  onClick={handleClose}
-                  className="flex flex-1 items-center justify-center rounded-lg bg-[#f2f2f2] px-3 py-2 text-[12px] font-medium text-[#5d5d5d] dark:bg-zinc-700 dark:text-gray-300"
-                >
-                  Cancel
-                </button>
-                {activeTab === 'ai' ? (
-                  <button
-                    type="button"
-                    disabled={!canGenerate}
-                    onClick={handleGenerate}
-                    className={`flex flex-1 items-center justify-center rounded-lg px-3 py-2 text-[12px] font-semibold ${
-                      canGenerate
-                        ? 'bg-[#8022fe] text-white'
-                        : 'cursor-not-allowed bg-[#f1f1f1] text-[#dedede]'
-                    }`}
-                  >
-                    Generate
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    disabled={!canSubmitManual}
-                    onClick={handleManualSubmit}
-                    className={`flex flex-1 items-center justify-center rounded-lg px-3 py-2 text-[12px] font-semibold ${
-                      canSubmitManual
-                        ? 'bg-[#8022fe] text-white'
-                        : 'cursor-not-allowed bg-[#f1f1f1] text-[#dedede]'
-                    }`}
-                  >
-                    Create
-                  </button>
-                )}
-              </>
-            )}
+          <div className={`min-h-0 flex-1 overflow-y-auto ${tabContentGap} ${activeTab === 'manual' ? 'mb-[24px]' : 'mb-[24px]'}`}>
+            {renderBodyContent()}
           </div>
+
+          <ModalFooter
+            showAiPreview={showAiPreview}
+            showAiGenerating={showAiGenerating}
+            activeTab={activeTab}
+            isRevealing={isRevealing}
+            canGenerate={canGenerate}
+            canSubmitManual={canSubmitManual}
+            onClose={handleClose}
+            onRegenerate={handleRegenerate}
+            onAddGeneratedToBoard={handleAddGeneratedToBoard}
+            onGenerate={handleGenerate}
+            onManualSubmit={handleManualSubmit}
+          />
         </div>
       </div>
     </div>
