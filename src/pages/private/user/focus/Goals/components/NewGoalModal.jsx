@@ -386,22 +386,50 @@ function AiPreviewChangeSection({ changeRequest, onChange, onUpdate }) {
   );
 }
 
-function openDatePicker(input) {
-  if (!input) return;
-  if (typeof input.showPicker === 'function') {
-    try {
-      input.showPicker();
-    } catch {
+function DueDateField({ value, onChange }) {
+  const inputRef = useRef(null);
+
+  const openPicker = () => {
+    const input = inputRef.current;
+    if (!input) return;
+    if (typeof input.showPicker === 'function') {
+      try {
+        input.showPicker();
+      } catch {
+        input.focus();
+      }
+    } else {
       input.focus();
     }
-  } else {
-    input.focus();
-  }
+  };
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={openPicker}
+        className={`${inputClasses} flex w-full items-center justify-between gap-2 text-left`}
+      >
+        <span className={value ? 'text-[#181818] dark:text-white' : 'text-[#c2c2c2]'}>
+          {value ? formatDueDate(value) : ''}
+        </span>
+        <Calendar size={12} className="shrink-0 text-[#a3a3a3]" />
+      </button>
+      {/* Native picker anchor — same position as custom calendar (right, below field) */}
+      <input
+        ref={inputRef}
+        type="date"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        tabIndex={-1}
+        aria-hidden
+        className="pointer-events-none absolute top-[calc(100%+4px)] right-0 h-px w-[220px] max-w-full overflow-hidden border-0 p-0 opacity-0"
+      />
+    </div>
+  );
 }
 
 function ManualFormFields({ form, update, tasksOpen, habitsOpen, setTasksOpen, setHabitsOpen }) {
-  const dueDateRef = useRef(null);
-
   return (
     <div className="flex flex-col gap-[16px]">
       <Field label="Title">
@@ -452,31 +480,7 @@ function ManualFormFields({ form, update, tasksOpen, habitsOpen, setTasksOpen, s
       </div>
 
       <Field label="Due Date">
-        <div className="relative">
-          <input
-            ref={dueDateRef}
-            type="date"
-            value={form.dueDate}
-            onChange={(e) => update('dueDate', e.target.value)}
-            onClick={(e) => openDatePicker(e.currentTarget)}
-            className={`${inputClasses} cursor-pointer appearance-none pr-8 text-transparent [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:top-0 [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:w-8 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0`}
-          />
-          <span
-            className={`pointer-events-none absolute top-1/2 left-[12px] -translate-y-1/2 text-[12px] font-medium ${
-              form.dueDate ? 'text-[#181818] dark:text-white' : 'text-[#c2c2c2]'
-            }`}
-          >
-            {form.dueDate ? formatDueDate(form.dueDate) : ''}
-          </span>
-          <button
-            type="button"
-            onClick={() => openDatePicker(dueDateRef.current)}
-            aria-label="Open date picker"
-            className="absolute top-1/2 right-3 -translate-y-1/2 text-[#a3a3a3]"
-          >
-            <Calendar size={12} />
-          </button>
-        </div>
+        <DueDateField value={form.dueDate} onChange={(next) => update('dueDate', next)} />
       </Field>
 
       <LinkedMultiSelect
@@ -789,7 +793,7 @@ export default function NewGoalModal({ open, onClose, onSave }) {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className={`flex w-full flex-col overflow-hidden rounded-[16px] border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-900 max-w-[450px] sm:w-[450px] ${modalHeightClass}`}
+        className={`flex w-full flex-col rounded-[16px] border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-900 max-w-[450px] sm:w-[450px] ${isManualTab ? 'overflow-visible' : 'overflow-hidden'} ${modalHeightClass}`}
       >
         <div className="flex shrink-0 items-center justify-between border-b border-[#f2f2f2] px-[12px] py-[10px] dark:border-zinc-700">
           <p className="text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:text-gray-300">New Goal</p>
@@ -799,7 +803,7 @@ export default function NewGoalModal({ open, onClose, onSave }) {
         </div>
 
         {isManualTab ? (
-          <div className="flex flex-col gap-[24px] p-[12px] max-sm:max-h-[calc(90vh-38px)] max-sm:overflow-y-auto">
+          <div className="flex flex-col gap-[24px] overflow-visible p-[12px] max-sm:max-h-[calc(90vh-38px)] max-sm:overflow-y-auto">
             <TabToggle activeTab={activeTab} onChange={handleTabChange} disabled={isRevealing} />
             {renderBodyContent()}
             <ModalFooter
