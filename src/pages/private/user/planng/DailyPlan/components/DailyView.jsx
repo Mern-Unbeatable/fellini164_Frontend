@@ -1,4 +1,6 @@
 import React from 'react';
+import { Sparkles, Clock, Target, BarChart2 } from 'lucide-react';
+
 
 export default function DailyView({ currentDate, selectedDate }) {
   // Get short weekday name and date number of selectedDate or currentDate
@@ -45,7 +47,9 @@ export default function DailyView({ currentDate, selectedDate }) {
                   <span className="text-xs text-slate-700 dark:text-gray-300 font-bold">Morning Workout Routine</span>
                   <div className="flex items-center gap-1.5">
                     <span className="text-[8px] font-bold px-2 py-0.5 rounded bg-orange-50 text-orange-500 border border-orange-100 dark:bg-orange-950/30 dark:text-orange-400 dark:border-none">HIGH</span>
-                    <span className="text-[8px] font-bold px-2 py-0.5 rounded bg-purple-50 text-[#7C3AED] border border-purple-100 dark:bg-purple-950/30 dark:text-purple-400 dark:border-none flex items-center gap-0.5">✨ AI</span>
+                    <span className="text-[8px] font-bold px-2 py-0.5 rounded bg-[#7C3AED]/10 text-[#7C3AED] border border-[#7C3AED]/20 dark:bg-purple-950/30 dark:text-purple-400 dark:border-none flex items-center gap-1">
+                      <Sparkles size={8} /> AI
+                    </span>
                     <span className="text-[8px] font-bold px-2 py-0.5 rounded bg-gray-50 text-gray-400 border border-gray-100 dark:bg-zinc-700 dark:text-gray-400 dark:border-none">TO DO</span>
                   </div>
                 </div>
@@ -67,7 +71,9 @@ export default function DailyView({ currentDate, selectedDate }) {
                     <span className="text-xs text-slate-700 dark:text-gray-300 font-bold">Exercise Routine</span>
                     <div className="flex items-center gap-1.5">
                       <span className="text-[8px] font-bold px-2 py-0.5 rounded bg-red-50 text-red-500 border border-red-100 dark:bg-red-950/30 dark:text-red-400 dark:border-none">URGENT</span>
-                      <span className="text-[8px] font-bold px-2 py-0.5 rounded bg-purple-50 text-[#7C3AED] border border-purple-100 dark:bg-purple-950/30 dark:text-purple-400 dark:border-none flex items-center gap-0.5">✨ AI</span>
+                      <span className="text-[8px] font-bold px-2 py-0.5 rounded bg-[#7C3AED]/10 text-[#7C3AED] border border-[#7C3AED]/20 dark:bg-purple-950/30 dark:text-purple-400 dark:border-none flex items-center gap-1">
+                        <Sparkles size={8} /> AI
+                      </span>
                       <span className="text-[8px] font-bold px-2 py-0.5 rounded bg-gray-50 text-gray-400 border border-gray-100 dark:bg-zinc-700 dark:text-gray-400 dark:border-none">TO DO</span>
                     </div>
                   </div>
@@ -87,7 +93,9 @@ export default function DailyView({ currentDate, selectedDate }) {
                     <p className="text-[10px] text-gray-400 dark:text-gray-500 leading-relaxed truncate">Communicate the expectations regarding maintaining a calm...</p>
                     <div className="flex items-center gap-2 mt-1">
                       <span className="text-[8px] font-semibold px-2 py-0.5 border border-gray-200 text-gray-400 rounded-lg dark:border-zinc-700">Health</span>
-                      <span className="text-[8px] font-semibold text-gray-400 dark:text-gray-500 flex items-center gap-0.5">🕒 115 Min</span>
+                      <span className="text-[8px] font-semibold text-gray-400 dark:text-gray-500 flex items-center gap-1">
+                        <Clock size={8} /> 115 Min
+                      </span>
                     </div>
                   </div>
 
@@ -111,16 +119,24 @@ export default function DailyView({ currentDate, selectedDate }) {
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-slate-700 dark:text-gray-300 font-bold">Career Development Plan</span>
                       <span className="text-[8px] font-bold px-2 py-0.5 rounded bg-orange-50 text-orange-500 border border-orange-100 dark:bg-orange-950/30 dark:text-orange-400 dark:border-none">HIGH</span>
-                      <span className="text-[8px] font-bold px-2 py-0.5 rounded bg-purple-50 text-[#7C3AED] border border-purple-100 dark:bg-purple-950/30 dark:text-purple-400 dark:border-none flex items-center gap-0.5">✨ AI</span>
+                      <span className="text-[8px] font-bold px-2 py-0.5 rounded bg-[#7C3AED]/10 text-[#7C3AED] border border-[#7C3AED]/20 dark:bg-purple-950/30 dark:text-purple-400 dark:border-none flex items-center gap-1">
+                        <Sparkles size={8} /> AI
+                      </span>
                       <span className="text-[8px] font-bold px-2 py-0.5 rounded bg-gray-50 text-gray-500 border border-gray-100 dark:bg-zinc-700 dark:text-gray-300 dark:border-none">IN PROGRESS</span>
                     </div>
                   </div>
                   <p className="text-[10px] text-gray-400 dark:text-gray-500">Stick to your professional development plan or engage in a skills training session.</p>
                   <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                     <span className="text-[8px] font-semibold px-2 py-0.5 border border-gray-200 text-gray-400 rounded-lg dark:border-zinc-700">Career</span>
-                    <span className="text-[8px] font-semibold px-2 py-0.5 border border-gray-200 text-gray-400 rounded-lg dark:border-zinc-700 flex items-center gap-0.5">🎯 Improve Rate</span>
-                    <span className="text-[8px] font-semibold text-gray-400 dark:text-gray-500 flex items-center gap-0.5">🕒 60 Min</span>
-                    <span className="text-[8px] font-semibold text-gray-400 dark:text-gray-500 flex items-center gap-0.5">📊 0/4 Steps</span>
+                    <span className="text-[8px] font-semibold px-2 py-0.5 border border-gray-200 text-gray-400 rounded-lg dark:border-zinc-700 flex items-center gap-1">
+                      <Target size={8} /> Improve Rate
+                    </span>
+                    <span className="text-[8px] font-semibold text-gray-400 dark:text-gray-500 flex items-center gap-1">
+                      <Clock size={8} /> 60 Min
+                    </span>
+                    <span className="text-[8px] font-semibold text-gray-400 dark:text-gray-500 flex items-center gap-1">
+                      <BarChart2 size={8} /> 0/4 Steps
+                    </span>
                   </div>
                 </div>
               )}
