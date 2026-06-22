@@ -17,6 +17,7 @@ import {
 import { useState, useRef, useEffect, useMemo } from 'react';
 import NewGoalModal from './components/NewGoalModal';
 import GoalProgressModal from './components/GoalProgressModal';
+import GoalDetailPanel from './components/GoalDetailPanel';
 import TypewriterText from '../../../../../components/ui/TypewriterText';
 
 // First phrase matches the Figma frame's static subtitle text exactly; the rest are the
@@ -74,6 +75,7 @@ const INITIAL_GOALS = [
     tasks: 6,
     habits: 2,
     due: 'In 6 days',
+    dueDetail: 'May 19, 2026 • In 6 days',
     progress: 70,
     status: 'active',
     source: 'ai',
@@ -513,7 +515,7 @@ function GoalCardMenu({ onEdit, onAddTask, onAddHabit, onComplete, onPause, onDe
   );
 }
 
-function GoalCard({ goal, onEdit, onAddTask, onAddHabit, onComplete, onPause, onDelete }) {
+function GoalCard({ goal, onSelect, onEdit, onAddTask, onAddHabit, onComplete, onPause, onDelete }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const cardRef = useRef(null);
@@ -534,9 +536,21 @@ function GoalCard({ goal, onEdit, onAddTask, onAddHabit, onComplete, onPause, on
   return (
     <div
       ref={cardRef}
+      role="button"
+      tabIndex={0}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`relative flex min-h-[186px] w-full flex-col justify-between overflow-hidden rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800 ${
+      onClick={(e) => {
+        if (e.target.closest('button')) return;
+        onSelect?.(goal);
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onSelect?.(goal);
+        }
+      }}
+      className={`relative flex min-h-[186px] w-full cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800 ${
         menuOpen || isHovered
           ? 'z-10 shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)]'
           : ''
@@ -750,6 +764,12 @@ export default function ActiveGoals() {
   const [modalProgress, setModalProgress] = useState(false);
   const [ghostGoals, setGhostGoals] = useState(GHOST_GOALS);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedGoalId, setSelectedGoalId] = useState(null);
+
+  const selectedGoal = useMemo(
+    () => goals.find((g) => g.id === selectedGoalId) ?? null,
+    [goals, selectedGoalId]
+  );
 
   const handleOpenModal = () => setModal(true);
   const handleCloseModal = () => setModal(false);
@@ -816,7 +836,11 @@ export default function ActiveGoals() {
 
   const handleDeleteGoal = (id) => {
     setGoals((prev) => prev.filter((g) => g.id !== id));
+    if (selectedGoalId === id) setSelectedGoalId(null);
   };
+
+  const handleSelectGoal = (goal) => setSelectedGoalId(goal.id);
+  const handleCloseGoalDetail = () => setSelectedGoalId(null);
 
   const filteredGoals = useMemo(
     () => goals.filter((g) => goalMatchesSearch(g, searchQuery)),
@@ -877,8 +901,13 @@ export default function ActiveGoals() {
         </div>
       </div>
 
-      {/* Board panel */}
-      <div className="relative flex w-full flex-col gap-[10px] rounded-2xl border border-[#f2f2f2] bg-white p-3 dark:border-zinc-700 dark:bg-zinc-800">
+      {/* Board panel + detail drawer */}
+      <div className="relative w-full">
+      <div
+        className={`flex w-full flex-col gap-[10px] rounded-2xl border border-[#f2f2f2] bg-white p-3 dark:border-zinc-700 dark:bg-zinc-800 ${
+          selectedGoal ? 'lg:pr-[600px]' : ''
+        }`}
+      >
         <div className="flex items-center gap-2">
           {showGhostCards ? (
             <>
@@ -926,6 +955,7 @@ export default function ActiveGoals() {
               <GoalCard
                 key={goal.id}
                 goal={goal}
+                onSelect={handleSelectGoal}
                 onEdit={handleEditGoal}
                 onAddTask={handleAddTask}
                 onAddHabit={handleAddHabit}
@@ -936,6 +966,18 @@ export default function ActiveGoals() {
             ))}
           </div>
         )}
+      </div>
+
+      {selectedGoal && (
+        <GoalDetailPanel
+          goal={selectedGoal}
+          onClose={handleCloseGoalDetail}
+          onEdit={handleEditGoal}
+          onImprove={handleEditGoal}
+          onPause={handlePauseGoal}
+          onDelete={(g) => handleDeleteGoal(g.id)}
+        />
+      )}
       </div>
 
       <GoalProgressModal open={modalProgress} onClose={handleCloseModalProgress} onSave={handleSavePlan} />
