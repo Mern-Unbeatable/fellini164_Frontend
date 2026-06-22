@@ -21,8 +21,8 @@ export default function DailyPlanner() {
     '2026-05-13': [
       { id: '1', title: 'Morning Workout...' },
       { id: '2', title: 'Complete Work T...' },
-      { id: '3', title: 'Exercise Routine' }
-    ]
+      { id: '3', title: 'Exercise Routine' },
+    ],
   });
 
   // AI chat history
@@ -35,9 +35,9 @@ export default function DailyPlanner() {
       timestamp: 'Tuesday, May 5 • 7:39 PM',
       actions: [
         { label: 'Accept plan', actionId: 'accept_initial' },
-        { label: 'Dismiss', actionId: 'dismiss_initial' }
-      ]
-    }
+        { label: 'Dismiss', actionId: 'dismiss_initial' },
+      ],
+    },
   ]);
 
   const chatEndRef = useRef(null);
@@ -50,12 +50,12 @@ export default function DailyPlanner() {
     const dateKey = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
     const newPlan = {
       id: Date.now().toString(),
-      title: data.title || 'Untitled Plan'
+      title: data.title || 'Untitled Plan',
     };
-    
-    setPlans(prev => ({
+
+    setPlans((prev) => ({
       ...prev,
-      [dateKey]: [...(prev[dateKey] || []), newPlan]
+      [dateKey]: [...(prev[dateKey] || []), newPlan],
     }));
   };
 
@@ -71,7 +71,7 @@ export default function DailyPlanner() {
         day: prevMonthTotalDays - i,
         month: month - 1,
         year: year,
-        isCurrentMonth: false
+        isCurrentMonth: false,
       });
     }
 
@@ -81,7 +81,7 @@ export default function DailyPlanner() {
         day: i,
         month: month,
         year: year,
-        isCurrentMonth: true
+        isCurrentMonth: true,
       });
     }
 
@@ -93,7 +93,7 @@ export default function DailyPlanner() {
         day: i,
         month: month + 1,
         year: year,
-        isCurrentMonth: false
+        isCurrentMonth: false,
       });
     }
 
@@ -105,15 +105,17 @@ export default function DailyPlanner() {
   const handleQuickAction = (actionType) => {
     let userMsg = '';
     let aiResponse = '';
-    
+
     if (actionType === 'balance') {
       userMsg = 'Balance my schedule';
-      aiResponse = "I've re-distributed your tasks for May 13 to allow for better work-life balance and deep focus time. Do you want to keep it?";
+      aiResponse =
+        "I've re-distributed your tasks for May 13 to allow for better work-life balance and deep focus time. Do you want to keep it?";
     } else if (actionType === 'free_evening') {
       userMsg = 'Free up my evening';
-      aiResponse = "I've moved evening tasks to tomorrow morning to ensure you have a relaxed evening.";
+      aiResponse =
+        "I've moved evening tasks to tomorrow morning to ensure you have a relaxed evening.";
       setTimeout(() => {
-        setPlans(prev => {
+        setPlans((prev) => {
           const updated = { ...prev };
           const eveningPlans = updated['2026-05-13'] || [];
           updated['2026-05-14'] = [...(updated['2026-05-14'] || []), ...eveningPlans];
@@ -123,44 +125,57 @@ export default function DailyPlanner() {
       }, 1000);
     } else if (actionType === 'monthly_plan') {
       userMsg = 'Generate Monthly Plan';
-      aiResponse = "I've generated focus blocks for May 2026. The calendar has been updated with these slots.";
+      aiResponse =
+        "I've generated focus blocks for May 2026. The calendar has been updated with these slots.";
     }
 
-    const timestamp = 'Today • ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const timestamp =
+      'Today • ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const userMsgId = Date.now().toString();
-    
-    setMessages(prev => [
+
+    setMessages((prev) => [
       ...prev,
       { id: userMsgId, sender: 'user', text: userMsg, timestamp },
-      { id: userMsgId + '_ai', sender: 'ai', text: aiResponse, timestamp }
+      { id: userMsgId + '_ai', sender: 'ai', text: aiResponse, timestamp },
     ]);
   };
 
   const handleActionClick = (actionId) => {
-    const timestamp = 'Today • ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const timestamp =
+      'Today • ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     if (actionId === 'accept_initial') {
-      setMessages(prev => [
+      setMessages((prev) => [
         ...prev,
         { id: 'user_accept', sender: 'user', text: 'Accept plan', timestamp },
-        { 
-          id: 'ai_accept_reply', 
-          sender: 'ai', 
-          text: 'Great. Your day is set. You can adjust anything by typing here or using the actions above.', 
+        {
+          id: 'ai_accept_reply',
+          sender: 'ai',
+          text: 'Great. Your day is set. You can adjust anything by typing here or using the actions above.',
           timestamp,
-          links: [{ label: 'Undo changes', actionId: 'undo_initial' }] 
-        }
+          links: [{ label: 'Undo changes', actionId: 'undo_initial' }],
+        },
       ]);
     } else if (actionId === 'undo_initial') {
-      setMessages(prev => [
+      setMessages((prev) => [
         ...prev,
         { id: 'user_undo', sender: 'user', text: 'Undo changes', timestamp },
-        { id: 'ai_undo_reply', sender: 'ai', text: 'Restored your previous schedule settings.', timestamp }
+        {
+          id: 'ai_undo_reply',
+          sender: 'ai',
+          text: 'Restored your previous schedule settings.',
+          timestamp,
+        },
       ]);
     } else if (actionId === 'dismiss_initial') {
-      setMessages(prev => [
+      setMessages((prev) => [
         ...prev,
         { id: 'user_dismiss', sender: 'user', text: 'Dismiss plan', timestamp },
-        { id: 'ai_dismiss_reply', sender: 'ai', text: 'Suggested plan dismissed. Let me know how else I can help.', timestamp }
+        {
+          id: 'ai_dismiss_reply',
+          sender: 'ai',
+          text: 'Suggested plan dismissed. Let me know how else I can help.',
+          timestamp,
+        },
       ]);
     }
   };
@@ -171,34 +186,42 @@ export default function DailyPlanner() {
 
     const userText = chatInput;
     setChatInput('');
-    const timestamp = 'Today • ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const timestamp =
+      'Today • ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const msgId = Date.now().toString();
 
-    setMessages(prev => [
-      ...prev,
-      { id: msgId, sender: 'user', text: userText, timestamp }
-    ]);
+    setMessages((prev) => [...prev, { id: msgId, sender: 'user', text: userText, timestamp }]);
 
     setTimeout(() => {
-      setMessages(prev => [
+      setMessages((prev) => [
         ...prev,
-        { 
-          id: msgId + '_ai', 
-          sender: 'ai', 
-          text: `I've updated your schedule preferences based on: "${userText}".`, 
-          timestamp 
-        }
+        {
+          id: msgId + '_ai',
+          sender: 'ai',
+          text: `I've updated your schedule preferences based on: "${userText}".`,
+          timestamp,
+        },
       ]);
     }, 1000);
   };
 
   const months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
   ];
 
   const navigateMonth = (direction) => {
-    setCurrentDate(prev => {
+    setCurrentDate((prev) => {
       const newDate = new Date(prev);
       newDate.setMonth(prev.getMonth() + direction);
       return newDate;
@@ -210,11 +233,10 @@ export default function DailyPlanner() {
   };
 
   return (
-    <div className="py-7.5 max-lg:py-4 max-lg:sm:py-6 ">
-      <div className="mx-auto flex flex-col lg:flex-row gap-6">
-        
+    <div className="py-7.5 max-lg:py-4 max-lg:sm:py-6">
+      <div className="mx-auto flex flex-col gap-6 xl:flex-row">
         {/* Left Side: Header, Controls, and Board */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex flex-1 flex-col">
           <PlannerHeader />
           <PlannerControls
             currentDate={currentDate}
@@ -249,7 +271,6 @@ export default function DailyPlanner() {
           handleQuickAction={handleQuickAction}
           chatEndRef={chatEndRef}
         />
-
       </div>
 
       <NewPlanModal open={modle} onClose={handleCloseModal} onSave={handleSavePlan} />

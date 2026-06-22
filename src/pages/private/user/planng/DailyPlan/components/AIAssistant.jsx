@@ -8,132 +8,141 @@ export default function AIAssistant({
   handleSendMessage,
   handleActionClick,
   handleQuickAction,
-  chatEndRef
+  chatEndRef,
 }) {
   return (
-    <div className="w-full lg:w-96 bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm flex flex-col h-[780px] overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-zinc-800">
-        <div className="flex items-center gap-2">
-          <Sparkles size={16} className="text-violet-600 dark:text-violet-400 fill-violet-600/10" />
-          <span className="font-bold text-slate-900 dark:text-white text-sm">AI Assistant</span>
-        </div>
-        <div className="flex items-center gap-2.5 text-gray-400 hover:text-slate-600">
-          <button className="p-1 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded transition-colors">
-            <ExternalLink size={14} />
-          </button>
-          <button className="p-1 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded transition-colors">
-            <X size={14} />
-          </button>
-        </div>
-      </div>
-
-      {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-gray-50/20 dark:bg-zinc-900/20">
-        {messages.map((msg) => (
-          <div 
-            key={msg.id}
-            className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
-          >
-            {/* Timestamp */}
-            <div className="text-[10px] text-gray-400 dark:text-gray-500 mb-1.5 px-1">
-              {msg.timestamp}
-            </div>
-
-            {/* Message Bubble */}
-            <div className={`p-4 rounded-2xl text-xs leading-relaxed max-w-[85%] ${
-              msg.sender === 'user' 
-                ? 'bg-[#7C3AED] text-white rounded-tr-none'
-                : 'bg-[#F9FAFB] dark:bg-zinc-800 text-slate-800 dark:text-gray-100 rounded-tl-none border border-gray-100/50 dark:border-zinc-800'
-            }`}>
-              <p className="whitespace-pre-line">{msg.text}</p>
-            </div>
-            
-            {/* Actions */}
-            {msg.actions && (
-              <div className="flex items-center gap-2 mt-2">
-                {msg.actions.map((act) => (
-                  <button
-                    key={act.actionId}
-                    onClick={() => handleActionClick(act.actionId)}
-                    className="px-3.5 py-1.5 border border-[#7C3AED]/20 hover:bg-[#7C3AED]/5 text-[#7C3AED] font-semibold rounded-full text-xs transition-colors"
-                  >
-                    {act.label}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* Inline link buttons */}
-            {msg.links && (
-              <div className="mt-2 px-1">
-                {msg.links.map((link) => (
-                  <button
-                    key={link.actionId}
-                    onClick={() => handleActionClick(link.actionId)}
-                    className="text-[#7C3AED] hover:underline font-bold text-xs"
-                  >
-                    {link.label}
-                  </button>
-                ))}
-              </div>
-            )}
+    <div className="flex h-[600px] w-full flex-col items-center overflow-hidden md:h-[500px] lg:h-[780px] lg:w-96">
+      {/* Main Card */}
+      <div className="flex h-full w-full flex-col overflow-hidden rounded-xl border border-[#F2F2F2] bg-white shadow-[0_2px_8px_rgba(0,0,0,0.02)] dark:border-zinc-800 dark:bg-zinc-900">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-[#F2F2F2] px-5 py-4 dark:border-zinc-800">
+          <div className="flex items-center gap-2">
+            <Sparkles size={16} className="text-[#A3A3A3] dark:text-zinc-500" />
+            <span className="text-sm font-semibold text-[#181818] dark:text-white">
+              AI Assistant
+            </span>
           </div>
-        ))}
-        <div ref={chatEndRef} />
-      </div>
+          <div className="flex items-center gap-3 text-[#5D5D5D] dark:text-gray-400">
+            <button className="rounded p-1 transition-colors hover:bg-gray-50 dark:hover:bg-zinc-800">
+              <ExternalLink size={16} />
+            </button>
+            <button className="rounded p-1 transition-colors hover:bg-gray-50 dark:hover:bg-zinc-800">
+              <X size={16} />
+            </button>
+          </div>
+        </div>
 
-      {/* Quick Action Suggestion Chips (Vertical Stack) */}
-      <div className="px-5 py-3 border-t border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 space-y-2">
-        <button 
-          onClick={() => handleQuickAction('balance')}
-          className="w-full flex items-center gap-2 px-3 py-2 bg-gray-50 hover:bg-gray-100/80 dark:bg-zinc-800 dark:hover:bg-zinc-800/80 text-slate-700 dark:text-gray-200 border border-gray-100 dark:border-zinc-800 rounded-lg text-xs font-semibold transition-colors"
-        >
-          <Scale size={12} className="text-gray-400" />
-          <span>Balance my schedule</span>
-        </button>
-        <button 
-          onClick={() => handleQuickAction('free_evening')}
-          className="w-full flex items-center gap-2 px-3 py-2 bg-gray-50 hover:bg-gray-100/80 dark:bg-zinc-800 dark:hover:bg-zinc-800/80 text-slate-700 dark:text-gray-200 border border-gray-100 dark:border-zinc-800 rounded-lg text-xs font-semibold transition-colors"
-        >
-          <Zap size={12} className="text-gray-400" />
-          <span>Free up my evening</span>
-        </button>
-        <button 
-          onClick={() => handleQuickAction('monthly_plan')}
-          className="w-full flex items-center gap-2 px-3 py-2 bg-gray-50 hover:bg-gray-100/80 dark:bg-zinc-800 dark:hover:bg-zinc-800/80 text-slate-700 dark:text-gray-200 border border-gray-100 dark:border-zinc-800 rounded-lg text-xs font-semibold transition-colors"
-        >
-          <Sparkles size={12} className="text-gray-400" />
-          <span>Generate Monthly Plan</span>
-        </button>
-      </div>
+        {/* Chat Messages */}
+        <div className="flex-1 space-y-4 overflow-y-auto scrollbar-white bg-white p-5 dark:bg-zinc-900">
+          {messages.map((msg) => (
+            <div
+              key={msg.id}
+              className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
+            >
+              {/* Timestamp */}
+              {msg.timestamp && (
+                <div className="mb-2 w-full text-center text-xs font-medium text-gray-400 dark:text-gray-500">
+                  {msg.timestamp}
+                </div>
+              )}
 
-      {/* Message Form Input */}
-      <form 
-        onSubmit={handleSendMessage}
-        className="p-5 pt-2 border-t border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900"
-      >
-        <div className="relative flex items-center">
-          <input
-            type="text"
-            value={chatInput}
-            onChange={(e) => setChatInput(e.target.value)}
-            placeholder="Describe what you want to change..."
-            className="w-full pl-4 pr-12 py-3 rounded-xl bg-gray-50 dark:bg-zinc-800 border border-gray-100 dark:border-zinc-800 text-xs focus:outline-none focus:ring-1 focus:ring-[#7C3AED] text-slate-800 dark:text-gray-100 placeholder-gray-400 transition-all"
-          />
+              {/* Message Bubble */}
+              <div
+                className={`max-w-[85%] rounded-xl p-4 text-sm leading-relaxed font-medium ${
+                  msg.sender === 'user'
+                    ? 'bg-primary rounded-tr-none text-white'
+                    : 'rounded-tl-none border border-[#F2F2F2] bg-white text-[#181818] dark:border-zinc-800 dark:bg-zinc-800 dark:text-gray-100'
+                }`}
+              >
+                <p className="whitespace-pre-line">{msg.text}</p>
+              </div>
+
+              {/* Actions */}
+              {msg.actions && (
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  {msg.actions.map((act) => (
+                    <button
+                      key={act.actionId}
+                      onClick={() => handleActionClick(act.actionId)}
+                      className="text-primary rounded-lg bg-[#F5F3FF] px-3.5 py-1.5 text-[12px] font-semibold transition-colors hover:bg-[#EDE9FE] dark:bg-zinc-800 dark:text-[#a78bfa] dark:hover:bg-zinc-700"
+                    >
+                      {act.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Inline link buttons */}
+              {msg.links && (
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  {msg.links.map((link) => (
+                    <button
+                      key={link.actionId}
+                      onClick={() => handleActionClick(link.actionId)}
+                      className="text-primary rounded-lg bg-[#F5F3FF] px-3 py-1.5 text-[12px] font-semibold transition-colors hover:bg-[#EDE9FE] dark:bg-zinc-800 dark:text-[#a78bfa] dark:hover:bg-zinc-700"
+                    >
+                      {link.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+          <div ref={chatEndRef} />
+        </div>
+
+        {/* Quick Action Suggestion Chips (Aligned left, w-fit) */}
+        <div className="flex flex-col items-start gap-2 bg-white px-5 py-3 dark:bg-zinc-900">
           <button
-            type="submit"
-            className="absolute right-2 p-2 rounded-lg bg-[#7C3AED] hover:bg-[#6D28D9] text-white transition-colors"
+            onClick={() => handleQuickAction('balance')}
+            className="dark:bg-zinc-850 flex w-fit items-center gap-1.5 rounded-lg border border-[#F2F2F2] bg-white px-3 py-1.75 text-xs font-semibold text-[#5D5D5D] transition-colors hover:bg-gray-50 dark:border-zinc-800 dark:text-gray-200"
           >
-            <Send size={12} />
+            <Scale size={14} className="text-[#A3A3A3]" />
+            <span>Balance my schedule</span>
+          </button>
+          <button
+            onClick={() => handleQuickAction('free_evening')}
+            className="dark:bg-zinc-850 flex w-fit items-center gap-1.5 rounded-lg border border-[#F2F2F2] bg-white px-3 py-1.75 text-xs font-semibold text-[#5D5D5D] transition-colors hover:bg-gray-50 dark:border-zinc-800 dark:text-gray-200"
+          >
+            <Zap size={14} className="text-[#A3A3A3]" />
+            <span>Free up my evening</span>
+          </button>
+          <button
+            onClick={() => handleQuickAction('monthly_plan')}
+            className="dark:bg-zinc-850 flex w-fit items-center gap-1.5 rounded-lg border border-[#F2F2F2] bg-white px-3 py-1.75 text-xs font-semibold text-[#5D5D5D] transition-colors hover:bg-gray-50 dark:border-zinc-800 dark:text-gray-200"
+          >
+            <Sparkles size={14} className="text-[#A3A3A3]" />
+            <span>Generate Monthly Plan</span>
           </button>
         </div>
-        <div className="text-center mt-3">
-          <span className="text-[10px] text-gray-400 dark:text-gray-500">
-            AI can make mistakes. Verify important info
-          </span>
-        </div>
-      </form>
+
+        {/* Message Form Input */}
+        <form
+          onSubmit={handleSendMessage}
+          className="border-t border-[#F2F2F2] bg-white p-5 pt-2 dark:border-zinc-800 dark:bg-zinc-900"
+        >
+          <div className="relative flex items-center">
+            <input
+              type="text"
+              value={chatInput}
+              onChange={(e) => setChatInput(e.target.value)}
+              placeholder="Describe what you want to change..."
+              className="focus:ring-primary/30 w-full rounded-2xl border border-[#F2F2F2] bg-[#FAFAFA] py-3 pr-12 pl-4 text-[13px] font-medium text-slate-800 placeholder-gray-400 transition-all focus:ring-1 focus:outline-none dark:border-zinc-800 dark:bg-zinc-800 dark:text-gray-100"
+            />
+            <button
+              type="submit"
+              className="bg-primary absolute right-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-full p-2 text-white transition-opacity hover:opacity-90"
+            >
+              <Send size={14} className="fill-white/10" />
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* Warning Text (Outside the Main Card) */}
+      <div className="mt-3 text-center text-xs text-gray-400 dark:text-gray-500">
+        AI can make mistakes. Verify important info
+      </div>
     </div>
   );
 }

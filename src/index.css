@@ -829,6 +829,24 @@
     display: none;
   }
 
+  .scrollbar-white::-webkit-scrollbar-thumb {
+    background-color: #ffffff;
+    border: none;
+  }
+  
+  .scrollbar-white::-webkit-scrollbar-track {
+    background-color: #ffffff;
+  }
+
+  .dark .scrollbar-white::-webkit-scrollbar-thumb {
+    background-color: #18181b;
+    border: none;
+  }
+
+  .dark .scrollbar-white::-webkit-scrollbar-track {
+    background-color: #18181b;
+  }
+
   .scroll-smooth {
     scroll-behavior: smooth;
   }

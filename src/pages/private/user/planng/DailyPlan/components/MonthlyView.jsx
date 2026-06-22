@@ -14,7 +14,7 @@ export default function MonthlyView({
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((dayName) => (
           <div 
             key={dayName} 
-            className="py-3.5 text-center text-xs font-medium text-[#5D5D5D] dark:text-gray-400 border-r last:border-r-0 border-gray-100 dark:border-zinc-800/80 bg-white dark:bg-zinc-900"
+            className="py-2 sm:py-3.5 text-center text-xs font-medium text-[#5D5D5D] dark:text-gray-400 border-r last:border-r-0 border-gray-100 dark:border-zinc-800/80 bg-white dark:bg-zinc-900"
           >
             {dayName}
           </div>
@@ -37,15 +37,15 @@ export default function MonthlyView({
             <div 
               key={index}
               onClick={() => setSelectedDate(new Date(dayObj.year, dayObj.month, dayObj.day))}
-              className={`min-h-[120px] p-3 bg-white dark:bg-zinc-900 ${
+              className={`min-h-[50px] sm:min-h-[120px] p-1 sm:p-3 bg-white dark:bg-zinc-900 ${
                 !isLastColumn ? 'border-r' : ''
               } ${
                 isLastRow ? '' : 'border-b'
               } border-gray-100 dark:border-zinc-800/80 flex flex-col items-center hover:bg-gray-50/50 dark:hover:bg-zinc-800/20 cursor-pointer transition-colors`}
             >
               {/* Day Number */}
-              <div className="flex justify-center mb-1.5">
-                <span className={`text-xs font-medium w-7 h-7 flex items-center justify-center rounded-lg transition-all ${
+              <div className="flex justify-center mb-0.5 sm:mb-1.5">
+                <span className={`text-xs font-medium w-5 h-5 sm:w-7 sm:h-7 flex items-center justify-center rounded-md sm:rounded-lg transition-all ${
                   isSelected 
                     ? 'bg-purple-100/70 text-primary dark:bg-purple-950/40 dark:text-purple-400 font-bold' 
                     : dayObj.isCurrentMonth 
@@ -56,8 +56,8 @@ export default function MonthlyView({
                 </span>
               </div>
               
-              {/* Plan Items */}
-              <div className="w-full flex flex-col gap-1 mt-1 overflow-y-auto">
+              {/* Plan Items (Desktop) */}
+              <div className="w-full hidden sm:flex flex-col gap-1 mt-1 overflow-y-auto">
                 {dayPlans.map((plan) => (
                   <div 
                     key={plan.id}
@@ -66,6 +66,16 @@ export default function MonthlyView({
                   >
                     {plan.title}
                   </div>
+                ))}
+              </div>
+
+              {/* Plan Indicators (Mobile dot representation) */}
+              <div className="flex sm:hidden gap-0.5 mt-1 justify-center flex-wrap max-w-full">
+                {dayPlans.map((plan) => (
+                  <span 
+                    key={plan.id} 
+                    className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" 
+                  />
                 ))}
               </div>
             </div>
