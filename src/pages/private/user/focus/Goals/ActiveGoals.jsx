@@ -10,6 +10,9 @@ import {
   Check,
   MoreHorizontal,
   X,
+  Pencil,
+  Pause,
+  Trash2,
 } from 'lucide-react';
 import { useState, useRef, useEffect, useMemo } from 'react';
 import NewGoalModal from './components/NewGoalModal';
@@ -59,6 +62,239 @@ const GHOST_GOALS = [
     due: 'In 6 days',
   },
 ];
+
+// Populated board sample data — from Figma frame 1250:8499 (Goals Board 1440 - 1).
+const INITIAL_GOALS = [
+  {
+    id: 'goal-1',
+    priority: 'MEDIUM',
+    title: 'Improve Rate',
+    description: 'Stick to your professional growth plan or engage in a skill-building session.',
+    category: 'Career',
+    tasks: 6,
+    habits: 2,
+    due: 'In 6 days',
+    progress: 70,
+    status: 'active',
+    source: 'ai',
+  },
+  {
+    id: 'goal-2',
+    priority: 'LOW',
+    title: 'Workout',
+    description: 'Stick to your exercise plan or engage in a training session.',
+    category: 'Fitness',
+    tasks: 0,
+    habits: 1,
+    due: 'May 8, 2026',
+    progress: 20,
+    status: 'paused',
+    source: 'manual',
+  },
+  {
+    id: 'goal-3',
+    priority: 'URGENT',
+    title: 'Fitness Regimen',
+    description: 'Adhere to your workout schedule or participate in a fitness class.',
+    category: 'Fitness',
+    tasks: 1,
+    habits: 6,
+    due: 'May 25, 2026',
+    progress: 43,
+    status: 'active',
+    source: 'ai',
+  },
+  {
+    id: 'goal-4',
+    priority: 'URGENT',
+    title: 'Training Schedule',
+    description: 'Follow your exercise routine or take part in a workout.',
+    category: 'Education',
+    tasks: 21,
+    habits: 0,
+    due: 'May 18, 2026',
+    progress: 20,
+    status: 'paused',
+    source: 'manual',
+  },
+  {
+    id: 'goal-5',
+    priority: 'HIGH',
+    title: 'Physical Activity',
+    description: 'Commit to your fitness routine or join a workout session.',
+    category: 'Health',
+    tasks: 4,
+    habits: 2,
+    due: 'In 2 days',
+    progress: 24,
+    status: 'active',
+    source: 'manual',
+  },
+  {
+    id: 'goal-6',
+    priority: 'LOW',
+    title: 'Exercise Program',
+    description: 'Maintain your fitness regimen or engage in a workout.',
+    category: 'Health',
+    tasks: 2,
+    habits: 0,
+    due: null,
+    progress: 100,
+    status: 'completed',
+    completedDate: 'May 8, 2026',
+    source: 'manual',
+  },
+  {
+    id: 'goal-7',
+    priority: 'LOW',
+    title: 'Fitness Schedule',
+    description: 'Keep up with your exercise plan or do a training session.',
+    category: 'Career',
+    tasks: 1,
+    habits: 1,
+    due: 'Today',
+    progress: 7,
+    status: 'active',
+    source: 'manual',
+  },
+  {
+    id: 'goal-8',
+    priority: 'LOW',
+    title: 'Workout Strategy',
+    description: 'Stick to your fitness routine or participate in a workout.',
+    category: 'Personal',
+    tasks: 2,
+    habits: 0,
+    due: null,
+    progress: 100,
+    status: 'completed',
+    completedDate: 'May 11, 2026',
+    source: 'ai',
+  },
+  {
+    id: 'goal-9',
+    priority: 'LOW',
+    title: 'Exercise Agenda',
+    description: 'Follow your workout plan or engage in a fitness session.',
+    category: 'Education',
+    tasks: 0,
+    habits: 4,
+    due: 'May 27, 2026',
+    progress: 89,
+    status: 'active',
+    source: 'ai',
+  },
+  {
+    id: 'goal-10',
+    priority: 'URGENT',
+    title: 'Exercise Routine',
+    description: 'Follow your fitness routine or do a workout session.',
+    category: 'Career',
+    tasks: 2,
+    habits: 4,
+    due: '04.12.26',
+    progress: 70,
+    status: 'active',
+    source: 'ai',
+  },
+  {
+    id: 'goal-11',
+    priority: 'MEDIUM',
+    title: 'Improve Rate',
+    description: 'Stick to your professional growth plan or engage in a skill-building session.',
+    category: 'Career',
+    tasks: 2,
+    habits: 4,
+    due: 'In 6 days',
+    progress: 70,
+    status: 'active',
+    source: 'ai',
+  },
+  {
+    id: 'goal-12',
+    priority: 'LOW',
+    title: 'Exercise Routine',
+    description: 'Follow your fitness routine or do a workout session.',
+    category: 'Career',
+    tasks: 2,
+    habits: 4,
+    due: '04.12.26',
+    progress: 20,
+    status: 'active',
+    source: 'manual',
+  },
+  {
+    id: 'goal-13',
+    priority: 'LOW',
+    title: 'Workout',
+    description: 'Stick to your exercise plan or engage in a training session.',
+    category: 'Fitness',
+    tasks: 0,
+    habits: 1,
+    due: 'May 8, 2026',
+    progress: 20,
+    status: 'active',
+    source: 'manual',
+  },
+  {
+    id: 'goal-14',
+    priority: 'LOW',
+    title: 'Exercise Routine',
+    description: 'Follow your fitness routine or do a workout session.',
+    category: 'Career',
+    tasks: 2,
+    habits: 4,
+    due: '04.12.26',
+    progress: 100,
+    status: 'completed',
+    completedDate: 'May 8, 2026',
+    source: 'ai',
+  },
+  {
+    id: 'goal-15',
+    priority: 'URGENT',
+    title: 'Fitness Regimen',
+    description: 'Adhere to your workout schedule or participate in a fitness class.',
+    category: 'Fitness',
+    tasks: 1,
+    habits: 6,
+    due: 'May 8, 2026',
+    progress: 43,
+    status: 'active',
+    source: 'ai',
+  },
+  {
+    id: 'goal-16',
+    priority: 'MEDIUM',
+    title: 'Career Growth',
+    description: 'Advance your professional skills through structured learning.',
+    category: 'Career',
+    tasks: 3,
+    habits: 1,
+    due: 'This week',
+    progress: 55,
+    status: 'active',
+    source: 'manual',
+  },
+  {
+    id: 'goal-17',
+    priority: 'HIGH',
+    title: 'Health Milestone',
+    description: 'Reach your monthly health and wellness targets.',
+    category: 'Health',
+    tasks: 5,
+    habits: 3,
+    due: 'This month',
+    progress: 62,
+    status: 'active',
+    source: 'manual',
+  },
+];
+
+const STATUS_STYLES = {
+  paused: 'bg-[rgba(93,93,93,0.05)] text-[#5d5d5d]',
+  completed: 'bg-[rgba(42,157,0,0.05)] text-[#2a9d00]',
+};
 
 const PRIORITY_STYLES = {
   URGENT: 'bg-[rgba(220,38,38,0.05)] text-[#dc2626]',
@@ -263,6 +499,214 @@ function GhostGoalCard({ goal, onDismiss, onRegenerate }) {
   );
 }
 
+// Requirement #2 — three groups: Edit goal | ✦ Improve goal | Pause goal / Delete
+function GoalCardMenu({ onEdit, onImprove, onPause, onDelete, isPaused }) {
+  return (
+    <div
+      className="flex w-max flex-col overflow-hidden rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800"
+      onMouseDown={(e) => e.stopPropagation()}
+    >
+      <button
+        type="button"
+        onClick={onEdit}
+        className="flex w-full items-center gap-1.5 border-b border-[#f2f2f2] px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#5d5d5d] hover:bg-[#fcfcfc] lg:text-[12px] dark:border-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-700"
+      >
+        <Pencil size={10} className="shrink-0" />
+        Edit goal
+      </button>
+      <button
+        type="button"
+        onClick={onImprove}
+        className="flex w-full items-center gap-1.5 border-b border-[#f2f2f2] px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#8022fe] hover:bg-[#fcfcfc] lg:text-[12px] dark:border-zinc-700 dark:hover:bg-zinc-700"
+      >
+        <Sparkles size={10} className="shrink-0" />
+        Improve goal
+      </button>
+      <button
+        type="button"
+        onClick={onPause}
+        className="flex w-full items-center gap-1.5 px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#5d5d5d] hover:bg-[#fcfcfc] lg:text-[12px] dark:text-gray-300 dark:hover:bg-zinc-700"
+      >
+        <Pause size={10} className="shrink-0" />
+        {isPaused ? 'Resume goal' : 'Pause goal'}
+      </button>
+      <button
+        type="button"
+        onClick={onDelete}
+        className="flex w-full items-center gap-1.5 px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#5d5d5d] hover:bg-[#fcfcfc] lg:text-[12px] dark:text-gray-300 dark:hover:bg-zinc-700"
+      >
+        <Trash2 size={10} className="shrink-0" />
+        Delete
+      </button>
+    </div>
+  );
+}
+
+function GoalCard({ goal, onEdit, onImprove, onPause, onDelete }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const cardRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (cardRef.current && !cardRef.current.contains(e.target)) setMenuOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const isPaused = goal.status === 'paused';
+  const isCompleted = goal.status === 'completed';
+  const showMenuTrigger = isHovered || menuOpen;
+  const faded = isPaused ? 'opacity-50' : '';
+
+  return (
+    <div
+      ref={cardRef}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className={`relative flex w-full flex-col justify-between overflow-hidden rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800 ${
+        menuOpen || isHovered
+          ? 'z-10 shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)]'
+          : ''
+      } ${menuOpen ? 'overflow-visible' : ''}`}
+    >
+      <div className="flex flex-col gap-2.5 p-3">
+        <div className={`flex flex-col gap-2 ${faded}`}>
+          <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center gap-1">
+              {!isCompleted && (
+                <span
+                  className={`rounded-[6px] px-[6px] py-[2px] text-xs font-medium uppercase ${PRIORITY_STYLES[goal.priority]}`}
+                >
+                  {PRIORITY_LABELS[goal.priority]}
+                </span>
+              )}
+              {isPaused && (
+                <span className={`rounded-[6px] px-[6px] py-[2px] text-xs font-medium uppercase ${STATUS_STYLES.paused}`}>
+                  Paused
+                </span>
+              )}
+              {isCompleted && (
+                <span className={`rounded-[6px] px-[6px] py-[2px] text-xs font-medium uppercase ${STATUS_STYLES.completed}`}>
+                  Completed
+                </span>
+              )}
+              {goal.source === 'ai' && (
+                <span className="flex items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-xs font-medium text-[#8022fe]">
+                  <Sparkles size={10} />
+                  AI
+                </span>
+              )}
+            </div>
+          </div>
+          <div className="flex flex-col gap-1">
+            <p
+              className={`text-base font-medium ${isPaused ? 'text-[#5d5d5d] dark:text-gray-400' : 'text-[#181818] dark:text-white'}`}
+            >
+              {goal.title}
+            </p>
+            <p
+              className={`overflow-hidden text-ellipsis whitespace-nowrap text-xs leading-normal ${isPaused ? 'text-[#c2c2c2]' : 'text-[#a3a3a3]'}`}
+            >
+              {goal.description}
+            </p>
+          </div>
+        </div>
+
+        <div className={`flex flex-wrap items-center gap-1 ${faded}`}>
+          <span className="rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-xs font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+            {goal.category}
+          </span>
+          {goal.tasks > 0 && (
+            <span className="flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-xs font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+              <ListTodo size={12} className="shrink-0" />
+              {goal.tasks} Tasks
+            </span>
+          )}
+          {goal.habits > 0 && (
+            <span className="flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-xs font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+              <Repeat size={12} className="shrink-0" />
+              {goal.habits} Habits
+            </span>
+          )}
+          {goal.due && (
+            <span className="flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-xs font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+              <Flag size={12} className="shrink-0" />
+              {goal.due}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {showMenuTrigger && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setMenuOpen((o) => !o);
+          }}
+          aria-label="Goal menu"
+          aria-expanded={menuOpen}
+          className={`animate-fade-in absolute right-3 top-3 z-20 shrink-0 rounded-[6px] p-1 text-[#a3a3a3] ${
+            menuOpen ? 'bg-[#f2f2f2] dark:bg-zinc-600' : 'hover:bg-[#f2f2f2] dark:hover:bg-zinc-600'
+          }`}
+        >
+          <MoreHorizontal size={14} />
+        </button>
+      )}
+
+      {menuOpen && (
+        <div className="absolute right-3 top-9 z-50">
+          <GoalCardMenu
+            isPaused={isPaused}
+            onEdit={() => {
+              setMenuOpen(false);
+              onEdit(goal);
+            }}
+            onImprove={() => {
+              setMenuOpen(false);
+              onImprove(goal);
+            }}
+            onPause={() => {
+              setMenuOpen(false);
+              onPause(goal);
+            }}
+            onDelete={() => {
+              setMenuOpen(false);
+              onDelete(goal);
+            }}
+          />
+        </div>
+      )}
+
+      {isCompleted ? (
+        <div className="border-t border-[#f2f2f2] px-3 py-2.5 dark:border-zinc-700">
+          <div className="flex h-8 items-center justify-center gap-2 rounded-lg bg-[rgba(42,157,0,0.05)]">
+            <p className="text-xs font-medium text-[#2a9d00]">Completed {goal.completedDate}</p>
+            <Check size={11} className="shrink-0 text-[#2a9d00]" strokeWidth={2.5} />
+          </div>
+        </div>
+      ) : (
+        <div className="border-t border-[#f2f2f2] px-3 py-2.5 dark:border-zinc-700">
+          <div className={`flex flex-col gap-1.5 ${faded}`}>
+            <div className="flex w-full items-center justify-between text-xs font-medium">
+              <p className="text-[#c2c2c2]">Progress</p>
+              <p className="text-[#5d5d5d] dark:text-gray-300">{goal.progress}%</p>
+            </div>
+            <div className="h-2 w-full overflow-hidden rounded-full bg-[#e9e9e9] dark:bg-zinc-600">
+              <div
+                className={`h-full rounded-full ${isPaused ? 'bg-[#c2c2c2]' : 'bg-[#8022fe]'}`}
+                style={{ width: `${goal.progress}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function FilterDropdown({ defaultLabel, options }) {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState(options[0]);
@@ -323,7 +767,7 @@ function goalMatchesSearch(goal, query) {
 }
 
 export default function ActiveGoals() {
-  const [goals] = useState([]);
+  const [goals, setGoals] = useState(INITIAL_GOALS);
   const [modal, setModal] = useState(false);
   const [modalProgress, setModalProgress] = useState(false);
   const [ghostGoals, setGhostGoals] = useState(GHOST_GOALS);
@@ -343,6 +787,33 @@ export default function ActiveGoals() {
   const handleRegenerateGhost = () => {
     // Visual-only for Step 1 — AI regeneration wired in a later step.
   };
+
+  const handleEditGoal = () => {
+    setModal(true);
+  };
+
+  const handleImproveGoal = () => {
+    // Wired in a later step.
+  };
+
+  const handlePauseGoal = (goal) => {
+    setGoals((prev) =>
+      prev.map((g) =>
+        g.id === goal.id
+          ? { ...g, status: g.status === 'paused' ? 'active' : 'paused' }
+          : g
+      )
+    );
+  };
+
+  const handleDeleteGoal = (id) => {
+    setGoals((prev) => prev.filter((g) => g.id !== id));
+  };
+
+  const filteredGoals = useMemo(
+    () => goals.filter((g) => goalMatchesSearch(g, searchQuery)),
+    [goals, searchQuery]
+  );
 
   const filteredGhostGoals = useMemo(
     () => ghostGoals.filter((g) => goalMatchesSearch(g, searchQuery)),
@@ -437,10 +908,23 @@ export default function ActiveGoals() {
               ))}
             </div>
           )
-        ) : (
+        ) : filteredGoals.length === 0 ? (
           <p className="py-10 text-center text-sm font-medium text-[#c2c2c2] dark:text-gray-500">
             {isSearching ? 'No matching goals.' : 'No goals to show yet.'}
           </p>
+        ) : (
+          <div className="scrollbar-hidden grid grid-cols-1 gap-2.5 overflow-y-auto sm:grid-cols-2 lg:grid-cols-3 lg:max-h-[610px]">
+            {filteredGoals.map((goal) => (
+              <GoalCard
+                key={goal.id}
+                goal={goal}
+                onEdit={handleEditGoal}
+                onImprove={handleImproveGoal}
+                onPause={handlePauseGoal}
+                onDelete={(g) => handleDeleteGoal(g.id)}
+              />
+            ))}
+          </div>
         )}
       </div>
 
