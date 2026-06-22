@@ -8,13 +8,13 @@ export default function MonthlyView({
   setSelectedDate
 }) {
   return (
-    <div className="flex-1 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800/80 rounded-2xl overflow-hidden shadow-sm flex flex-col">
+    <div className="flex-1 bg-white dark:bg-zinc-900 border border-[#F2F2F2] dark:border-zinc-800/80 rounded-2xl overflow-hidden shadow-sm flex flex-col">
       {/* Weekday Names */}
       <div className="grid grid-cols-7 border-b border-gray-100 dark:border-zinc-800/80 gap-0">
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((dayName) => (
           <div 
             key={dayName} 
-            className="py-3.5 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 border-r last:border-r-0 border-gray-100 dark:border-zinc-800/80 bg-white dark:bg-zinc-900"
+            className="py-3.5 text-center text-xs font-medium text-[#5D5D5D] dark:text-gray-400 border-r last:border-r-0 border-gray-100 dark:border-zinc-800/80 bg-white dark:bg-zinc-900"
           >
             {dayName}
           </div>
@@ -45,9 +45,9 @@ export default function MonthlyView({
             >
               {/* Day Number */}
               <div className="flex justify-center mb-1.5">
-                <span className={`text-xs font-semibold w-7 h-7 flex items-center justify-center rounded-lg transition-all ${
+                <span className={`text-xs font-medium w-7 h-7 flex items-center justify-center rounded-lg transition-all ${
                   isSelected 
-                    ? 'bg-purple-100/70 text-[#7C3AED] dark:bg-purple-950/40 dark:text-purple-400 font-bold' 
+                    ? 'bg-purple-100/70 text-primary dark:bg-purple-950/40 dark:text-purple-400 font-bold' 
                     : dayObj.isCurrentMonth 
                       ? 'text-slate-600 dark:text-gray-300' 
                       : 'text-gray-300 dark:text-zinc-700'
