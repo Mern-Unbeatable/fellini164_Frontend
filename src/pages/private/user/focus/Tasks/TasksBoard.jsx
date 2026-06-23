@@ -573,9 +573,8 @@ function TaskCard({ task, onEdit, onDelete, onSelect, onBreakIntoSubtasks, isDon
   );
 }
 
-function FilterDropdown({ defaultLabel, options }) {
+function FilterDropdown({ defaultLabel, options, value, onChange }) {
   const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState(options[0]);
   const [hovered, setHovered] = useState(null);
   const ref = useRef(null);
 
@@ -587,7 +586,7 @@ function FilterDropdown({ defaultLabel, options }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const displayLabel = selected === options[0] ? defaultLabel : selected;
+  const displayLabel = value === options[0] ? defaultLabel : value;
 
   return (
     <div ref={ref} className="relative max-lg:w-full">
@@ -610,7 +609,7 @@ function FilterDropdown({ defaultLabel, options }) {
               onMouseEnter={() => setHovered(opt)}
               onMouseLeave={() => setHovered(null)}
               onClick={() => {
-                setSelected(opt);
+                onChange(opt);
                 setOpen(false);
               }}
               className={`flex w-full items-center px-2 py-1.5 text-left text-[12px] font-medium text-[#181818] dark:text-white max-lg:text-sm ${
@@ -664,6 +663,51 @@ function taskMatchesSearch(task, query) {
   return haystack.includes(q);
 }
 
+const DEFAULT_FILTERS = FILTER_CONFIG.reduce(
+  (acc, { key, options }) => ({ ...acc, [key]: options[0] }),
+  {}
+);
+
+function parseDueDate(due) {
+  if (!due || due === 'Today' || due === 'Tomorrow') return null;
+  let parsed = new Date(due);
+  if (Number.isNaN(parsed.getTime())) {
+    parsed = new Date(`${due}, ${new Date().getFullYear()}`);
+  }
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function taskMatchesFilters(task, filters) {
+  if (filters.Status !== 'All Statuses' && task.status && task.status !== filters.Status) {
+    return false;
+  }
+  if (filters.Priority !== 'All Priorities' && PRIORITY_LABELS[task.priority] !== filters.Priority) {
+    return false;
+  }
+  if (filters.Category !== 'All Categories') {
+    const category = task.category || task.tags?.[0]?.label;
+    if (category !== filters.Category) return false;
+  }
+  if (filters.Source !== 'All Sources') {
+    const wantsAi = filters.Source === 'Created by AI';
+    if ((task.source === 'ai') !== wantsAi) return false;
+  }
+  if (filters.Date !== 'All Dates') {
+    if (filters.Date === 'Overdue') {
+      if (task.overdueDays == null) return false;
+    } else if (filters.Date === 'Today' || filters.Date === 'Tomorrow') {
+      if (task.due !== filters.Date) return false;
+    } else {
+      const parsedDue = parseDueDate(task.due);
+      if (!parsedDue) return false;
+      const diffDays = Math.round((parsedDue - new Date()) / (1000 * 60 * 60 * 24));
+      const maxDays = filters.Date === 'This week' ? 7 : 31;
+      if (diffDays < 0 || diffDays > maxDays) return false;
+    }
+  }
+  return true;
+}
+
 export default function TasksBoard() {
   const [columns, setColumns] = useState(INITIAL_COLUMNS);
   const [ghostTasks, setGhostTasks] = useState(GHOST_TASKS);
@@ -672,22 +716,27 @@ export default function TasksBoard() {
   const [selectedTaskId, setSelectedTaskId] = useState(null);
   const [triggerSubtasksAi, setTriggerSubtasksAi] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeFilters, setActiveFilters] = useState(DEFAULT_FILTERS);
+
+  const updateFilter = (key, value) => setActiveFilters((prev) => ({ ...prev, [key]: value }));
 
   const filteredColumns = useMemo(() => {
-    if (!searchQuery.trim()) return columns;
+    const matches = (t) => taskMatchesSearch(t, searchQuery) && taskMatchesFilters(t, activeFilters);
     return {
-      todo: columns.todo.filter((t) => taskMatchesSearch(t, searchQuery)),
-      inProgress: columns.inProgress.filter((t) => taskMatchesSearch(t, searchQuery)),
-      done: columns.done.filter((t) => taskMatchesSearch(t, searchQuery)),
+      todo: columns.todo.filter(matches),
+      inProgress: columns.inProgress.filter(matches),
+      done: columns.done.filter(matches),
     };
-  }, [columns, searchQuery]);
+  }, [columns, searchQuery, activeFilters]);
 
   const filteredGhostTasks = useMemo(() => {
-    if (!searchQuery.trim()) return ghostTasks;
-    return ghostTasks.filter((t) => taskMatchesSearch(t, searchQuery));
-  }, [ghostTasks, searchQuery]);
+    const matches = (t) => taskMatchesSearch(t, searchQuery) && taskMatchesFilters(t, activeFilters);
+    return ghostTasks.filter(matches);
+  }, [ghostTasks, searchQuery, activeFilters]);
 
-  const isSearching = searchQuery.trim().length > 0;
+  const isSearching =
+    searchQuery.trim().length > 0 ||
+    Object.entries(activeFilters).some(([key, value]) => value !== DEFAULT_FILTERS[key]);
 
   const findTaskById = (id) => {
     for (const key of ['todo', 'inProgress', 'done']) {
@@ -722,6 +771,26 @@ export default function TasksBoard() {
             ? { ...t, subtasks, steps: formatStepsProgress(subtasks) ?? t.steps }
             : t
         );
+      }
+      return next;
+    });
+  };
+
+  // AI Assistant edit boundary: only title, description, category, linked tasks/habits
+  // may be changed this way — never due date, status, priority, or reminder/calendar fields.
+  const handleUpdateTaskFields = (taskId, fields) => {
+    const ALLOWED_KEYS = new Set(['title', 'description', 'category']);
+    const safeFields = Object.fromEntries(
+      Object.entries(fields).filter(([key]) => ALLOWED_KEYS.has(key))
+    );
+    setColumns((prev) => {
+      const next = {
+        todo: [...prev.todo],
+        inProgress: [...prev.inProgress],
+        done: [...prev.done],
+      };
+      for (const key of Object.keys(next)) {
+        next[key] = next[key].map((t) => (t.id === taskId ? { ...t, ...safeFields } : t));
       }
       return next;
     });
@@ -806,58 +875,86 @@ export default function TasksBoard() {
 
   return (
     <div className="py-7.5 max-lg:py-4 max-lg:sm:py-6">
-      {/* Header */}
-      <div className="mb-5 flex w-full items-start justify-between max-lg:mb-4 max-lg:flex-col max-lg:gap-4">
-        <div className="flex flex-col items-start gap-2">
-          <p className="text-[20px] font-medium text-[#181818] dark:text-white">Tasks Board</p>
-          <TypewriterText
-            phrases={TASKS_SUBTITLE_PHRASES}
-            className="text-[12px] font-medium text-[#c2c2c2] dark:text-gray-400 max-lg:text-sm"
-          />
+      {selectedTask ? (
+        <div className="mb-5 flex min-w-0 items-center gap-2.5 max-lg:mb-4">
+          <p className="truncate text-[12px] font-medium whitespace-nowrap text-[#5d5d5d] dark:text-gray-300">
+            Work
+          </p>
+          <span className="shrink-0 text-[12px] font-medium text-[#c2c2c2] dark:text-zinc-600">/</span>
+          <button
+            type="button"
+            onClick={closeTaskDetail}
+            className="truncate text-[12px] font-medium whitespace-nowrap text-[#c2c2c2] hover:text-[#5d5d5d] dark:text-zinc-500 dark:hover:text-gray-300"
+          >
+            Tasks
+          </button>
+          <span className="shrink-0 text-[12px] font-medium text-[#c2c2c2] dark:text-zinc-600">/</span>
+          <p className="truncate text-[12px] font-medium whitespace-nowrap text-[#c2c2c2] dark:text-zinc-500">
+            {selectedTask.title}
+          </p>
         </div>
-        <label className="flex w-62.5 items-center gap-2 rounded-lg border border-[#f2f2f2] bg-white px-3 py-1.75 focus-within:border-[#e9e9e9] dark:border-zinc-700 dark:bg-zinc-800 dark:focus-within:border-zinc-600 max-lg:w-full max-lg:py-2">
-          <Search size={12} className="shrink-0 text-[#c2c2c2]" aria-hidden />
-          <input
-            type="search"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search tasks in board..."
-            aria-label="Search tasks in board"
-            className="w-full bg-transparent text-[12px] font-medium text-[#181818] outline-none placeholder:text-[#c2c2c2] dark:text-white max-lg:text-base"
-          />
-        </label>
-      </div>
-
-      {/* Action row */}
-      <div className="mb-5 flex w-full items-center justify-between max-lg:mb-4 max-lg:flex-col max-lg:items-stretch max-lg:gap-4">
-        <button
-          onClick={openNewTaskModal}
-          className="flex items-center gap-2 rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] font-semibold text-white max-lg:w-full max-lg:justify-center max-lg:py-2.5 max-lg:text-base"
-        >
-          <Plus size={10} />
-          New Task
-        </button>
-
-        <div className="flex items-center gap-5 max-lg:w-full max-lg:flex-col max-lg:gap-3">
-          {/* Board/List — visible per Figma, non-functional in MVP */}
-          <div className="flex items-center gap-1 rounded-lg border border-[#f2f2f2] p-1 dark:border-zinc-700 max-lg:w-full">
-            <span className="rounded-md bg-[#f2f2f2] px-2 py-0.75 text-[12px] font-medium text-[#181818] dark:bg-zinc-700 dark:text-white max-lg:flex-1 max-lg:py-2 max-lg:text-center max-lg:text-base">
-              Board
-            </span>
-            <span className="flex w-12.5 items-center justify-center px-2 py-0.75 text-[12px] font-medium text-[#c2c2c2] max-lg:flex-1 max-lg:py-2 max-lg:text-base">
-              List
-            </span>
+      ) : (
+        <>
+          {/* Header */}
+          <div className="mb-5 flex w-full items-start justify-between max-lg:mb-4 max-lg:flex-col max-lg:gap-4">
+            <div className="flex flex-col items-start gap-2">
+              <p className="text-[20px] font-medium text-[#181818] dark:text-white">Tasks Board</p>
+              <TypewriterText
+                phrases={TASKS_SUBTITLE_PHRASES}
+                className="text-[12px] font-medium text-[#c2c2c2] dark:text-gray-400 max-lg:text-sm"
+              />
+            </div>
+            <label className="flex w-62.5 items-center gap-2 rounded-lg border border-[#f2f2f2] bg-white px-3 py-1.75 focus-within:border-[#e9e9e9] dark:border-zinc-700 dark:bg-zinc-800 dark:focus-within:border-zinc-600 max-lg:w-full max-lg:py-2">
+              <Search size={12} className="shrink-0 text-[#c2c2c2]" aria-hidden />
+              <input
+                type="search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search tasks in board..."
+                aria-label="Search tasks in board"
+                className="w-full bg-transparent text-[12px] font-medium text-[#181818] outline-none placeholder:text-[#c2c2c2] dark:text-white max-lg:text-base"
+              />
+            </label>
           </div>
 
-          <div className="h-4 w-px bg-[#f2f2f2] dark:bg-zinc-700 max-lg:hidden" />
+          {/* Action row */}
+          <div className="mb-5 flex w-full items-center justify-between max-lg:mb-4 max-lg:flex-col max-lg:items-stretch max-lg:gap-4">
+            <button
+              onClick={openNewTaskModal}
+              className="flex items-center gap-2 rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] font-semibold text-white max-lg:w-full max-lg:justify-center max-lg:py-2.5 max-lg:text-base"
+            >
+              <Plus size={10} />
+              New Task
+            </button>
 
-          <div className="flex items-center gap-2.5 max-lg:w-full max-lg:flex-col max-lg:gap-2">
-            {FILTER_CONFIG.map(({ key, defaultLabel, options }) => (
-              <FilterDropdown key={key} defaultLabel={defaultLabel} options={options} />
-            ))}
+            <div className="flex items-center gap-5 max-lg:w-full max-lg:flex-col max-lg:gap-3">
+              {/* Board/List — visible per Figma, non-functional in MVP */}
+              <div className="flex items-center gap-1 rounded-lg border border-[#f2f2f2] p-1 dark:border-zinc-700 max-lg:w-full">
+                <span className="rounded-md bg-[#f2f2f2] px-2 py-0.75 text-[12px] font-medium text-[#181818] dark:bg-zinc-700 dark:text-white max-lg:flex-1 max-lg:py-2 max-lg:text-center max-lg:text-base">
+                  Board
+                </span>
+                <span className="flex w-12.5 items-center justify-center px-2 py-0.75 text-[12px] font-medium text-[#c2c2c2] max-lg:flex-1 max-lg:py-2 max-lg:text-base">
+                  List
+                </span>
+              </div>
+
+              <div className="h-4 w-px bg-[#f2f2f2] dark:bg-zinc-700 max-lg:hidden" />
+
+              <div className="flex items-center gap-2.5 max-lg:w-full max-lg:flex-col max-lg:gap-2">
+                {FILTER_CONFIG.map(({ key, defaultLabel, options }) => (
+                  <FilterDropdown
+                    key={key}
+                    defaultLabel={defaultLabel}
+                    options={options}
+                    value={activeFilters[key]}
+                    onChange={(value) => updateFilter(key, value)}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+        </>
+      )}
 
       {/* Columns or task detail (Step 8) */}
       {selectedTask ? (
@@ -865,6 +962,7 @@ export default function TasksBoard() {
           task={selectedTask}
           onClose={closeTaskDetail}
           onUpdateSubtasks={(subtasks) => handleUpdateSubtasks(selectedTask.id, subtasks)}
+          onUpdateTaskFields={(fields) => handleUpdateTaskFields(selectedTask.id, fields)}
           autoTriggerSubtasksAi={triggerSubtasksAi}
           onAutoTriggerConsumed={() => setTriggerSubtasksAi(false)}
         />

@@ -57,21 +57,37 @@ hidden until hover (confirmed via user decision 2026-06-18); overdue real cards 
 "Overdue" / "Overdue Xd" in red instead of the "Due: X" footer.
 
 **Update (2026-06-18):** New Task / Edit Task popup built (`components/TaskFormModal.jsx`),
-matching frame 4.2 exactly: Title, Priority+Category, Due Date+Due Time (12h, custom 3-part
-select — no native `<input type="time">`, per the mistakes list below), Est. Minutes+Status,
-Linked Goal (first option AI-recommended, last is "+ Create new goal"), Description. Submit
-button reads "Add to Board" when creating, "Edit" when editing (exact Figma wording, not
-"Save"). Wired to real state: "New Task" creates a card in the column matching the chosen
-Status; the three-dot "Edit" action opens the same modal pre-filled and updates that card in
-place (including moving it between columns if Status changed). Frames 4 and 4.1 (despite
-their names) turned out to just be additional populated-board screenshots, not popups —
-don't re-fetch those expecting form content.
+matching frame 4.2 exactly: Title, Priority+Category, Due Date+Due Time (12h), Est.
+Minutes+Status, Linked Goal (first option AI-recommended, last is "+ Create new goal"),
+Description. Submit button reads "Add to Board" when creating, "Edit" when editing (exact
+Figma wording, not "Save"). Wired to real state: "New Task" creates a card in the column
+matching the chosen Status; the three-dot "Edit" action opens the same modal pre-filled and
+updates that card in place (including moving it between columns if Status changed).
 
-Still open (frames 5-8, not built yet): frame 5/6 (unclear purpose, not yet investigated),
-card insert animation (frame 8), subtasks UI (frame 7, 7.1), the AI-generation tab for New
-Task (Generate button + rotating placeholder + skeleton, written spec rules 4-6 — no Figma
-frame found for this yet, may need to ask the user), and actually wiring the filter
-dropdowns to filter the card list (currently they open/select visually but don't filter).
+**Correction (2026-06-23, full 19-frame Figma audit):** frames 4 and 4.1 are **not**
+populated-board screenshots — they are the New Task popup's AI Generation tab (empty
+prompt textarea, disabled Generate button) and Manual tab respectively. The 2026-06-18 note
+above calling them "additional populated-board screenshots" was wrong; corrected here.
+Frame 5 (previously "unclear purpose") is the AI-generated task preview/result screen
+("Anything to change?" + Update, Regenerate / Add to Board buttons) — also now confirmed,
+not unclear.
+
+**Due Time field (2026-06-23):** changed from the original 3 separate native `<select>`s
+(hour/minute/AM-PM each opening its own dropdown independently) to a single button showing
+"H:MM AM/PM" with a watch icon, which opens one popover containing all three selects
+together — per user request for "a full time picker that opens at once" rather than three
+separate triggers. Still 12h format, still no native `<input type="time">`.
+
+Still open: card insert animation easing (frame 8 — JS-side 300ms timer wiring confirmed
+correct in `TasksBoard.jsx`, but the actual CSS keyframe definition for
+`animate-board-card-enter` wasn't located/verified in this audit), and the AI Assistant
+chat (frames 8/8-Animation in this doc's numbering, i.e. the *second* "frame 8" — see Tasks
+Board §"AI Assistant" below) which is currently a non-functional static stub, not the real
+message-thread + apply/cancel/undo flow Figma shows.
+
+Filter dropdowns (Status/Priority/Category/Source/Date) are now wired and actually filter
+the card list (2026-06-23) — previously they only updated their own visual selection state
+without affecting `filteredColumns`.
 
 ### Ghost cards (empty state)
 - Appear **only** when the board/column is empty.

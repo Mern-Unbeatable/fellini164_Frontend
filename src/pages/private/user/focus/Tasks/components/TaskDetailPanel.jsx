@@ -170,9 +170,85 @@ function SubtasksSection({ task, onUpdateSubtasks, autoTriggerAi, onAutoTriggerC
   );
 }
 
-function AiAssistantStub() {
+function formatChatTimestamp(date) {
+  const datePart = date.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'short',
+    day: 'numeric',
+  });
+  const timePart = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  return `${datePart} • ${timePart}`;
+}
+
+function ChatMessage({ message, onApply, onCancel, onUndo }) {
+  if (message.role === 'user') {
+    return (
+      <div className="flex justify-end">
+        <p className="max-w-[85%] rounded-2xl bg-[#8022fe] px-3 py-2 text-[12px] font-medium text-white">
+          {message.text}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col items-start gap-1.5">
+      <p className="text-[12px] text-[#5d5d5d] dark:text-gray-300">{message.text}</p>
+      {message.plan && (
+        <ul className="list-disc pl-4 text-[12px] text-[#5d5d5d] dark:text-gray-300">
+          {message.plan.map((line) => (
+            <li key={line}>{line}</li>
+          ))}
+        </ul>
+      )}
+      {message.confirm && !message.resolved && (
+        <>
+          <p className="text-[12px] text-[#5d5d5d] dark:text-gray-300">
+            Do you want me to apply these changes?
+          </p>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => onApply(message)}
+              className="text-[12px] font-medium text-[#8022fe]"
+            >
+              Yes, apply
+            </button>
+            <button
+              type="button"
+              onClick={() => onCancel(message)}
+              className="text-[12px] font-medium text-[#5d5d5d] dark:text-gray-300"
+            >
+              No, cancel
+            </button>
+          </div>
+        </>
+      )}
+      {message.undo && !message.undone && (
+        <button
+          type="button"
+          onClick={() => onUndo(message)}
+          className="text-[12px] font-medium text-[#8022fe]"
+        >
+          Undo changes
+        </button>
+      )}
+    </div>
+  );
+}
+
+let messageIdCounter = 0;
+function nextMessageId() {
+  messageIdCounter += 1;
+  return `msg-${messageIdCounter}`;
+}
+
+function AiAssistantChat({ task, onUpdateSubtasks, onUpdateTaskFields, onApplyingChange }) {
+  const [messages, setMessages] = useState([]);
   const [prompt, setPrompt] = useState('');
+  const [isThinking, setIsThinking] = useState(false);
   const textareaRef = useRef(null);
+  const threadRef = useRef(null);
 
   useEffect(() => {
     const el = textareaRef.current;
@@ -180,6 +256,88 @@ function AiAssistantStub() {
     el.style.height = 'auto';
     el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
   }, [prompt]);
+
+  useEffect(() => {
+    const el = threadRef.current;
+    if (!el) return;
+    el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+  }, [messages, isThinking]);
+
+  const pushMessage = (msg) => {
+    const message = { id: nextMessageId(), ...msg };
+    setMessages((prev) => [...prev, message]);
+    return message;
+  };
+
+  const runPrompt = (text, intent) => {
+    if (!text.trim() || isThinking) return;
+    pushMessage({ role: 'user', text });
+    setPrompt('');
+    setIsThinking(true);
+    window.setTimeout(() => {
+      setIsThinking(false);
+      const plan =
+        intent === 'subtasks'
+          ? ['add subtasks']
+          : intent === 'description'
+            ? ['improve clarity']
+            : ['improve clarity', 'add subtasks', 'improve tracking'];
+      pushMessage({
+        role: 'assistant',
+        text: 'Sure, I can update this task.',
+        plan,
+        confirm: true,
+        intent,
+      });
+    }, 700);
+  };
+
+  const handleApply = (msg) => {
+    if (!msg || msg.resolved) return;
+    setMessages((prev) => prev.map((m) => (m.id === msg.id ? { ...m, resolved: true } : m)));
+    onApplyingChange(true);
+    window.setTimeout(() => {
+      const changes = [];
+      if (msg.intent === 'subtasks' || msg.intent === 'both') {
+        changes.push({ type: 'subtasks', previous: task.subtasks });
+        onUpdateSubtasks(generateSubtasksFromTitle(task.title));
+      }
+      if (msg.intent === 'description' || msg.intent === 'both') {
+        changes.push({ type: 'description', previous: task.description });
+        onUpdateTaskFields({
+          description: `${task.description ?? ''} This task directly supports your linked goal — tackle it with focused effort today.`.trim(),
+        });
+      }
+      onApplyingChange(false);
+      pushMessage({
+        role: 'assistant',
+        text:
+          msg.intent === 'description'
+            ? 'Done. The description was successfully improved.'
+            : 'Done. The subtasks were successfully added.',
+        undo: true,
+        changes,
+      });
+    }, 900);
+  };
+
+  const handleCancel = (msg) => {
+    if (!msg || msg.resolved) return;
+    setMessages((prev) => prev.map((m) => (m.id === msg.id ? { ...m, resolved: true } : m)));
+    pushMessage({ role: 'assistant', text: 'Okay, no changes made.' });
+  };
+
+  const handleUndo = (msg) => {
+    if (!msg?.changes || msg.undone) return;
+    msg.changes.forEach((change) => {
+      if (change.type === 'subtasks') onUpdateSubtasks(change.previous);
+      if (change.type === 'description') onUpdateTaskFields({ description: change.previous });
+    });
+    setMessages((prev) => prev.map((m) => (m.id === msg.id ? { ...m, undone: true } : m)));
+    pushMessage({ role: 'assistant', text: 'Changes undone.' });
+  };
+
+  const handleSend = () => runPrompt(prompt, 'both');
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-white dark:border-zinc-700 dark:bg-zinc-900">
@@ -193,20 +351,65 @@ function AiAssistantStub() {
           <X size={12} />
         </div>
       </div>
-      <div className="flex flex-1 flex-col justify-end gap-3 p-3">
+
+      <div ref={threadRef} className="scrollbar-hidden flex flex-1 flex-col gap-3 overflow-y-auto p-3">
+        {messages.length === 0 && !isThinking ? (
+          <div className="flex flex-1 flex-col items-center justify-center gap-1.5 text-center">
+            <Sparkles size={16} className="text-[#e9d9ff]" />
+            <p className="text-[12px] text-[#c2c2c2]">Ask the AI Assistant to help with this task.</p>
+          </div>
+        ) : (
+          <>
+            <p className="text-center text-[10px] text-[#c2c2c2]">
+              {formatChatTimestamp(new Date())}
+            </p>
+            {messages.map((m) => (
+              <ChatMessage
+                key={m.id}
+                message={m}
+                onApply={handleApply}
+                onCancel={handleCancel}
+                onUndo={handleUndo}
+              />
+            ))}
+            {isThinking && (
+              <div className="flex flex-col gap-1.5">
+                <SkeletonBar className="h-3 w-3/4" />
+                <SkeletonBar className="h-3 w-1/2" />
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      <div className="flex flex-col gap-3 p-3">
         <div className="flex flex-wrap gap-2">
-          <span className="rounded-lg border border-[#f2f2f2] px-2.5 py-1.5 text-[12px] font-medium text-[#5d5d5d] dark:border-zinc-700">
+          <button
+            type="button"
+            onClick={() => runPrompt('Break this task into subtasks.', 'subtasks')}
+            className="rounded-lg border border-[#f2f2f2] px-2.5 py-1.5 text-[12px] font-medium text-[#5d5d5d] dark:border-zinc-700"
+          >
             ✦ Break into subtasks
-          </span>
-          <span className="rounded-lg border border-[#f2f2f2] px-2.5 py-1.5 text-[12px] font-medium text-[#5d5d5d] dark:border-zinc-700">
+          </button>
+          <button
+            type="button"
+            onClick={() => runPrompt('Improve this task description.', 'description')}
+            className="rounded-lg border border-[#f2f2f2] px-2.5 py-1.5 text-[12px] font-medium text-[#5d5d5d] dark:border-zinc-700"
+          >
             ✦ Improve description
-          </span>
+          </button>
         </div>
         <div className="flex w-full items-center gap-2 rounded-xl border border-[#f2f2f2] px-3 py-2 dark:border-zinc-700">
           <textarea
             ref={textareaRef}
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+              }
+            }}
             placeholder="Describe what you want to change..."
             rows={1}
             className="max-h-30 flex-1 resize-none overflow-hidden bg-transparent text-[12px] text-[#5d5d5d] placeholder:text-[#c2c2c2] focus:outline-none dark:text-gray-300"
@@ -214,7 +417,8 @@ function AiAssistantStub() {
           <button
             type="button"
             aria-label="Send"
-            disabled={!prompt.trim()}
+            disabled={!prompt.trim() || isThinking}
+            onClick={handleSend}
             className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#8022fe] text-white disabled:opacity-50"
           >
             <Send size={12} />
@@ -232,9 +436,12 @@ export default function TaskDetailPanel({
   task,
   onClose,
   onUpdateSubtasks,
+  onUpdateTaskFields,
   autoTriggerSubtasksAi = false,
   onAutoTriggerConsumed,
 }) {
+  const [isApplyingAiEdit, setIsApplyingAiEdit] = useState(false);
+
   if (!task) return null;
 
   const estMinutes =
@@ -270,9 +477,17 @@ export default function TaskDetailPanel({
             </div>
           </div>
           <div className="flex flex-col gap-2">
-            <p className="text-xl font-medium text-[#181818] dark:text-white md:text-2xl">{task.title}</p>
-            {task.description && (
-              <p className="text-base text-[#c2c2c2]">{task.description}</p>
+            {isApplyingAiEdit ? (
+              <SkeletonBar className="h-7 w-3/4" />
+            ) : (
+              <p className="text-xl font-medium text-[#181818] dark:text-white md:text-2xl">
+                {task.title}
+              </p>
+            )}
+            {isApplyingAiEdit ? (
+              <SkeletonBar className="h-4 w-full" />
+            ) : (
+              task.description && <p className="text-base text-[#c2c2c2]">{task.description}</p>
             )}
           </div>
           <div className="flex w-30 items-center justify-between rounded-lg border border-[#f2f2f2] bg-[#fcfcfc] px-3 py-2 dark:border-zinc-700 dark:bg-zinc-800">
@@ -309,9 +524,16 @@ export default function TaskDetailPanel({
             </span>
           </div>
 
-          {linkedGoal && (
-            <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-1.5">
+            <div className="flex w-full items-center justify-between">
               <p className="text-[12px] font-medium text-[#c2c2c2]">Linked Goal</p>
+              {!linkedGoal && (
+                <button type="button" aria-label="Add linked goal" className="text-[#a3a3a3]">
+                  <Plus size={12} />
+                </button>
+              )}
+            </div>
+            {linkedGoal ? (
               <div className="overflow-hidden rounded-xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800">
                 <div className="flex items-center justify-between px-3 py-2">
                   <div className="flex items-center gap-1.5">
@@ -334,8 +556,12 @@ export default function TaskDetailPanel({
                   </span>
                 </div>
               </div>
-            </div>
-          )}
+            ) : (
+              <div className="flex min-h-16 items-center justify-center rounded-[10px] border border-dashed border-[#e9e9e9] bg-[#fcfcfc] px-3 py-4 dark:border-zinc-700 dark:bg-zinc-800">
+                <p className="text-[12px] font-medium text-[#c2c2c2]">No Goal yet</p>
+              </div>
+            )}
+          </div>
 
           <SubtasksSection
             task={task}
@@ -347,7 +573,12 @@ export default function TaskDetailPanel({
       </div>
 
       <div className="h-125 w-full shrink-0 xl:h-auto xl:w-100">
-        <AiAssistantStub />
+        <AiAssistantChat
+          task={task}
+          onUpdateSubtasks={onUpdateSubtasks}
+          onUpdateTaskFields={onUpdateTaskFields}
+          onApplyingChange={setIsApplyingAiEdit}
+        />
       </div>
     </div>
   );
