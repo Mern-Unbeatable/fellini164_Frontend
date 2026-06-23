@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { X, Calendar, Sparkles, Clock, MoreHorizontal } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { X, Calendar, Sparkles, Clock, MoreHorizontal, Watch } from 'lucide-react';
 import TypewriterPlaceholder from '../../../../../../components/ui/TypewriterPlaceholder';
 import SkeletonBar from '../../../../../../components/ui/SkeletonBar';
 import { useAiGenerationReveal } from '../../../../../../hooks/useAiGenerationReveal';
@@ -194,6 +194,71 @@ function AIGeneratedPreviewCard({ task, revealStep = 3 }) {
   );
 }
 
+function TimePickerField({ hour, minute, period, onChangeHour, onChangeMinute, onChangePeriod }) {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleClickOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [open]);
+
+  return (
+    <div ref={containerRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className={`${inputClasses} flex items-center gap-1.5 text-left`}
+      >
+        <Watch size={12} className="shrink-0 text-[#a3a3a3]" />
+        <span>
+          {hour}:{minute} {period}
+        </span>
+      </button>
+
+      {open && (
+        <div className="absolute top-full left-0 z-20 mt-1 flex items-center gap-1 rounded-lg border border-[#f2f2f2] bg-white p-2 shadow-[0px_2px_4px_0px_rgba(0,0,0,0.06)] dark:border-zinc-700 dark:bg-zinc-800">
+          <select
+            value={hour}
+            onChange={(e) => onChangeHour(Number(e.target.value))}
+            className="w-9 appearance-none bg-transparent text-[12px] text-[#181818] outline-none dark:text-white"
+          >
+            {HOURS.map((h) => (
+              <option key={h} value={h}>
+                {h}
+              </option>
+            ))}
+          </select>
+          <span className="text-[#a3a3a3]">:</span>
+          <select
+            value={minute}
+            onChange={(e) => onChangeMinute(e.target.value)}
+            className="w-9 appearance-none bg-transparent text-[12px] text-[#181818] outline-none dark:text-white"
+          >
+            {MINUTES.map((m) => (
+              <option key={m} value={m}>
+                {m}
+              </option>
+            ))}
+          </select>
+          <select
+            value={period}
+            onChange={(e) => onChangePeriod(e.target.value)}
+            className="appearance-none bg-transparent text-[12px] text-[#181818] outline-none dark:text-white"
+          >
+            <option>AM</option>
+            <option>PM</option>
+          </select>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ManualFormFields({ form, update }) {
   return (
     <div className="flex flex-col gap-4">
@@ -207,7 +272,7 @@ function ManualFormFields({ form, update }) {
         />
       </Field>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <Field label="Priority">
           <select
             value={form.priority}
@@ -232,14 +297,14 @@ function ManualFormFields({ form, update }) {
         </Field>
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <Field label="Due Date">
           <div className="relative">
             <input
               type="date"
               value={form.dueDate}
               onChange={(e) => update('dueDate', e.target.value)}
-              className={`${inputClasses} pr-8`}
+              className={`${inputClasses} pr-8 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:w-8 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0`}
             />
             <Calendar
               size={12}
@@ -248,43 +313,18 @@ function ManualFormFields({ form, update }) {
           </div>
         </Field>
         <Field label="Due Time">
-          <div className="flex items-center gap-1 rounded-lg border border-[#f2f2f2] bg-white px-2 py-2 dark:border-zinc-700 dark:bg-zinc-800">
-            <select
-              value={form.dueHour}
-              onChange={(e) => update('dueHour', Number(e.target.value))}
-              className="w-7 appearance-none bg-transparent text-[12px] text-[#181818] outline-none dark:text-white"
-            >
-              {HOURS.map((h) => (
-                <option key={h} value={h}>
-                  {h}
-                </option>
-              ))}
-            </select>
-            <span className="text-[#a3a3a3]">:</span>
-            <select
-              value={form.dueMinute}
-              onChange={(e) => update('dueMinute', e.target.value)}
-              className="w-8 appearance-none bg-transparent text-[12px] text-[#181818] outline-none dark:text-white"
-            >
-              {MINUTES.map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))}
-            </select>
-            <select
-              value={form.duePeriod}
-              onChange={(e) => update('duePeriod', e.target.value)}
-              className="ml-auto appearance-none bg-transparent text-[12px] text-[#181818] outline-none dark:text-white"
-            >
-              <option>AM</option>
-              <option>PM</option>
-            </select>
-          </div>
+          <TimePickerField
+            hour={form.dueHour}
+            minute={form.dueMinute}
+            period={form.duePeriod}
+            onChangeHour={(h) => update('dueHour', h)}
+            onChangeMinute={(m) => update('dueMinute', m)}
+            onChangePeriod={(p) => update('duePeriod', p)}
+          />
         </Field>
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <Field label="Est. Minutes">
           <input
             type="number"
@@ -432,7 +472,7 @@ export default function TaskFormModal({ mode = 'create', initialTask, onClose, o
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="flex w-full max-w-[450px] flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-900"
+        className="flex max-h-[90vh] w-full max-w-112.5 flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-900"
       >
         <div className="flex items-center justify-between border-b border-[#f2f2f2] px-3 py-2.5 dark:border-zinc-700">
           <p className="text-[12px] font-medium text-[#5d5d5d] dark:text-gray-300">
@@ -443,7 +483,7 @@ export default function TaskFormModal({ mode = 'create', initialTask, onClose, o
           </button>
         </div>
 
-        <div className="flex flex-col gap-6 p-3">
+        <div className="flex flex-col gap-6 overflow-y-auto p-3">
           {!isEdit && (
             <TabToggle
               activeTab={activeTab}
