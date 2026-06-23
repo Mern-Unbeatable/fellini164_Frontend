@@ -46,12 +46,12 @@ export default function DailyView({ currentDate, selectedDate }) {
                 <div className="bg-white dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700 shadow-sm rounded-lg p-3 flex items-center justify-start gap-2.5 w-full">
                   <span className="text-xs text-slate-700 dark:text-gray-300 font-medium">Morning Workout Routine</span>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[8px] font-bold px-2 py-0.5 rounded bg-[#F973160D] text-[#F97316] dark:bg-orange-[#F973160D] dark:text-orange-400 dark:border-none">HIGH</span>
-                    <span className="text-[8px] font-bold px-2 py-0.5 rounded bg-[#7C3AED]/10 text-primary  dark:bg-[#F9F4FF] dark:text-purple-400 dark:border-none flex items-center gap-1">
+                    <span className="text-[8px] font-medium px-2 py-0.5 rounded bg-[#F973160D] text-[#F97316] dark:bg-[#F973160D] dark:text-orange-400 dark:border-none">HIGH</span>
+                    <span className="text-[8px] font-medium px-2 py-0.5 rounded bg-[#7C3AED]/10 text-primary  dark:bg-[#F9F4FF] dark:text-purple-400 dark:border-none flex items-center gap-1">
                       <Sparkles size={8} /> AI
                     </span>
                     <div className="w-[1px] h-3 bg-gray-200 dark:bg-zinc-700 mx-0.5"></div>
-                    <span className="text-[8px] font-bold px-2 py-0.5 rounded bg-gray-50 text-gray-400 border border-gray-100 dark:bg-zinc-700 dark:text-gray-400 dark:border-none">TO DO</span>
+                    <span className="text-[8px] font-medium px-2 py-0.5 rounded bg-gray-50 text-gray-400 border border-gray-100 dark:bg-zinc-700 dark:text-gray-400 dark:border-none">TO DO</span>
                   </div>
                 </div>
               )}
@@ -72,12 +72,12 @@ export default function DailyView({ currentDate, selectedDate }) {
                   <div className="flex items-center justify-start gap-2.5">
                     <span className="text-xs text-slate-700 dark:text-gray-300 font-medium">Exercise Routine</span>
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[8px] font-bold px-2 py-0.5 rounded bg-red-50 text-red-500 border border-red-100 dark:bg-red-950/30 dark:text-red-400 dark:border-none">URGENT</span>
-                      <span className="text-[8px] font-bold px-2 py-0.5 rounded bg-[#7C3AED]/10 text-[#7C3AED] border border-[#7C3AED]/20 dark:bg-purple-950/30 dark:text-purple-400 dark:border-none flex items-center gap-1">
+                      <span className="text-[8px] font-medium px-2 py-0.5 rounded bg-red-50 text-red-500  dark:text-red-400 dark:border-none">URGENT</span>
+                      <span className="text-[8px] font-medium px-2 py-0.5 rounded bg-[#7C3AED]/10 text-[#7C3AED] border border-[#7C3AED]/20 dark:bg-purple-950/30 dark:text-purple-400 dark:border-none flex items-center gap-1">
                         <Sparkles size={8} /> AI
                       </span>
                       <div className="w-[1px] h-3 bg-gray-200 dark:bg-zinc-700 mx-0.5"></div>
-                      <span className="text-[8px] font-bold px-2 py-0.5 rounded bg-gray-50 text-gray-400 border border-gray-100 dark:bg-zinc-700 dark:text-gray-400 dark:border-none">TO DO</span>
+                      <span className="text-[8px] font-medium px-2 py-0.5 rounded bg-gray-50 text-gray-400  dark:text-gray-400 dark:border-none">TO DO</span>
                     </div>
                   </div>
                   <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">Follow your fitness routine or do a workout session.</p>
