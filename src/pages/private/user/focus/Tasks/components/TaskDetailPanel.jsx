@@ -658,6 +658,10 @@ function TaskDetailCard({
 }
 
 // Slide-over peek (Figma frames 6/6.1/7/7.1) — board stays visible behind it.
+const DRAWER_DEFAULT_WIDTH = 400;
+const DRAWER_MIN_WIDTH = 360;
+const DRAWER_MAX_WIDTH = 720;
+
 export function TaskDetailDrawer({
   task,
   onClose,
@@ -670,6 +674,18 @@ export function TaskDetailDrawer({
   autoTriggerSubtasksAi = false,
   onAutoTriggerConsumed,
 }) {
+  const [width, setWidth] = useState(DRAWER_DEFAULT_WIDTH);
+  const isResizing = useRef(false);
+  const [isDesktop, setIsDesktop] = useState(
+    () => typeof window !== 'undefined' && window.innerWidth >= 1024
+  );
+
+  useEffect(() => {
+    const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   useEffect(() => {
     const handleEscape = (e) => {
       if (e.key === 'Escape') onClose?.();
@@ -677,6 +693,34 @@ export function TaskDetailDrawer({
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
   }, [onClose]);
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!isResizing.current) return;
+      const next = Math.min(
+        DRAWER_MAX_WIDTH,
+        Math.max(DRAWER_MIN_WIDTH, window.innerWidth - e.clientX)
+      );
+      setWidth(next);
+    };
+    const handleMouseUp = () => {
+      isResizing.current = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, []);
+
+  const startResize = () => {
+    isResizing.current = true;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  };
 
   if (!task) return null;
 
@@ -690,9 +734,17 @@ export function TaskDetailDrawer({
       />
 
       <aside
-        className="scrollbar-hidden absolute inset-y-0 right-0 flex w-full max-w-100 flex-col overflow-y-auto border-l border-[#f2f2f2] bg-white p-4 max-lg:max-w-none sm:p-5 dark:border-zinc-700 dark:bg-zinc-900"
+        style={isDesktop ? { width } : undefined}
+        className="scrollbar-hidden absolute inset-y-0 right-0 flex w-full max-w-full flex-col overflow-y-auto border-l border-[#f2f2f2] bg-white p-4 sm:p-5 dark:border-zinc-700 dark:bg-zinc-900"
         aria-label="Task detail"
       >
+        <button
+          type="button"
+          aria-label="Resize task detail panel"
+          onMouseDown={startResize}
+          className="absolute inset-y-0 left-0 hidden w-1 -translate-x-1/2 cursor-col-resize hover:bg-[#8022fe]/20 lg:block"
+        />
+
         <div className="mb-3 flex shrink-0 items-center justify-between">
           <button
             type="button"
