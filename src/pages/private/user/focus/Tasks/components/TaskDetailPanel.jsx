@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   Sparkles,
-  MoreHorizontal,
   ChevronDown,
   Clock,
   Flag,
@@ -208,7 +207,7 @@ function AiAssistantStub() {
           onChange={(e) => setPrompt(e.target.value)}
           placeholder="Describe what you want to change..."
           rows={1}
-          className="max-h-30 w-full resize-none rounded-xl border border-[#f2f2f2] px-3 py-2 text-[12px] text-[#5d5d5d] placeholder:text-[#c2c2c2] focus:outline-none dark:border-zinc-700 dark:text-gray-300"
+          className="max-h-30 w-full resize-none overflow-hidden rounded-xl border border-[#f2f2f2] px-3 py-2 text-[12px] text-[#5d5d5d] placeholder:text-[#c2c2c2] focus:outline-none dark:border-zinc-700 dark:text-gray-300"
         />
         <p className="text-center text-[10px] text-[#c2c2c2]">
           AI can make mistakes. Verify important info.
@@ -232,7 +231,7 @@ export default function TaskDetailPanel({
   const linkedGoal = task.tags?.find((t) => t.icon === TrendingUp)?.label;
 
   return (
-    <div className="flex min-h-[min(60vh,520px)] w-full flex-col gap-4 lg:h-167.75 lg:flex-row lg:gap-7.5">
+    <div className="flex min-h-[min(60vh,520px)] w-full flex-col gap-4 xl:h-167.75 xl:flex-row xl:gap-7.5">
       <div className="relative flex flex-1 flex-col gap-6 overflow-y-auto scrollbar-hidden rounded-2xl border border-[#f2f2f2] bg-white p-4 sm:p-5 dark:border-zinc-700 dark:bg-zinc-900">
         <button
           type="button"
@@ -258,7 +257,6 @@ export default function TaskDetailPanel({
                 </span>
               )}
             </div>
-            <MoreHorizontal size={14} className="text-[#a3a3a3]" />
           </div>
           <div className="flex flex-col gap-2">
             <p className="text-xl font-medium text-[#181818] dark:text-white md:text-2xl">{task.title}</p>
@@ -309,11 +307,11 @@ export default function TaskDetailPanel({
                     <TrendingUp size={12} className="text-[#5d5d5d]" />
                     <p className="text-[14px] font-medium text-[#5d5d5d]">{linkedGoal}</p>
                   </div>
-                  <span className="flex items-center gap-1 text-[12px] text-[#c2c2c2]">
-                    View Goal <ExternalLink size={8} />
+                  <span className="flex shrink-0 items-center gap-1 text-[12px] text-[#c2c2c2]">
+                    View Goal <ExternalLink size={10} />
                   </span>
                 </div>
-                <p className="px-3 pb-2 text-[12px] text-[#c2c2c2]">
+                <p className="px-3 pt-1 pb-2 text-[12px] text-[#c2c2c2]">
                   Stick to your fitness plan or engage in a workout session to boost your progress.
                 </p>
                 <div className="flex items-center justify-between border-t border-[#f2f2f2] px-3 py-2 text-[12px] text-[#5d5d5d] dark:border-zinc-700">
@@ -337,7 +335,7 @@ export default function TaskDetailPanel({
         </div>
       </div>
 
-      <div className="hidden w-100 shrink-0 lg:block">
+      <div className="hidden w-100 shrink-0 xl:block">
         <AiAssistantStub />
       </div>
     </div>
