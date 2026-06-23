@@ -10,6 +10,9 @@ import {
   ExternalLink,
   Maximize2,
   Send,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
 } from 'lucide-react';
 import SkeletonBar from '../../../../../../components/ui/SkeletonBar';
 import { generateSubtasksFromTitle } from '../utils/subtasks';
@@ -27,6 +30,64 @@ const PRIORITY_LABELS = {
   MEDIUM: 'Medium',
   LOW: 'Low',
 };
+
+function buildImprovedDescription(description) {
+  return `${description ?? ''} This task directly supports your linked goal — tackle it with focused effort today.`.trim();
+}
+
+function TaskDetailMenu({ onClose, onEdit, onBreakIntoSubtasks, onImproveDescription, onDelete }) {
+  return (
+    <div
+      className="absolute top-full right-0 z-30 mt-1 flex w-max flex-col overflow-hidden rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800"
+      onMouseDown={(e) => e.stopPropagation()}
+    >
+      <button
+        type="button"
+        onClick={() => {
+          onClose();
+          onEdit?.();
+        }}
+        className="flex w-full items-center gap-1.5 border-b border-[#f2f2f2] px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#5d5d5d] hover:bg-[#fcfcfc] dark:border-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-700"
+      >
+        <Pencil size={10} className="shrink-0" />
+        Edit
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          onClose();
+          onBreakIntoSubtasks?.();
+        }}
+        className="flex w-full items-center gap-1.5 px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#8022fe] hover:bg-[#fcfcfc] dark:hover:bg-zinc-700"
+      >
+        <Sparkles size={10} className="shrink-0" />
+        Break into subtasks
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          onClose();
+          onImproveDescription?.();
+        }}
+        className="flex w-full items-center gap-1.5 border-b border-[#f2f2f2] px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#8022fe] hover:bg-[#fcfcfc] dark:border-zinc-700 dark:hover:bg-zinc-700"
+      >
+        <Sparkles size={10} className="shrink-0" />
+        Improve description
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          onClose();
+          onDelete?.();
+        }}
+        className="flex w-full items-center gap-1.5 px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#5d5d5d] hover:bg-[#fcfcfc] dark:text-gray-300 dark:hover:bg-zinc-700"
+      >
+        <Trash2 size={10} className="shrink-0" />
+        Delete
+      </button>
+    </div>
+  );
+}
 
 function SubtasksSection({ task, onUpdateSubtasks, autoTriggerAi, onAutoTriggerConsumed }) {
   const subtasks = task.subtasks ?? [];
@@ -304,9 +365,7 @@ function AiAssistantChat({ task, onUpdateSubtasks, onUpdateTaskFields, onApplyin
       }
       if (msg.intent === 'description' || msg.intent === 'both') {
         changes.push({ type: 'description', previous: task.description });
-        onUpdateTaskFields({
-          description: `${task.description ?? ''} This task directly supports your linked goal — tackle it with focused effort today.`.trim(),
-        });
+        onUpdateTaskFields({ description: buildImprovedDescription(task.description) });
       }
       onApplyingChange(false);
       pushMessage({
@@ -432,11 +491,250 @@ function AiAssistantChat({ task, onUpdateSubtasks, onUpdateTaskFields, onApplyin
   );
 }
 
-export default function TaskDetailPanel({
+function TaskDetailCard({
   task,
-  onClose,
   onUpdateSubtasks,
   onUpdateTaskFields,
+  autoTriggerSubtasksAi = false,
+  onAutoTriggerConsumed,
+  isApplyingAiEdit = false,
+  onEdit,
+  onDelete,
+  onTriggerSubtasksAi,
+}) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const estMinutes =
+    task.tags?.find((t) => t.label?.includes('Min'))?.label?.replace(/\D/g, '') || '60';
+  const linkedGoal = task.tags?.find((t) => t.icon === TrendingUp)?.label;
+
+  const handleImproveDescription = () => {
+    onUpdateTaskFields({ description: buildImprovedDescription(task.description) });
+  };
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span
+              className={`rounded-md px-2 py-0.5 text-[14px] font-medium uppercase ${PRIORITY_STYLES[task.priority]}`}
+            >
+              {PRIORITY_LABELS[task.priority]}
+            </span>
+            {task.source === 'ai' && (
+              <span className="flex items-center gap-1.5 rounded-md bg-[#f9f4ff] px-2 py-0.5 text-[14px] font-medium text-[#8022fe]">
+                <Sparkles size={12} />
+                AI
+              </span>
+            )}
+          </div>
+          <div ref={menuRef} className="relative shrink-0">
+            <button
+              type="button"
+              onClick={() => setMenuOpen((o) => !o)}
+              aria-label="Task options"
+              aria-expanded={menuOpen}
+              className="text-[#a3a3a3] hover:text-[#5d5d5d]"
+            >
+              <MoreHorizontal size={15} />
+            </button>
+            {menuOpen && (
+              <TaskDetailMenu
+                onClose={() => setMenuOpen(false)}
+                onEdit={() => onEdit?.(task)}
+                onBreakIntoSubtasks={onTriggerSubtasksAi}
+                onImproveDescription={handleImproveDescription}
+                onDelete={() => onDelete?.(task)}
+              />
+            )}
+          </div>
+        </div>
+        <div className="flex flex-col gap-2">
+          {isApplyingAiEdit ? (
+            <SkeletonBar className="h-7 w-3/4" />
+          ) : (
+            <p className="text-xl font-medium text-[#181818] dark:text-white md:text-2xl">
+              {task.title}
+            </p>
+          )}
+          {isApplyingAiEdit ? (
+            <SkeletonBar className="h-4 w-full" />
+          ) : (
+            task.description && <p className="text-base text-[#c2c2c2]">{task.description}</p>
+          )}
+        </div>
+        <div className="flex w-30 items-center justify-between rounded-lg border border-[#f2f2f2] bg-[#fcfcfc] px-3 py-2 dark:border-zinc-700 dark:bg-zinc-800">
+          <p className="text-[14px] font-medium text-[#181818] dark:text-white">
+            {task.status || 'To Do'}
+          </p>
+          <ChevronDown size={10} className="text-[#a3a3a3]" />
+        </div>
+      </div>
+
+      <div className="h-px w-full bg-[#f2f2f2] dark:bg-zinc-700" />
+
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-1.5">
+          <p className="text-[12px] font-medium text-[#c2c2c2]">Category</p>
+          <span className="inline-flex w-fit rounded-md border border-[#f2f2f2] px-2 py-0.5 text-[14px] font-medium text-[#5d5d5d] dark:border-zinc-700">
+            {task.category || task.tags?.[0]?.label || 'Career'}
+          </span>
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <p className="text-[12px] font-medium text-[#c2c2c2]">Due Date</p>
+          <span className="inline-flex w-fit items-center gap-1.5 rounded-md border border-[#f2f2f2] px-2 py-0.5 text-[14px] font-medium text-[#5d5d5d] dark:border-zinc-700">
+            <Flag size={12} className="text-[#dc2626]" />
+            {task.due}
+          </span>
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <p className="text-[12px] font-medium text-[#c2c2c2]">Estimate Minutes</p>
+          <span className="inline-flex w-fit items-center gap-1.5 rounded-md border border-[#f2f2f2] px-2 py-0.5 text-[14px] font-medium text-[#5d5d5d] dark:border-zinc-700">
+            <Clock size={12} />
+            {estMinutes} Min
+          </span>
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <div className="flex w-full items-center justify-between">
+            <p className="text-[12px] font-medium text-[#c2c2c2]">Linked Goal</p>
+            {!linkedGoal && (
+              <button type="button" aria-label="Add linked goal" className="text-[#a3a3a3]">
+                <Plus size={12} />
+              </button>
+            )}
+          </div>
+          {linkedGoal ? (
+            <div className="overflow-hidden rounded-xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800">
+              <div className="flex items-center justify-between px-3 py-2">
+                <div className="flex items-center gap-1.5">
+                  <TrendingUp size={12} className="text-[#5d5d5d]" />
+                  <p className="text-[14px] font-medium text-[#5d5d5d]">{linkedGoal}</p>
+                </div>
+                <span className="flex shrink-0 items-center gap-1 text-[12px] text-[#c2c2c2]">
+                  View Goal <ExternalLink size={10} />
+                </span>
+              </div>
+              <p className="px-3 pt-1 pb-2 text-[12px] text-[#c2c2c2]">
+                Stick to your fitness plan or engage in a workout session to boost your progress.
+              </p>
+              <div className="flex items-center justify-between border-t border-[#f2f2f2] px-3 py-2 text-[12px] text-[#5d5d5d] dark:border-zinc-700">
+                <span>
+                  <span className="text-[#c2c2c2]">Progress:</span> 60%
+                </span>
+                <span>
+                  3/5 Tasks <span className="text-[#c2c2c2]">•</span> 2 Habits
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="flex min-h-16 items-center justify-center rounded-[10px] border border-dashed border-[#e9e9e9] bg-[#fcfcfc] px-3 py-4 dark:border-zinc-700 dark:bg-zinc-800">
+              <p className="text-[12px] font-medium text-[#c2c2c2]">No Goal yet</p>
+            </div>
+          )}
+        </div>
+
+        <SubtasksSection
+          task={task}
+          onUpdateSubtasks={onUpdateSubtasks}
+          autoTriggerAi={autoTriggerSubtasksAi}
+          onAutoTriggerConsumed={onAutoTriggerConsumed}
+        />
+      </div>
+    </div>
+  );
+}
+
+// Slide-over peek (Figma frames 6/6.1/7/7.1) — board stays visible behind it.
+export function TaskDetailDrawer({
+  task,
+  onClose,
+  onOpenFullPage,
+  onUpdateSubtasks,
+  onUpdateTaskFields,
+  onEdit,
+  onDelete,
+  onTriggerSubtasksAi,
+  autoTriggerSubtasksAi = false,
+  onAutoTriggerConsumed,
+}) {
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') onClose?.();
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [onClose]);
+
+  if (!task) return null;
+
+  return (
+    <div className="fixed inset-0 z-40 max-lg:bg-black/10 lg:absolute lg:inset-0 lg:z-30 lg:bg-transparent">
+      <button
+        type="button"
+        aria-label="Close task detail"
+        onClick={onClose}
+        className="absolute inset-0"
+      />
+
+      <aside
+        className="scrollbar-hidden absolute inset-y-0 right-0 flex w-full max-w-100 flex-col overflow-y-auto border-l border-[#f2f2f2] bg-white p-4 max-lg:max-w-none sm:p-5 dark:border-zinc-700 dark:bg-zinc-900"
+        aria-label="Task detail"
+      >
+        <div className="mb-3 flex shrink-0 items-center justify-between">
+          <button
+            type="button"
+            onClick={() => onOpenFullPage?.(task)}
+            aria-label="Open task in full page"
+            className="text-[#a3a3a3] hover:text-[#5d5d5d]"
+          >
+            <ExternalLink size={14} />
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close task detail"
+            className="text-[#a3a3a3] hover:text-[#5d5d5d]"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        <TaskDetailCard
+          task={task}
+          onUpdateSubtasks={onUpdateSubtasks}
+          onUpdateTaskFields={onUpdateTaskFields}
+          autoTriggerSubtasksAi={autoTriggerSubtasksAi}
+          onAutoTriggerConsumed={onAutoTriggerConsumed}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          onTriggerSubtasksAi={onTriggerSubtasksAi}
+        />
+      </aside>
+    </div>
+  );
+}
+
+// Full page (Figma frame 8) — board hidden, AI Assistant docked alongside.
+export default function TaskDetailPanel({
+  task,
+  onUpdateSubtasks,
+  onUpdateTaskFields,
+  onEdit,
+  onDelete,
+  onTriggerSubtasksAi,
   autoTriggerSubtasksAi = false,
   onAutoTriggerConsumed,
 }) {
@@ -444,132 +742,20 @@ export default function TaskDetailPanel({
 
   if (!task) return null;
 
-  const estMinutes =
-    task.tags?.find((t) => t.label?.includes('Min'))?.label?.replace(/\D/g, '') || '60';
-  const linkedGoal = task.tags?.find((t) => t.icon === TrendingUp)?.label;
-
   return (
     <div className="flex min-h-[min(60vh,520px)] w-full flex-col gap-4 xl:h-167.75 xl:flex-row xl:gap-7.5">
-      <div className="relative flex flex-1 flex-col gap-6 overflow-y-auto scrollbar-hidden rounded-2xl border border-[#f2f2f2] bg-white p-4 sm:p-5 dark:border-zinc-700 dark:bg-zinc-900">
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close task detail"
-          className="absolute top-4 right-4 text-[#a3a3a3] hover:text-[#5d5d5d]"
-        >
-          <X size={16} />
-        </button>
-
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center justify-between pr-8">
-            <div className="flex items-center gap-2">
-              <span
-                className={`rounded-md px-2 py-0.5 text-[14px] font-medium uppercase ${PRIORITY_STYLES[task.priority]}`}
-              >
-                {PRIORITY_LABELS[task.priority]}
-              </span>
-              {task.source === 'ai' && (
-                <span className="flex items-center gap-1.5 rounded-md bg-[#f9f4ff] px-2 py-0.5 text-[14px] font-medium text-[#8022fe]">
-                  <Sparkles size={12} />
-                  AI
-                </span>
-              )}
-            </div>
-          </div>
-          <div className="flex flex-col gap-2">
-            {isApplyingAiEdit ? (
-              <SkeletonBar className="h-7 w-3/4" />
-            ) : (
-              <p className="text-xl font-medium text-[#181818] dark:text-white md:text-2xl">
-                {task.title}
-              </p>
-            )}
-            {isApplyingAiEdit ? (
-              <SkeletonBar className="h-4 w-full" />
-            ) : (
-              task.description && <p className="text-base text-[#c2c2c2]">{task.description}</p>
-            )}
-          </div>
-          <div className="flex w-30 items-center justify-between rounded-lg border border-[#f2f2f2] bg-[#fcfcfc] px-3 py-2 dark:border-zinc-700 dark:bg-zinc-800">
-            <p className="text-[14px] font-medium text-[#181818] dark:text-white">
-              {task.status || 'To Do'}
-            </p>
-            <ChevronDown size={10} className="text-[#a3a3a3]" />
-          </div>
-        </div>
-
-        <div className="h-px w-full bg-[#f2f2f2] dark:bg-zinc-700" />
-
-        <div className="flex flex-col gap-6">
-          <div className="flex flex-col gap-1.5">
-            <p className="text-[12px] font-medium text-[#c2c2c2]">Category</p>
-            <span className="inline-flex w-fit rounded-md border border-[#f2f2f2] px-2 py-0.5 text-[14px] font-medium text-[#5d5d5d] dark:border-zinc-700">
-              {task.category || task.tags?.[0]?.label || 'Career'}
-            </span>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <p className="text-[12px] font-medium text-[#c2c2c2]">Due Date</p>
-            <span className="inline-flex w-fit items-center gap-1.5 rounded-md border border-[#f2f2f2] px-2 py-0.5 text-[14px] font-medium text-[#5d5d5d] dark:border-zinc-700">
-              <Flag size={12} className="text-[#dc2626]" />
-              {task.due}
-            </span>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <p className="text-[12px] font-medium text-[#c2c2c2]">Estimate Minutes</p>
-            <span className="inline-flex w-fit items-center gap-1.5 rounded-md border border-[#f2f2f2] px-2 py-0.5 text-[14px] font-medium text-[#5d5d5d] dark:border-zinc-700">
-              <Clock size={12} />
-              {estMinutes} Min
-            </span>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <div className="flex w-full items-center justify-between">
-              <p className="text-[12px] font-medium text-[#c2c2c2]">Linked Goal</p>
-              {!linkedGoal && (
-                <button type="button" aria-label="Add linked goal" className="text-[#a3a3a3]">
-                  <Plus size={12} />
-                </button>
-              )}
-            </div>
-            {linkedGoal ? (
-              <div className="overflow-hidden rounded-xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800">
-                <div className="flex items-center justify-between px-3 py-2">
-                  <div className="flex items-center gap-1.5">
-                    <TrendingUp size={12} className="text-[#5d5d5d]" />
-                    <p className="text-[14px] font-medium text-[#5d5d5d]">{linkedGoal}</p>
-                  </div>
-                  <span className="flex shrink-0 items-center gap-1 text-[12px] text-[#c2c2c2]">
-                    View Goal <ExternalLink size={10} />
-                  </span>
-                </div>
-                <p className="px-3 pt-1 pb-2 text-[12px] text-[#c2c2c2]">
-                  Stick to your fitness plan or engage in a workout session to boost your progress.
-                </p>
-                <div className="flex items-center justify-between border-t border-[#f2f2f2] px-3 py-2 text-[12px] text-[#5d5d5d] dark:border-zinc-700">
-                  <span>
-                    <span className="text-[#c2c2c2]">Progress:</span> 60%
-                  </span>
-                  <span>
-                    3/5 Tasks <span className="text-[#c2c2c2]">•</span> 2 Habits
-                  </span>
-                </div>
-              </div>
-            ) : (
-              <div className="flex min-h-16 items-center justify-center rounded-[10px] border border-dashed border-[#e9e9e9] bg-[#fcfcfc] px-3 py-4 dark:border-zinc-700 dark:bg-zinc-800">
-                <p className="text-[12px] font-medium text-[#c2c2c2]">No Goal yet</p>
-              </div>
-            )}
-          </div>
-
-          <SubtasksSection
-            task={task}
-            onUpdateSubtasks={onUpdateSubtasks}
-            autoTriggerAi={autoTriggerSubtasksAi}
-            onAutoTriggerConsumed={onAutoTriggerConsumed}
-          />
-        </div>
+      <div className="flex flex-1 flex-col overflow-y-auto rounded-2xl border border-[#f2f2f2] bg-white p-4 scrollbar-hidden sm:p-5 dark:border-zinc-700 dark:bg-zinc-900">
+        <TaskDetailCard
+          task={task}
+          onUpdateSubtasks={onUpdateSubtasks}
+          onUpdateTaskFields={onUpdateTaskFields}
+          autoTriggerSubtasksAi={autoTriggerSubtasksAi}
+          onAutoTriggerConsumed={onAutoTriggerConsumed}
+          isApplyingAiEdit={isApplyingAiEdit}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          onTriggerSubtasksAi={onTriggerSubtasksAi}
+        />
       </div>
 
       <div className="h-125 w-full shrink-0 xl:h-auto xl:w-100">

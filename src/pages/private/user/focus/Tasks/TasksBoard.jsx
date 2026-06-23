@@ -19,7 +19,7 @@ import {
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import TaskFormModal from './components/TaskFormModal';
-import TaskDetailPanel from './components/TaskDetailPanel';
+import TaskDetailPanel, { TaskDetailDrawer } from './components/TaskDetailPanel';
 import TypewriterText from '../../../../../components/ui/TypewriterText';
 import { EXERCISE_ROUTINE_SUBTASKS, formatStepsProgress } from './utils/subtasks';
 
@@ -716,6 +716,7 @@ export default function TasksBoard() {
   const [taskModal, setTaskModal] = useState({ open: false, mode: 'create', task: null });
   const [enteringTaskIds, setEnteringTaskIds] = useState(() => new Set());
   const [selectedTaskId, setSelectedTaskId] = useState(null);
+  const [isTaskExpanded, setIsTaskExpanded] = useState(false);
   const [triggerSubtasksAi, setTriggerSubtasksAi] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilters, setActiveFilters] = useState(DEFAULT_FILTERS);
@@ -751,18 +752,20 @@ export default function TasksBoard() {
   const selectedTask = selectedTaskId ? findTaskById(selectedTaskId) : null;
 
   useEffect(() => {
-    setTaskDetail(selectedTask?.title ?? null);
+    setTaskDetail(isTaskExpanded ? selectedTask?.title ?? null : null);
     return () => setTaskDetail(null);
-  }, [selectedTask, setTaskDetail]);
+  }, [selectedTask, isTaskExpanded, setTaskDetail]);
 
   const openTaskDetail = (task, runSubtasksAi = false) => {
     setSelectedTaskId(task.id);
     setTriggerSubtasksAi(runSubtasksAi);
+    setIsTaskExpanded(false);
   };
 
   const closeTaskDetail = () => {
     setSelectedTaskId(null);
     setTriggerSubtasksAi(false);
+    setIsTaskExpanded(false);
   };
 
   const handleUpdateSubtasks = (taskId, subtasks) => {
@@ -881,8 +884,8 @@ export default function TasksBoard() {
   };
 
   return (
-    <div className="py-7.5 max-lg:py-4 max-lg:sm:py-6">
-      {!selectedTask && (
+    <div className="relative py-7.5 max-lg:py-4 max-lg:sm:py-6">
+      {!isTaskExpanded && (
         <>
           {/* Header */}
           <div className="mb-5 flex w-full items-start justify-between max-lg:mb-4 max-lg:flex-col max-lg:gap-4">
@@ -945,13 +948,18 @@ export default function TasksBoard() {
         </>
       )}
 
-      {/* Columns or task detail (Step 8) */}
-      {selectedTask ? (
+      {/* Full page detail (Figma frame 8) replaces the board; otherwise show columns + drawer peek */}
+      {isTaskExpanded && selectedTask ? (
         <TaskDetailPanel
           task={selectedTask}
-          onClose={closeTaskDetail}
           onUpdateSubtasks={(subtasks) => handleUpdateSubtasks(selectedTask.id, subtasks)}
           onUpdateTaskFields={(fields) => handleUpdateTaskFields(selectedTask.id, fields)}
+          onEdit={openEditTaskModal}
+          onDelete={(t) => {
+            handleDeleteTask(t);
+            closeTaskDetail();
+          }}
+          onTriggerSubtasksAi={() => setTriggerSubtasksAi(true)}
           autoTriggerSubtasksAi={triggerSubtasksAi}
           onAutoTriggerConsumed={() => setTriggerSubtasksAi(false)}
         />
@@ -1033,6 +1041,25 @@ export default function TasksBoard() {
           );
         })}
       </div>
+      )}
+
+      {/* Drawer peek (Figma frames 6/6.1/7/7.1) — overlays the board, still visible behind it */}
+      {selectedTask && !isTaskExpanded && (
+        <TaskDetailDrawer
+          task={selectedTask}
+          onClose={closeTaskDetail}
+          onOpenFullPage={() => setIsTaskExpanded(true)}
+          onUpdateSubtasks={(subtasks) => handleUpdateSubtasks(selectedTask.id, subtasks)}
+          onUpdateTaskFields={(fields) => handleUpdateTaskFields(selectedTask.id, fields)}
+          onEdit={openEditTaskModal}
+          onDelete={(t) => {
+            handleDeleteTask(t);
+            closeTaskDetail();
+          }}
+          onTriggerSubtasksAi={() => setTriggerSubtasksAi(true)}
+          autoTriggerSubtasksAi={triggerSubtasksAi}
+          onAutoTriggerConsumed={() => setTriggerSubtasksAi(false)}
+        />
       )}
 
       {/* Modal */}
