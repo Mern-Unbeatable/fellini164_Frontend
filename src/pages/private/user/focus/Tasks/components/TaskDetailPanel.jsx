@@ -202,20 +202,20 @@ function AiAssistantStub() {
             ✦ Improve description
           </span>
         </div>
-        <div className="relative w-full">
+        <div className="flex w-full items-center gap-2 rounded-xl border border-[#f2f2f2] px-3 py-2 dark:border-zinc-700">
           <textarea
             ref={textareaRef}
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             placeholder="Describe what you want to change..."
             rows={1}
-            className="max-h-30 w-full resize-none overflow-hidden rounded-xl border border-[#f2f2f2] px-3 py-2 pr-10 text-[12px] text-[#5d5d5d] placeholder:text-[#c2c2c2] focus:outline-none dark:border-zinc-700 dark:text-gray-300"
+            className="max-h-30 flex-1 resize-none overflow-hidden bg-transparent text-[12px] text-[#5d5d5d] placeholder:text-[#c2c2c2] focus:outline-none dark:text-gray-300"
           />
           <button
             type="button"
             aria-label="Send"
             disabled={!prompt.trim()}
-            className="absolute top-1/2 right-1.5 flex -translate-y-1/2 items-center justify-center rounded-full bg-[#8022fe] p-1.5 text-white disabled:opacity-50"
+            className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#8022fe] text-white disabled:opacity-50"
           >
             <Send size={12} />
           </button>
