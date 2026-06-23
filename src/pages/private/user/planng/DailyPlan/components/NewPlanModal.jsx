@@ -65,7 +65,7 @@ export default function NewPlanModal({ open, onClose, onSave }) {
                 onClick={() => setDateRange(option)}
                 className={`rounded-[14px] border px-4.5 py-2 text-[14px] font-medium transition-colors ${
                   dateRange === option
-                    ? 'border-zinc-800 text-zinc-900 bg-white' 
+                    ? ' text-white bg-primary' 
                     : 'border-zinc-200 text-zinc-800 hover:bg-zinc-50'
                 }`}
               >
@@ -88,7 +88,7 @@ export default function NewPlanModal({ open, onClose, onSave }) {
             disabled={!planText.trim()}
             className={`flex-1 rounded-[16px] py-3.5 text-[15px] font-medium transition-colors ${
               planText.trim()
-                ? 'bg-zinc-900 text-white hover:bg-zinc-800' 
+                ? 'bg-primary text-white ' 
                 : 'bg-[#F5F5F7] text-zinc-300 cursor-not-allowed'
             }`}
           >

@@ -32,7 +32,7 @@ export default function PrivateLayout() {
           onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
           onLogout={handleLogout}
         />
-        <main className="flex-1 overflow-y-auto bg-[#fcfcfc] px-10 dark:bg-gray-900 max-lg:px-4 max-lg:sm:px-6">
+        <main className="flex-1 overflow-y-auto bg-[#fcfcfc] px-10 max-lg:px-4 max-lg:sm:px-6 dark:bg-gray-900">
           <Outlet />
         </main>
       </div>

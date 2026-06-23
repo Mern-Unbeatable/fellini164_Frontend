@@ -40,10 +40,16 @@ export default function DailyPlanner() {
     },
   ]);
 
-  const chatEndRef = useRef(null);
+  const chatContainerRef = useRef(null);
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
   }, [messages]);
 
   const handleSavePlan = (data) => {
@@ -269,7 +275,7 @@ export default function DailyPlanner() {
           handleSendMessage={handleSendMessage}
           handleActionClick={handleActionClick}
           handleQuickAction={handleQuickAction}
-          chatEndRef={chatEndRef}
+          chatContainerRef={chatContainerRef}
         />
       </div>
 

@@ -8,7 +8,7 @@ export default function AIAssistant({
   handleSendMessage,
   handleActionClick,
   handleQuickAction,
-  chatEndRef,
+  chatContainerRef,
 }) {
   return (
     <div className="flex h-[600px] w-full flex-col items-center overflow-hidden md:h-[500px] lg:h-[780px] lg:w-96">
@@ -33,7 +33,7 @@ export default function AIAssistant({
         </div>
 
         {/* Chat Messages */}
-        <div className="flex-1 space-y-4 overflow-y-auto scrollbar-white bg-white p-5 dark:bg-zinc-900">
+        <div ref={chatContainerRef} className="flex-1 space-y-4 overflow-y-auto scrollbar-white bg-white p-5 dark:bg-zinc-900">
           {messages.map((msg) => (
             <div
               key={msg.id}
@@ -79,7 +79,7 @@ export default function AIAssistant({
                     <button
                       key={link.actionId}
                       onClick={() => handleActionClick(link.actionId)}
-                      className="text-primary rounded-lg bg-[#F5F3FF] px-3 py-1.5 text-[12px] font-semibold transition-colors hover:bg-[#EDE9FE] dark:bg-zinc-800 dark:text-[#a78bfa] dark:hover:bg-zinc-700"
+                      className="text-primary rounded-lg bg-[#F5F5F5] px-3 py-1.5 text-[12px] font-semibold transition-colors hover:bg-gray-100 dark:bg-zinc-800 dark:text-gray-200 dark:hover:bg-zinc-700"
                     >
                       {link.label}
                     </button>
@@ -88,7 +88,6 @@ export default function AIAssistant({
               )}
             </div>
           ))}
-          <div ref={chatEndRef} />
         </div>
 
         {/* Quick Action Suggestion Chips (Aligned left, w-fit) */}
