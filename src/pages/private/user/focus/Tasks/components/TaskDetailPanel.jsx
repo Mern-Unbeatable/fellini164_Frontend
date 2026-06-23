@@ -215,7 +215,7 @@ function AiAssistantStub() {
             type="button"
             aria-label="Send"
             disabled={!prompt.trim()}
-            className="absolute right-1.5 bottom-1.5 flex items-center justify-center rounded-full bg-[#8022fe] p-1.5 text-white disabled:opacity-50"
+            className="absolute top-1/2 right-1.5 flex -translate-y-1/2 items-center justify-center rounded-full bg-[#8022fe] p-1.5 text-white disabled:opacity-50"
           >
             <Send size={12} />
           </button>
@@ -346,7 +346,7 @@ export default function TaskDetailPanel({
         </div>
       </div>
 
-      <div className="hidden w-100 shrink-0 xl:block">
+      <div className="h-125 w-full shrink-0 xl:h-auto xl:w-100">
         <AiAssistantStub />
       </div>
     </div>
