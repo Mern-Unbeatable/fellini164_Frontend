@@ -17,6 +17,7 @@ import {
   Target,
 } from 'lucide-react';
 import { useState, useRef, useEffect, useMemo } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import TaskFormModal from './components/TaskFormModal';
 import TaskDetailPanel from './components/TaskDetailPanel';
 import TypewriterText from '../../../../../components/ui/TypewriterText';
@@ -709,6 +710,7 @@ function taskMatchesFilters(task, filters) {
 }
 
 export default function TasksBoard() {
+  const { setTaskDetail } = useOutletContext();
   const [columns, setColumns] = useState(INITIAL_COLUMNS);
   const [ghostTasks, setGhostTasks] = useState(GHOST_TASKS);
   const [taskModal, setTaskModal] = useState({ open: false, mode: 'create', task: null });
@@ -747,6 +749,11 @@ export default function TasksBoard() {
   };
 
   const selectedTask = selectedTaskId ? findTaskById(selectedTaskId) : null;
+
+  useEffect(() => {
+    setTaskDetail(selectedTask?.title ?? null);
+    return () => setTaskDetail(null);
+  }, [selectedTask, setTaskDetail]);
 
   const openTaskDetail = (task, runSubtasksAi = false) => {
     setSelectedTaskId(task.id);
@@ -875,25 +882,7 @@ export default function TasksBoard() {
 
   return (
     <div className="py-7.5 max-lg:py-4 max-lg:sm:py-6">
-      {selectedTask ? (
-        <div className="mb-5 flex min-w-0 items-center gap-2.5 max-lg:mb-4">
-          <p className="truncate text-[12px] font-medium whitespace-nowrap text-[#5d5d5d] dark:text-gray-300">
-            Work
-          </p>
-          <span className="shrink-0 text-[12px] font-medium text-[#c2c2c2] dark:text-zinc-600">/</span>
-          <button
-            type="button"
-            onClick={closeTaskDetail}
-            className="truncate text-[12px] font-medium whitespace-nowrap text-[#c2c2c2] hover:text-[#5d5d5d] dark:text-zinc-500 dark:hover:text-gray-300"
-          >
-            Tasks
-          </button>
-          <span className="shrink-0 text-[12px] font-medium text-[#c2c2c2] dark:text-zinc-600">/</span>
-          <p className="truncate text-[12px] font-medium whitespace-nowrap text-[#c2c2c2] dark:text-zinc-500">
-            {selectedTask.title}
-          </p>
-        </div>
-      ) : (
+      {!selectedTask && (
         <>
           {/* Header */}
           <div className="mb-5 flex w-full items-start justify-between max-lg:mb-4 max-lg:flex-col max-lg:gap-4">
