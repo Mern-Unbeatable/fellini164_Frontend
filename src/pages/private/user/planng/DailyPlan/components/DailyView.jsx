@@ -21,7 +21,7 @@ export default function DailyView({ currentDate, selectedDate }) {
       </div>
 
       {/* Daily Scrollable Grid */}
-      <div className="flex-1 overflow-y-auto max-h-[580px]">
+      <div className="flex-1 overflow-y-auto max-h-[580px] scrollbar-white">
         {['1 AM', '2 AM', '3 AM', '4 AM', '5 AM', '6 AM', '7 AM', '8 AM', '9 AM', '10 AM', '11 AM'].map((hour) => (
           <div 
             key={hour} 
@@ -44,10 +44,10 @@ export default function DailyView({ currentDate, selectedDate }) {
 
               {hour === '1 AM' && (
                 <div className="bg-white dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700 shadow-sm rounded-lg p-3 flex items-center justify-between w-full">
-                  <span className="text-xs text-slate-700 dark:text-gray-300 font-bold">Morning Workout Routine</span>
+                  <span className="text-xs text-slate-700 dark:text-gray-300 font-medium">Morning Workout Routine</span>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[8px] font-bold px-2 py-0.5 rounded bg-orange-50 text-orange-500 border border-orange-100 dark:bg-orange-950/30 dark:text-orange-400 dark:border-none">HIGH</span>
-                    <span className="text-[8px] font-bold px-2 py-0.5 rounded bg-[#7C3AED]/10 text-[#7C3AED] border border-[#7C3AED]/20 dark:bg-purple-950/30 dark:text-purple-400 dark:border-none flex items-center gap-1">
+                    <span className="text-[8px] font-bold px-2 py-0.5 rounded bg-[#F973160D] text-[#F97316] dark:bg-orange-[#F973160D] dark:text-orange-400 dark:border-none">HIGH</span>
+                    <span className="text-[8px] font-bold px-2 py-0.5 rounded bg-[#7C3AED]/10 text-primary  dark:bg-[#F9F4FF] dark:text-purple-400 dark:border-none flex items-center gap-1">
                       <Sparkles size={8} /> AI
                     </span>
                     <span className="text-[8px] font-bold px-2 py-0.5 rounded bg-gray-50 text-gray-400 border border-gray-100 dark:bg-zinc-700 dark:text-gray-400 dark:border-none">TO DO</span>
@@ -57,7 +57,7 @@ export default function DailyView({ currentDate, selectedDate }) {
 
               {hour === '2 AM' && (
                 <div className="bg-white dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700 shadow-sm rounded-lg p-3 flex items-center justify-between w-full">
-                  <span className="text-xs text-slate-700 dark:text-gray-300 font-bold">Complete Work Task</span>
+                  <span className="text-xs text-slate-700 dark:text-gray-300 font-medium">Complete Work Task</span>
                   <div className="flex items-center gap-1.5">
                     <span className="text-[8px] font-bold px-2 py-0.5 rounded bg-yellow-50 text-yellow-600 border border-yellow-100 dark:bg-yellow-950/30 dark:text-yellow-400 dark:border-none">MEDIUM</span>
                     <span className="text-[8px] font-bold px-2 py-0.5 rounded bg-gray-50 text-gray-400 border border-gray-100 dark:bg-zinc-700 dark:text-gray-400 dark:border-none">TO DO</span>
@@ -68,7 +68,7 @@ export default function DailyView({ currentDate, selectedDate }) {
               {hour === '4 AM' && (
                 <div className="bg-white dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700 shadow-sm rounded-lg p-3 flex flex-col gap-1 w-full">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-slate-700 dark:text-gray-300 font-bold">Exercise Routine</span>
+                    <span className="text-xs text-slate-700 dark:text-gray-300 font-medium">Exercise Routine</span>
                     <div className="flex items-center gap-1.5">
                       <span className="text-[8px] font-bold px-2 py-0.5 rounded bg-red-50 text-red-500 border border-red-100 dark:bg-red-950/30 dark:text-red-400 dark:border-none">URGENT</span>
                       <span className="text-[8px] font-bold px-2 py-0.5 rounded bg-[#7C3AED]/10 text-[#7C3AED] border border-[#7C3AED]/20 dark:bg-purple-950/30 dark:text-purple-400 dark:border-none flex items-center gap-1">
@@ -89,7 +89,7 @@ export default function DailyView({ currentDate, selectedDate }) {
                       <span className="text-[8px] font-bold px-2 py-0.5 rounded bg-gray-50 text-gray-405 border border-gray-100 dark:bg-zinc-700 dark:text-gray-400 dark:border-none">LOW</span>
                       <span className="text-[8px] font-bold px-2 py-0.5 rounded bg-gray-50 text-gray-500 border border-gray-100 dark:bg-zinc-700 dark:text-gray-300 dark:border-none">IN PROGRESS</span>
                     </div>
-                    <span className="text-xs text-slate-700 dark:text-gray-300 font-bold leading-snug">Update Resume and LinkedIn Profile</span>
+                    <span className="text-xs text-slate-700 dark:text-gray-300 font-medium leading-snug">Update Resume and LinkedIn Profile</span>
                     <p className="text-[10px] text-gray-400 dark:text-gray-500 leading-relaxed truncate">Communicate the expectations regarding maintaining a calm...</p>
                     <div className="flex items-center gap-2 mt-1">
                       <span className="text-[8px] font-semibold px-2 py-0.5 border border-gray-200 text-gray-400 rounded-lg dark:border-zinc-700">Health</span>
@@ -102,7 +102,7 @@ export default function DailyView({ currentDate, selectedDate }) {
                   {/* Drink Water card */}
                   <div className="bg-white dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700 shadow-sm rounded-lg p-3.5 flex items-center justify-between">
                     <div className="flex flex-col gap-1 pr-4">
-                      <span className="text-xs text-slate-700 dark:text-gray-300 font-bold">Drink Water</span>
+                      <span className="text-xs text-slate-700 dark:text-gray-300 font-medium">Drink Water</span>
                       <p className="text-[10px] text-gray-400 dark:text-gray-500 leading-relaxed truncate">Stay hydrated throughout the day Stay hydrated throughout...</p>
                     </div>
                     <div className="flex flex-col items-center justify-center p-2 border border-gray-100 dark:border-zinc-700 rounded-lg min-w-[48px]">

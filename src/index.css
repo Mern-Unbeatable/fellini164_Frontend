@@ -829,13 +829,19 @@
     display: none;
   }
 
+  .scrollbar-white::-webkit-scrollbar {
+    width: 3px;
+    height: 6px;
+  }
+
   .scrollbar-white::-webkit-scrollbar-thumb {
-    background-color: #ffffff;
+    background-color: #E9E9E9;
     border: none;
+    border-radius: var(--radius-full);
   }
   
   .scrollbar-white::-webkit-scrollbar-track {
-    background-color: #ffffff;
+    background-color: transparent;
   }
 
   .dark .scrollbar-white::-webkit-scrollbar-thumb {
