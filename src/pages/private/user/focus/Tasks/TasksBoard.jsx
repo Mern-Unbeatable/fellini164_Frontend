@@ -550,7 +550,7 @@ function TaskCard({ task, onEdit, onDelete, onSelect, onBreakIntoSubtasks, isDon
 
       <div className="relative z-10 flex w-full shrink-0 items-center justify-between border-t border-[#f2f2f2] bg-[#fcfcfc] px-[12px] py-[10px] dark:border-zinc-700 dark:bg-zinc-800">
         {task.completed ? (
-          <p className={`text-xs sm:text-sm ${faded ? 'text-[#5d5d5d]' : ''}`}>
+          <p className={`text-xs font-medium leading-normal lg:text-[12px] ${faded ? 'text-[#5d5d5d]' : ''}`}>
             <span className="text-[#c2c2c2]">Completed:</span>{' '}
             <span className="text-[#5d5d5d]">{task.completed}</span>
           </p>
