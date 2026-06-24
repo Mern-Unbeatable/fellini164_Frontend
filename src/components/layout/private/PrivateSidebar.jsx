@@ -26,7 +26,7 @@ const SHORT_MONTH_NAMES = [
 
 const MAIN_ITEMS = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard', match: ['/dashboard'] },
-  { label: 'Announcements', icon: Megaphone },
+  { label: 'Announcements', icon: Megaphone, path: '/user/announcements', match: ['/user/announcements'] },
 ];
 
 const ORGANIZATION_ITEMS = [

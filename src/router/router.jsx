@@ -43,6 +43,7 @@ import ResetPassword from '../pages/auth/ResetPassword';
 import ForgotPassword from '../pages/auth/ForgotPassword';
 
 import ForgotPasswordVerifyOTP from '../pages/auth/ForgotPasswordVerifyOTP';
+import Announcements from '../pages/private/user/announcements/Announcements';
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -81,6 +82,7 @@ const router = createBrowserRouter(
       >
         <Route path="/dashboard" element={<UserDashView />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/user/announcements" element={<Announcements />} />
         <Route path="/user/ai-coach" element={<AiChat />} />
         <Route path="/user/analytics" element={<Analytics />} />
         <Route path="/user/profile" element={<Profile />} />
