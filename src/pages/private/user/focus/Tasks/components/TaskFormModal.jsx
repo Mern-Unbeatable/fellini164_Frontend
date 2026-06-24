@@ -256,7 +256,7 @@ function TimePickerField({ hour, minute, period, onChangeHour, onChangeMinute, o
         <span>
           {hour}:{minute} {period}
         </span>
-        <Watch size={12} className="shrink-0 text-[#a3a3a3]" />
+        <Watch size={16} className="shrink-0 text-[#a3a3a3]" />
       </button>
 
       {open && (
@@ -271,6 +271,8 @@ function TimePickerField({ hour, minute, period, onChangeHour, onChangeMinute, o
 }
 
 function ManualFormFields({ form, update }) {
+  const dateInputRef = useRef(null);
+
   return (
     <div className="flex flex-col gap-4">
       <Field label="Title">
@@ -310,15 +312,19 @@ function ManualFormFields({ form, update }) {
 
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <Field label="Due Date">
-          <div className="relative">
+          <div
+            className="relative cursor-pointer"
+            onClick={() => dateInputRef.current?.showPicker?.()}
+          >
             <input
+              ref={dateInputRef}
               type="date"
               value={form.dueDate}
               onChange={(e) => update('dueDate', e.target.value)}
-              className={`${inputClasses} pr-8 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:w-8 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0`}
+              className={`${inputClasses} cursor-pointer pr-8 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:w-8 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0`}
             />
             <Calendar
-              size={12}
+              size={16}
               className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-[#a3a3a3]"
             />
           </div>
