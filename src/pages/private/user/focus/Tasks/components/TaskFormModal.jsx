@@ -8,7 +8,8 @@ const PRIORITIES = ['Low', 'Medium', 'High', 'Urgent'];
 const CATEGORIES = ['Career', 'Health', 'Finance', 'Personal', 'Education'];
 const STATUSES = ['To Do', 'In Progress', 'Done'];
 const HOURS = Array.from({ length: 12 }, (_, i) => i + 1);
-const MINUTES = ['00', '15', '30', '45'];
+const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
+const PERIODS = ['AM', 'PM'];
 const LINKED_GOALS = ['Improve Rate', 'Save $10,000', 'Run 500km'];
 
 const AI_PROMPT_PHRASES = [
@@ -194,6 +195,44 @@ function AIGeneratedPreviewCard({ task, revealStep = 3 }) {
   );
 }
 
+function TimeColumn({ values, selected, onSelect, showDivider }) {
+  const listRef = useRef(null);
+
+  useEffect(() => {
+    const selectedEl = listRef.current?.querySelector('[data-selected="true"]');
+    selectedEl?.scrollIntoView({ block: 'center' });
+  }, []);
+
+  return (
+    <div
+      className={`flex h-32 w-12 flex-col gap-0.5 overflow-y-auto scrollbar-hidden ${
+        showDivider ? 'border-l border-[#f2f2f2] dark:border-zinc-700' : ''
+      }`}
+    >
+      <div ref={listRef} className="flex flex-col gap-0.5 px-0.5">
+        {values.map((v) => {
+          const isSelected = v === selected;
+          return (
+            <button
+              key={v}
+              type="button"
+              data-selected={isSelected}
+              onClick={() => onSelect(v)}
+              className={`shrink-0 rounded-md px-2 py-1.5 text-center text-[12px] font-medium ${
+                isSelected
+                  ? 'bg-[#f9f4ff] text-[#8022fe]'
+                  : 'text-[#5d5d5d] hover:bg-[#f2f2f2] dark:text-gray-300 dark:hover:bg-zinc-700'
+              }`}
+            >
+              {v}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function TimePickerField({ hour, minute, period, onChangeHour, onChangeMinute, onChangePeriod }) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef(null);
@@ -221,38 +260,10 @@ function TimePickerField({ hour, minute, period, onChangeHour, onChangeMinute, o
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 z-20 mt-1 flex items-center gap-1 rounded-lg border border-[#f2f2f2] bg-white p-2 shadow-[0px_2px_4px_0px_rgba(0,0,0,0.06)] dark:border-zinc-700 dark:bg-zinc-800">
-          <select
-            value={hour}
-            onChange={(e) => onChangeHour(Number(e.target.value))}
-            className="w-9 appearance-none bg-transparent text-[12px] text-[#181818] outline-none dark:text-white"
-          >
-            {HOURS.map((h) => (
-              <option key={h} value={h}>
-                {h}
-              </option>
-            ))}
-          </select>
-          <span className="text-[#a3a3a3]">:</span>
-          <select
-            value={minute}
-            onChange={(e) => onChangeMinute(e.target.value)}
-            className="w-9 appearance-none bg-transparent text-[12px] text-[#181818] outline-none dark:text-white"
-          >
-            {MINUTES.map((m) => (
-              <option key={m} value={m}>
-                {m}
-              </option>
-            ))}
-          </select>
-          <select
-            value={period}
-            onChange={(e) => onChangePeriod(e.target.value)}
-            className="appearance-none bg-transparent text-[12px] text-[#181818] outline-none dark:text-white"
-          >
-            <option>AM</option>
-            <option>PM</option>
-          </select>
+        <div className="absolute top-full left-0 z-20 mt-1 flex items-start gap-1 rounded-lg border border-[#f2f2f2] bg-white p-1.5 shadow-[0px_2px_4px_0px_rgba(0,0,0,0.06)] dark:border-zinc-700 dark:bg-zinc-800">
+          <TimeColumn values={HOURS} selected={hour} onSelect={onChangeHour} />
+          <TimeColumn values={MINUTES} selected={minute} onSelect={onChangeMinute} showDivider />
+          <TimeColumn values={PERIODS} selected={period} onSelect={onChangePeriod} showDivider />
         </div>
       )}
     </div>
