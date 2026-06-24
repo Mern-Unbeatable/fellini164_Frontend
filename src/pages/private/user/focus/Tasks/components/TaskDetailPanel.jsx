@@ -149,7 +149,7 @@ function SubtasksSection({ task, onUpdateSubtasks, autoTriggerAi, onAutoTriggerC
             aria-label="Add subtask manually"
             className="text-[#a3a3a3]"
           >
-            <Plus size={14} />
+            <Plus size={16} />
           </button>
           <button
             type="button"
@@ -158,7 +158,7 @@ function SubtasksSection({ task, onUpdateSubtasks, autoTriggerAi, onAutoTriggerC
             aria-label="Generate subtasks with AI"
             className="rounded-md p-0.5 text-[#8022fe] disabled:opacity-50"
           >
-            <Sparkles size={14} />
+            <Sparkles size={16} />
           </button>
         </div>
       </div>
@@ -402,12 +402,12 @@ function AiAssistantChat({ task, onUpdateSubtasks, onUpdateTaskFields, onApplyin
     <div className="flex h-full w-full flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-white dark:border-zinc-700 dark:bg-zinc-900">
       <div className="flex items-center justify-between border-b border-[#f2f2f2] px-3 py-2.5 dark:border-zinc-700">
         <div className="flex items-center gap-1.5">
-          <Sparkles size={12} className="text-[#8022fe]" />
+          <Sparkles size={14} className="text-[#8022fe]" />
           <p className="text-[14px] font-medium text-[#5d5d5d] dark:text-gray-300">AI Assistant</p>
         </div>
         <div className="flex items-center gap-2 text-[#a3a3a3]">
-          <Maximize2 size={12} />
-          <X size={12} />
+          <Maximize2 size={14} />
+          <X size={14} />
         </div>
       </div>
 
@@ -552,7 +552,7 @@ function TaskDetailCard({
               aria-expanded={menuOpen}
               className="text-[#a3a3a3] hover:text-[#5d5d5d]"
             >
-              <MoreHorizontal size={15} />
+              <MoreHorizontal size={16} />
             </button>
             {menuOpen && (
               <TaskDetailMenu
@@ -644,7 +644,7 @@ function TaskDetailCard({
             <p className="text-[12px] font-medium text-[#c2c2c2]">Linked Goal</p>
             {!linkedGoal && (
               <button type="button" aria-label="Add linked goal" className="text-[#a3a3a3]">
-                <Plus size={14} />
+                <Plus size={16} />
               </button>
             )}
           </div>
