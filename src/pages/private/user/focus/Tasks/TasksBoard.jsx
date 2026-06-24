@@ -982,7 +982,7 @@ export default function TasksBoard() {
             >
               <div className="flex w-full shrink-0 items-center justify-between">
                 <div className="flex min-w-0 items-center gap-2">
-                  <Icon size={12} className="shrink-0 text-[#5d5d5d] dark:text-gray-300" />
+                  <Icon size={14} className="shrink-0 text-[#5d5d5d] dark:text-gray-300" />
                   <p className="text-sm font-medium leading-normal text-[#5d5d5d] lg:text-[14px] dark:text-gray-300">{label}</p>
                   {isTodo && overdueCount > 0 && (
                     <span className="flex items-center gap-1 rounded-[6px] bg-[rgba(220,38,38,0.05)] px-[6px] py-[2px] text-[10px] font-semibold leading-normal text-[#dc2626]">
