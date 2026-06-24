@@ -571,7 +571,7 @@ export default function MessagePage() {
   }, [openDropdown]);
 
   return (
-    <div className="flex h-full w-full  p-4 sm:p-6 lg:p-8">
+    <div className="flex h-full w-full py-7.5 max-lg:py-4 max-lg:sm:py-6">
       {/* Left Panel */}
       <div
         className={`${showChat ? 'hidden' : 'flex'
