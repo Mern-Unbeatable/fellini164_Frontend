@@ -501,6 +501,7 @@ function TaskDetailCard({
   onEdit,
   onDelete,
   onTriggerSubtasksAi,
+  variant = 'page',
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
@@ -521,18 +522,22 @@ function TaskDetailCard({
     onUpdateTaskFields({ description: buildImprovedDescription(task.description) });
   };
 
+  const isDrawer = variant === 'drawer';
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span
-              className={`rounded-md px-2 py-0.5 text-[14px] font-medium uppercase ${PRIORITY_STYLES[task.priority]}`}
+              className={`rounded-md font-medium uppercase ${isDrawer ? 'px-2 pt-0.5 pb-[3px] text-[14px]' : 'px-2 py-0.5 text-[14px]'} ${PRIORITY_STYLES[task.priority]}`}
             >
               {PRIORITY_LABELS[task.priority]}
             </span>
             {task.source === 'ai' && (
-              <span className="flex items-center gap-1.5 rounded-md bg-[#f9f4ff] px-2 py-0.5 text-[14px] font-medium text-[#8022fe]">
+              <span
+                className={`flex items-center rounded-md bg-[#f9f4ff] font-medium text-[#8022fe] ${isDrawer ? 'gap-1.5 px-2 pt-0.5 pb-[3px] text-[14px]' : 'gap-1.5 px-2 py-0.5 text-[14px]'}`}
+              >
                 <Sparkles size={12} />
                 AI
               </span>
@@ -559,18 +564,34 @@ function TaskDetailCard({
             )}
           </div>
         </div>
-        <div className="flex flex-col gap-2">
+        <div className={`flex flex-col ${isDrawer ? 'gap-1' : 'gap-2'}`}>
           {isApplyingAiEdit ? (
             <SkeletonBar className="h-7 w-3/4" />
           ) : (
-            <p className="text-xl font-medium text-[#181818] dark:text-white md:text-2xl">
+            <p
+              className={
+                isDrawer
+                  ? 'text-2xl font-semibold leading-[1.3] text-[#181818] dark:text-white'
+                  : 'text-xl font-medium text-[#181818] dark:text-white md:text-2xl'
+              }
+            >
               {task.title}
             </p>
           )}
           {isApplyingAiEdit ? (
             <SkeletonBar className="h-4 w-full" />
           ) : (
-            task.description && <p className="text-base text-[#c2c2c2]">{task.description}</p>
+            task.description && (
+              <p
+                className={
+                  isDrawer
+                    ? 'text-sm font-medium text-[#a3a3a3]'
+                    : 'text-base text-[#c2c2c2]'
+                }
+              >
+                {task.description}
+              </p>
+            )
           )}
         </div>
         <div className="flex w-30 items-center justify-between rounded-lg border border-[#f2f2f2] bg-[#fcfcfc] px-3 py-2 dark:border-zinc-700 dark:bg-zinc-800">
@@ -586,14 +607,18 @@ function TaskDetailCard({
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-1.5">
           <p className="text-[12px] font-medium text-[#c2c2c2]">Category</p>
-          <span className="inline-flex w-fit rounded-md border border-[#f2f2f2] px-2 py-0.5 text-[14px] font-medium text-[#5d5d5d] dark:border-zinc-700">
+          <span
+            className={`inline-flex w-fit rounded-md border border-[#f2f2f2] font-medium text-[#5d5d5d] dark:border-zinc-700 ${isDrawer ? 'px-2 pt-0.5 pb-[3px] text-[14px]' : 'px-2 py-0.5 text-[14px]'}`}
+          >
             {task.category || task.tags?.[0]?.label || 'Career'}
           </span>
         </div>
 
         <div className="flex flex-col gap-1.5">
           <p className="text-[12px] font-medium text-[#c2c2c2]">Due Date</p>
-          <span className="inline-flex w-fit items-center gap-1.5 rounded-md border border-[#f2f2f2] px-2 py-0.5 text-[14px] font-medium text-[#5d5d5d] dark:border-zinc-700">
+          <span
+            className={`inline-flex w-fit items-center gap-1.5 rounded-md border border-[#f2f2f2] font-medium text-[#5d5d5d] dark:border-zinc-700 ${isDrawer ? 'px-2 pt-0.5 pb-[3px] text-[14px]' : 'px-2 py-0.5 text-[14px]'}`}
+          >
             <Flag size={12} className="text-[#dc2626]" />
             {task.due}
           </span>
@@ -601,7 +626,9 @@ function TaskDetailCard({
 
         <div className="flex flex-col gap-1.5">
           <p className="text-[12px] font-medium text-[#c2c2c2]">Estimate Minutes</p>
-          <span className="inline-flex w-fit items-center gap-1.5 rounded-md border border-[#f2f2f2] px-2 py-0.5 text-[14px] font-medium text-[#5d5d5d] dark:border-zinc-700">
+          <span
+            className={`inline-flex w-fit items-center gap-1.5 rounded-md border border-[#f2f2f2] font-medium text-[#5d5d5d] dark:border-zinc-700 ${isDrawer ? 'px-2 pt-0.5 pb-[3px] text-[14px]' : 'px-2 py-0.5 text-[14px]'}`}
+          >
             <Clock size={12} />
             {estMinutes} Min
           </span>
@@ -658,7 +685,7 @@ function TaskDetailCard({
 }
 
 // Slide-over peek (Figma frames 6/6.1/7/7.1) — board stays visible behind it.
-const DRAWER_DEFAULT_WIDTH = 400;
+const DRAWER_DEFAULT_WIDTH = 360;
 const DRAWER_MIN_WIDTH = 360;
 const DRAWER_MAX_WIDTH = 720;
 
@@ -735,7 +762,7 @@ export function TaskDetailDrawer({
 
       <aside
         style={isDesktop ? { width } : undefined}
-        className="scrollbar-hidden absolute inset-y-0 right-0 flex w-full max-w-full flex-col overflow-y-auto border-l border-[#f2f2f2] bg-white p-4 sm:p-5 dark:border-zinc-700 dark:bg-zinc-900"
+        className="absolute inset-y-0 right-0 flex w-full max-w-full flex-col overflow-hidden border-l border-[#f2f2f2] bg-white dark:border-zinc-700 dark:bg-zinc-900"
         aria-label="Task detail"
       >
         <button
@@ -745,7 +772,7 @@ export function TaskDetailDrawer({
           className="absolute inset-y-0 left-0 hidden w-1 -translate-x-1/2 cursor-col-resize hover:bg-[#8022fe]/20 lg:block"
         />
 
-        <div className="mb-3 flex shrink-0 items-center justify-between">
+        <div className="flex shrink-0 items-center justify-between border-b border-[#f2f2f2] px-5 py-4 dark:border-zinc-700">
           <button
             type="button"
             onClick={() => onOpenFullPage?.(task)}
@@ -760,20 +787,23 @@ export function TaskDetailDrawer({
             aria-label="Close task detail"
             className="text-[#a3a3a3] hover:text-[#5d5d5d]"
           >
-            <X size={16} />
+            <X size={12} />
           </button>
         </div>
 
-        <TaskDetailCard
-          task={task}
-          onUpdateSubtasks={onUpdateSubtasks}
-          onUpdateTaskFields={onUpdateTaskFields}
-          autoTriggerSubtasksAi={autoTriggerSubtasksAi}
-          onAutoTriggerConsumed={onAutoTriggerConsumed}
-          onEdit={onEdit}
-          onDelete={onDelete}
-          onTriggerSubtasksAi={onTriggerSubtasksAi}
-        />
+        <div className="scrollbar-hidden flex min-h-0 flex-1 flex-col overflow-y-auto pl-5 pr-7.5 py-5">
+          <TaskDetailCard
+            variant="drawer"
+            task={task}
+            onUpdateSubtasks={onUpdateSubtasks}
+            onUpdateTaskFields={onUpdateTaskFields}
+            autoTriggerSubtasksAi={autoTriggerSubtasksAi}
+            onAutoTriggerConsumed={onAutoTriggerConsumed}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            onTriggerSubtasksAi={onTriggerSubtasksAi}
+          />
+        </div>
       </aside>
     </div>
   );
