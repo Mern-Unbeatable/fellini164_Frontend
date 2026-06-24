@@ -537,7 +537,7 @@ export default function TaskFormModal({ mode = 'create', initialTask, onClose, o
                   rows={5}
                   value={aiPrompt}
                   onChange={(e) => setAiPrompt(e.target.value)}
-                  className={`${inputClasses} relative z-10 h-[140px] resize-none rounded-xl bg-transparent`}
+                  className={`${inputClasses} relative z-10 h-[140px] resize-none rounded-xl bg-transparent!`}
                 />
                 <TypewriterPlaceholder phrases={AI_PROMPT_PHRASES} visible={!aiPrompt.trim()} />
               </div>
