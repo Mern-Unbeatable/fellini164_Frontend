@@ -8,6 +8,7 @@ import subscriptionReducer from '../features/users/subscriptionSlice';
 import profileReducer from '../features/auth/profileSlice';
 import referralReducer from './users/referralSlice';
 import themeReducer from '../features/theme/themeSlice';
+import aiChatReducer from './aiChat/aiChatSlice';
 
 const store = configureStore({
   reducer: {
@@ -20,6 +21,7 @@ const store = configureStore({
     profile: profileReducer,
     referral: referralReducer, 
     theme: themeReducer,
+    aiChat: aiChatReducer,
   },
 });
 

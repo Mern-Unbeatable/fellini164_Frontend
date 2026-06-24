@@ -21,7 +21,7 @@ import Subscription from '../pages/private/user/account/Subscription';
 import ReferFriend from '../pages/private/user/account/ReferFriend';
 import Profile from '../pages/private/user/account/Profile';
 import Settings from '../pages/private/user/account/Settings';
-import AiChat from '../pages/private/user/growth/AiChat';
+import AiChat from '../pages/private/user/aichat/AiChat';
 import Analytics from '../pages/private/user/growth/Analytics';
 import UserManagement from '../pages/private/admin/management/UserManagement';
 import UserDetail from '../pages/private/admin/management/userManagementComponents/UserDetails';
