@@ -95,7 +95,7 @@ const Announcements = () => {
   }
 
   return (
-    <div className="py-7.5 pb-12 max-lg:min-h-0 max-lg:py-4 max-lg:sm:py-6">
+    <div className="pt-7.5 pb-7.5  max-lg:min-h-0 max-lg:py-4 max-lg:sm:py-6">
       {/* Header */}
       <AnnouncementHeader />
 

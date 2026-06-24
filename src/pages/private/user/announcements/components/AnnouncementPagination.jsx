@@ -25,7 +25,7 @@ const AnnouncementPagination = ({ currentPage, totalPages, setCurrentPage }) => 
   if (totalPages <= 1) return null;
 
   return (
-    <div className="mt-8 flex w-full items-center justify-center gap-4 pt-4 dark:border-zinc-700">
+    <div className="mt-4 mb-7.5 md:mb-0 pb-7.5 md:pb-0 flex w-full items-center justify-center gap-4 pt-4 dark:border-zinc-700">
       {/* Button Container */}
       <div className="flex items-center gap-1.5 sm:gap-2">
         {/* First Page Button (<<) */}
