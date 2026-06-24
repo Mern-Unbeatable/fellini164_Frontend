@@ -784,7 +784,7 @@ export function TaskDetailDrawer({
             aria-label="Open task in full page"
             className="text-[#a3a3a3] hover:text-[#5d5d5d]"
           >
-            <ExternalLink size={14} />
+            <ExternalLink size={16} />
           </button>
           <button
             type="button"
@@ -792,7 +792,7 @@ export function TaskDetailDrawer({
             aria-label="Close task detail"
             className="text-[#a3a3a3] hover:text-[#5d5d5d]"
           >
-            <X size={12} />
+            <X size={14} />
           </button>
         </div>
 

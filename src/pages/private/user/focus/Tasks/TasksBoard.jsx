@@ -316,7 +316,7 @@ function GhostTaskCard({ task, onDismiss, onRegenerate }) {
             menuOpen ? 'bg-[#f2f2f2]' : 'hover:bg-[#f2f2f2]'
           }`}
         >
-          <MoreHorizontal size={14} />
+          <MoreHorizontal size={16} />
         </button>
       )}
 
@@ -524,7 +524,7 @@ function TaskCard({ task, onEdit, onDelete, onSelect, onBreakIntoSubtasks, isDon
             menuOpen ? 'bg-[#f2f2f2] dark:bg-zinc-600' : 'hover:bg-[#f2f2f2] dark:hover:bg-zinc-600'
           }`}
         >
-          <MoreHorizontal size={14} />
+          <MoreHorizontal size={16} />
         </button>
       )}
 
