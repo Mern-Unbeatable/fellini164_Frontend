@@ -40,7 +40,7 @@ const WORK_ITEMS = [
 ];
 
 const TOOLS_ITEMS = [
-  { label: 'AI Coach', icon: Sparkles },
+  { label: 'AI Coach', icon: Sparkles,path: '/user/ai-coach', match: ['/user/ai-coach'] },
   { label: 'Activity', icon: Activity },
   { label: 'Notification', icon: Bell, badge: '+2' },
 ];
@@ -320,9 +320,19 @@ export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }
         <div className="flex w-full flex-col items-start gap-1.5 px-2 py-3">
           {showExpanded && <SectionSubtitle>Tools</SectionSubtitle>}
           <div className="flex w-full flex-col items-start gap-1">
-            {TOOLS_ITEMS.map((item) => (
-              <InertNavItem key={item.label} item={item} collapsed={!showExpanded} />
-            ))}
+            {TOOLS_ITEMS.map((item) =>
+              item.path ? (
+                <NavItem
+                  key={item.label}
+                  item={item}
+                  collapsed={!showExpanded}
+                  isActive={isItemActive(item)}
+                  onNavigate={onCloseMobile}
+                />
+              ) : (
+                <InertNavItem key={item.label} item={item} collapsed={!showExpanded} />
+              )
+            )}
           </div>
         </div>
       </aside>
