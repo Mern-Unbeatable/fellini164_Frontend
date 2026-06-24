@@ -93,8 +93,8 @@ const router = createBrowserRouter(
         <Route path="/user/subscription" element={<Subscription />} />
         <Route path="/user/refer" element={<ReferFriend />} />
         <Route path="/user/daily-plan" element={<DailyPlanner />} />
-        <Route path="/user/weekly-plan" element={<WeeklyPlanner />} />
-        <Route path="/user/monthly-plan" element={<MonthlyPlanner />} />
+        {/* <Route path="/user/weekly-plan" element={<WeeklyPlanner />} />
+        <Route path="/user/monthly-plan" element={<MonthlyPlanner />} /> */}
         <Route path="/user/tasks" element={<TasksBoard />} />
         <Route path="/user/habits" element={<Habits />} />
         <Route path="/user/goals" element={<ActiveGoals />} />
