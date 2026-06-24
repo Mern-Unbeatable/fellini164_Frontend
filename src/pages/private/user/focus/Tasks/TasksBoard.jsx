@@ -316,7 +316,7 @@ function GhostTaskCard({ task, onDismiss, onRegenerate }) {
             menuOpen ? 'bg-[#f2f2f2]' : 'hover:bg-[#f2f2f2]'
           }`}
         >
-          <MoreHorizontal size={14} />
+          <MoreHorizontal size={16} />
         </button>
       )}
 
@@ -524,7 +524,7 @@ function TaskCard({ task, onEdit, onDelete, onSelect, onBreakIntoSubtasks, isDon
             menuOpen ? 'bg-[#f2f2f2] dark:bg-zinc-600' : 'hover:bg-[#f2f2f2] dark:hover:bg-zinc-600'
           }`}
         >
-          <MoreHorizontal size={14} />
+          <MoreHorizontal size={16} />
         </button>
       )}
 
@@ -596,9 +596,15 @@ function FilterDropdown({ defaultLabel, options, value, onChange }) {
         onClick={() => setOpen((o) => !o)}
         className="flex w-30 items-center justify-between rounded-lg border border-[#f2f2f2] bg-white px-3 py-1.75 text-[12px] font-medium text-[#181818] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white max-lg:w-full max-lg:gap-2 max-lg:py-2.5 max-lg:text-base"
       >
-        <ChevronDown size={10} className="hidden shrink-0 text-[#a3a3a3] max-lg:block" />
+        <ChevronDown
+          size={14}
+          className={`hidden shrink-0 text-[#a3a3a3] transition-transform duration-200 max-lg:block ${open ? 'rotate-180' : ''}`}
+        />
         <span className="truncate max-lg:min-w-0 max-lg:flex-1 max-lg:text-center">{displayLabel}</span>
-        <ChevronDown size={10} className="shrink-0 text-[#a3a3a3]" />
+        <ChevronDown
+          size={14}
+          className={`shrink-0 text-[#a3a3a3] transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+        />
       </button>
 
       {open && (
@@ -884,7 +890,7 @@ export default function TasksBoard() {
   };
 
   return (
-    <div className="relative py-7.5 max-lg:py-4 max-lg:sm:py-6">
+    <div className="relative flex min-h-full flex-col py-7.5 max-lg:min-h-0 max-lg:py-4 max-lg:sm:py-6">
       {!isTaskExpanded && (
         <>
           {/* Header */}
@@ -897,7 +903,7 @@ export default function TasksBoard() {
               />
             </div>
             <label className="flex w-62.5 items-center gap-2 rounded-lg border border-[#f2f2f2] bg-white px-3 py-1.75 focus-within:border-[#e9e9e9] dark:border-zinc-700 dark:bg-zinc-800 dark:focus-within:border-zinc-600 max-lg:w-full max-lg:py-2">
-              <Search size={12} className="shrink-0 text-[#c2c2c2]" aria-hidden />
+              <Search size={14} className="shrink-0 text-[#c2c2c2]" aria-hidden />
               <input
                 type="search"
                 value={searchQuery}
@@ -915,8 +921,8 @@ export default function TasksBoard() {
               onClick={openNewTaskModal}
               className="flex items-center gap-2 rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] font-semibold text-white max-lg:w-full max-lg:justify-center max-lg:py-2.5 max-lg:text-base"
             >
-              <Plus size={10} />
-              New Task
+              <Plus size={14} strokeWidth={2.5} className="shrink-0 text-white" />
+              <span className="text-white">New Task</span>
             </button>
 
             <div className="flex items-center gap-5 max-lg:w-full max-lg:flex-col max-lg:gap-3">
@@ -950,7 +956,8 @@ export default function TasksBoard() {
 
       {/* Full page detail (Figma frame 8) replaces the board; otherwise show columns + drawer peek */}
       {isTaskExpanded && selectedTask ? (
-        <TaskDetailPanel
+        <div className="flex min-h-0 flex-1 flex-col">
+          <TaskDetailPanel
           task={selectedTask}
           onUpdateSubtasks={(subtasks) => handleUpdateSubtasks(selectedTask.id, subtasks)}
           onUpdateTaskFields={(fields) => handleUpdateTaskFields(selectedTask.id, fields)}
@@ -962,9 +969,10 @@ export default function TasksBoard() {
           onTriggerSubtasksAi={() => setTriggerSubtasksAi(true)}
           autoTriggerSubtasksAi={triggerSubtasksAi}
           onAutoTriggerConsumed={() => setTriggerSubtasksAi(false)}
-        />
+          />
+        </div>
       ) : (
-      <div className="flex h-167.75 items-stretch gap-4 max-lg:h-auto max-lg:flex-col">
+      <div className="flex min-h-0 flex-1 items-stretch gap-4 lg:min-h-0 max-lg:h-auto max-lg:flex-none max-lg:flex-col">
         {COLUMNS.map((column) => {
           const Icon = column.icon;
           const { key, label } = column;
@@ -976,11 +984,11 @@ export default function TasksBoard() {
           return (
             <div
               key={key}
-              className="scrollbar-hidden relative flex w-full shrink-0 flex-col items-start gap-2.5 overflow-y-auto rounded-2xl border border-[#f2f2f2] bg-white p-3 lg:min-h-0 lg:flex-1 dark:border-zinc-700 dark:bg-zinc-800 max-lg:max-h-[min(70vh,560px)]"
+              className="scrollbar-hidden relative flex h-full w-full shrink-0 flex-col items-start gap-2.5 overflow-y-auto rounded-2xl border border-[#f2f2f2] bg-white p-3 lg:min-h-0 lg:flex-1 dark:border-zinc-700 dark:bg-zinc-800 max-lg:h-auto max-lg:max-h-[min(70vh,560px)]"
             >
               <div className="flex w-full shrink-0 items-center justify-between">
                 <div className="flex min-w-0 items-center gap-2">
-                  <Icon size={12} className="shrink-0 text-[#5d5d5d] dark:text-gray-300" />
+                  <Icon size={14} className="shrink-0 text-[#5d5d5d] dark:text-gray-300" />
                   <p className="text-sm font-medium leading-normal text-[#5d5d5d] lg:text-[14px] dark:text-gray-300">{label}</p>
                   {isTodo && overdueCount > 0 && (
                     <span className="flex items-center gap-1 rounded-[6px] bg-[rgba(220,38,38,0.05)] px-[6px] py-[2px] text-[10px] font-semibold leading-normal text-[#dc2626]">
