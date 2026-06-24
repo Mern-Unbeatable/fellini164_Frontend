@@ -251,12 +251,12 @@ function TimePickerField({ hour, minute, period, onChangeHour, onChangeMinute, o
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className={`${inputClasses} flex items-center gap-1.5 text-left`}
+        className={`${inputClasses} flex items-center justify-between gap-1.5 text-left`}
       >
-        <Watch size={12} className="shrink-0 text-[#a3a3a3]" />
         <span>
           {hour}:{minute} {period}
         </span>
+        <Watch size={12} className="shrink-0 text-[#a3a3a3]" />
       </button>
 
       {open && (
