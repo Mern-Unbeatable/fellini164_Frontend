@@ -903,7 +903,7 @@ export default function TasksBoard() {
               />
             </div>
             <label className="flex w-62.5 items-center gap-2 rounded-lg border border-[#f2f2f2] bg-white px-3 py-1.75 focus-within:border-[#e9e9e9] dark:border-zinc-700 dark:bg-zinc-800 dark:focus-within:border-zinc-600 max-lg:w-full max-lg:py-2">
-              <Search size={12} className="shrink-0 text-[#c2c2c2]" aria-hidden />
+              <Search size={14} className="shrink-0 text-[#c2c2c2]" aria-hidden />
               <input
                 type="search"
                 value={searchQuery}
