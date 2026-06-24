@@ -7,12 +7,12 @@ const AnnouncementCard = ({ notification, markAsRead, deleteAnnouncement }) => {
 
   const getTypeColor = (type) => {
     switch (type) {
-      case 'INFO':
-        return 'bg-[rgba(59,130,246,0.05)] text-[#3b82f6] dark:bg-blue-900/20 dark:text-blue-300';
-      case 'FEATURE':
-        return 'bg-[rgba(16,185,129,0.05)] text-[#10b981] dark:bg-green-900/20 dark:text-green-300';
       case 'ALERT':
-        return 'bg-[rgba(239,68,68,0.05)] text-[#ef4444] dark:bg-red-900/20 dark:text-red-300';
+        return 'bg-[#DC26260D] text-[#DC2626]';
+      case 'FEATURE':
+        return 'bg-[#F973160D] text-[#F97316]';
+      case 'INFO':
+        return 'bg-[#F9F4FF] text-[#8022FE]';
       default:
         return 'bg-gray-50 text-gray-700 dark:bg-gray-900/20 dark:text-gray-300';
     }
