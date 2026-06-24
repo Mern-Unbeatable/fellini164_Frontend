@@ -149,7 +149,7 @@ function SubtasksSection({ task, onUpdateSubtasks, autoTriggerAi, onAutoTriggerC
             aria-label="Add subtask manually"
             className="text-[#a3a3a3]"
           >
-            <Plus size={12} />
+            <Plus size={14} />
           </button>
           <button
             type="button"
@@ -158,7 +158,7 @@ function SubtasksSection({ task, onUpdateSubtasks, autoTriggerAi, onAutoTriggerC
             aria-label="Generate subtasks with AI"
             className="rounded-md p-0.5 text-[#8022fe] disabled:opacity-50"
           >
-            <Sparkles size={12} />
+            <Sparkles size={14} />
           </button>
         </div>
       </div>
@@ -639,7 +639,7 @@ function TaskDetailCard({
             <p className="text-[12px] font-medium text-[#c2c2c2]">Linked Goal</p>
             {!linkedGoal && (
               <button type="button" aria-label="Add linked goal" className="text-[#a3a3a3]">
-                <Plus size={12} />
+                <Plus size={14} />
               </button>
             )}
           </div>
