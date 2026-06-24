@@ -596,10 +596,6 @@ function FilterDropdown({ defaultLabel, options, value, onChange }) {
         onClick={() => setOpen((o) => !o)}
         className="flex w-30 items-center justify-between rounded-lg border border-[#f2f2f2] bg-white px-3 py-1.75 text-[12px] font-medium text-[#181818] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white max-lg:w-full max-lg:gap-2 max-lg:py-2.5 max-lg:text-base"
       >
-        <ChevronDown
-          size={14}
-          className={`hidden shrink-0 text-[#a3a3a3] transition-transform duration-200 max-lg:block ${open ? 'rotate-180' : ''}`}
-        />
         <span className="truncate max-lg:min-w-0 max-lg:flex-1 max-lg:text-center">{displayLabel}</span>
         <ChevronDown
           size={14}
