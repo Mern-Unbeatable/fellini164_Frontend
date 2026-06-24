@@ -3,9 +3,9 @@ import { SendHorizontal } from 'lucide-react';
 
 export default function MessageInput({ inputValue, setInputValue, onSend, isLoading }) {
   return (
-    <div className="shrink-0 border-t border-gray-200 bg-white px-3 py-3 sm:px-4 md:px-6 md:py-4 dark:border-zinc-500 dark:bg-zinc-800">
+    <div className="h-[76px] flex flex-col justify-center shrink-0 border-t border-[#f2f2f2] bg-[#fcfcfc] px-4 py-3 dark:border-zinc-700 dark:bg-zinc-800">
       <div className="flex items-center gap-2 sm:gap-3">
-        <div className="flex flex-1 items-center gap-2 rounded-full border border-gray-200 bg-[#FFFFFF] px-3 py-2 focus-within:border-purple-400 focus-within:ring-1 focus-within:ring-purple-400 sm:gap-3 sm:px-4 dark:bg-zinc-800">
+        <div className="flex flex-1 items-center gap-2 rounded-full border border-[#f2f2f2] bg-[#FFFFFF] px-3 py-1.5 focus-within:border-purple-400 focus-within:ring-1 focus-within:ring-purple-400 sm:gap-3 sm:px-4 dark:border-zinc-700 dark:bg-zinc-800">
           <input
             type="text"
             placeholder="Ask anything..."
@@ -18,7 +18,7 @@ export default function MessageInput({ inputValue, setInputValue, onSend, isLoad
         <button
           onClick={onSend}
           disabled={isLoading}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#7C3AED] text-white shadow-md disabled:cursor-not-allowed disabled:opacity-50 sm:h-10 sm:w-10 md:h-12 md:w-12"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#8022fe] text-white shadow-md disabled:cursor-not-allowed disabled:opacity-50 sm:h-10 sm:w-10"
         >
           {isLoading ? (
             <svg
@@ -42,13 +42,10 @@ export default function MessageInput({ inputValue, setInputValue, onSend, isLoad
               ></path>
             </svg>
           ) : (
-            <SendHorizontal className="h-6 w-6" />
+            <SendHorizontal className="h-4 w-4" />
           )}
         </button>
       </div>
-      <p className="mt-2 text-center text-xs text-[#616161] sm:text-sm md:text-base dark:text-white">
-        AI can make mistakes. Verify important info.
-      </p>
     </div>
   );
 }
