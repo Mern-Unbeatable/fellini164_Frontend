@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { X, Calendar, Sparkles, Clock, MoreHorizontal, Watch } from 'lucide-react';
+import { X, Calendar, Sparkles, Clock, Watch } from 'lucide-react';
 import TypewriterPlaceholder from '../../../../../../components/ui/TypewriterPlaceholder';
 import SkeletonBar from '../../../../../../components/ui/SkeletonBar';
 import { useAiGenerationReveal } from '../../../../../../hooks/useAiGenerationReveal';
@@ -143,19 +143,16 @@ function AIGeneratedPreviewCard({ task, revealStep = 3 }) {
   return (
     <div className="flex w-full flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-white dark:border-zinc-700 dark:bg-zinc-800">
       <div className="flex flex-col gap-2.5 p-3">
-        <div className="flex w-full items-center justify-between">
-          <div className="flex items-center gap-1">
-            <span
-              className={`rounded-md px-1.5 py-0.5 text-[12px] font-medium uppercase ${PRIORITY_STYLES[task.priority]}`}
-            >
-              {PRIORITY_LABELS[task.priority]}
-            </span>
-            <span className="flex items-center gap-1 rounded-md bg-[#f9f4ff] px-1.5 py-0.5 text-[12px] font-medium text-[#8022fe]">
-              <Sparkles size={10} />
-              AI
-            </span>
-          </div>
-          <MoreHorizontal size={14} className="text-[#a3a3a3]" />
+        <div className="flex items-center gap-1">
+          <span
+            className={`rounded-md px-1.5 py-0.5 text-[12px] font-medium uppercase ${PRIORITY_STYLES[task.priority]}`}
+          >
+            {PRIORITY_LABELS[task.priority]}
+          </span>
+          <span className="flex items-center gap-1 rounded-md bg-[#f9f4ff] px-1.5 py-0.5 text-[12px] font-medium text-[#8022fe]">
+            <Sparkles size={10} />
+            AI
+          </span>
         </div>
         <div className="flex flex-col gap-1">
           {showTitle ? (
