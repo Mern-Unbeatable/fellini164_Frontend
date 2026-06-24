@@ -270,9 +270,9 @@ export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }
           </div>
         )}
 
-        <div className="flex w-full flex-col items-start gap-1.5 px-2 py-3">
+        <div className="flex w-full flex-col gap-1.5 px-2 py-3">
           {showExpanded && <SectionSubtitle>Main</SectionSubtitle>}
-          <div className="flex w-full flex-col items-start gap-1">
+          <div className="flex w-full flex-col gap-1">
             {MAIN_ITEMS.map((item) =>
               item.path ? (
                 <NavItem
@@ -289,7 +289,7 @@ export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }
           </div>
         </div>
 
-        <div className="flex w-full flex-col items-start gap-1.5 px-2 py-3">
+        <div className="flex w-full flex-col gap-1.5 px-2 py-3">
           {showExpanded && <SectionSubtitle>Organization</SectionSubtitle>}
           {ORGANIZATION_ITEMS.map((item) => (
             <NavItem
@@ -302,9 +302,9 @@ export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }
           ))}
         </div>
 
-        <div className="flex w-full flex-col items-start gap-1.5 px-2 py-3">
+        <div className="flex w-full flex-col gap-1.5 px-2 py-3">
           {showExpanded && <SectionSubtitle>Work</SectionSubtitle>}
-          <div className="flex w-full flex-col items-start gap-1">
+          <div className="flex w-full flex-col gap-1">
             {WORK_ITEMS.map((item) => (
               <NavItem
                 key={item.label}
@@ -317,9 +317,9 @@ export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }
           </div>
         </div>
 
-        <div className="flex w-full flex-col items-start gap-1.5 px-2 py-3">
+        <div className="flex w-full flex-col gap-1.5 px-2 py-3">
           {showExpanded && <SectionSubtitle>Tools</SectionSubtitle>}
-          <div className="flex w-full flex-col items-start gap-1">
+          <div className="flex w-full flex-col gap-1">
             {TOOLS_ITEMS.map((item) =>
               item.path ? (
                 <NavItem
