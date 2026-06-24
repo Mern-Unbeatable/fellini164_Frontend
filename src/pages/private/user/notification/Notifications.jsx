@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { toast } from 'react-toastify';
 import { 
   Bell, 
   Check, 
@@ -64,16 +65,19 @@ export default function Notifications() {
     setNotifications(prev =>
       prev.map(n => n.id === id ? { ...n, unread: false } : n)
     );
+    toast.success('Marked as read');
   };
 
   const handleMarkAllRead = () => {
     setNotifications(prev =>
       prev.map(n => ({ ...n, unread: false }))
     );
+    toast.success('All notifications marked as read');
   };
 
   const handleDelete = (id) => {
     setNotifications(prev => prev.filter(n => n.id !== id));
+    toast.success('Notification deleted');
   };
 
   const filteredNotifications = useMemo(() => {
@@ -219,7 +223,7 @@ export default function Notifications() {
               <button
                 onClick={() => handleDelete(n.id)}
                 title="Delete notification"
-                className="rounded-lg p-1.5 text-[#c2c2c2] hover:bg-red-50 hover:text-white dark:hover:bg-red-950/30 dark:hover:text-red-400"
+                className="rounded-lg p-1.5 text-[#c2c2c2] hover:bg-red-50 hover:text-[#DC2626] dark:hover:bg-red-950/30 dark:hover:text-red-400"
               >
                 <Trash2 size={14} />
               </button>
