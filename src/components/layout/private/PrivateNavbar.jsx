@@ -69,8 +69,9 @@ function getInitials(user) {
   return initials.toUpperCase();
 }
 
-export default function PrivateNavbar({ pathname, user, onOpenMobileSidebar, onLogout }) {
-  const { section, page, detail } = getBreadcrumb(pathname);
+export default function PrivateNavbar({ pathname, user, onOpenMobileSidebar, onLogout, taskDetail }) {
+  const { section, page, detail: routeDetail } = getBreadcrumb(pathname);
+  const detail = pathname.startsWith('/user/tasks') ? taskDetail : routeDetail;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [notifications, setNotifications] = useState(DUMMY_NOTIFICATIONS);

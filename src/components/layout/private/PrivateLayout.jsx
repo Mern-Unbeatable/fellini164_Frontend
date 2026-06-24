@@ -11,6 +11,7 @@ export default function PrivateLayout() {
   const navigate = useNavigate();
   const user = useSelector(selectUser);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [taskDetail, setTaskDetail] = useState(null);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -29,11 +30,12 @@ export default function PrivateLayout() {
         <PrivateNavbar
           pathname={pathname}
           user={user}
+          taskDetail={taskDetail}
           onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
           onLogout={handleLogout}
         />
         <main className="flex-1 overflow-y-auto bg-[#fcfcfc] px-10 max-lg:px-4 max-lg:sm:px-6 dark:bg-gray-900">
-          <Outlet />
+          <Outlet context={{ setTaskDetail }} />
         </main>
       </div>
     </div>

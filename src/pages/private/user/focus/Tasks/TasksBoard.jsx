@@ -17,8 +17,9 @@ import {
   Target,
 } from 'lucide-react';
 import { useState, useRef, useEffect, useMemo } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import TaskFormModal from './components/TaskFormModal';
-import TaskDetailPanel from './components/TaskDetailPanel';
+import TaskDetailPanel, { TaskDetailDrawer } from './components/TaskDetailPanel';
 import TypewriterText from '../../../../../components/ui/TypewriterText';
 import { EXERCISE_ROUTINE_SUBTASKS, formatStepsProgress } from './utils/subtasks';
 
@@ -709,11 +710,13 @@ function taskMatchesFilters(task, filters) {
 }
 
 export default function TasksBoard() {
+  const { setTaskDetail } = useOutletContext();
   const [columns, setColumns] = useState(INITIAL_COLUMNS);
   const [ghostTasks, setGhostTasks] = useState(GHOST_TASKS);
   const [taskModal, setTaskModal] = useState({ open: false, mode: 'create', task: null });
   const [enteringTaskIds, setEnteringTaskIds] = useState(() => new Set());
   const [selectedTaskId, setSelectedTaskId] = useState(null);
+  const [isTaskExpanded, setIsTaskExpanded] = useState(false);
   const [triggerSubtasksAi, setTriggerSubtasksAi] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilters, setActiveFilters] = useState(DEFAULT_FILTERS);
@@ -748,14 +751,21 @@ export default function TasksBoard() {
 
   const selectedTask = selectedTaskId ? findTaskById(selectedTaskId) : null;
 
+  useEffect(() => {
+    setTaskDetail(isTaskExpanded ? selectedTask?.title ?? null : null);
+    return () => setTaskDetail(null);
+  }, [selectedTask, isTaskExpanded, setTaskDetail]);
+
   const openTaskDetail = (task, runSubtasksAi = false) => {
     setSelectedTaskId(task.id);
     setTriggerSubtasksAi(runSubtasksAi);
+    setIsTaskExpanded(false);
   };
 
   const closeTaskDetail = () => {
     setSelectedTaskId(null);
     setTriggerSubtasksAi(false);
+    setIsTaskExpanded(false);
   };
 
   const handleUpdateSubtasks = (taskId, subtasks) => {
@@ -874,26 +884,8 @@ export default function TasksBoard() {
   };
 
   return (
-    <div className="py-7.5 max-lg:py-4 max-lg:sm:py-6">
-      {selectedTask ? (
-        <div className="mb-5 flex min-w-0 items-center gap-2.5 max-lg:mb-4">
-          <p className="truncate text-[12px] font-medium whitespace-nowrap text-[#5d5d5d] dark:text-gray-300">
-            Work
-          </p>
-          <span className="shrink-0 text-[12px] font-medium text-[#c2c2c2] dark:text-zinc-600">/</span>
-          <button
-            type="button"
-            onClick={closeTaskDetail}
-            className="truncate text-[12px] font-medium whitespace-nowrap text-[#c2c2c2] hover:text-[#5d5d5d] dark:text-zinc-500 dark:hover:text-gray-300"
-          >
-            Tasks
-          </button>
-          <span className="shrink-0 text-[12px] font-medium text-[#c2c2c2] dark:text-zinc-600">/</span>
-          <p className="truncate text-[12px] font-medium whitespace-nowrap text-[#c2c2c2] dark:text-zinc-500">
-            {selectedTask.title}
-          </p>
-        </div>
-      ) : (
+    <div className="relative py-7.5 max-lg:py-4 max-lg:sm:py-6">
+      {!isTaskExpanded && (
         <>
           {/* Header */}
           <div className="mb-5 flex w-full items-start justify-between max-lg:mb-4 max-lg:flex-col max-lg:gap-4">
@@ -956,13 +948,18 @@ export default function TasksBoard() {
         </>
       )}
 
-      {/* Columns or task detail (Step 8) */}
-      {selectedTask ? (
+      {/* Full page detail (Figma frame 8) replaces the board; otherwise show columns + drawer peek */}
+      {isTaskExpanded && selectedTask ? (
         <TaskDetailPanel
           task={selectedTask}
-          onClose={closeTaskDetail}
           onUpdateSubtasks={(subtasks) => handleUpdateSubtasks(selectedTask.id, subtasks)}
           onUpdateTaskFields={(fields) => handleUpdateTaskFields(selectedTask.id, fields)}
+          onEdit={openEditTaskModal}
+          onDelete={(t) => {
+            handleDeleteTask(t);
+            closeTaskDetail();
+          }}
+          onTriggerSubtasksAi={() => setTriggerSubtasksAi(true)}
           autoTriggerSubtasksAi={triggerSubtasksAi}
           onAutoTriggerConsumed={() => setTriggerSubtasksAi(false)}
         />
@@ -1044,6 +1041,25 @@ export default function TasksBoard() {
           );
         })}
       </div>
+      )}
+
+      {/* Drawer peek (Figma frames 6/6.1/7/7.1) — overlays the board, still visible behind it */}
+      {selectedTask && !isTaskExpanded && (
+        <TaskDetailDrawer
+          task={selectedTask}
+          onClose={closeTaskDetail}
+          onOpenFullPage={() => setIsTaskExpanded(true)}
+          onUpdateSubtasks={(subtasks) => handleUpdateSubtasks(selectedTask.id, subtasks)}
+          onUpdateTaskFields={(fields) => handleUpdateTaskFields(selectedTask.id, fields)}
+          onEdit={openEditTaskModal}
+          onDelete={(t) => {
+            handleDeleteTask(t);
+            closeTaskDetail();
+          }}
+          onTriggerSubtasksAi={() => setTriggerSubtasksAi(true)}
+          autoTriggerSubtasksAi={triggerSubtasksAi}
+          onAutoTriggerConsumed={() => setTriggerSubtasksAi(false)}
+        />
       )}
 
       {/* Modal */}
