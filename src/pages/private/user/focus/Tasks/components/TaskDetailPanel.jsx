@@ -411,7 +411,7 @@ function AiAssistantChat({ task, onUpdateSubtasks, onUpdateTaskFields, onApplyin
         </div>
       </div>
 
-      <div ref={threadRef} className="scrollbar-hidden flex flex-1 flex-col gap-3 overflow-y-auto p-3">
+      <div ref={threadRef} className="scrollbar-hidden flex flex-1 flex-col gap-3 overflow-y-auto py-3 pl-3 pr-[18px]">
         {messages.length === 0 && !isThinking ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-1.5 text-center">
             <Sparkles size={16} className="text-[#e9d9ff]" />
@@ -523,6 +523,7 @@ function TaskDetailCard({
   };
 
   const isDrawer = variant === 'drawer';
+  const isPage = variant === 'page';
 
   return (
     <div className="flex flex-col gap-6">
@@ -530,7 +531,7 @@ function TaskDetailCard({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span
-              className={`rounded-md font-medium uppercase ${isDrawer ? 'px-2 pt-0.5 pb-[3px] text-[14px]' : 'px-2 py-0.5 text-[14px]'} ${PRIORITY_STYLES[task.priority]}`}
+              className={`rounded-md font-medium uppercase ${isDrawer || isPage ? 'px-2 pt-0.5 pb-[3px] text-[14px]' : 'px-2 py-0.5 text-[14px]'} ${PRIORITY_STYLES[task.priority]}`}
             >
               {PRIORITY_LABELS[task.priority]}
             </span>
@@ -572,7 +573,9 @@ function TaskDetailCard({
               className={
                 isDrawer
                   ? 'text-2xl font-semibold leading-[1.3] text-[#181818] dark:text-white'
-                  : 'text-xl font-medium text-[#181818] dark:text-white md:text-2xl'
+                  : isPage
+                    ? 'text-[20px] font-medium leading-normal text-[#181818] dark:text-white'
+                    : 'text-xl font-medium text-[#181818] dark:text-white md:text-2xl'
               }
             >
               {task.title}
@@ -586,7 +589,9 @@ function TaskDetailCard({
                 className={
                   isDrawer
                     ? 'text-sm font-medium text-[#a3a3a3]'
-                    : 'text-base text-[#c2c2c2]'
+                    : isPage
+                      ? 'text-[12px] font-medium text-[#c2c2c2]'
+                      : 'text-base text-[#c2c2c2]'
                 }
               >
                 {task.description}
@@ -608,7 +613,7 @@ function TaskDetailCard({
         <div className="flex flex-col gap-1.5">
           <p className="text-[12px] font-medium text-[#c2c2c2]">Category</p>
           <span
-            className={`inline-flex w-fit rounded-md border border-[#f2f2f2] font-medium text-[#5d5d5d] dark:border-zinc-700 ${isDrawer ? 'px-2 pt-0.5 pb-[3px] text-[14px]' : 'px-2 py-0.5 text-[14px]'}`}
+            className={`inline-flex w-fit rounded-md border border-[#f2f2f2] font-medium text-[#5d5d5d] dark:border-zinc-700 ${isDrawer || isPage ? 'px-2 pt-0.5 pb-[3px] text-[14px]' : 'px-2 py-0.5 text-[14px]'}`}
           >
             {task.category || task.tags?.[0]?.label || 'Career'}
           </span>
@@ -617,7 +622,7 @@ function TaskDetailCard({
         <div className="flex flex-col gap-1.5">
           <p className="text-[12px] font-medium text-[#c2c2c2]">Due Date</p>
           <span
-            className={`inline-flex w-fit items-center gap-1.5 rounded-md border border-[#f2f2f2] font-medium text-[#5d5d5d] dark:border-zinc-700 ${isDrawer ? 'px-2 pt-0.5 pb-[3px] text-[14px]' : 'px-2 py-0.5 text-[14px]'}`}
+            className={`inline-flex w-fit items-center gap-1.5 rounded-md border border-[#f2f2f2] font-medium text-[#5d5d5d] dark:border-zinc-700 ${isDrawer || isPage ? 'px-2 pt-0.5 pb-[3px] text-[14px]' : 'px-2 py-0.5 text-[14px]'}`}
           >
             <Flag size={12} className="text-[#dc2626]" />
             {task.due}
@@ -627,7 +632,7 @@ function TaskDetailCard({
         <div className="flex flex-col gap-1.5">
           <p className="text-[12px] font-medium text-[#c2c2c2]">Estimate Minutes</p>
           <span
-            className={`inline-flex w-fit items-center gap-1.5 rounded-md border border-[#f2f2f2] font-medium text-[#5d5d5d] dark:border-zinc-700 ${isDrawer ? 'px-2 pt-0.5 pb-[3px] text-[14px]' : 'px-2 py-0.5 text-[14px]'}`}
+            className={`inline-flex w-fit items-center gap-1.5 rounded-md border border-[#f2f2f2] font-medium text-[#5d5d5d] dark:border-zinc-700 ${isDrawer || isPage ? 'px-2 pt-0.5 pb-[3px] text-[14px]' : 'px-2 py-0.5 text-[14px]'}`}
           >
             <Clock size={12} />
             {estMinutes} Min
@@ -825,9 +830,10 @@ export default function TaskDetailPanel({
   if (!task) return null;
 
   return (
-    <div className="flex min-h-[min(60vh,520px)] w-full flex-col gap-4 xl:h-167.75 xl:flex-row xl:gap-7.5">
-      <div className="flex flex-1 flex-col overflow-y-auto rounded-2xl border border-[#f2f2f2] bg-white p-4 scrollbar-hidden sm:p-5 dark:border-zinc-700 dark:bg-zinc-900">
+    <div className="flex min-h-0 flex-1 w-full flex-col gap-7.5 xl:flex-row xl:items-stretch">
+      <div className="relative flex min-h-[min(60vh,520px)] min-w-0 flex-1 flex-col overflow-y-auto rounded-2xl border border-[#f2f2f2] bg-white p-5 scrollbar-hidden xl:min-h-0 dark:border-zinc-700 dark:bg-zinc-900">
         <TaskDetailCard
+          variant="page"
           task={task}
           onUpdateSubtasks={onUpdateSubtasks}
           onUpdateTaskFields={onUpdateTaskFields}
@@ -838,9 +844,10 @@ export default function TaskDetailPanel({
           onDelete={onDelete}
           onTriggerSubtasksAi={onTriggerSubtasksAi}
         />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-15 rounded-b-2xl bg-gradient-to-b from-transparent to-white dark:to-zinc-900" />
       </div>
 
-      <div className="h-125 w-full shrink-0 xl:h-auto xl:w-100">
+      <div className="flex h-125 w-full shrink-0 flex-col xl:h-full xl:w-100">
         <AiAssistantChat
           task={task}
           onUpdateSubtasks={onUpdateSubtasks}
