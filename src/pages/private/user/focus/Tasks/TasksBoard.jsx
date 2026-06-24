@@ -921,8 +921,8 @@ export default function TasksBoard() {
               onClick={openNewTaskModal}
               className="flex items-center gap-2 rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] font-semibold text-white max-lg:w-full max-lg:justify-center max-lg:py-2.5 max-lg:text-base"
             >
-              <Plus size={10} />
-              New Task
+              <Plus size={14} strokeWidth={2.5} className="shrink-0 text-white" />
+              <span className="text-white">New Task</span>
             </button>
 
             <div className="flex items-center gap-5 max-lg:w-full max-lg:flex-col max-lg:gap-3">
