@@ -884,7 +884,7 @@ export default function TasksBoard() {
   };
 
   return (
-    <div className="relative py-7.5 max-lg:py-4 max-lg:sm:py-6">
+    <div className="relative flex min-h-full flex-col py-7.5 max-lg:min-h-0 max-lg:py-4 max-lg:sm:py-6">
       {!isTaskExpanded && (
         <>
           {/* Header */}
@@ -950,7 +950,8 @@ export default function TasksBoard() {
 
       {/* Full page detail (Figma frame 8) replaces the board; otherwise show columns + drawer peek */}
       {isTaskExpanded && selectedTask ? (
-        <TaskDetailPanel
+        <div className="flex min-h-0 flex-1 flex-col">
+          <TaskDetailPanel
           task={selectedTask}
           onUpdateSubtasks={(subtasks) => handleUpdateSubtasks(selectedTask.id, subtasks)}
           onUpdateTaskFields={(fields) => handleUpdateTaskFields(selectedTask.id, fields)}
@@ -962,9 +963,10 @@ export default function TasksBoard() {
           onTriggerSubtasksAi={() => setTriggerSubtasksAi(true)}
           autoTriggerSubtasksAi={triggerSubtasksAi}
           onAutoTriggerConsumed={() => setTriggerSubtasksAi(false)}
-        />
+          />
+        </div>
       ) : (
-      <div className="flex h-167.75 items-stretch gap-4 max-lg:h-auto max-lg:flex-col">
+      <div className="flex min-h-0 flex-1 items-stretch gap-4 lg:min-h-0 max-lg:h-auto max-lg:flex-none max-lg:flex-col">
         {COLUMNS.map((column) => {
           const Icon = column.icon;
           const { key, label } = column;
@@ -976,7 +978,7 @@ export default function TasksBoard() {
           return (
             <div
               key={key}
-              className="scrollbar-hidden relative flex w-full shrink-0 flex-col items-start gap-2.5 overflow-y-auto rounded-2xl border border-[#f2f2f2] bg-white p-3 lg:min-h-0 lg:flex-1 dark:border-zinc-700 dark:bg-zinc-800 max-lg:max-h-[min(70vh,560px)]"
+              className="scrollbar-hidden relative flex h-full w-full shrink-0 flex-col items-start gap-2.5 overflow-y-auto rounded-2xl border border-[#f2f2f2] bg-white p-3 lg:min-h-0 lg:flex-1 dark:border-zinc-700 dark:bg-zinc-800 max-lg:h-auto max-lg:max-h-[min(70vh,560px)]"
             >
               <div className="flex w-full shrink-0 items-center justify-between">
                 <div className="flex min-w-0 items-center gap-2">

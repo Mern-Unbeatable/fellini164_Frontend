@@ -34,7 +34,7 @@ export default function PrivateLayout() {
           onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
           onLogout={handleLogout}
         />
-        <main className="flex-1 overflow-y-auto bg-[#fcfcfc] px-10 max-lg:px-4 max-lg:sm:px-6 dark:bg-gray-900">
+        <main className="flex flex-1 flex-col overflow-y-auto bg-[#fcfcfc] px-10 max-lg:px-4 max-lg:sm:px-6 dark:bg-gray-900">
           <Outlet context={{ setTaskDetail }} />
         </main>
       </div>
