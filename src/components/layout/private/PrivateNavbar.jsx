@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { LogOut, Bell, Settings, PanelLeft } from 'lucide-react';
 import { getGoalById } from '../../../pages/private/user/focus/Goals/goalsData';
+import NotificationPanel from './NotificationPanel';
 
 const BREADCRUMBS = [
   { prefix: '/user/tasks', section: 'Work', page: 'Tasks' },
@@ -16,6 +18,33 @@ const BREADCRUMBS = [
   { prefix: '/user/refer', page: 'Refer a Friend' },
   { prefix: '/user/ai-coach', page: 'AI Coach Chat' },
   { prefix: '/user/analytics', page: 'Analytics' },
+];
+
+const DUMMY_NOTIFICATIONS = [
+  {
+    id: 'n1',
+    title: 'System Maintenance Scheduled',
+    message: 'Maintenance scheduled on Sunday, June 28th, 2:00 AM UTC.',
+    type: 'ALERT',
+    time: '2 hours ago',
+    unread: true,
+  },
+  {
+    id: 'n2',
+    title: 'New AI Planner Live',
+    message: 'Organize your day with the new AI-powered Daily Planner.',
+    type: 'FEATURE',
+    time: '1 day ago',
+    unread: true,
+  },
+  {
+    id: 'n3',
+    title: 'Welcome to Elyxa.Ai',
+    message: 'Thanks for signing up! Get started by setting your daily goals.',
+    type: 'INFO',
+    time: '3 days ago',
+    unread: false,
+  }
 ];
 
 function getBreadcrumb(pathname) {
@@ -43,12 +72,22 @@ function getInitials(user) {
 export default function PrivateNavbar({ pathname, user, onOpenMobileSidebar, onLogout }) {
   const { section, page, detail } = getBreadcrumb(pathname);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [notifications, setNotifications] = useState(DUMMY_NOTIFICATIONS);
   const menuRef = useRef(null);
+  const notificationRef = useRef(null);
+  const notificationRefMobile = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
         setIsMenuOpen(false);
+      }
+      if (
+        notificationRef.current && !notificationRef.current.contains(e.target) &&
+        notificationRefMobile.current && !notificationRefMobile.current.contains(e.target)
+      ) {
+        setIsNotificationOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -110,13 +149,26 @@ export default function PrivateNavbar({ pathname, user, onOpenMobileSidebar, onL
           </div>
 
           <div className="flex w-12.75 items-center justify-between">
-            {/* Notifications — visible per Figma, non-functional in MVP */}
-            <div className="relative text-[#5d5d5d] dark:text-gray-300">
-              <Bell size={18} strokeWidth={1.75} />
-              <span className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-red-500" />
+            {/* Notifications */}
+            <div ref={notificationRef} className="relative text-[#5d5d5d] dark:text-gray-300">
+              <button 
+                onClick={() => setIsNotificationOpen((o) => !o)}
+                className="flex items-center justify-center p-1 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
+              >
+                <Bell size={18} strokeWidth={1.75} />
+                {notifications.some(n => n.unread) && (
+                  <span className="absolute top-1.5 right-1.5 size-1.5 rounded-full bg-red-500" />
+                )}
+              </button>
+              <NotificationPanel
+                isOpen={isNotificationOpen}
+                onClose={() => setIsNotificationOpen(false)}
+                notifications={notifications}
+                setNotifications={setNotifications}
+              />
             </div>
             {/* Settings — visible per Figma, non-functional in MVP */}
-            <Settings size={18} className="text-[#5d5d5d] dark:text-gray-300" strokeWidth={1.75} />
+            <Settings size={18} className="text-[#5d5d5d] dark:text-gray-300 cursor-pointer" strokeWidth={1.75} />
           </div>
         </div>
 
@@ -132,11 +184,24 @@ export default function PrivateNavbar({ pathname, user, onOpenMobileSidebar, onL
               Ctrl + K
             </p>
           </div>
-          <div className="relative text-[#5d5d5d] dark:text-gray-300">
-            <Bell size={18} strokeWidth={1.75} />
-            <span className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-red-500" />
+          <div ref={notificationRefMobile} className="relative text-[#5d5d5d] dark:text-gray-300">
+            <button 
+              onClick={() => setIsNotificationOpen((o) => !o)}
+              className="flex items-center justify-center p-1 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
+            >
+              <Bell size={18} strokeWidth={1.75} />
+              {notifications.some(n => n.unread) && (
+                <span className="absolute top-1.5 right-1.5 size-1.5 rounded-full bg-red-500" />
+              )}
+            </button>
+            <NotificationPanel
+              isOpen={isNotificationOpen}
+              onClose={() => setIsNotificationOpen(false)}
+              notifications={notifications}
+              setNotifications={setNotifications}
+            />
           </div>
-          <Settings size={18} className="text-[#5d5d5d] dark:text-gray-300" strokeWidth={1.75} />
+          <Settings size={18} className="text-[#5d5d5d] dark:text-gray-300 cursor-pointer" strokeWidth={1.75} />
         </div>
 
         <div ref={menuRef} className="relative">
