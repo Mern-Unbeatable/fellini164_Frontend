@@ -13,6 +13,8 @@ import {
   MoreHorizontal,
   Pencil,
   Trash2,
+  ListTree,
+  Wand2,
 } from 'lucide-react';
 import SkeletonBar from '../../../../../../components/ui/SkeletonBar';
 import { generateSubtasksFromTitle } from '../utils/subtasks';
@@ -405,7 +407,7 @@ function AiAssistantChat({ task, onUpdateSubtasks, onUpdateTaskFields, onApplyin
           <Sparkles size={14} className="text-[#8022fe]" />
           <p className="text-[14px] font-medium text-[#5d5d5d] dark:text-gray-300">AI Assistant</p>
         </div>
-        <div className="flex items-center gap-2 text-[#a3a3a3]">
+        <div className="flex items-center gap-3 text-[#a3a3a3]">
           <Maximize2 size={14} />
           <X size={14} />
         </div>
@@ -446,16 +448,18 @@ function AiAssistantChat({ task, onUpdateSubtasks, onUpdateTaskFields, onApplyin
           <button
             type="button"
             onClick={() => runPrompt('Break this task into subtasks.', 'subtasks')}
-            className="rounded-lg border border-[#f2f2f2] px-2.5 py-1.5 text-[12px] font-medium text-[#5d5d5d] dark:border-zinc-700"
+            className="flex items-center gap-1.5 rounded-lg border border-[#f2f2f2] px-2.5 py-1.5 text-[12px] font-medium text-[#5d5d5d] dark:border-zinc-700"
           >
-            ✦ Break into subtasks
+            <ListTree size={14} className="shrink-0 text-[#8022fe]" />
+            Break into subtasks
           </button>
           <button
             type="button"
             onClick={() => runPrompt('Improve this task description.', 'description')}
-            className="rounded-lg border border-[#f2f2f2] px-2.5 py-1.5 text-[12px] font-medium text-[#5d5d5d] dark:border-zinc-700"
+            className="flex items-center gap-1.5 rounded-lg border border-[#f2f2f2] px-2.5 py-1.5 text-[12px] font-medium text-[#5d5d5d] dark:border-zinc-700"
           >
-            ✦ Improve description
+            <Wand2 size={14} className="shrink-0 text-[#8022fe]" />
+            Improve description
           </button>
         </div>
         <div className="flex w-full items-center gap-2 rounded-xl border border-[#f2f2f2] px-3 py-2 dark:border-zinc-700">
