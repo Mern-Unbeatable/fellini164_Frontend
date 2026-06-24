@@ -8,36 +8,32 @@ const ActivityStatsCards = ({ stats, loading }) => {
       title: 'Total Activities',
       value: stats?.totalActivities || 0,
       icon: Activity,
-      bgColor: 'bg-purple-50 dark:bg-purple-900/30',
-      iconColor: 'text-purple-600 dark:text-purple-400',
-      borderColor: 'border-purple-200 dark:border-purple-800',
+      bgColor: 'bg-[rgba(128,34,254,0.05)]',
+      iconColor: 'text-[#8022fe]',
     },
     {
       id: 2,
       title: 'AI Conversations',
       value: stats?.aiChats || 0,
       icon: MessageSquare,
-      bgColor: 'bg-blue-50 dark:bg-blue-900/30',
-      iconColor: 'text-blue-600 dark:text-blue-400',
-      borderColor: 'border-blue-200 dark:border-blue-800',
+      bgColor: 'bg-[rgba(128,34,254,0.05)] dark:bg-[rgba(128,34,254,0.1)]',
+      iconColor: 'text-[#8022fe]',
     },
     {
       id: 3,
       title: 'Total Tokens',
       value: (stats?.totalTokens || 0).toLocaleString(),
       icon: Zap,
-      bgColor: 'bg-amber-50 dark:bg-amber-900/30',
-      iconColor: 'text-amber-600 dark:text-amber-400',
-      borderColor: 'border-amber-200 dark:border-amber-800',
+      bgColor: 'bg-[rgba(249,115,22,0.05)]',
+      iconColor: 'text-[#f97316]',
     },
     {
       id: 4,
       title: 'Plans Created',
       value: stats?.plansCreated || 0,
       icon: Calendar,
-      bgColor: 'bg-green-50 dark:bg-green-900/30',
-      iconColor: 'text-green-600 dark:text-green-400',
-      borderColor: 'border-green-200 dark:border-green-800',
+      bgColor: 'bg-[rgba(16,185,129,0.05)]',
+      iconColor: 'text-[#10b981]',
     },
   ];
 
@@ -46,22 +42,22 @@ const ActivityStatsCards = ({ stats, loading }) => {
       {statsData.map((stat) => (
         <div
           key={stat.id}
-          className={`rounded-xl border ${stat.borderColor} bg-white p-4 shadow-sm transition-all hover:shadow-md sm:p-6 dark:bg-zinc-800`}
+          className="rounded-2xl border border-[#f2f2f2] bg-white p-4.5 dark:border-zinc-700 dark:bg-zinc-800"
         >
           <div className="flex items-center justify-between">
-            <div className={`rounded-lg ${stat.bgColor} p-2 sm:p-3`}>
-              <stat.icon className={`h-5 w-5 sm:h-6 sm:w-6 ${stat.iconColor}`} />
+            <div className={`rounded-[8px] ${stat.bgColor} p-2`}>
+              <stat.icon className={`h-5 w-5 ${stat.iconColor}`} />
             </div>
           </div>
-          <div className="mt-3 sm:mt-4">
+          <div className="mt-3">
             {loading ? (
-              <div className="h-8 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+              <div className="h-7 w-20 animate-pulse rounded-[6px] bg-gray-200 dark:bg-gray-700"></div>
             ) : (
-              <h3 className="text-2xl font-bold text-gray-900 sm:text-3xl dark:text-white">
+              <h3 className="text-[20px] font-semibold text-[#181818] dark:text-white">
                 {stat.value}
               </h3>
             )}
-            <p className="mt-1 text-xs text-gray-600 sm:text-sm dark:text-gray-400">{stat.title}</p>
+            <p className="mt-1 text-[12px] font-medium text-[#c2c2c2] dark:text-gray-400">{stat.title}</p>
           </div>
         </div>
       ))}

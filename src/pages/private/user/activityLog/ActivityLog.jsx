@@ -336,15 +336,15 @@ const ActivityLog = () => {
   const canGoNext = pagination.currentPage < totalPages;
 
   return (
-    <div className="min-h-screen bg-[#EEEEEE] p-4 sm:p-6 lg:p-8 dark:bg-zinc-900">
+    <div className="relative flex min-h-full flex-col py-7.5 max-lg:min-h-0 max-lg:py-4 max-lg:sm:py-6">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="mb-2 text-2xl font-bold text-gray-900 sm:text-3xl dark:text-white">
-          Activity Log
-        </h1>
-        <p className="text-sm text-gray-600 sm:text-base dark:text-gray-400">
-          Track your productivity journey and AI usage
-        </p>
+      <div className="mb-5 flex w-full items-start justify-between max-lg:mb-4 max-lg:flex-col max-lg:gap-4">
+        <div className="flex flex-col items-start gap-2">
+          <p className="text-[20px] font-medium text-[#181818] dark:text-white">Activity Log</p>
+          <p className="text-[12px] font-medium text-[#c2c2c2] dark:text-gray-400 max-lg:text-sm">
+            Track your productivity journey and AI usage
+          </p>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -362,17 +362,17 @@ const ActivityLog = () => {
 
       {/* Pagination */}
       {!loading && activities.length > 0 && totalPages > 1 && (
-        <div className="mt-6 flex flex-col items-center justify-between gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:flex-row dark:border-gray-700 dark:bg-zinc-800">
-          <div className="text-sm text-gray-600 dark:text-gray-400">
+        <div className="mt-6 flex flex-col items-center justify-between gap-4 rounded-2xl border border-[#f2f2f2] bg-white p-4 dark:border-zinc-700 dark:bg-zinc-800">
+          <div className="text-[12px] font-medium text-[#5d5d5d] dark:text-gray-400">
             Showing{' '}
-            <span className="font-medium text-gray-900 dark:text-white">
+            <span className="font-semibold text-[#181818] dark:text-white">
               {pagination.offset + 1}
             </span>{' '}
             to{' '}
-            <span className="font-medium text-gray-900 dark:text-white">
+            <span className="font-semibold text-[#181818] dark:text-white">
               {Math.min(pagination.offset + pagination.limit, pagination.total)}
             </span>{' '}
-            of <span className="font-medium text-gray-900 dark:text-white">{pagination.total}</span>{' '}
+            of <span className="font-semibold text-[#181818] dark:text-white">{pagination.total}</span>{' '}
             activities
           </div>
 
@@ -380,9 +380,9 @@ const ActivityLog = () => {
             <button
               onClick={() => handlePageChange(pagination.currentPage - 1)}
               disabled={!canGoPrevious}
-              className="flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-600"
+              className="flex items-center gap-1 rounded-lg border border-[#f2f2f2] bg-white px-3 py-1.5 text-xs font-semibold text-[#5d5d5d] transition hover:bg-[#fcfcfc] disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-gray-300 dark:hover:bg-zinc-700"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Previous</span>
             </button>
 
@@ -403,10 +403,10 @@ const ActivityLog = () => {
                   <button
                     key={pageNum}
                     onClick={() => handlePageChange(pageNum)}
-                    className={`h-9 w-9 rounded-lg text-sm font-medium transition ${
+                    className={`h-[30px] w-[30px] rounded-lg text-xs font-semibold transition ${
                       pagination.currentPage === pageNum
-                        ? 'bg-purple-600 text-white'
-                        : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-600'
+                        ? 'bg-[#8022fe] text-white'
+                        : 'border border-[#f2f2f2] bg-white text-[#5d5d5d] hover:bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800 dark:text-gray-300 dark:hover:bg-zinc-700'
                     }`}
                   >
                     {pageNum}
@@ -418,10 +418,10 @@ const ActivityLog = () => {
             <button
               onClick={() => handlePageChange(pagination.currentPage + 1)}
               disabled={!canGoNext}
-              className="flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-600"
+              className="flex items-center gap-1 rounded-lg border border-[#f2f2f2] bg-white px-3 py-1.5 text-xs font-semibold text-[#5d5d5d] transition hover:bg-[#fcfcfc] disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-gray-300 dark:hover:bg-zinc-700"
             >
               <span className="hidden sm:inline">Next</span>
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-3.5 w-3.5" />
             </button>
           </div>
         </div>
@@ -429,8 +429,8 @@ const ActivityLog = () => {
 
       {/* No results message */}
       {!loading && activities.length === 0 && (filters.type !== 'ALL' || filters.startDate || filters.endDate) && (
-        <div className="mt-6 rounded-xl border border-gray-200 bg-white p-8 text-center dark:border-gray-700 dark:bg-zinc-800">
-          <p className="text-gray-600 dark:text-gray-400">
+        <div className="mt-6 rounded-2xl border border-[#f2f2f2] bg-white p-8 text-center dark:border-zinc-700 dark:bg-zinc-800">
+          <p className="text-sm font-medium text-[#5d5d5d] dark:text-gray-400">
             No activities found matching your filters. Try adjusting your search criteria.
           </p>
         </div>

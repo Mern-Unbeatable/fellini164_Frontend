@@ -39,90 +39,80 @@ const ActivityItem = ({ activity }) => {
     // AI & Chat
     if (type === 'AI_CHAT' || type === 'AI_RECOMMENDATION') {
       return {
-        bg: 'bg-purple-50 dark:bg-purple-900/30',
-        icon: 'text-purple-600 dark:text-purple-400',
-        border: 'border-purple-200 dark:border-purple-800',
-        badge: 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300',
+        bg: 'bg-[rgba(128,34,254,0.05)] dark:bg-purple-950/20',
+        icon: 'text-[#8022fe]',
+        badge: 'bg-[#f9f4ff] text-[#8022fe] dark:bg-purple-950/40 dark:text-purple-300',
       };
     }
     // Plans
     if (type === 'PLAN_CREATED' || type === 'PLAN_UPDATED' || type === 'PLAN_COMPLETED') {
       return {
-        bg: 'bg-green-50 dark:bg-green-900/30',
-        icon: 'text-green-600 dark:text-green-400',
-        border: 'border-green-200 dark:border-green-800',
-        badge: 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300',
+        bg: 'bg-[rgba(16,185,129,0.05)] dark:bg-green-950/20',
+        icon: 'text-[#10b981]',
+        badge: 'bg-[rgba(16,185,129,0.1)] text-[#10b981] dark:bg-green-950/40 dark:text-green-300',
       };
     }
     // Goals
     if (type === 'GOAL_CREATED' || type === 'GOAL_COMPLETED') {
       return {
-        bg: 'bg-blue-50 dark:bg-blue-900/30',
-        icon: 'text-blue-600 dark:text-blue-400',
-        border: 'border-blue-200 dark:border-blue-800',
-        badge: 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300',
+        bg: 'bg-[rgba(59,130,246,0.05)] dark:bg-blue-950/20',
+        icon: 'text-[#3b82f6]',
+        badge: 'bg-[rgba(59,130,246,0.1)] text-[#3b82f6] dark:bg-blue-950/40 dark:text-blue-300',
       };
     }
     // Habits
     if (type === 'HABIT_CREATED' || type === 'HABIT_COMPLETED') {
       return {
-        bg: 'bg-orange-50 dark:bg-orange-900/30',
-        icon: 'text-orange-600 dark:text-orange-400',
-        border: 'border-orange-200 dark:border-orange-800',
-        badge: 'bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300',
+        bg: 'bg-[rgba(249,115,22,0.05)] dark:bg-orange-950/20',
+        icon: 'text-[#f97316]',
+        badge: 'bg-[rgba(249,115,22,0.1)] text-[#f97316] dark:bg-orange-950/40 dark:text-orange-300',
       };
     }
     // Tasks
     if (type === 'TASK_CREATED' || type === 'TASK_COMPLETED') {
       return {
-        bg: 'bg-cyan-50 dark:bg-cyan-900/30',
-        icon: 'text-cyan-600 dark:text-cyan-400',
-        border: 'border-cyan-200 dark:border-cyan-800',
-        badge: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/50 dark:text-cyan-300',
+        bg: 'bg-[rgba(6,182,212,0.05)] dark:bg-cyan-950/20',
+        icon: 'text-[#06b6d4]',
+        badge: 'bg-[rgba(6,182,212,0.1)] text-[#06b6d4] dark:bg-cyan-950/40 dark:text-cyan-300',
       };
     }
     // Subscriptions
     if (type.startsWith('SUBSCRIPTION_')) {
       return {
-        bg: 'bg-indigo-50 dark:bg-indigo-900/30',
-        icon: 'text-indigo-600 dark:text-indigo-400',
-        border: 'border-indigo-200 dark:border-indigo-800',
-        badge: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300',
+        bg: 'bg-[rgba(99,102,241,0.05)] dark:bg-indigo-950/20',
+        icon: 'text-[#6366f1]',
+        badge: 'bg-[rgba(99,102,241,0.1)] text-[#6366f1] dark:bg-indigo-950/40 dark:text-indigo-300',
       };
     }
     // Payments
     if (type === 'PAYMENT_SUCCEEDED') {
       return {
-        bg: 'bg-emerald-50 dark:bg-emerald-900/30',
-        icon: 'text-emerald-600 dark:text-emerald-400',
-        border: 'border-emerald-200 dark:border-emerald-800',
-        badge: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300',
+        bg: 'bg-[rgba(16,185,129,0.05)] dark:bg-emerald-950/20',
+        icon: 'text-[#10b981]',
+        badge: 'bg-[rgba(16,185,129,0.1)] text-[#10b981] dark:bg-emerald-950/40 dark:text-emerald-300',
       };
     }
     if (type === 'PAYMENT_FAILED') {
       return {
-        bg: 'bg-red-50 dark:bg-red-900/30',
-        icon: 'text-red-600 dark:text-red-400',
-        border: 'border-red-200 dark:border-red-800',
-        badge: 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300',
+        bg: 'bg-[rgba(239,68,68,0.05)] dark:bg-red-950/20',
+        icon: 'text-[#ef4444]',
+        badge: 'bg-[rgba(239,68,68,0.1)] text-[#ef4444] dark:bg-red-950/40 dark:text-red-300',
       };
     }
     // Auth & Settings
     if (type === 'USER_LOGIN' || type === 'USER_LOGOUT' || type === 'SETTINGS_UPDATED' || 
         type === 'PASSWORD_CHANGED' || type === 'EMAIL_VERIFIED') {
       return {
-        bg: 'bg-slate-50 dark:bg-slate-900/30',
-        icon: 'text-slate-600 dark:text-slate-400',
-        border: 'border-slate-200 dark:border-slate-800',
-        badge: 'bg-slate-100 text-slate-700 dark:bg-slate-900/50 dark:text-slate-300',
+        bg: 'bg-[rgba(107,114,128,0.05)] dark:bg-slate-950/20',
+        icon: 'text-[#6b7280]',
+        badge: 'bg-[rgba(107,114,128,0.1)] text-[#6b7280] dark:bg-slate-950/40 dark:text-slate-300',
       };
     }
     // Default
     return {
-      bg: 'bg-gray-50 dark:bg-gray-900/30',
-      icon: 'text-gray-600 dark:text-gray-400',
-      border: 'border-gray-200 dark:border-gray-800',
-      badge: 'bg-gray-100 text-gray-700 dark:bg-gray-900/50 dark:text-gray-300',
+      bg: 'bg-[rgba(107,114,128,0.05)] dark:bg-zinc-950/20',
+      icon: 'text-[#6b7280]',
+      badge: 'bg-[rgba(107,114,128,0.1)] text-[#6b7280] dark:bg-zinc-950/40 dark:text-zinc-300',
     };
   };
 
@@ -230,31 +220,31 @@ const ActivityItem = ({ activity }) => {
 
   return (
     <div
-      className={`group rounded-lg border ${colors.border} bg-white p-4 shadow-sm transition-all hover:shadow-md dark:bg-zinc-800`}
+      className="group rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] p-3 transition-all hover:bg-white hover:shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-750"
     >
-      <div className="flex items-start gap-3 sm:gap-4">
+      <div className="flex items-start gap-3">
         {/* Icon */}
-        <div className={`shrink-0 rounded-lg ${colors.bg} p-2 sm:p-2.5`}>
+        <div className={`shrink-0 rounded-[8px] ${colors.bg} p-2`}>
           {renderIcon()}
         </div>
 
         {/* Content */}
         <div className="min-w-0 flex-1">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex flex-col gap-1.5 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0 flex-1">
               <div className="mb-1 flex flex-wrap items-center gap-2">
-                <h3 className="text-sm font-semibold text-gray-900 sm:text-base dark:text-white">
+                <h3 className="text-sm font-medium text-[#181818] dark:text-white leading-normal">
                   {activity.description}
                 </h3>
-                <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${colors.badge}`}>
+                <span className={`rounded-[6px] px-[6px] py-[2px] text-xs font-semibold uppercase lg:text-[10px] ${colors.badge}`}>
                   {getActivityLabel(activity.type)}
                 </span>
               </div>
-              <p className="text-xs text-gray-500 sm:text-sm dark:text-gray-400">{timeAgo}</p>
+              <p className="text-[12px] font-medium text-[#c2c2c2] dark:text-gray-400">{timeAgo}</p>
             </div>
 
             {/* Time on larger screens */}
-            <span className="hidden text-sm text-gray-500 sm:block dark:text-gray-400">
+            <span className="hidden text-[12px] font-medium text-[#c2c2c2] sm:block dark:text-gray-400">
               {new Date(activity.createdAt).toLocaleTimeString('en-US', {
                 hour: '2-digit',
                 minute: '2-digit',
@@ -264,19 +254,16 @@ const ActivityItem = ({ activity }) => {
 
           {/* Metadata */}
           {activity.metadata && (
-            <div className="mt-3 flex flex-wrap items-center gap-3 text-xs sm:text-sm">
+            <div className="mt-2.5 flex flex-wrap items-center gap-2 text-xs font-medium text-[#5d5d5d] dark:text-gray-300">
               {activity.metadata.tokensUsed && (
-                <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
-                  <span className="font-medium">💬</span>
-                  <span>{activity.metadata.tokensUsed.toLocaleString()} tokens</span>
-                </div>
+                <span className="flex items-center gap-1 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] dark:border-zinc-700">
+                  💬 {activity.metadata.tokensUsed.toLocaleString()} tokens
+                </span>
               )}
               {activity.metadata.conversationId && (
-                <div className="flex items-center gap-1 text-gray-500 dark:text-gray-500">
-                  <span className="text-xs">
-                    ID: {activity.metadata.conversationId}
-                  </span>
-                </div>
+                <span className="flex items-center gap-1 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] dark:border-zinc-700">
+                  ID: {activity.metadata.conversationId}
+                </span>
               )}
             </div>
           )}
@@ -294,10 +281,10 @@ const ActivityItem = ({ activity }) => {
             activity.type === 'EMAIL_VERIFIED') && (
             <button
               onClick={handleViewDetails}
-              className="mt-3 flex items-center gap-1 text-sm font-medium text-purple-600 transition hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300"
+              className="mt-3 flex items-center gap-1 text-[12px] font-semibold text-[#8022fe] transition hover:opacity-80"
             >
               <span>View Details</span>
-              <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
             </button>
           )}
         </div>
