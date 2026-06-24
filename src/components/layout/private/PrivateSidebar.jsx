@@ -42,7 +42,7 @@ const WORK_ITEMS = [
 const TOOLS_ITEMS = [
   { label: 'AI Coach', icon: Sparkles,path: '/user/ai-coach', match: ['/user/ai-coach'] },
   { label: 'Activity', icon: Activity, path: '/user/activity-log', match: ['/user/activity-log'] },
-  { label: 'Notification', icon: Bell, badge: '+2' },
+  { label: 'Notification', icon: Bell, path: '/user/notifications', match: ['/user/notifications'], badge: '+2' },
 ];
 
 function buildCalendarGrid(viewDate) {
