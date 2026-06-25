@@ -307,11 +307,14 @@ function FilterDropdown({ defaultLabel, options }) {
         className="flex w-30 items-center justify-between rounded-lg border border-[#f2f2f2] bg-white px-3 py-1.75 text-[12px] font-medium text-[#181818] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white max-lg:w-full max-lg:gap-2 max-lg:py-2.5 max-lg:text-base"
       >
         <span className="truncate max-lg:min-w-0 max-lg:flex-1 max-lg:text-center">{displayLabel}</span>
-        <ChevronDown size={10} className="shrink-0 text-[#a3a3a3]" />
+        <ChevronDown
+          size={14}
+          className={`shrink-0 text-[#a3a3a3] transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+        />
       </button>
 
       {open && (
-        <div className="absolute left-0 top-8 z-50 max-h-60 w-30 overflow-y-auto rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800 max-lg:right-0 max-lg:top-full max-lg:mt-1 max-lg:w-auto">
+        <div className="scrollbar-hidden absolute left-0 top-8 z-50 max-h-60 w-30 overflow-y-auto rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800 max-lg:right-0 max-lg:top-full max-lg:mt-1 max-lg:w-auto">
           {options.map((opt) => (
             <button
               key={opt}
@@ -425,7 +428,7 @@ export default function Habits() {
           />
         </div>
         <label className="flex w-62.5 items-center gap-2 rounded-lg border border-[#f2f2f2] bg-white px-3 py-1.75 focus-within:border-[#e9e9e9] dark:border-zinc-700 dark:bg-zinc-800 dark:focus-within:border-zinc-600 max-lg:w-full max-lg:py-2">
-          <Search size={12} className="shrink-0 text-[#c2c2c2]" aria-hidden />
+          <Search size={14} className="shrink-0 text-[#c2c2c2]" aria-hidden />
           <input
             type="search"
             value={searchQuery}
@@ -443,7 +446,7 @@ export default function Habits() {
           onClick={handleOpenModal}
           className="flex items-center gap-2 rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] font-semibold text-white max-lg:w-full max-lg:justify-center max-lg:py-2.5 max-lg:text-base"
         >
-          <Plus size={10} />
+          <Plus size={14} strokeWidth={2.5} className="shrink-0 text-white" />
           New Habit
         </button>
 
