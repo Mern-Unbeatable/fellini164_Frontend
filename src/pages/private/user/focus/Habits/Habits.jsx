@@ -152,6 +152,11 @@ const FILTER_CONFIG = [
   },
 ];
 
+const DEFAULT_FILTERS = FILTER_CONFIG.reduce(
+  (acc, { key, defaultLabel }) => ({ ...acc, [key]: defaultLabel }),
+  {}
+);
+
 function GhostHabitMenu({ onRegenerate, onDismiss }) {
   return (
     <div className="absolute right-0 top-full z-30 mt-1 flex w-max flex-col overflow-hidden rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
@@ -283,9 +288,8 @@ function GhostHabitRow({ habit, onDismiss, onRegenerate }) {
   );
 }
 
-function FilterDropdown({ defaultLabel, options }) {
+function FilterDropdown({ defaultLabel, options, value, onChange }) {
   const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState(options[0]);
   const [hovered, setHovered] = useState(null);
   const ref = useRef(null);
 
@@ -297,7 +301,7 @@ function FilterDropdown({ defaultLabel, options }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const displayLabel = selected === options[0] ? defaultLabel : selected;
+  const displayLabel = value === options[0] ? defaultLabel : value;
 
   return (
     <div ref={ref} className="relative max-lg:w-full">
@@ -322,7 +326,7 @@ function FilterDropdown({ defaultLabel, options }) {
               onMouseEnter={() => setHovered(opt)}
               onMouseLeave={() => setHovered(null)}
               onClick={() => {
-                setSelected(opt);
+                onChange(opt);
                 setOpen(false);
               }}
               className={`flex w-full items-center px-2 py-1.5 text-left text-[12px] font-medium whitespace-nowrap text-[#181818] dark:text-white max-lg:text-sm ${
@@ -347,11 +351,51 @@ function habitMatchesSearch(habit, query) {
   return haystack.includes(q);
 }
 
+function getHabitCategory(habit) {
+  return habit.tags?.[0]?.label;
+}
+
+// Daily = scheduled every day, Custom = some days unscheduled. Weekly/Monthly aren't
+// representable by the current Mon-Sun day-grid model, so they never match — same as how
+// Tasks' "This month" filter only matches whatever sample dates happen to fall in range.
+function getHabitScheduleType(habit) {
+  const scheduledFlags =
+    habit.scheduledDays ?? (habit.days ? habit.days.map((d) => d !== 'unscheduled') : null);
+  if (!scheduledFlags) return null;
+  return scheduledFlags.every(Boolean) ? 'Daily' : 'Custom';
+}
+
+function getHabitDaysLeftBucket(habit) {
+  const tag = habit.tags?.find((t) => /\d+\s*days?\s*left/i.test(t.label));
+  if (!tag) return null;
+  const n = parseInt(tag.label, 10);
+  if (Number.isNaN(n)) return null;
+  if (n <= 7) return '1-7 days';
+  if (n <= 30) return '8-30 days';
+  return '30+ days';
+}
+
+function habitMatchesFilters(habit, filters) {
+  if (filters.Category !== 'All Category' && getHabitCategory(habit) !== filters.Category) {
+    return false;
+  }
+  if (filters.Schedule !== 'All Schedule' && getHabitScheduleType(habit) !== filters.Schedule) {
+    return false;
+  }
+  if (filters['Days Left'] !== 'All Days Left' && getHabitDaysLeftBucket(habit) !== filters['Days Left']) {
+    return false;
+  }
+  return true;
+}
+
 export default function Habits() {
   const [modal, setModal] = useState(false);
   const [ghostHabits, setGhostHabits] = useState(GHOST_HABITS);
   const [habits, setHabits] = useState(REAL_HABITS);
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeFilters, setActiveFilters] = useState(DEFAULT_FILTERS);
+
+  const updateFilter = (key, value) => setActiveFilters((prev) => ({ ...prev, [key]: value }));
 
   const handleOpenModal = () => setModal(true);
   const handleCloseModal = () => setModal(false);
@@ -373,13 +417,19 @@ export default function Habits() {
   const boardIsEmpty = habits.length === 0;
 
   const filteredGhostHabits = useMemo(
-    () => ghostHabits.filter((h) => habitMatchesSearch(h, searchQuery)),
-    [ghostHabits, searchQuery]
+    () =>
+      ghostHabits.filter(
+        (h) => habitMatchesSearch(h, searchQuery) && habitMatchesFilters(h, activeFilters)
+      ),
+    [ghostHabits, searchQuery, activeFilters]
   );
 
   const filteredHabits = useMemo(
-    () => habits.filter((h) => habitMatchesSearch(h, searchQuery)),
-    [habits, searchQuery]
+    () =>
+      habits.filter(
+        (h) => habitMatchesSearch(h, searchQuery) && habitMatchesFilters(h, activeFilters)
+      ),
+    [habits, searchQuery, activeFilters]
   );
 
   const activeCount = habits.filter((h) => h.status === 'active').length;
@@ -452,7 +502,13 @@ export default function Habits() {
 
         <div className="flex items-center gap-2.5 max-lg:w-full max-lg:flex-col max-lg:gap-2">
           {FILTER_CONFIG.map(({ key, defaultLabel, options }) => (
-            <FilterDropdown key={key} defaultLabel={defaultLabel} options={options} />
+            <FilterDropdown
+              key={key}
+              defaultLabel={defaultLabel}
+              options={options}
+              value={activeFilters[key]}
+              onChange={(value) => updateFilter(key, value)}
+            />
           ))}
         </div>
       </div>
