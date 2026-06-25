@@ -5,7 +5,7 @@ import {
   MoreHorizontal,
   ChevronDown,
   RotateCw,
-  Timer,
+  Flame,
   Bell,
   Flag,
   Hourglass,
@@ -518,7 +518,7 @@ export default function Habits() {
         <div className="flex items-center max-lg:flex-wrap max-lg:gap-2">
           {boardIsEmpty ? (
             <div className="flex w-100 shrink-0 items-center gap-2 max-lg:w-auto">
-              <RotateCw size={12} className="shrink-0 text-[#c2c2c2]" />
+              <RotateCw size={16} className="shrink-0 text-[#c2c2c2]" />
               <span className="flex shrink-0 items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-xs font-medium text-[#8022fe]">
                 <Sparkles size={10} />
                 {filteredGhostHabits.length} AI Suggestions
@@ -526,7 +526,7 @@ export default function Habits() {
             </div>
           ) : (
             <div className="flex w-100 shrink-0 items-center gap-2 max-lg:w-auto">
-              <RotateCw size={12} className="shrink-0 text-[#c2c2c2]" />
+              <RotateCw size={16} className="shrink-0 text-[#c2c2c2]" />
               <p className="text-sm font-medium text-[#5d5d5d] dark:text-gray-300">{activeCount} active</p>
               <span className="rounded-[6px] bg-[#f2f2f2] px-[6px] py-[2px] text-xs font-medium text-[#5d5d5d] dark:bg-zinc-700 dark:text-gray-300">
                 {pausedCount} paused <span className="text-[#c2c2c2]">•</span> {completedCount} completed this month
@@ -534,7 +534,7 @@ export default function Habits() {
             </div>
           )}
           <div className="flex w-44 shrink-0 items-center gap-2 max-lg:hidden">
-            <Timer size={12} className="shrink-0 text-[#5d5d5d] dark:text-gray-300" />
+            <Flame size={12} className="shrink-0 text-[#5d5d5d] dark:text-gray-300" />
             <p className="text-sm font-medium text-[#5d5d5d] dark:text-gray-300">Streak</p>
           </div>
           <div className="flex flex-1 items-center justify-between pr-44 max-lg:hidden">
