@@ -297,10 +297,44 @@ panel, not something that only appears once content overflows. Step 1's implemen
 doesn't have this yet (3 ghost rows fit without scrolling) — needs adding now that real
 data can exceed visible rows (~5 rows fit before scroll/fade kicks in at this card height).
 
+**Fixed 2026-06-25 (final approach — supersedes two earlier wrong attempts same day):**
+the page must fill `<main>`'s full available height with **zero leftover gap**, at *any*
+viewport height — not match a specific fixed pixel value. Two earlier attempts both failed:
+first an unbounded panel (left a huge gap below on tall viewports), then a fixed
+`h-167.75`/`h-163.25` panel (matched Tasks at one specific viewport height by coincidence,
+but Tasks itself doesn't use a fixed height — it was already refactored to a dynamic
+`flex-1`/`min-h-full` fill, so a fixed-px Habits panel drifts out of sync the moment viewport
+height changes). Verified by measuring `mainRect.bottom - pageRootRect.bottom` via Playwright
+`getBoundingClientRect()` at three different viewport heights (700/950/1200px) — must be
+exactly `0` at all three, not just one.
+
+**The actual working pattern (copy this for any board, not just Habits):**
+- Page root: `relative flex min-h-full flex-col py-7.5 max-lg:min-h-0 max-lg:py-4 max-lg:sm:py-6`
+  (`min-h-full`, not implicit/auto height).
+- The single scrollable panel (or, for multi-column boards like Tasks, the row wrapping the
+  columns): `flex min-h-0 flex-1 flex-col ...` (or `items-stretch` instead of `flex-col` for a
+  row of columns) — `flex-1` + `min-h-0` is what actually absorbs the remaining space, not a
+  hardcoded height.
+- Each column/panel itself (if there are several, like Tasks' 3 columns): `h-full ... lg:min-h-0
+  lg:flex-1 ... max-lg:h-auto max-lg:max-h-[min(70vh,560px)]`.
+- The inner scrollable row-list stays `flex-1`/`min-h-0`/`overflow-y-auto` as before.
+- On `max-lg`, fall back to a capped `max-h-[min(70vh,560px)]` with natural/auto height
+  instead of forcing fill — mobile doesn't have the same "page should look balanced" concern
+  since it's expected to scroll.
+
+Apply this same `min-h-full`/`flex-1` chain (not a copied px value) to Goals once it has an
+equivalent single-panel (non-grid) list view, and re-derive by measuring rects, never by
+copying a `h-*` class name from another board at face value — it may have changed since.
+
 ### Habit card — overflow tags
 - When tags overflow available width, hide extras and show `+N`.
 - Hovering `+N` reveals all hidden tags via dropdown/tooltip — same hover pattern as the rest of the product (don't invent a new hover affordance here).
 - Reference screenshots show this on a card with `Health` tag + time range + `+3`, and on a Fitness card with `3x/Day` badge.
+- **Re-confirmed via user screenshots 2026-06-25:** `Health | 🔔 7:00 AM • 8:00 PM | +3` and
+  `Fitness | 🔔 7:00 AM • 8:00 PM | +1 | 3x/Day` — both show the multi-time reminder tag
+  (`time • time`) plus a separate `+N` overflow chip, consistent with the Step 2 multi-time
+  model above (not the old single-time MVP note, which only applies to the Manual creation
+  popup, not to how real/AI-generated habit rows render).
 
 ### Habits popup
 - **STALE as of 2026-06-21 — superseded by §2 Step 2 "Resolved" note above.** Multi-time
@@ -395,9 +429,11 @@ Manual tab stays single-time exactly as captured in Figma (one "Reminder Time" f
    their natural ~350px width inside the 426px row; don't `flex-1`/`justify-between` them to
    fill the row (the same mistake already made and corrected twice this session on the
    Mon–Sun day grid elsewhere — don't repeat it here).
-3. **Manual tab's single Reminder Time vs Step 2's multi-time reality** — see the open
-   question above; don't silently build single-time-only or silently invent a multi-time
-   UI without asking.
+3. **Manual tab's single Reminder Time vs Step 2's multi-time reality** — **resolved**:
+   multi-time habits are AI-Generation-only; the Manual tab is single-time, exactly one
+   "Reminder Time" field, no "+ add another time" control. Don't add multi-time to the
+   Manual tab and don't restrict AI-generated/board habits to single-time either — they're
+   deliberately different.
 4. **Category list mismatch** — confirm the Manual tab's Category dropdown options against
    this doc's Habits Filters list (`Career/Health/Finance/Fitness/Wellness/Productivity/
    Personal/Education`) rather than assuming it matches Tasks' shorter list.

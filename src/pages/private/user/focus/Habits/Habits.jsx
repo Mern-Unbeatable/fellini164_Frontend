@@ -414,7 +414,7 @@ export default function Habits() {
   };
 
   return (
-    <div className="py-7.5 max-lg:py-4 max-lg:sm:py-6">
+    <div className="relative flex min-h-full flex-col py-7.5 max-lg:min-h-0 max-lg:py-4 max-lg:sm:py-6">
       {/* Header */}
       <div className="mb-5 flex w-full items-start justify-between max-lg:mb-4 max-lg:flex-col max-lg:gap-4">
         <div className="flex flex-col items-start gap-2">
@@ -455,7 +455,7 @@ export default function Habits() {
       </div>
 
       {/* Board panel */}
-      <div className="relative flex w-full flex-col gap-2.5 overflow-hidden rounded-2xl border border-[#f2f2f2] bg-white p-3 dark:border-zinc-700 dark:bg-zinc-800">
+      <div className="relative flex min-h-0 w-full flex-1 flex-col gap-2.5 overflow-hidden rounded-2xl border border-[#f2f2f2] bg-white p-3 max-lg:h-auto max-lg:flex-none dark:border-zinc-700 dark:bg-zinc-800">
         <div className="flex items-center max-lg:flex-wrap max-lg:gap-2">
           {boardIsEmpty ? (
             <div className="flex w-100 shrink-0 items-center gap-2 max-lg:w-auto">
@@ -494,7 +494,7 @@ export default function Habits() {
           </div>
         </div>
 
-        <div className="scrollbar-hidden relative -mx-3 flex flex-col gap-2.5 overflow-y-auto px-3 lg:max-h-[610px] max-lg:max-h-[min(70vh,560px)]">
+        <div className="scrollbar-hidden relative -mx-3 flex flex-1 flex-col gap-2.5 overflow-y-auto px-3 lg:min-h-0 max-lg:max-h-[min(70vh,560px)]">
           {boardIsEmpty ? (
             filteredGhostHabits.length === 0 ? (
               <p className="py-10 text-center text-sm font-medium text-[#c2c2c2] dark:text-gray-500">
