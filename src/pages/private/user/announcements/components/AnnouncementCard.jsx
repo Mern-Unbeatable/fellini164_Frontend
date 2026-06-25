@@ -71,7 +71,7 @@ const AnnouncementCard = ({ notification, markAsRead, deleteAnnouncement }) => {
               {announcement.title}
             </p>
             <span
-              className={`self-start rounded-[6px] px-[6px] py-[2px] text-xs font-medium uppercase lg:text-[10px] ${getTypeColor(announcement.type)} whitespace-nowrap`}
+              className={`self-start rounded-[6px] px-[6px] py-[2px] text-xs font-medium uppercase  ${getTypeColor(announcement.type)} whitespace-nowrap`}
             >
               {announcement.type}
             </span>
