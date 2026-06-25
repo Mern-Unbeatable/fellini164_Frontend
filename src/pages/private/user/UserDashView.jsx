@@ -1,10 +1,11 @@
-// import { useSelector } from 'react-redux';
-// import { selectUser } from '../../../features/auth/authSlice';
+import { useSelector } from 'react-redux';
+import { selectUser } from '../../../features/auth/authSlice';
 import { Check, Flame, MessageSquareDot } from 'lucide-react';
 import { useState } from 'react';
 
 const UserDashView = () => {
-  // const user = useSelector(selectUser);
+  const user = useSelector(selectUser);
+  console.log('User slice response:', user);
 
   const [checked, setChecked] = useState({});
 
@@ -21,11 +22,20 @@ const UserDashView = () => {
     }));
   };
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good Morning';
+    if (hour < 17) return 'Good Afternoon';
+    return 'Good Evening';
+  };
+
   return (
     <div className="space-y-6 py-7.5 max-lg:min-h-0 max-lg:py-4 max-lg:sm:py-6">
       {/* Welcome Header */}
       <div className="rounded-xl bg-gradient-to-r from-[#8141EE] to-[#cdc0fe] px-6 py-12 text-white shadow-lg md:px-12 md:py-16 dark:from-[#6C3ADC] dark:to-[#4E2C9D]">
-        <h1 className="mb-2 text-2xl font-bold md:text-4xl">Good Morning Alex !</h1>
+        <h1 className="mb-2 text-2xl font-bold md:text-4xl">
+          {getGreeting()} {(user?.fullName || user?.firstName || user?.name || 'User').split(' ')[0]} !
+        </h1>
         <p className="text-sm text-purple-100 opacity-90 md:text-base">
           You have 5 tasks scheduled for today. Let's make it a productive one.
         </p>
