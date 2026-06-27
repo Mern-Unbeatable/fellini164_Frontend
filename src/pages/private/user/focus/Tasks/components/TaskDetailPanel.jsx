@@ -13,6 +13,9 @@ import {
   MoreHorizontal,
   Pencil,
   Trash2,
+  ListTree,
+  Wand2,
+  Minimize2,
 } from 'lucide-react';
 import SkeletonBar from '../../../../../../components/ui/SkeletonBar';
 import { generateSubtasksFromTitle } from '../utils/subtasks';
@@ -304,7 +307,15 @@ function nextMessageId() {
   return `msg-${messageIdCounter}`;
 }
 
-function AiAssistantChat({ task, onUpdateSubtasks, onUpdateTaskFields, onApplyingChange }) {
+function AiAssistantChat({
+  task,
+  onUpdateSubtasks,
+  onUpdateTaskFields,
+  onApplyingChange,
+  onClose,
+  onToggleExpand,
+  isExpanded = false,
+}) {
   const [messages, setMessages] = useState([]);
   const [prompt, setPrompt] = useState('');
   const [isThinking, setIsThinking] = useState(false);
@@ -405,9 +416,23 @@ function AiAssistantChat({ task, onUpdateSubtasks, onUpdateTaskFields, onApplyin
           <Sparkles size={14} className="text-[#8022fe]" />
           <p className="text-[14px] font-medium text-[#5d5d5d] dark:text-gray-300">AI Assistant</p>
         </div>
-        <div className="flex items-center gap-2 text-[#a3a3a3]">
-          <Maximize2 size={14} />
-          <X size={14} />
+        <div className="flex items-center gap-3 text-[#a3a3a3]">
+          <button
+            type="button"
+            onClick={onToggleExpand}
+            aria-label={isExpanded ? 'Collapse AI Assistant' : 'Expand AI Assistant'}
+            className="hover:text-[#5d5d5d] dark:hover:text-gray-300"
+          >
+            {isExpanded ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close AI Assistant"
+            className="hover:text-[#5d5d5d] dark:hover:text-gray-300"
+          >
+            <X size={14} />
+          </button>
         </div>
       </div>
 
@@ -446,16 +471,18 @@ function AiAssistantChat({ task, onUpdateSubtasks, onUpdateTaskFields, onApplyin
           <button
             type="button"
             onClick={() => runPrompt('Break this task into subtasks.', 'subtasks')}
-            className="rounded-lg border border-[#f2f2f2] px-2.5 py-1.5 text-[12px] font-medium text-[#5d5d5d] dark:border-zinc-700"
+            className="flex items-center gap-1.5 rounded-lg border border-[#f2f2f2] px-2.5 py-1.5 text-[12px] font-medium text-[#5d5d5d] dark:border-zinc-700"
           >
-            ✦ Break into subtasks
+            <ListTree size={14} className="shrink-0 text-[#8022fe]" />
+            Break into subtasks
           </button>
           <button
             type="button"
             onClick={() => runPrompt('Improve this task description.', 'description')}
-            className="rounded-lg border border-[#f2f2f2] px-2.5 py-1.5 text-[12px] font-medium text-[#5d5d5d] dark:border-zinc-700"
+            className="flex items-center gap-1.5 rounded-lg border border-[#f2f2f2] px-2.5 py-1.5 text-[12px] font-medium text-[#5d5d5d] dark:border-zinc-700"
           >
-            ✦ Improve description
+            <Wand2 size={14} className="shrink-0 text-[#8022fe]" />
+            Improve description
           </button>
         </div>
         <div className="flex w-full items-center gap-2 rounded-xl border border-[#f2f2f2] px-3 py-2 dark:border-zinc-700">
@@ -826,12 +853,31 @@ export default function TaskDetailPanel({
   onAutoTriggerConsumed,
 }) {
   const [isApplyingAiEdit, setIsApplyingAiEdit] = useState(false);
+  const [isAssistantOpen, setIsAssistantOpen] = useState(true);
+  const [isAssistantExpanded, setIsAssistantExpanded] = useState(false);
 
   if (!task) return null;
+
+  const closeAssistant = () => {
+    setIsAssistantOpen(false);
+    setIsAssistantExpanded(false);
+  };
+  const toggleExpandAssistant = () => setIsAssistantExpanded((e) => !e);
 
   return (
     <div className="flex min-h-0 flex-1 w-full flex-col gap-7.5 xl:flex-row xl:items-stretch">
       <div className="relative flex min-h-[min(60vh,520px)] min-w-0 flex-1 flex-col overflow-y-auto rounded-2xl border border-[#f2f2f2] bg-white p-5 scrollbar-hidden xl:min-h-0 dark:border-zinc-700 dark:bg-zinc-900">
+        {!isAssistantOpen && (
+          <button
+            type="button"
+            onClick={() => setIsAssistantOpen(true)}
+            aria-label="Open AI Assistant"
+            className="absolute top-4 right-14 z-10 flex items-center gap-1.5 rounded-lg bg-[#f9f4ff] px-2.5 py-1.5 text-[12px] font-medium text-[#8022fe]"
+          >
+            <Sparkles size={12} />
+            AI Assistant
+          </button>
+        )}
         <TaskDetailCard
           variant="page"
           task={task}
@@ -847,14 +893,35 @@ export default function TaskDetailPanel({
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-15 rounded-b-2xl bg-gradient-to-b from-transparent to-white dark:to-zinc-900" />
       </div>
 
-      <div className="flex h-125 w-full shrink-0 flex-col xl:h-full xl:w-100">
-        <AiAssistantChat
-          task={task}
-          onUpdateSubtasks={onUpdateSubtasks}
-          onUpdateTaskFields={onUpdateTaskFields}
-          onApplyingChange={setIsApplyingAiEdit}
-        />
-      </div>
+      {isAssistantOpen && !isAssistantExpanded && (
+        <div className="flex h-125 w-full shrink-0 flex-col xl:h-full xl:w-100">
+          <AiAssistantChat
+            task={task}
+            onUpdateSubtasks={onUpdateSubtasks}
+            onUpdateTaskFields={onUpdateTaskFields}
+            onApplyingChange={setIsApplyingAiEdit}
+            onClose={closeAssistant}
+            onToggleExpand={toggleExpandAssistant}
+            isExpanded={false}
+          />
+        </div>
+      )}
+
+      {isAssistantOpen && isAssistantExpanded && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="h-[85vh] w-full max-w-2xl">
+            <AiAssistantChat
+              task={task}
+              onUpdateSubtasks={onUpdateSubtasks}
+              onUpdateTaskFields={onUpdateTaskFields}
+              onApplyingChange={setIsApplyingAiEdit}
+              onClose={closeAssistant}
+              onToggleExpand={toggleExpandAssistant}
+              isExpanded
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

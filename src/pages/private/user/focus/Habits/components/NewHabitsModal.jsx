@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { X, Clock, Sparkles, Bell, Flag, Hourglass } from 'lucide-react';
 import HabitRow from './HabitRow';
 import TypewriterPlaceholder from '../../../../../../components/ui/TypewriterPlaceholder';
@@ -16,7 +16,8 @@ const CATEGORIES = [
 ];
 const LINKED_GOALS = ['Improve Rate', 'New Job', 'Save $10,000', 'Run 500km'];
 const HOURS = Array.from({ length: 12 }, (_, i) => i + 1);
-const MINUTES = ['00', '15', '30', '45'];
+const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
+const PERIODS = ['AM', 'PM'];
 const TARGET_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 const AI_PROMPT_PHRASES = [
@@ -118,6 +119,81 @@ function Field({ label, children }) {
 const inputClasses =
   'w-full rounded-lg border border-[#f2f2f2] bg-white px-3 py-2 text-[12px] text-[#181818] outline-none focus:border-[#8022fe] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white';
 
+function TimeColumn({ values, selected, onSelect, showDivider }) {
+  const listRef = useRef(null);
+
+  useEffect(() => {
+    const selectedEl = listRef.current?.querySelector('[data-selected="true"]');
+    selectedEl?.scrollIntoView({ block: 'center' });
+  }, []);
+
+  return (
+    <div
+      className={`flex h-32 w-12 flex-col gap-0.5 overflow-y-auto scrollbar-hidden ${
+        showDivider ? 'border-l border-[#f2f2f2] dark:border-zinc-700' : ''
+      }`}
+    >
+      <div ref={listRef} className="flex flex-col gap-0.5 px-0.5">
+        {values.map((v) => {
+          const isSelected = v === selected;
+          return (
+            <button
+              key={v}
+              type="button"
+              data-selected={isSelected}
+              onClick={() => onSelect(v)}
+              className={`shrink-0 rounded-md px-2 py-1.5 text-center text-[12px] font-medium ${
+                isSelected
+                  ? 'bg-[#f9f4ff] text-[#8022fe]'
+                  : 'text-[#5d5d5d] hover:bg-[#f2f2f2] dark:text-gray-300 dark:hover:bg-zinc-700'
+              }`}
+            >
+              {v}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function TimePickerField({ hour, minute, period, onChangeHour, onChangeMinute, onChangePeriod }) {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleClickOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [open]);
+
+  return (
+    <div ref={containerRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className={`${inputClasses} flex items-center justify-between gap-1.5 text-left`}
+      >
+        <span>
+          {hour}:{minute} {period}
+        </span>
+        <Clock size={16} className="shrink-0 text-[#a3a3a3]" />
+      </button>
+
+      {open && (
+        <div className="absolute top-full left-0 z-20 mt-1 flex items-start gap-1 rounded-lg border border-[#f2f2f2] bg-white p-1.5 shadow-[0px_2px_4px_0px_rgba(0,0,0,0.06)] dark:border-zinc-700 dark:bg-zinc-800">
+          <TimeColumn values={HOURS} selected={hour} onSelect={onChangeHour} />
+          <TimeColumn values={MINUTES} selected={minute} onSelect={onChangeMinute} showDivider />
+          <TimeColumn values={PERIODS} selected={period} onSelect={onChangePeriod} showDivider />
+        </div>
+      )}
+    </div>
+  );
+}
+
 function TabToggle({ activeTab, onChange, disabled }) {
   return (
     <div className="flex w-full items-center justify-between rounded-[10px] border border-[#f2f2f2] bg-white p-1 dark:border-zinc-700 dark:bg-zinc-800">
@@ -183,40 +259,14 @@ function ManualFormFields({ form, update }) {
           </select>
         </Field>
         <Field label="Reminder Time">
-          <div className="flex items-center gap-1 rounded-lg border border-[#f2f2f2] bg-white px-2 py-2 dark:border-zinc-700 dark:bg-zinc-800">
-            <select
-              value={form.hour}
-              onChange={(e) => update('hour', Number(e.target.value))}
-              className="w-7 appearance-none bg-transparent text-[12px] text-[#181818] outline-none dark:text-white"
-            >
-              {HOURS.map((h) => (
-                <option key={h} value={h}>
-                  {h}
-                </option>
-              ))}
-            </select>
-            <span className="text-[#a3a3a3]">:</span>
-            <select
-              value={form.minute}
-              onChange={(e) => update('minute', e.target.value)}
-              className="w-8 appearance-none bg-transparent text-[12px] text-[#181818] outline-none dark:text-white"
-            >
-              {MINUTES.map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))}
-            </select>
-            <select
-              value={form.period}
-              onChange={(e) => update('period', e.target.value)}
-              className="ml-auto appearance-none bg-transparent text-[12px] text-[#181818] outline-none dark:text-white"
-            >
-              <option>AM</option>
-              <option>PM</option>
-            </select>
-            <Clock size={12} className="shrink-0 text-[#a3a3a3]" />
-          </div>
+          <TimePickerField
+            hour={form.hour}
+            minute={form.minute}
+            period={form.period}
+            onChangeHour={(h) => update('hour', h)}
+            onChangeMinute={(m) => update('minute', m)}
+            onChangePeriod={(p) => update('period', p)}
+          />
         </Field>
       </div>
 
@@ -229,10 +279,10 @@ function ManualFormFields({ form, update }) {
                 key={day}
                 type="button"
                 onClick={() => toggleDay(day)}
-                className={`flex items-center justify-center rounded-lg border px-1 py-2 text-[11px] font-medium sm:text-[12px] ${
+                className={`flex items-center justify-center rounded-lg px-1 py-2 text-[11px] font-medium sm:text-[12px] ${
                   selected
-                    ? 'border-[#8022fe] bg-[#f9f4ff] text-[#8022fe]'
-                    : 'border-[#f2f2f2] text-[#181818] dark:border-zinc-700 dark:text-white'
+                    ? 'border-2 border-transparent bg-[#f9f4ff] text-[#8022fe]'
+                    : 'border-2 border-[#f2f2f2] text-[#181818] dark:border-zinc-700 dark:text-white'
                 }`}
               >
                 {day}
@@ -458,7 +508,7 @@ export default function NewHabitsModal({ open, onClose, onSave }) {
                   rows={5}
                   value={aiPrompt}
                   onChange={(e) => setAiPrompt(e.target.value)}
-                  className={`${inputClasses} relative z-10 h-[140px] resize-none rounded-xl bg-transparent`}
+                  className={`${inputClasses} relative z-10 h-[140px] resize-none rounded-xl bg-transparent!`}
                 />
                 <TypewriterPlaceholder phrases={AI_PROMPT_PHRASES} visible={!aiPrompt.trim()} />
               </div>

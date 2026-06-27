@@ -5,7 +5,7 @@ import {
   MoreHorizontal,
   ChevronDown,
   RotateCw,
-  Timer,
+  Flame,
   Bell,
   Flag,
   Hourglass,
@@ -152,6 +152,11 @@ const FILTER_CONFIG = [
   },
 ];
 
+const DEFAULT_FILTERS = FILTER_CONFIG.reduce(
+  (acc, { key, defaultLabel }) => ({ ...acc, [key]: defaultLabel }),
+  {}
+);
+
 function GhostHabitMenu({ onRegenerate, onDismiss }) {
   return (
     <div className="absolute right-0 top-full z-30 mt-1 flex w-max flex-col overflow-hidden rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
@@ -283,9 +288,8 @@ function GhostHabitRow({ habit, onDismiss, onRegenerate }) {
   );
 }
 
-function FilterDropdown({ defaultLabel, options }) {
+function FilterDropdown({ defaultLabel, options, value, onChange }) {
   const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState(options[0]);
   const [hovered, setHovered] = useState(null);
   const ref = useRef(null);
 
@@ -297,7 +301,7 @@ function FilterDropdown({ defaultLabel, options }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const displayLabel = selected === options[0] ? defaultLabel : selected;
+  const displayLabel = value === options[0] ? defaultLabel : value;
 
   return (
     <div ref={ref} className="relative max-lg:w-full">
@@ -307,11 +311,14 @@ function FilterDropdown({ defaultLabel, options }) {
         className="flex w-30 items-center justify-between rounded-lg border border-[#f2f2f2] bg-white px-3 py-1.75 text-[12px] font-medium text-[#181818] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white max-lg:w-full max-lg:gap-2 max-lg:py-2.5 max-lg:text-base"
       >
         <span className="truncate max-lg:min-w-0 max-lg:flex-1 max-lg:text-center">{displayLabel}</span>
-        <ChevronDown size={10} className="shrink-0 text-[#a3a3a3]" />
+        <ChevronDown
+          size={14}
+          className={`shrink-0 text-[#a3a3a3] transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+        />
       </button>
 
       {open && (
-        <div className="absolute left-0 top-8 z-50 max-h-60 w-30 overflow-y-auto rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800 max-lg:right-0 max-lg:top-full max-lg:mt-1 max-lg:w-auto">
+        <div className="scrollbar-hidden absolute left-0 top-8 z-50 max-h-60 w-30 overflow-y-auto rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800 max-lg:right-0 max-lg:top-full max-lg:mt-1 max-lg:w-auto">
           {options.map((opt) => (
             <button
               key={opt}
@@ -319,7 +326,7 @@ function FilterDropdown({ defaultLabel, options }) {
               onMouseEnter={() => setHovered(opt)}
               onMouseLeave={() => setHovered(null)}
               onClick={() => {
-                setSelected(opt);
+                onChange(opt);
                 setOpen(false);
               }}
               className={`flex w-full items-center px-2 py-1.5 text-left text-[12px] font-medium whitespace-nowrap text-[#181818] dark:text-white max-lg:text-sm ${
@@ -344,11 +351,51 @@ function habitMatchesSearch(habit, query) {
   return haystack.includes(q);
 }
 
+function getHabitCategory(habit) {
+  return habit.tags?.[0]?.label;
+}
+
+// Daily = scheduled every day, Custom = some days unscheduled. Weekly/Monthly aren't
+// representable by the current Mon-Sun day-grid model, so they never match — same as how
+// Tasks' "This month" filter only matches whatever sample dates happen to fall in range.
+function getHabitScheduleType(habit) {
+  const scheduledFlags =
+    habit.scheduledDays ?? (habit.days ? habit.days.map((d) => d !== 'unscheduled') : null);
+  if (!scheduledFlags) return null;
+  return scheduledFlags.every(Boolean) ? 'Daily' : 'Custom';
+}
+
+function getHabitDaysLeftBucket(habit) {
+  const tag = habit.tags?.find((t) => /\d+\s*days?\s*left/i.test(t.label));
+  if (!tag) return null;
+  const n = parseInt(tag.label, 10);
+  if (Number.isNaN(n)) return null;
+  if (n <= 7) return '1-7 days';
+  if (n <= 30) return '8-30 days';
+  return '30+ days';
+}
+
+function habitMatchesFilters(habit, filters) {
+  if (filters.Category !== 'All Category' && getHabitCategory(habit) !== filters.Category) {
+    return false;
+  }
+  if (filters.Schedule !== 'All Schedule' && getHabitScheduleType(habit) !== filters.Schedule) {
+    return false;
+  }
+  if (filters['Days Left'] !== 'All Days Left' && getHabitDaysLeftBucket(habit) !== filters['Days Left']) {
+    return false;
+  }
+  return true;
+}
+
 export default function Habits() {
   const [modal, setModal] = useState(false);
   const [ghostHabits, setGhostHabits] = useState(GHOST_HABITS);
   const [habits, setHabits] = useState(REAL_HABITS);
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeFilters, setActiveFilters] = useState(DEFAULT_FILTERS);
+
+  const updateFilter = (key, value) => setActiveFilters((prev) => ({ ...prev, [key]: value }));
 
   const handleOpenModal = () => setModal(true);
   const handleCloseModal = () => setModal(false);
@@ -370,13 +417,19 @@ export default function Habits() {
   const boardIsEmpty = habits.length === 0;
 
   const filteredGhostHabits = useMemo(
-    () => ghostHabits.filter((h) => habitMatchesSearch(h, searchQuery)),
-    [ghostHabits, searchQuery]
+    () =>
+      ghostHabits.filter(
+        (h) => habitMatchesSearch(h, searchQuery) && habitMatchesFilters(h, activeFilters)
+      ),
+    [ghostHabits, searchQuery, activeFilters]
   );
 
   const filteredHabits = useMemo(
-    () => habits.filter((h) => habitMatchesSearch(h, searchQuery)),
-    [habits, searchQuery]
+    () =>
+      habits.filter(
+        (h) => habitMatchesSearch(h, searchQuery) && habitMatchesFilters(h, activeFilters)
+      ),
+    [habits, searchQuery, activeFilters]
   );
 
   const activeCount = habits.filter((h) => h.status === 'active').length;
@@ -414,7 +467,7 @@ export default function Habits() {
   };
 
   return (
-    <div className="py-7.5 max-lg:py-4 max-lg:sm:py-6">
+    <div className="relative flex min-h-full flex-col py-7.5 max-lg:min-h-0 max-lg:py-4 max-lg:sm:py-6">
       {/* Header */}
       <div className="mb-5 flex w-full items-start justify-between max-lg:mb-4 max-lg:flex-col max-lg:gap-4">
         <div className="flex flex-col items-start gap-2">
@@ -425,7 +478,7 @@ export default function Habits() {
           />
         </div>
         <label className="flex w-62.5 items-center gap-2 rounded-lg border border-[#f2f2f2] bg-white px-3 py-1.75 focus-within:border-[#e9e9e9] dark:border-zinc-700 dark:bg-zinc-800 dark:focus-within:border-zinc-600 max-lg:w-full max-lg:py-2">
-          <Search size={12} className="shrink-0 text-[#c2c2c2]" aria-hidden />
+          <Search size={14} className="shrink-0 text-[#c2c2c2]" aria-hidden />
           <input
             type="search"
             value={searchQuery}
@@ -443,23 +496,29 @@ export default function Habits() {
           onClick={handleOpenModal}
           className="flex items-center gap-2 rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] font-semibold text-white max-lg:w-full max-lg:justify-center max-lg:py-2.5 max-lg:text-base"
         >
-          <Plus size={10} />
+          <Plus size={14} strokeWidth={2.5} className="shrink-0 text-white" />
           New Habit
         </button>
 
         <div className="flex items-center gap-2.5 max-lg:w-full max-lg:flex-col max-lg:gap-2">
           {FILTER_CONFIG.map(({ key, defaultLabel, options }) => (
-            <FilterDropdown key={key} defaultLabel={defaultLabel} options={options} />
+            <FilterDropdown
+              key={key}
+              defaultLabel={defaultLabel}
+              options={options}
+              value={activeFilters[key]}
+              onChange={(value) => updateFilter(key, value)}
+            />
           ))}
         </div>
       </div>
 
       {/* Board panel */}
-      <div className="relative flex w-full flex-col gap-2.5 overflow-hidden rounded-2xl border border-[#f2f2f2] bg-white p-3 dark:border-zinc-700 dark:bg-zinc-800">
+      <div className="relative flex min-h-0 w-full flex-1 flex-col gap-2.5 overflow-hidden rounded-2xl border border-[#f2f2f2] bg-white p-3 max-lg:h-auto max-lg:flex-none dark:border-zinc-700 dark:bg-zinc-800">
         <div className="flex items-center max-lg:flex-wrap max-lg:gap-2">
           {boardIsEmpty ? (
             <div className="flex w-100 shrink-0 items-center gap-2 max-lg:w-auto">
-              <RotateCw size={12} className="shrink-0 text-[#c2c2c2]" />
+              <RotateCw size={16} className="shrink-0 text-[#c2c2c2]" />
               <span className="flex shrink-0 items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-xs font-medium text-[#8022fe]">
                 <Sparkles size={10} />
                 {filteredGhostHabits.length} AI Suggestions
@@ -467,7 +526,7 @@ export default function Habits() {
             </div>
           ) : (
             <div className="flex w-100 shrink-0 items-center gap-2 max-lg:w-auto">
-              <RotateCw size={12} className="shrink-0 text-[#c2c2c2]" />
+              <RotateCw size={16} className="shrink-0 text-[#c2c2c2]" />
               <p className="text-sm font-medium text-[#5d5d5d] dark:text-gray-300">{activeCount} active</p>
               <span className="rounded-[6px] bg-[#f2f2f2] px-[6px] py-[2px] text-xs font-medium text-[#5d5d5d] dark:bg-zinc-700 dark:text-gray-300">
                 {pausedCount} paused <span className="text-[#c2c2c2]">•</span> {completedCount} completed this month
@@ -475,7 +534,7 @@ export default function Habits() {
             </div>
           )}
           <div className="flex w-44 shrink-0 items-center gap-2 max-lg:hidden">
-            <Timer size={12} className="shrink-0 text-[#5d5d5d] dark:text-gray-300" />
+            <Flame size={12} className="shrink-0 text-[#5d5d5d] dark:text-gray-300" />
             <p className="text-sm font-medium text-[#5d5d5d] dark:text-gray-300">Streak</p>
           </div>
           <div className="flex flex-1 items-center justify-between pr-44 max-lg:hidden">
@@ -494,7 +553,7 @@ export default function Habits() {
           </div>
         </div>
 
-        <div className="scrollbar-hidden relative -mx-3 flex flex-col gap-2.5 overflow-y-auto px-3 lg:max-h-[610px] max-lg:max-h-[min(70vh,560px)]">
+        <div className="scrollbar-hidden relative -mx-3 flex flex-1 flex-col gap-2.5 overflow-y-auto px-3 lg:min-h-0 max-lg:max-h-[min(70vh,560px)]">
           {boardIsEmpty ? (
             filteredGhostHabits.length === 0 ? (
               <p className="py-10 text-center text-sm font-medium text-[#c2c2c2] dark:text-gray-500">
