@@ -66,7 +66,7 @@ const UserDashView = () => {
   return (
     <div className="space-y-6 py-6 max-lg:py-4 max-lg:sm:py-6">
       {/* Welcome Header */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#8022FE] via-[#8B5CF6] to-[#A78BFA] px-6 py-10 text-white shadow-md md:px-10 md:py-12 dark:from-[#6C3ADC] dark:to-[#4E2C9D]">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#8B5CF6] via-[#8B5CF6] to-[#A78BFA] px-6 py-10 text-white shadow-md md:px-10 md:py-12 dark:from-[#6C3ADC] dark:to-[#4E2C9D]">
         {/* Subtle Decorative Circles */}
         <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-white/10 blur-xl"></div>
         <div className="absolute -bottom-10 -left-10 h-48 w-48 rounded-full bg-black/10 blur-2xl"></div>
