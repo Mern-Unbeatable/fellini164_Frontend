@@ -669,11 +669,7 @@ export default function ActiveGoals() {
 
       {/* Board panel + detail drawer */}
       <div className="relative flex min-h-0 w-full flex-1 flex-col">
-      <div
-        className={`flex min-h-0 w-full flex-1 flex-col gap-[10px] rounded-2xl border border-[#f2f2f2] bg-white p-3 max-lg:flex-none dark:border-zinc-700 dark:bg-zinc-800 ${
-          selectedGoal ? 'lg:pr-[600px]' : ''
-        }`}
-      >
+      <div className="flex min-h-0 w-full flex-1 flex-col gap-[10px] rounded-2xl border border-[#f2f2f2] bg-white p-3 max-lg:flex-none dark:border-zinc-700 dark:bg-zinc-800">
         <div className="flex items-center gap-2">
           {showGhostCards ? (
             <>

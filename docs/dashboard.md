@@ -643,6 +643,49 @@ the filters group consumed all the space `justify-between` used to distribute as
 Fix: explicit `gap-3` (12px minimum) added to the action row. Re-verified `gapBetween: 12`
 at 1064px, zero overflow at 1024-1920px, desktop/mobile pixel-unchanged.
 
+#### Goal detail panel (fixed 2026-06-26) — page-level overflow + icon/pill mismatches
+Three real bugs found by reproducing the exact flow (clicking a goal card) at laptop
+widths with Playwright, compared directly against Tasks' equivalent `TaskDetailDrawer`:
+
+1. **Board panel reserved `lg:pr-[600px]`** for the open drawer — a fixed value that
+   doesn't scale with viewport. At 1064px the 3-column card grid was squeezed into a
+   ~164px sliver (titles truncated to "MED"/"Imp"/"Rate"). **Root cause found by comparing
+   to Tasks**: Tasks' kanban columns reserve **zero** space when its drawer opens — the
+   drawer is `absolute`/`fixed` and simply overlays on top, covering whatever cards are
+   underneath, rather than pushing the layout to make room. Fix: removed `lg:pr-[600px]`
+   entirely from the board panel — it now matches Tasks' overlay behavior exactly at every
+   width (verified 1064-1920px, sidebar stays full 220px, zero page-level overflow).
+2. **Header icons** (`ExternalLink`/`X`) were `size={14}`/`size={12}`; Tasks' equivalent
+   drawer uses `size={16}`/`size={14}`. Matched, plus aligned aria-labels to Tasks' wording.
+3. **`PillBadge` (Category/Due Date) stretched to full drawer width** instead of sizing to
+   content. Root cause: `inline-flex` alone does not override a `flex-col` parent's default
+   `align-items: stretch` — Tasks' equivalent pill has an explicit `w-fit` that Goals'
+   `PillBadge` was missing. Added `w-fit`. Confirmed both bugs were present even with no
+   other state issues (reproduced from a clean page load, not anything specific to a
+   squeezed viewport).
+4. **`MoreHorizontal` (⋯ menu trigger)** was `size={15}`; Tasks' is `size={16}`. Matched.
+5. **`LinkedSectionHeader`'s add/AI-suggest icon gap** was `gap-5` (20px); Tasks' equivalent
+   Subtasks-section header uses `gap-2` (8px). Matched — found by comparing every shared
+   structural element (header padding, title/description typography, badge spacing) against
+   Tasks' drawer one piece at a time, not just the originally-flagged icons.
+
+Confirmed via side-by-side screenshots (Tasks "Exercise Routine" vs Goals "Improve Rate")
+that header chrome, badge row, and typography now line up pixel-for-pixel. The remaining
+*content* differences (Tasks: Status dropdown, Estimate Minutes, Linked Goal, Subtasks
+checklist; Goals: Progress bar, Linked Tasks, Linked Habits) are intentional — Goals and
+Tasks are different entities with different fields, matching each board's own confirmed
+Figma spec — don't force one board's fields onto the other.
+
+**Resolved 2026-06-26 (user explicitly requested exact parity):** ported Tasks'
+`TaskDetailDrawer` resize mechanism verbatim into `GoalDetailPanel` — same
+`DRAWER_DEFAULT_WIDTH`/`MIN`/`MAX` (360/360/720px) constants, same `isResizing` ref +
+`mousemove`/`mouseup` document listeners, same drag-handle button (`absolute inset-y-0
+left-0 w-1 -translate-x-1/2 cursor-col-resize`, `lg:block` only). Goals' old fixed
+`max-w-[600px]` is gone — default width is now 360px, matching Tasks exactly, not the
+previous Figma-derived 600px. Verified by actually dragging the handle in Playwright
+(not just reading the code): cursor changes to `col-resize` on mousedown, width changes
+live during drag (confirmed 360px → 549px mid-drag in one test), persists after release.
+
 ---
 
 ## 4. Planner Board

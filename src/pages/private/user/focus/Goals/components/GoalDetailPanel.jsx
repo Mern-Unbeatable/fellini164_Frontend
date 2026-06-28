@@ -258,7 +258,7 @@ function LinkedSectionHeader({ label, count, onAdd, onAi }) {
           </span>
         )}
       </div>
-      <div className="flex items-center gap-5">
+      <div className="flex items-center gap-2">
         <button
           type="button"
           onClick={onAdd}
@@ -291,12 +291,17 @@ function EmptyLinkedState({ message }) {
 function PillBadge({ children, className = '' }) {
   return (
     <span
-      className={`inline-flex items-center rounded-md border border-[#f2f2f2] px-2 pt-0.5 pb-[3px] text-[14px] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300 ${className}`}
+      className={`inline-flex w-fit items-center rounded-md border border-[#f2f2f2] px-2 pt-0.5 pb-[3px] text-[14px] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300 ${className}`}
     >
       {children}
     </span>
   );
 }
+
+// Resizable drawer — matches TaskDetailDrawer's exact range (Tasks board).
+const DRAWER_DEFAULT_WIDTH = 360;
+const DRAWER_MIN_WIDTH = 360;
+const DRAWER_MAX_WIDTH = 720;
 
 export default function GoalDetailPanel({
   goal,
@@ -309,6 +314,11 @@ export default function GoalDetailPanel({
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
+  const [width, setWidth] = useState(DRAWER_DEFAULT_WIDTH);
+  const isResizing = useRef(false);
+  const [isDesktop, setIsDesktop] = useState(
+    () => typeof window !== 'undefined' && window.innerWidth >= 1024
+  );
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -325,6 +335,40 @@ export default function GoalDetailPanel({
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
   }, [onClose]);
+
+  useEffect(() => {
+    const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!isResizing.current) return;
+      const next = Math.min(
+        DRAWER_MAX_WIDTH,
+        Math.max(DRAWER_MIN_WIDTH, window.innerWidth - e.clientX)
+      );
+      setWidth(next);
+    };
+    const handleMouseUp = () => {
+      isResizing.current = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, []);
+
+  const startResize = () => {
+    isResizing.current = true;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  };
 
   if (!goal) return null;
 
@@ -344,9 +388,17 @@ export default function GoalDetailPanel({
       />
 
       <aside
-        className="absolute inset-y-0 right-0 flex w-full max-w-[600px] flex-col border-l border-[#f2f2f2] bg-white max-lg:max-w-none dark:border-zinc-700 dark:bg-zinc-900"
+        style={isDesktop ? { width } : undefined}
+        className="absolute inset-y-0 right-0 flex w-full max-w-full flex-col overflow-hidden border-l border-[#f2f2f2] bg-white dark:border-zinc-700 dark:bg-zinc-900"
         aria-label="Goal detail"
       >
+        <button
+          type="button"
+          aria-label="Resize goal detail panel"
+          onMouseDown={startResize}
+          className="absolute inset-y-0 left-0 hidden w-1 -translate-x-1/2 cursor-col-resize hover:bg-[#8022fe]/20 lg:block"
+        />
+
         <div className="flex shrink-0 items-center justify-between border-b border-[#f2f2f2] px-5 py-4 dark:border-zinc-700">
           <button
             type="button"
@@ -391,7 +443,7 @@ export default function GoalDetailPanel({
                     aria-expanded={menuOpen}
                     className="text-[#a3a3a3] hover:text-[#5d5d5d]"
                   >
-                    <MoreHorizontal size={15} />
+                    <MoreHorizontal size={16} />
                   </button>
                   {menuOpen && (
                     <GoalDetailMenu
