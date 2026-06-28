@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { Link } from 'react-router-dom';
 import { GoMegaphone } from 'react-icons/go';
 import { PiWarning, PiTimer } from 'react-icons/pi';
 import { HiOutlineSparkles } from 'react-icons/hi2';
@@ -154,9 +155,11 @@ const BreakingSection = () => {
                 See how your schedule adapts when life changes.
               </p>
             </div>
-            <button className="relative z-0 mt-17.5 rounded-lg bg-[#8022fe] px-4 py-2 font-['Inter',sans-serif] text-[14px] font-semibold text-white transition-colors hover:bg-[#6b1bdb] md:mt-3.5">
-              Try It Yourself
-            </button>
+            <Link to="/login">
+              <button className="relative z-0 mt-17.5 rounded-lg bg-[#8022fe] px-4 py-2 font-['Inter',sans-serif] text-[14px] font-semibold text-white transition-colors hover:bg-[#6b1bdb] md:mt-3.5">
+                Try It Yourself
+              </button>
+            </Link>
           </div>
 
           <div ref={c3} className="rounded-2xl border border-[#e9e8e8] bg-[#fcfcfc] p-5 shadow-[0px_15px_7.5px_rgba(0,0,0,0.02)] md:rounded-[20px] md:p-6">
