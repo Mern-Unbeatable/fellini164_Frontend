@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useLocation } from 'react-router-dom';
 import { PiCalendarCheckDuotone, PiCheckSquare, PiFileDuotone } from 'react-icons/pi';
 import { HiArrowPathRoundedSquare } from 'react-icons/hi2';
 
@@ -135,6 +136,7 @@ const WorkflowCard = ({ row, cardRef }) => {
 };
 
 const MissingLayerSection = () => {
+  const location = useLocation();
   const secRef = useRef(null);
   const headRef = useRef(null);
   const r0 = useRef(null);
@@ -142,6 +144,18 @@ const MissingLayerSection = () => {
   const r2 = useRef(null);
   const r3 = useRef(null);
   const rowRefs = [r0, r1, r2, r3];
+
+  useEffect(() => {
+    if (location.hash === '#features-section') {
+      const timer = setTimeout(() => {
+        const element = document.getElementById('features-section');
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [location]);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -160,7 +174,7 @@ const MissingLayerSection = () => {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <section ref={secRef} className="w-full bg-white">
+    <section id="features-section" ref={secRef} className="w-full bg-white">
       <div className="mx-auto flex max-w-385 flex-col gap-6 px-5 py-12.5 md:gap-12.5 md:px-20 md:pt-12.5 md:pb-22.5 lg:pt-42.5">
         <div ref={headRef} className="flex flex-col items-center gap-3.5 text-center md:gap-5">
           <h2 className="font-['Inter',sans-serif] text-[22px] leading-[1.3] font-bold text-[#181818] md:text-[34px]">

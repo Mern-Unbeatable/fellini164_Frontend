@@ -43,9 +43,7 @@ const PublicNavbar = () => {
     if (!isMobileMenuOpen || !dropdownRef.current) return;
 
     const dropdown = dropdownRef.current;
-    const links = linksContainerRef.current
-      ? Array.from(linksContainerRef.current.children)
-      : [];
+    const links = linksContainerRef.current ? Array.from(linksContainerRef.current.children) : [];
     const cta = ctaSectionRef.current;
 
     gsap.set(dropdown, { opacity: 0, y: -10 });
@@ -99,7 +97,7 @@ const PublicNavbar = () => {
                 <a
                   key={link.label}
                   href={link.href}
-                  className={`whitespace-nowrap font-['Inter',sans-serif] text-[14px] font-semibold no-underline transition-colors hover:text-[#8022fe] hover:no-underline ${
+                  className={`font-['Inter',sans-serif] text-[14px] font-semibold whitespace-nowrap no-underline transition-colors hover:text-[#8022fe] hover:no-underline ${
                     isActive(link) ? 'text-[#8022fe]' : 'text-[#181818]'
                   }`}
                 >

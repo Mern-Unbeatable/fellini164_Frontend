@@ -80,7 +80,15 @@ const HeroHIW = () => {
                   Get Your First Plan
                 </button>
               </Link>
-              <button className="w-full shrink-0 rounded-[10px] border-2 border-[#8022fe] bg-transparent px-5 py-3 font-['Inter',sans-serif] text-[14px] font-semibold whitespace-nowrap text-[#8022fe] transition-colors hover:bg-[rgba(128,34,254,0.05)] md:w-auto md:bg-[rgba(128,34,254,0.05)] md:text-[16px]">
+              <button
+                onClick={() => {
+                  const element = document.getElementById('adapts-section');
+                  if (element) {
+                    element.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+                className="w-full shrink-0 rounded-[10px] border-2 border-[#8022fe] bg-transparent px-5 py-3 font-['Inter',sans-serif] text-[14px] font-semibold whitespace-nowrap text-[#8022fe] transition-colors hover:bg-[rgba(128,34,254,0.05)] md:w-auto md:bg-[rgba(128,34,254,0.05)] md:text-[16px]"
+              >
                 See How It Works
               </button>
             </div>

@@ -1,13 +1,13 @@
 import React from 'react';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const COLUMNS = [
   {
     heading: 'Product',
     links: [
-      { label: 'Features', href: '/features' },
+      { label: 'Features', href: '#features-section' },
       { label: 'Pricing', href: '/pricing' },
-      { label: 'How It Works', href: '/how-it-works' },
+      { label: 'How It Works', href: '#adapts-section' },
       { label: 'Roadmap', href: '/roadmap', accent: true },
       { label: 'Early Access', href: '/early-access' },
     ],
@@ -42,7 +42,21 @@ const COLUMNS = [
 
 const PublicFooter = () => {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const showFinalCTA = pathname === '/' || pathname === '/how-it-works';
+
+  const handleLinkClick = (e, href) => {
+    if (href.startsWith('#')) {
+      const element = document.getElementById(href.slice(1));
+      if (element) {
+        e.preventDefault();
+        element.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        e.preventDefault();
+        navigate('/' + href);
+      }
+    }
+  };
 
   return (
     <div className="w-full bg-white px-3 pb-3 md:px-5 md:pb-5">
@@ -58,9 +72,9 @@ const PublicFooter = () => {
           <div className="flex flex-col gap-7.5 md:hidden">
             <div className="flex flex-col gap-4">
               <div className="flex items-center justify-between">
-                <a href="/" className="inline-flex no-underline">
+                <Link to="/" className="inline-flex no-underline">
                   <img src="/logo.png" alt="Elyxa.Ai" className="h-9 w-auto" />
-                </a>
+                </Link>
                 <div className="flex items-center gap-3">
                   <a
                     href="https://stripe.com"
@@ -95,15 +109,16 @@ const PublicFooter = () => {
                   </p>
                   <div className="flex flex-col gap-4">
                     {col.links.map((link) => (
-                      <a
+                      <Link
                         key={link.label}
-                        href={link.href}
+                        to={link.href}
+                        onClick={(e) => handleLinkClick(e, link.href)}
                         className={`font-['Inter',sans-serif] text-xs leading-none font-semibold text-[#181818] no-underline transition-colors hover:text-[#8022fe] ${
                           link.accent ? 'md:text-[#8022fe]' : ''
                         }`}
                       >
                         {link.label}
-                      </a>
+                      </Link>
                     ))}
                   </div>
                 </div>
@@ -115,9 +130,9 @@ const PublicFooter = () => {
           <div className="hidden items-start justify-between md:flex">
             <div className="flex min-h-45 flex-col justify-between self-stretch">
               <div className="flex flex-col gap-5">
-                <a href="/" className="inline-flex no-underline">
+                <Link to="/" className="inline-flex no-underline">
                   <img src="/logo.png" alt="Elyxa.Ai" className="h-11 w-auto" />
-                </a>
+                </Link>
                 <p className="font-['Inter',sans-serif] text-sm leading-none font-normal text-[#c2c2c2]">
                   © 2026 Elyxa AI LLC.
                   <br />
@@ -152,13 +167,14 @@ const PublicFooter = () => {
                   </p>
                   <div className="flex flex-col gap-5">
                     {col.links.map((link) => (
-                      <a
+                      <Link
                         key={link.label}
-                        href={link.href}
+                        to={link.href}
+                        onClick={(e) => handleLinkClick(e, link.href)}
                         className="font-['Inter',sans-serif] text-sm leading-none font-semibold text-[#181818] no-underline transition-colors hover:text-[#8022fe]"
                       >
                         {link.label}
-                      </a>
+                      </Link>
                     ))}
                   </div>
                 </div>
