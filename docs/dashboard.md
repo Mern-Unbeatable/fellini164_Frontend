@@ -686,6 +686,26 @@ previous Figma-derived 600px. Verified by actually dragging the handle in Playwr
 (not just reading the code): cursor changes to `col-resize` on mousedown, width changes
 live during drag (confirmed 360px → 549px mid-drag in one test), persists after release.
 
+**Resolved 2026-06-26 — drawer height was short, didn't span the full page:** the drawer
+covered only the board-panel area (starting below the title/search/action rows), not the
+full page height Tasks' drawer covers. Root cause: `GoalDetailPanel` was rendered *inside*
+the board panel's own wrapper div (`relative flex min-h-0 w-full flex-1 flex-col`), and
+since the drawer's outer container is `lg:absolute lg:inset-0`, it resolved against that
+inner wrapper (its nearest `position:relative` ancestor) instead of the page root —
+covering only the inner wrapper's height, not the whole page. Tasks' `TaskDetailDrawer` is
+a **direct sibling** of the header/action-row at the page-root level (which is itself
+`position:relative`), so its `inset-0` spans the entire page from top to bottom. Fix:
+moved `{selectedGoal && <GoalDetailPanel />}` out of the board panel's wrapper to be a
+direct sibling of it, removed the now-unneeded `relative` from that wrapper. Verified via
+`getBoundingClientRect()`: both drawers now report identical `top`/`bottom` matching
+`main`'s full height exactly (`52`/`950` in one test), not just "looks similar" — measured
+identical, not just visually close.
+
+**Pattern to watch for on Planner/other boards:** any side-drawer with `lg:absolute
+lg:inset-0` must be a direct child of the same `position:relative` ancestor the page title
+sits under — never nest it inside a panel-specific wrapper, or it silently inherits that
+wrapper's (shorter) height instead of the full page.
+
 ---
 
 ## 4. Planner Board

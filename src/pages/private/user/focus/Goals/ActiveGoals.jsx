@@ -667,8 +667,8 @@ export default function ActiveGoals() {
         </div>
       </div>
 
-      {/* Board panel + detail drawer */}
-      <div className="relative flex min-h-0 w-full flex-1 flex-col">
+      {/* Board panel */}
+      <div className="flex min-h-0 w-full flex-1 flex-col">
       <div className="flex min-h-0 w-full flex-1 flex-col gap-[10px] rounded-2xl border border-[#f2f2f2] bg-white p-3 max-lg:flex-none dark:border-zinc-700 dark:bg-zinc-800">
         <div className="flex items-center gap-2">
           {showGhostCards ? (
@@ -729,7 +729,11 @@ export default function ActiveGoals() {
           </div>
         )}
       </div>
+      </div>
 
+      {/* Detail drawer — sibling of header/action-row/board panel, so its absolute
+          positioning spans the full page height, matching TaskDetailDrawer exactly
+          (not nested inside the board panel's wrapper, which only covers that area). */}
       {selectedGoal && (
         <GoalDetailPanel
           goal={selectedGoal}
@@ -741,7 +745,6 @@ export default function ActiveGoals() {
           onDelete={(g) => handleDeleteGoal(g.id)}
         />
       )}
-      </div>
 
       <GoalProgressModal open={modalProgress} onClose={handleCloseModalProgress} onSave={handleSavePlan} />
       <NewGoalModal open={modal} onClose={handleCloseModal} onSave={handleSavePlan} />
