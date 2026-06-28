@@ -221,7 +221,7 @@ export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }
           }`}
         >
           {showExpanded && (
-            <Link to="/dashboard" onClick={onCloseMobile} className="flex h-[30px] w-[133px] shrink-0 items-center no-underline">
+            <Link to="/" onClick={onCloseMobile} className="flex h-[30px] w-[133px] shrink-0 items-center no-underline">
               <img
                 src="/logo.png"
                 alt="Elyxa.Ai"
