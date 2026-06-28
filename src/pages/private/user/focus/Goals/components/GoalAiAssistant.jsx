@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Sparkles, X, ExternalLink, Send, ListTodo, Pencil, Repeat } from 'lucide-react';
+import { Sparkles, X, Maximize2, Minimize2, Send, ListTodo, Pencil, Repeat } from 'lucide-react';
 
 const QUICK_ACTIONS = [
   { label: 'Add tasks', icon: ListTodo },
@@ -43,7 +43,7 @@ function ActionPill({ children, onClick }) {
   );
 }
 
-export default function GoalAiAssistant() {
+export default function GoalAiAssistant({ onClose, onToggleExpand, isExpanded = false }) {
   const [prompt, setPrompt] = useState('');
   const textareaRef = useRef(null);
 
@@ -55,84 +55,87 @@ export default function GoalAiAssistant() {
   }, [prompt]);
 
   return (
-    <div className="flex h-full w-full max-w-[400px] flex-col items-center gap-2.5">
-      <div className="flex h-full w-full flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-white dark:border-zinc-700 dark:bg-zinc-900">
-        <div className="flex shrink-0 items-center gap-1.5 border-b border-[#f2f2f2] px-3 py-2.5 dark:border-zinc-700">
-          <Sparkles size={12} className="shrink-0 text-[#8022fe]" />
-          <p className="flex-1 text-[14px] font-medium text-[#5d5d5d] dark:text-gray-300">AI Assistant</p>
-          <div className="flex items-center gap-3 text-[#a3a3a3]">
-            <button type="button" aria-label="Open in new window" className="hover:text-[#5d5d5d]">
-              <ExternalLink size={12} />
-            </button>
-            <button type="button" aria-label="Close assistant" className="hover:text-[#5d5d5d]">
-              <X size={10} />
-            </button>
-          </div>
+    <div className="flex h-full w-full flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-white dark:border-zinc-700 dark:bg-zinc-900">
+      <div className="flex shrink-0 items-center gap-1.5 border-b border-[#f2f2f2] px-3 py-2.5 dark:border-zinc-700">
+        <Sparkles size={14} className="shrink-0 text-[#8022fe]" />
+        <p className="flex-1 text-[14px] font-medium text-[#5d5d5d] dark:text-gray-300">AI Assistant</p>
+        <div className="flex items-center gap-3 text-[#a3a3a3]">
+          <button
+            type="button"
+            onClick={onToggleExpand}
+            aria-label={isExpanded ? 'Collapse AI Assistant' : 'Expand AI Assistant'}
+            className="hover:text-[#5d5d5d]"
+          >
+            {isExpanded ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+          </button>
+          <button type="button" onClick={onClose} aria-label="Close AI Assistant" className="hover:text-[#5d5d5d]">
+            <X size={14} />
+          </button>
         </div>
+      </div>
 
-        <div className="scrollbar-hidden flex min-h-0 flex-1 flex-col overflow-y-auto py-3 pl-3 pr-[18px]">
-          <p className="mb-2.5 text-center text-[12px] font-medium text-[#c2c2c2]">
-            Tuesday, May 5 • 7:39 PM
-          </p>
-          <div className="flex flex-col gap-5">
-            <UserBubble>Hi, I want to improve this goal</UserBubble>
+      <div className="scrollbar-hidden flex min-h-0 flex-1 flex-col overflow-y-auto py-3 pl-3 pr-[18px]">
+        <p className="mb-2.5 text-center text-[12px] font-medium text-[#c2c2c2]">
+          Tuesday, May 5 • 7:39 PM
+        </p>
+        <div className="flex flex-col gap-5">
+          <UserBubble>Hi, I want to improve this goal</UserBubble>
 
-            <AiBubble>
-              {'Sure, I can update this task.\n\nThis will:\n• improve clarity\n• improve tracking'}
-            </AiBubble>
+          <AiBubble>
+            {'Sure, I can update this task.\n\nThis will:\n• improve clarity\n• improve tracking'}
+          </AiBubble>
 
-            <div className="flex flex-col gap-2.5">
-              <AiBubble>Do you want me to apply these changes?</AiBubble>
-              <div className="flex items-center gap-2">
-                <ActionPill>Yes, apply</ActionPill>
-                <ActionPill>No, cancel</ActionPill>
-              </div>
-            </div>
-
-            <UserBubble>Yes, apply</UserBubble>
-
-            <div className="flex flex-col gap-2.5">
-              <AiBubble>Done. The goal has been updated</AiBubble>
-              <ActionPill>Undo changes</ActionPill>
+          <div className="flex flex-col gap-2.5">
+            <AiBubble>Do you want me to apply these changes?</AiBubble>
+            <div className="flex items-center gap-2">
+              <ActionPill>Yes, apply</ActionPill>
+              <ActionPill>No, cancel</ActionPill>
             </div>
           </div>
-        </div>
 
-        <div className="flex shrink-0 flex-col gap-3">
-          <div className="flex flex-wrap gap-2 px-2.5">
-            {QUICK_ACTIONS.map(({ label, icon: Icon }) => (
-              <button
-                key={label}
-                type="button"
-                className="flex items-center gap-1.5 rounded-md border border-[#f2f2f2] bg-[#fcfcfc] px-2 pt-0.5 pb-[3px] text-[14px] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300"
-              >
-                <Icon size={12} className="shrink-0" />
-                {label}
-              </button>
-            ))}
-          </div>
-          <div className="flex items-center justify-between border-t border-[#f2f2f2] px-3.5 py-2.5 dark:border-zinc-700">
-            <textarea
-              ref={textareaRef}
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              placeholder="Describe what you want to change..."
-              rows={1}
-              className="max-h-20 min-w-0 flex-1 resize-none bg-transparent text-[14px] font-medium text-[#5d5d5d] placeholder:text-[#c2c2c2] focus:outline-none dark:text-gray-300"
-            />
-            <button
-              type="button"
-              aria-label="Send message"
-              className="ml-2 flex size-[30px] shrink-0 items-center justify-center rounded-full bg-[#8022fe] text-white"
-            >
-              <Send size={14} />
-            </button>
+          <UserBubble>Yes, apply</UserBubble>
+
+          <div className="flex flex-col gap-2.5">
+            <AiBubble>Done. The goal has been updated</AiBubble>
+            <ActionPill>Undo changes</ActionPill>
           </div>
         </div>
       </div>
-      <p className="text-center text-[10px] font-normal text-[#c2c2c2]">
-        AI can make mistakes. Verify important info
-      </p>
+
+      <div className="flex shrink-0 flex-col gap-3 p-3">
+        <div className="flex flex-wrap gap-2">
+          {QUICK_ACTIONS.map(({ label, icon: Icon }) => (
+            <button
+              key={label}
+              type="button"
+              className="flex items-center gap-1.5 rounded-md border border-[#f2f2f2] bg-[#fcfcfc] px-2 pt-0.5 pb-[3px] text-[14px] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300"
+            >
+              <Icon size={12} className="shrink-0" />
+              {label}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center justify-between rounded-xl border border-[#f2f2f2] px-3.5 py-2.5 dark:border-zinc-700">
+          <textarea
+            ref={textareaRef}
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            placeholder="Describe what you want to change..."
+            rows={1}
+            className="max-h-20 min-w-0 flex-1 resize-none bg-transparent text-[14px] font-medium text-[#5d5d5d] placeholder:text-[#c2c2c2] focus:outline-none dark:text-gray-300"
+          />
+          <button
+            type="button"
+            aria-label="Send message"
+            className="ml-2 flex size-[30px] shrink-0 items-center justify-center rounded-full bg-[#8022fe] text-white"
+          >
+            <Send size={14} />
+          </button>
+        </div>
+        <p className="text-center text-[10px] font-normal text-[#c2c2c2]">
+          AI can make mistakes. Verify important info
+        </p>
+      </div>
     </div>
   );
 }
