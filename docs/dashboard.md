@@ -582,6 +582,20 @@ documented ahead of time per the user's requirement doc, but don't build them un
 Create button, Dashboard (presumably the global nav item, not this board), Announcements,
 AI Coach, Activity, Notification, Go to, Settings, Profile.
 
+#### Laptop-width overflow (fixed 2026-06-26)
+Same class of bug as Tasks/Habits (see their "Laptop-width overflow" notes), but Goals has
+**6** filters (not 5) plus its filter group used `flex-wrap` instead of overflowing — so
+instead of a horizontal scrollbar, the action row visibly wrapped "All Source"/"All Date"
+onto a second line at laptop widths (1024-~1366px). Fix: `FilterDropdown` button+panel width
+`w-[120px]`/`w-30`→`w-25 2xl:w-30` (both kept in sync), filters group gap
+`gap-[10px]`→`gap-1 2xl:gap-2.5`, added `lg:flex-nowrap` (the `flex-wrap` is still needed
+below `lg` where the parent switches to `max-lg:flex-col` anyway, so it's harmless there —
+only `lg:flex-nowrap` actually changes behavior, forcing one row once compressed-enough to
+fit). Also added `shrink-0 whitespace-nowrap` to the "New Goal" button — same fix as Tasks'
+"New Task" button needed, since an un-pinned button can get flex-shrunk and wrap its own
+text once its sibling group tightens up. Verified across 1024-1920px: no wrap, no overflow,
+desktop/mobile pixel-unchanged.
+
 ---
 
 ## 4. Planner Board

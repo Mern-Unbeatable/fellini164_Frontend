@@ -481,14 +481,14 @@ function FilterDropdown({ defaultLabel, options }) {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-[120px] items-center justify-between rounded-lg border border-[#f2f2f2] bg-white px-3 py-[7px] text-[12px] font-medium leading-[1.5] text-[#181818] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white max-lg:w-full max-lg:gap-2 max-lg:py-2.5 max-lg:text-base"
+        className="flex w-25 items-center justify-between rounded-lg border border-[#f2f2f2] bg-white px-3 py-[7px] text-[12px] font-medium leading-[1.5] text-[#181818] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white max-lg:w-full max-lg:gap-2 max-lg:py-2.5 max-lg:text-base 2xl:w-30"
       >
         <span className="truncate max-lg:min-w-0 max-lg:flex-1 max-lg:text-center">{displayLabel}</span>
         <ChevronDown size={10} className="shrink-0 text-[#a3a3a3]" />
       </button>
 
       {open && (
-        <div className="absolute right-0 top-8 z-50 max-h-60 w-30 overflow-y-auto rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800 max-lg:top-full max-lg:mt-1 max-lg:w-auto lg:left-0 lg:right-auto">
+        <div className="absolute right-0 top-8 z-50 max-h-60 w-25 overflow-y-auto rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800 max-lg:top-full max-lg:mt-1 max-lg:w-auto lg:left-0 lg:right-auto 2xl:w-30">
           {options.map((opt) => (
             <button
               key={opt}
@@ -651,13 +651,13 @@ export default function ActiveGoals() {
       <div className="mb-5 flex w-full items-center justify-between max-lg:mb-4 max-lg:flex-col max-lg:items-stretch max-lg:gap-4">
         <button
           onClick={handleOpenModal}
-          className="flex items-center gap-2 rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] font-semibold leading-normal text-white max-lg:w-full max-lg:justify-center max-lg:py-2.5 max-lg:text-base"
+          className="flex shrink-0 items-center gap-2 rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] font-semibold leading-normal whitespace-nowrap text-white max-lg:w-full max-lg:justify-center max-lg:py-2.5 max-lg:text-base"
         >
           <Plus size={10} />
           New Goal
         </button>
 
-        <div className="flex flex-wrap items-center justify-end gap-[10px] max-lg:w-full max-lg:flex-col max-lg:gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-1 max-lg:w-full max-lg:flex-col max-lg:gap-2 lg:flex-nowrap 2xl:gap-2.5">
           {FILTER_CONFIG.map(({ key, defaultLabel, options }) => (
             <FilterDropdown key={key} defaultLabel={defaultLabel} options={options} />
           ))}
