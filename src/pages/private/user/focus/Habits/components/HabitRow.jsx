@@ -2,6 +2,7 @@ import { Flame, MoreHorizontal, Pencil, Sparkles, Check, Pause, Trash2 } from 'l
 import { useEffect, useRef, useState } from 'react';
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const TODAY_INDEX = (new Date().getDay() + 6) % 7; // Mon=0 ... Sun=6
 
 // Day cell states: 'unscheduled' (invisible spacer), 'empty' (not done yet),
 // 'checked' (completed), 'today' (partial-fill bar + "{done}/{total}" label).
@@ -182,6 +183,23 @@ export default function HabitRow({
           >
             {habit.streak} days
           </p>
+        </div>
+      )}
+
+      {!compact && !isCompleted && (
+        <div className="grid w-full grid-cols-7 place-items-center gap-1 lg:hidden">
+          {DAYS.map((day, i) => (
+            <div key={day} className="flex items-center justify-center gap-1">
+              <p
+                className={`text-xs font-medium ${
+                  i === TODAY_INDEX ? 'text-[#8022fe]' : 'text-[#5d5d5d] dark:text-gray-300'
+                }`}
+              >
+                {day}
+              </p>
+              {i === TODAY_INDEX && <span className="size-1 shrink-0 rounded-full bg-[#8022fe]" />}
+            </div>
+          ))}
         </div>
       )}
 
