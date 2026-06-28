@@ -59,17 +59,17 @@ const PublicFooter = () => {
   };
 
   return (
-    <div className="w-full bg-white px-3 pb-3 md:px-5 md:pb-5">
+    <div className="w-full bg-white px-3 pb-3 lg:px-5 lg:pb-5">
       <footer
-        className={`relative z-10 w-full rounded-[20px] border border-[#f2f2f2] bg-[#fcfcfc] md:rounded-[30px] ${
+        className={`relative z-10 w-full rounded-[20px] border border-[#f2f2f2] bg-[#fcfcfc] lg:rounded-[30px] ${
           showFinalCTA
-            ? '-mt-62.5 pt-70 pb-7.5 md:-mt-57.25 md:pt-57.5 md:pb-17.5'
-            : 'py-7.5 md:py-17.5'
+            ? '-mt-62.5 pt-70 pb-7.5 lg:-mt-57.25 lg:pt-57.5 lg:pb-17.5'
+            : 'py-7.5 lg:py-17.5'
         }`}
       >
-        <div className="mx-auto max-w-325 px-3 md:px-5 lg:pl-10 lg:pr-5 xl:px-0">
+        <div className="mx-auto max-w-325 px-3 lg:px-5 xl:pl-10 xl:pr-5 xl:px-0">
           {/* Mobile footer */}
-          <div className="flex flex-col gap-7.5 md:hidden">
+          <div className="flex flex-col gap-7.5 lg:hidden">
             <div className="flex flex-col gap-4">
               <div className="flex items-center justify-between">
                 <Link to="/" className="inline-flex no-underline">
@@ -114,7 +114,7 @@ const PublicFooter = () => {
                         to={link.href}
                         onClick={(e) => handleLinkClick(e, link.href)}
                         className={`font-['Inter',sans-serif] text-xs leading-none font-semibold text-[#181818] no-underline transition-colors hover:text-[#8022fe] ${
-                          link.accent ? 'md:text-[#8022fe]' : ''
+                          link.accent ? 'lg:text-[#8022fe]' : ''
                         }`}
                       >
                         {link.label}
@@ -127,7 +127,7 @@ const PublicFooter = () => {
           </div>
 
           {/* Tablet + Desktop footer */}
-          <div className="hidden items-start justify-start gap-12 lg:gap-20 xl:gap-0 xl:justify-between md:flex">
+          <div className="hidden items-start justify-start gap-12 lg:flex xl:gap-0 xl:justify-between">
             <div className="flex min-h-45 flex-col justify-between self-stretch shrink-0">
               <div className="flex flex-col gap-5">
                 <Link to="/" className="inline-flex no-underline">
