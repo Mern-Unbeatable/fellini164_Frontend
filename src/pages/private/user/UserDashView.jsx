@@ -141,9 +141,9 @@ const UserDashView = () => {
                 Daily Quote
               </h2>
               <p className="text-[13px] leading-relaxed text-gray-600 italic dark:text-gray-300">
-                "The only way to do great work is to love what you do."
+                "Success is not final, failure is not fatal: it is the courage to continue that counts."
               </p>
-              <span className="mt-1 block text-[11px] font-medium text-gray-400">— Steve Jobs</span>
+              <span className="mt-1 block text-[11px] font-medium text-gray-400">— Winston Churchill</span>
             </div>
           </div>
         </div>
@@ -155,16 +155,17 @@ const UserDashView = () => {
         <div className="lg:col-span-2">
           <div className="flex h-full flex-col justify-between rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] p-5 dark:border-zinc-700 dark:bg-zinc-800">
             <div>
-              <div className="mb-4 flex items-center justify-between">
-                <div>
+              <div className="mb-4 flex items-start justify-between gap-4">
+                <div className="min-w-0">
                   <h2 className="flex items-center gap-2 text-[16px] font-semibold text-[#181818] lg:text-[14px] dark:text-white">
-                    <Target size={16} className="text-[#8022fe]" /> Today's Focus Tasks
+                    <Target size={16} className="shrink-0 text-[#8022fe]" />
+                    <span>Today's Focus Tasks</span>
                   </h2>
                   <p className="mt-0.5 text-[11px] text-[#a3a3a3] dark:text-zinc-400">
                     High-priority tasks scheduled for today
                   </p>
                 </div>
-                <span className="rounded-md bg-[#f9f4ff] px-2 py-0.75 text-[12px] font-medium text-[#8022fe] dark:bg-zinc-700 dark:text-gray-300">
+                <span className="shrink-0 whitespace-nowrap rounded-md bg-[#f9f4ff] px-2.5 py-1 text-[12px] font-medium text-[#8022fe] dark:bg-zinc-700 dark:text-gray-300">
                   {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                 </span>
               </div>
