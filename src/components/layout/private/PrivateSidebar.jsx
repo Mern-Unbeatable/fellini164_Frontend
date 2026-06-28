@@ -26,7 +26,7 @@ const SHORT_MONTH_NAMES = [
 
 const MAIN_ITEMS = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard', match: ['/dashboard'] },
-  { label: 'Announcements', icon: Megaphone },
+  { label: 'Announcements', icon: Megaphone, path: '/user/announcements', match: ['/user/announcements'] },
 ];
 
 const ORGANIZATION_ITEMS = [
@@ -40,9 +40,9 @@ const WORK_ITEMS = [
 ];
 
 const TOOLS_ITEMS = [
-  { label: 'AI Coach', icon: Sparkles },
-  { label: 'Activity', icon: Activity },
-  { label: 'Notification', icon: Bell, badge: '+2' },
+  { label: 'AI Coach', icon: Sparkles,path: '/user/ai-coach', match: ['/user/ai-coach'] },
+  { label: 'Activity', icon: Activity, path: '/user/activity-log', match: ['/user/activity-log'] },
+  { label: 'Notification', icon: Bell, path: '/user/notifications', match: ['/user/notifications'], badge: '+2' },
 ];
 
 function buildCalendarGrid(viewDate) {
@@ -221,7 +221,7 @@ export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }
           }`}
         >
           {showExpanded && (
-            <Link to="/dashboard" onClick={onCloseMobile} className="flex h-[30px] w-[133px] shrink-0 items-center no-underline">
+            <Link to="/" onClick={onCloseMobile} className="flex h-[30px] w-[133px] shrink-0 items-center no-underline">
               <img
                 src="/logo.png"
                 alt="Elyxa.Ai"
@@ -270,9 +270,9 @@ export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }
           </div>
         )}
 
-        <div className="flex w-full flex-col items-start gap-1.5 px-2 py-3">
+        <div className="flex w-full flex-col gap-1.5 px-2 py-3">
           {showExpanded && <SectionSubtitle>Main</SectionSubtitle>}
-          <div className="flex w-full flex-col items-start gap-1">
+          <div className="flex w-full flex-col gap-1">
             {MAIN_ITEMS.map((item) =>
               item.path ? (
                 <NavItem
@@ -289,7 +289,7 @@ export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }
           </div>
         </div>
 
-        <div className="flex w-full flex-col items-start gap-1.5 px-2 py-3">
+        <div className="flex w-full flex-col gap-1.5 px-2 py-3">
           {showExpanded && <SectionSubtitle>Organization</SectionSubtitle>}
           {ORGANIZATION_ITEMS.map((item) => (
             <NavItem
@@ -302,9 +302,9 @@ export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }
           ))}
         </div>
 
-        <div className="flex w-full flex-col items-start gap-1.5 px-2 py-3">
+        <div className="flex w-full flex-col gap-1.5 px-2 py-3">
           {showExpanded && <SectionSubtitle>Work</SectionSubtitle>}
-          <div className="flex w-full flex-col items-start gap-1">
+          <div className="flex w-full flex-col gap-1">
             {WORK_ITEMS.map((item) => (
               <NavItem
                 key={item.label}
@@ -317,12 +317,22 @@ export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }
           </div>
         </div>
 
-        <div className="flex w-full flex-col items-start gap-1.5 px-2 py-3">
+        <div className="flex w-full flex-col gap-1.5 px-2 py-3">
           {showExpanded && <SectionSubtitle>Tools</SectionSubtitle>}
-          <div className="flex w-full flex-col items-start gap-1">
-            {TOOLS_ITEMS.map((item) => (
-              <InertNavItem key={item.label} item={item} collapsed={!showExpanded} />
-            ))}
+          <div className="flex w-full flex-col gap-1">
+            {TOOLS_ITEMS.map((item) =>
+              item.path ? (
+                <NavItem
+                  key={item.label}
+                  item={item}
+                  collapsed={!showExpanded}
+                  isActive={isItemActive(item)}
+                  onNavigate={onCloseMobile}
+                />
+              ) : (
+                <InertNavItem key={item.label} item={item} collapsed={!showExpanded} />
+              )
+            )}
           </div>
         </div>
       </aside>

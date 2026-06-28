@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -176,12 +176,25 @@ const AdaptsDesktopCards = () => (
 );
 
 const AdaptsSection = () => {
+  const location = useLocation();
   const secRef = useRef(null);
   const headRef = useRef(null);
   const c1Ref = useRef(null);
   const c2Ref = useRef(null);
   const c3Ref = useRef(null);
   const cardsAnimRef = useRef(null);
+
+  useEffect(() => {
+    if (location.hash === '#adapts-section') {
+      const timer = setTimeout(() => {
+        const element = document.getElementById('adapts-section');
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [location]);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -200,7 +213,7 @@ const AdaptsSection = () => {
   const [step01, step02, step03] = ADAPTS_MOBILE_STEPS;
 
   return (
-    <section ref={secRef} className="w-full bg-white">
+    <section id="adapts-section" ref={secRef} className="w-full bg-white">
       <div className="mx-auto max-w-385 px-5 py-12.5 md:px-20 md:pt-22.5 md:pb-45">
         <div className="flex flex-col gap-6 md:gap-12.5">
           <div ref={headRef} className="flex max-w-160 flex-col gap-3.5 md:gap-5">

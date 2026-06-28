@@ -1,13 +1,13 @@
 import React from 'react';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const COLUMNS = [
   {
     heading: 'Product',
     links: [
-      { label: 'Features', href: '/features' },
+      { label: 'Features', href: '#features-section' },
       { label: 'Pricing', href: '/pricing' },
-      { label: 'How It Works', href: '/how-it-works' },
+      { label: 'How It Works', href: '#adapts-section' },
       { label: 'Roadmap', href: '/roadmap', accent: true },
       { label: 'Early Access', href: '/early-access' },
     ],
@@ -42,25 +42,39 @@ const COLUMNS = [
 
 const PublicFooter = () => {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const showFinalCTA = pathname === '/' || pathname === '/how-it-works';
 
+  const handleLinkClick = (e, href) => {
+    if (href.startsWith('#')) {
+      const element = document.getElementById(href.slice(1));
+      if (element) {
+        e.preventDefault();
+        element.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        e.preventDefault();
+        navigate('/' + href);
+      }
+    }
+  };
+
   return (
-    <div className="w-full bg-white px-3 pb-3 md:px-5 md:pb-5">
+    <div className="w-full bg-white px-3 pb-3 lg:px-5 lg:pb-5">
       <footer
-        className={`relative z-10 w-full rounded-[20px] border border-[#f2f2f2] bg-[#fcfcfc] md:rounded-[30px] ${
+        className={`relative z-10 w-full rounded-[20px] border border-[#f2f2f2] bg-[#fcfcfc] lg:rounded-[30px] ${
           showFinalCTA
-            ? '-mt-62.5 pt-70 pb-7.5 md:-mt-57.25 md:pt-57.5 md:pb-17.5'
-            : 'py-7.5 md:py-17.5'
+            ? '-mt-62.5 pt-70 pb-7.5 lg:-mt-57.25 lg:pt-57.5 lg:pb-17.5'
+            : 'py-7.5 lg:py-17.5'
         }`}
       >
-        <div className="mx-auto max-w-325 px-3 md:px-5 lg:px-0">
+        <div className="mx-auto max-w-325 px-3 lg:px-5 xl:pl-10 xl:pr-5 xl:px-0">
           {/* Mobile footer */}
-          <div className="flex flex-col gap-7.5 md:hidden">
+          <div className="flex flex-col gap-7.5 lg:hidden">
             <div className="flex flex-col gap-4">
               <div className="flex items-center justify-between">
-                <a href="/" className="inline-flex no-underline">
+                <Link to="/" className="inline-flex no-underline">
                   <img src="/logo.png" alt="Elyxa.Ai" className="h-9 w-auto" />
-                </a>
+                </Link>
                 <div className="flex items-center gap-3">
                   <a
                     href="https://stripe.com"
@@ -95,15 +109,16 @@ const PublicFooter = () => {
                   </p>
                   <div className="flex flex-col gap-4">
                     {col.links.map((link) => (
-                      <a
+                      <Link
                         key={link.label}
-                        href={link.href}
+                        to={link.href}
+                        onClick={(e) => handleLinkClick(e, link.href)}
                         className={`font-['Inter',sans-serif] text-xs leading-none font-semibold text-[#181818] no-underline transition-colors hover:text-[#8022fe] ${
-                          link.accent ? 'md:text-[#8022fe]' : ''
+                          link.accent ? 'lg:text-[#8022fe]' : ''
                         }`}
                       >
                         {link.label}
-                      </a>
+                      </Link>
                     ))}
                   </div>
                 </div>
@@ -112,12 +127,12 @@ const PublicFooter = () => {
           </div>
 
           {/* Tablet + Desktop footer */}
-          <div className="hidden items-start justify-between md:flex">
-            <div className="flex min-h-45 flex-col justify-between self-stretch">
+          <div className="hidden items-start justify-start gap-12 lg:flex xl:gap-0 xl:justify-between">
+            <div className="flex min-h-45 flex-col justify-between self-stretch shrink-0">
               <div className="flex flex-col gap-5">
-                <a href="/" className="inline-flex no-underline">
+                <Link to="/" className="inline-flex no-underline">
                   <img src="/logo.png" alt="Elyxa.Ai" className="h-11 w-auto" />
-                </a>
+                </Link>
                 <p className="font-['Inter',sans-serif] text-sm leading-none font-normal text-[#c2c2c2]">
                   © 2026 Elyxa AI LLC.
                   <br />
@@ -144,7 +159,7 @@ const PublicFooter = () => {
               </div>
             </div>
 
-            <div className="flex gap-5 lg:gap-25">
+            <div className="flex gap-5 lg:gap-25 shrink-0">
               {COLUMNS.map((col) => (
                 <div key={col.heading} className="flex flex-col gap-7.5">
                   <p className="font-['Inter',sans-serif] text-sm leading-none font-normal text-[#c2c2c2]">
@@ -152,13 +167,14 @@ const PublicFooter = () => {
                   </p>
                   <div className="flex flex-col gap-5">
                     {col.links.map((link) => (
-                      <a
+                      <Link
                         key={link.label}
-                        href={link.href}
+                        to={link.href}
+                        onClick={(e) => handleLinkClick(e, link.href)}
                         className="font-['Inter',sans-serif] text-sm leading-none font-semibold text-[#181818] no-underline transition-colors hover:text-[#8022fe]"
                       >
                         {link.label}
-                      </a>
+                      </Link>
                     ))}
                   </div>
                 </div>

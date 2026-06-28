@@ -21,7 +21,7 @@ import Subscription from '../pages/private/user/account/Subscription';
 import ReferFriend from '../pages/private/user/account/ReferFriend';
 import Profile from '../pages/private/user/account/Profile';
 import Settings from '../pages/private/user/account/Settings';
-import AiChat from '../pages/private/user/growth/AiChat';
+import AiChat from '../pages/private/user/aichat/AiChat';
 import Analytics from '../pages/private/user/growth/Analytics';
 import UserManagement from '../pages/private/admin/management/UserManagement';
 import UserDetail from '../pages/private/admin/management/userManagementComponents/UserDetails';
@@ -43,6 +43,9 @@ import ResetPassword from '../pages/auth/ResetPassword';
 import ForgotPassword from '../pages/auth/ForgotPassword';
 
 import ForgotPasswordVerifyOTP from '../pages/auth/ForgotPasswordVerifyOTP';
+import Announcements from '../pages/private/user/announcements/Announcements';
+import ActivityLog from '../pages/private/user/activityLog/ActivityLog';
+import Notifications from '../pages/private/user/notification/Notifications';
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -81,14 +84,17 @@ const router = createBrowserRouter(
       >
         <Route path="/dashboard" element={<UserDashView />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/user/announcements" element={<Announcements />} />
+        <Route path="/user/activity-log" element={<ActivityLog />} />
+        <Route path="/user/notifications" element={<Notifications />} />
         <Route path="/user/ai-coach" element={<AiChat />} />
         <Route path="/user/analytics" element={<Analytics />} />
         <Route path="/user/profile" element={<Profile />} />
         <Route path="/user/subscription" element={<Subscription />} />
         <Route path="/user/refer" element={<ReferFriend />} />
         <Route path="/user/daily-plan" element={<DailyPlanner />} />
-        <Route path="/user/weekly-plan" element={<WeeklyPlanner />} />
-        <Route path="/user/monthly-plan" element={<MonthlyPlanner />} />
+        {/* <Route path="/user/weekly-plan" element={<WeeklyPlanner />} />
+        <Route path="/user/monthly-plan" element={<MonthlyPlanner />} /> */}
         <Route path="/user/tasks" element={<TasksBoard />} />
         <Route path="/user/habits" element={<Habits />} />
         <Route path="/user/goals" element={<ActiveGoals />} />
