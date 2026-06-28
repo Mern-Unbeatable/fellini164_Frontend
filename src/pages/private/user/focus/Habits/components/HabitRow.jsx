@@ -129,7 +129,7 @@ export default function HabitRow({
       onMouseLeave={() => setIsHovered(false)}
       className="relative flex w-full shrink-0 items-start rounded-2xl border border-solid border-[#f2f2f2] bg-[#fcfcfc] p-3 max-lg:flex-col max-lg:gap-3 dark:border-zinc-700 dark:bg-zinc-800"
     >
-      <div className="flex w-97 shrink-0 flex-col gap-2.5 max-lg:w-full">
+      <div className="flex w-56 shrink-0 flex-col gap-2.5 max-lg:w-full 2xl:w-97">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
             <p
@@ -168,7 +168,7 @@ export default function HabitRow({
       </div>
 
       {!compact && (
-        <div className="flex w-[175px] shrink-0 items-center gap-1.5 max-lg:w-auto">
+        <div className="flex w-24 shrink-0 items-center gap-1.5 max-lg:w-auto 2xl:w-43.75">
           {habit.status === 'active' && habit.streak > 0 && (
             <Flame size={12} className="shrink-0 text-[#f97316]" />
           )}
@@ -185,7 +185,7 @@ export default function HabitRow({
       {isCompleted ? (
         <div
           className={`flex items-center justify-between max-lg:w-full max-lg:pr-0 ${
-            compact ? 'w-[460px] shrink-0' : `flex-1 ${showMenu ? 'pr-41' : ''}`
+            compact ? 'w-[460px] shrink-0' : `flex-1 ${showMenu ? 'pr-8 2xl:pr-41' : ''}`
           }`}
         >
           <div className="flex h-10 w-full items-center justify-center gap-2.5 rounded-[10px] bg-[rgba(42,157,0,0.05)]">
@@ -196,7 +196,7 @@ export default function HabitRow({
       ) : (
         <div
           className={`flex items-center max-lg:grid max-lg:w-full max-lg:grid-cols-7 max-lg:place-items-center max-lg:gap-1 max-lg:pr-0 ${
-            compact ? 'w-[460px] shrink-0 justify-end gap-5' : `flex-1 justify-between ${showMenu ? 'pr-41' : ''}`
+            compact ? 'w-[460px] shrink-0 justify-end gap-5' : `flex-1 justify-between ${showMenu ? 'pr-8 2xl:pr-41' : ''}`
           }`}
         >
           {DAYS.map((day, i) => (

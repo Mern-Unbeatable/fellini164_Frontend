@@ -326,6 +326,28 @@ Apply this same `min-h-full`/`flex-1` chain (not a copied px value) to Goals onc
 equivalent single-panel (non-grid) list view, and re-derive by measuring rects, never by
 copying a `h-*` class name from another board at face value — it may have changed since.
 
+#### Laptop-width overflow (fixed 2026-06-26)
+The habit row (`HabitRow.jsx`) and its header (`Habits.jsx`) reserve several fixed-width
+regions per row: title block (`w-97`=388px), streak column (`w-[175px]`), 7 day cells at
+`size-10` (40px each = 280px, never compressed), and reserved right-padding for the hover
+menu (`pr-41`=164px). Total minimum row width ≈1030px. A typical laptop viewport
+(1280-1366px) minus the 220px sidebar and `main`'s `px-10` (80px) leaves only ~740-1064px for
+the panel — not enough, causing horizontal clipping/scroll. Confirmed by measuring
+`panel.scrollWidth > panel.clientWidth` via Playwright at 8 widths (800 through 1920px); only
+1280-1349px actually overflowed.
+
+**Fix:** compress the three non-day-cell regions (title, streak column, reserved padding) at
+`lg`+, restoring the original desktop values only at **`2xl:`** (1536px), not `xl:` (1280px) —
+verified `xl:` restore still overflows in the 1280-1349px window (a common laptop
+resolution), `2xl:` does not, at any tested width. Day-cell size (`size-10`) is deliberately
+**not** touched, so the grid itself still looks like the desktop grid, just with tighter
+surrounding margins — title `w-56 2xl:w-97`, streak `w-24 2xl:w-43.75` (`xl:w-[175px]`
+written as the canonical `w-43.75`), reserved padding `pr-8 2xl:pr-41` (rows) /
+`pr-8 2xl:pr-44` (header). The `compact` variant of `HabitRow` (used only in the New Habit
+modal's AI-preview, fixed `w-[460px]` regardless of breakpoint) is untouched — this fix is
+board-view-only. **Don't restore at `xl:` for any board with a similar dense grid+sidebar
+layout — measure the actual overflow window first, `1280px` alone is not a safe assumption.**
+
 ### Habit card — overflow tags
 - When tags overflow available width, hide extras and show `+N`.
 - Hovering `+N` reveals all hidden tags via dropdown/tooltip — same hover pattern as the rest of the product (don't invent a new hover affordance here).
