@@ -590,11 +590,11 @@ function FilterDropdown({ defaultLabel, options, value, onChange }) {
   const displayLabel = value === options[0] ? defaultLabel : value;
 
   return (
-    <div ref={ref} className="relative max-lg:w-full">
+    <div ref={ref} className="relative max-lg:w-full lg:flex-1 2xl:flex-none">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-25 items-center justify-between rounded-lg border border-[#f2f2f2] bg-white px-3 py-1.75 text-[12px] font-medium text-[#181818] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white max-lg:w-full max-lg:gap-2 max-lg:py-2.5 max-lg:text-base 2xl:w-30"
+        className="flex w-full items-center justify-between rounded-lg border border-[#f2f2f2] bg-white px-3 py-1.75 text-[12px] font-medium text-[#181818] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white max-lg:gap-2 max-lg:py-2.5 max-lg:text-base 2xl:w-30"
       >
         <span className="truncate max-lg:min-w-0 max-lg:flex-1 max-lg:text-center">{displayLabel}</span>
         <ChevronDown
@@ -912,7 +912,7 @@ export default function TasksBoard() {
           </div>
 
           {/* Action row */}
-          <div className="mb-5 flex w-full items-center justify-between max-lg:mb-4 max-lg:flex-col max-lg:items-stretch max-lg:gap-4">
+          <div className="mb-5 flex w-full items-center justify-between gap-3 max-lg:mb-4 max-lg:flex-col max-lg:items-stretch max-lg:gap-4">
             <button
               onClick={openNewTaskModal}
               className="flex shrink-0 items-center gap-2 rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] font-semibold whitespace-nowrap text-white max-lg:w-full max-lg:justify-center max-lg:py-2.5 max-lg:text-base"
@@ -921,9 +921,9 @@ export default function TasksBoard() {
               <span className="text-white">New Task</span>
             </button>
 
-            <div className="flex items-center gap-2 max-lg:w-full max-lg:flex-col max-lg:gap-3 2xl:gap-5">
+            <div className="flex items-center gap-2 max-lg:w-full max-lg:flex-col max-lg:gap-3 lg:flex-1 2xl:flex-none 2xl:gap-5">
               {/* Board/List — visible per Figma, non-functional in MVP */}
-              <div className="flex items-center gap-1 rounded-lg border border-[#f2f2f2] p-1 dark:border-zinc-700 max-lg:w-full">
+              <div className="flex shrink-0 items-center gap-1 rounded-lg border border-[#f2f2f2] p-1 dark:border-zinc-700 max-lg:w-full">
                 <span className="rounded-md bg-[#f2f2f2] px-2 py-0.75 text-[12px] font-medium text-[#181818] dark:bg-zinc-700 dark:text-white max-lg:flex-1 max-lg:py-2 max-lg:text-center max-lg:text-base">
                   Board
                 </span>
@@ -932,9 +932,9 @@ export default function TasksBoard() {
                 </span>
               </div>
 
-              <div className="h-4 w-px bg-[#f2f2f2] dark:bg-zinc-700 max-lg:hidden" />
+              <div className="h-4 w-px shrink-0 bg-[#f2f2f2] dark:bg-zinc-700 max-lg:hidden" />
 
-              <div className="flex items-center gap-1 max-lg:w-full max-lg:flex-col max-lg:gap-2 2xl:gap-2.5">
+              <div className="flex items-center gap-1 max-lg:w-full max-lg:flex-col max-lg:gap-2 lg:flex-1 2xl:flex-none 2xl:gap-2.5">
                 {FILTER_CONFIG.map(({ key, defaultLabel, options }) => (
                   <FilterDropdown
                     key={key}

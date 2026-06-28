@@ -477,11 +477,11 @@ function FilterDropdown({ defaultLabel, options }) {
   const displayLabel = selected === options[0] ? defaultLabel : selected;
 
   return (
-    <div ref={ref} className="relative max-lg:w-full">
+    <div ref={ref} className="relative max-lg:w-full lg:flex-1 2xl:flex-none">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-25 items-center justify-between rounded-lg border border-[#f2f2f2] bg-white px-3 py-[7px] text-[12px] font-medium leading-[1.5] text-[#181818] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white max-lg:w-full max-lg:gap-2 max-lg:py-2.5 max-lg:text-base 2xl:w-30"
+        className="flex w-full items-center justify-between rounded-lg border border-[#f2f2f2] bg-white px-3 py-[7px] text-[12px] font-medium leading-[1.5] text-[#181818] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white max-lg:gap-2 max-lg:py-2.5 max-lg:text-base 2xl:w-30"
       >
         <span className="truncate max-lg:min-w-0 max-lg:flex-1 max-lg:text-center">{displayLabel}</span>
         <ChevronDown size={10} className="shrink-0 text-[#a3a3a3]" />
@@ -648,7 +648,7 @@ export default function ActiveGoals() {
       </div>
 
       {/* Action row */}
-      <div className="mb-5 flex w-full items-center justify-between max-lg:mb-4 max-lg:flex-col max-lg:items-stretch max-lg:gap-4">
+      <div className="mb-5 flex w-full items-center justify-between gap-3 max-lg:mb-4 max-lg:flex-col max-lg:items-stretch max-lg:gap-4">
         <button
           onClick={handleOpenModal}
           className="flex shrink-0 items-center gap-2 rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] font-semibold leading-normal whitespace-nowrap text-white max-lg:w-full max-lg:justify-center max-lg:py-2.5 max-lg:text-base"
@@ -657,7 +657,7 @@ export default function ActiveGoals() {
           New Goal
         </button>
 
-        <div className="flex flex-wrap items-center justify-end gap-1 max-lg:w-full max-lg:flex-col max-lg:gap-2 lg:flex-nowrap 2xl:gap-2.5">
+        <div className="flex flex-wrap items-center justify-end gap-1 max-lg:w-full max-lg:flex-col max-lg:gap-2 lg:flex-1 lg:flex-nowrap 2xl:flex-none 2xl:gap-2.5">
           {FILTER_CONFIG.map(({ key, defaultLabel, options }) => (
             <FilterDropdown key={key} defaultLabel={defaultLabel} options={options} />
           ))}

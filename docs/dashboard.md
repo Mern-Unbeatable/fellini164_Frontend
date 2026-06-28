@@ -103,6 +103,39 @@ confirmed laptop (truncates to "All Cate..." etc., acceptable), desktop (unchang
 full labels), and mobile (unchanged, stacked full-width). Restore breakpoint is `2xl`
 (1536px) per the same reasoning as Habits — don't use `xl` (1280px), re-measure if unsure.
 
+**Round 2 (same day) — eliminate the gap, not just the overflow:** the fix above stopped
+the overflow but left a visually awkward empty gap between the left group (New Task +
+Board/List) and the filters (since `justify-between` pushes the now-narrower filters group
+flush to the row's right edge, same mechanic as desktop, but proportionally more visible
+once the filters got compressed). User confirmed (via clarifying question) the wanted
+outcome is "filters stretch to fill the row, no gap anywhere" rather than "shrink the gap."
+Fix: removed the fixed-width compression entirely in favor of **flow-fill**: the right-side
+group becomes `lg:flex-1 2xl:flex-none` (fills 100% of remaining row width after the
+shrink-0 New Task button, instead of sizing to content + leaving a gap), each
+`FilterDropdown`'s wrapper `lg:flex-1 2xl:flex-none` and its button `w-full` (instead of a
+fixed `w-25`) so the extra width distributes evenly across all 5 dropdowns. `2xl:flex-none`
+on every flexed element reverts to the exact original fixed-width/`justify-between` desktop
+behavior. Verified via `getBoundingClientRect()`: filters group's left edge now equals the
+button's right edge exactly (zero gap) and its right edge equals the row's full width
+(zero trailing space) at 1064/1150/1280px — confirmed both numerically and visually, with
+desktop/mobile pixel-unchanged.
+
+**Round 3 (same day) — "zero gap" in Round 2 was itself the bug:** verifying "filters
+group starts exactly where the button ends" is correct for *eliminating dead space*, but
+it also means the New Task button and the first `FilterDropdown` render flush against each
+other with **0px** between them — confirmed via `getBoundingClientRect()` (`gapBetween: 0`)
+and visually (button and "All Status" touching, no breathing room). The parent action row
+relied entirely on `justify-between`'s auto-distributed space for this gap, which Round 2
+removed by making the second child `flex-1` (it now consumes 100% of the leftover space
+itself, leaving none for `justify-between` to distribute). Fix: added an explicit `gap-3`
+(12px) directly on the action row — acts as a *minimum* gap between the two children
+regardless of how they each size themselves; at `2xl` the natural `justify-between` gap is
+already far larger than 12px so this is a no-op there. Re-verified `gapBetween: 12` at
+1064px on both boards, zero overflow at 1024-1920px, desktop/mobile pixel-unchanged.
+**Lesson: when collapsing a `justify-between` layout into a flex-fill layout, the row's own
+`gap` must be set explicitly — don't assume removing the fixed widths preserves the
+original spacing, verify the actual gap distance, not just "no overflow."**
+
 ### Ghost cards (empty state)
 - Appear **only** when the board/column is empty.
 - Default: due date visible, no footer.
@@ -595,6 +628,20 @@ fit). Also added `shrink-0 whitespace-nowrap` to the "New Goal" button — same 
 "New Task" button needed, since an un-pinned button can get flex-shrunk and wrap its own
 text once its sibling group tightens up. Verified across 1024-1920px: no wrap, no overflow,
 desktop/mobile pixel-unchanged.
+
+**Round 2 (same day) — flow-fill instead of fixed-width compression:** same upgrade as
+Tasks (see its "Round 2" note) — `w-25`/`w-[120px]` fixed widths replaced with
+`lg:flex-1 2xl:flex-none` on the filters group and each `FilterDropdown` wrapper (button
+itself `w-full`), so the 6 dropdowns stretch evenly to fill the entire row with zero gap
+at laptop widths, instead of leaving dead space after a fixed-width group. `lg:flex-nowrap`
+from Round 1 still applies on top of this.
+
+**Round 3 (same day) — that "zero gap" included the button itself, which was the bug:**
+same correction as Tasks (see its "Round 3" note) — the New Goal button and the first
+filter were rendering flush against each other with 0px between them, because `flex-1` on
+the filters group consumed all the space `justify-between` used to distribute as the gap.
+Fix: explicit `gap-3` (12px minimum) added to the action row. Re-verified `gapBetween: 12`
+at 1064px, zero overflow at 1024-1920px, desktop/mobile pixel-unchanged.
 
 ---
 
