@@ -169,9 +169,12 @@ export default function HabitRow({
 
       {!compact && (
         <div className="flex w-24 shrink-0 items-center gap-1.5 max-lg:w-auto 2xl:w-43.75">
-          {habit.status === 'active' && habit.streak > 0 && (
-            <Flame size={12} className="shrink-0 text-[#f97316]" />
-          )}
+          <Flame
+            size={12}
+            className={`shrink-0 ${
+              habit.status === 'active' && habit.streak > 0 ? 'text-[#f97316]' : 'text-transparent'
+            }`}
+          />
           <p
             className={`text-sm font-medium ${
               habit.status === 'active' && habit.streak > 0 ? 'text-[#f97316]' : 'text-[#c2c2c2]'
