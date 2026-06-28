@@ -351,18 +351,18 @@ export default function GoalDetailPanel({
           <button
             type="button"
             onClick={() => onOpenFullPage?.(goal)}
-            aria-label="Open goal in new tab"
+            aria-label="Open goal in full page"
             className="text-[#a3a3a3] hover:text-[#5d5d5d]"
           >
-            <ExternalLink size={14} />
+            <ExternalLink size={16} />
           </button>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close panel"
+            aria-label="Close goal detail"
             className="text-[#a3a3a3] hover:text-[#5d5d5d]"
           >
-            <X size={12} />
+            <X size={14} />
           </button>
         </div>
 

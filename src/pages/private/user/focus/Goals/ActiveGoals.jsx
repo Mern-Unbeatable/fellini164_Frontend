@@ -627,7 +627,7 @@ export default function ActiveGoals() {
   const completedThisMonth = FIGMA_BOARD_STATS.completedThisMonth;
 
   return (
-    <div className="py-7.5 max-lg:py-4 max-lg:sm:py-6">
+    <div className="relative flex min-h-full flex-col py-7.5 max-lg:min-h-0 max-lg:py-4 max-lg:sm:py-6">
       {/* Header */}
       <div className="mb-5 flex w-full items-start justify-between max-lg:mb-4 max-lg:flex-col max-lg:gap-4">
         <div className="flex flex-col items-start gap-2">
@@ -668,9 +668,9 @@ export default function ActiveGoals() {
       </div>
 
       {/* Board panel + detail drawer */}
-      <div className="relative w-full">
+      <div className="relative flex min-h-0 w-full flex-1 flex-col">
       <div
-        className={`flex w-full flex-col gap-[10px] rounded-2xl border border-[#f2f2f2] bg-white p-3 dark:border-zinc-700 dark:bg-zinc-800 ${
+        className={`flex min-h-0 w-full flex-1 flex-col gap-[10px] rounded-2xl border border-[#f2f2f2] bg-white p-3 max-lg:flex-none dark:border-zinc-700 dark:bg-zinc-800 ${
           selectedGoal ? 'lg:pr-[600px]' : ''
         }`}
       >
@@ -700,7 +700,7 @@ export default function ActiveGoals() {
               No matching goals.
             </p>
           ) : (
-            <div className="scrollbar-hidden grid grid-cols-1 gap-[10px] overflow-y-auto sm:grid-cols-2 lg:grid-cols-3 lg:max-h-[610px]">
+            <div className="scrollbar-hidden grid grid-cols-1 gap-[10px] overflow-y-auto sm:grid-cols-2 lg:grid-cols-3 lg:min-h-0 lg:flex-1">
               {filteredGhostGoals.map((goal) => (
                 <GhostGoalCard
                   key={goal.id}
@@ -716,7 +716,7 @@ export default function ActiveGoals() {
             {isSearching ? 'No matching goals.' : 'No goals to show yet.'}
           </p>
         ) : (
-          <div className="scrollbar-hidden grid grid-cols-1 gap-[10px] overflow-y-auto sm:grid-cols-2 lg:grid-cols-3 lg:max-h-[610px]">
+          <div className="scrollbar-hidden grid grid-cols-1 gap-[10px] overflow-y-auto sm:grid-cols-2 lg:grid-cols-3 lg:min-h-0 lg:flex-1">
             {filteredGoals.map((goal) => (
               <GoalCard
                 key={goal.id}
