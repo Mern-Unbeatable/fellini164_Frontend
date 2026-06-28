@@ -89,6 +89,20 @@ Filter dropdowns (Status/Priority/Category/Source/Date) are now wired and actual
 the card list (2026-06-23) — previously they only updated their own visual selection state
 without affecting `filteredColumns`.
 
+#### Laptop-width overflow (fixed 2026-06-26)
+Same class of bug as the Habits board (see §2's "Laptop-width overflow" note) but a
+different culprit: the kanban columns themselves never overflowed (each is `lg:flex-1`,
+genuinely responsive), but the **action row** (New Task button + Board/List toggle +
+5 `FilterDropdown`s) needed ~868-880px and didn't fit in `main`'s available width at
+1024-1149px. Confirmed via Playwright `scrollWidth`/`clientWidth` measurement (not
+assumption) before and after. Fix: `FilterDropdown`'s button+panel width `w-30`→`w-25
+2xl:w-30` (both the trigger and its open panel, kept in sync), action row's outer gap
+`gap-5`→`gap-2 max-lg:gap-3 2xl:gap-5`, filters group gap `gap-2.5`→`gap-1 max-lg:gap-2
+2xl:gap-2.5`. Verified zero overflow at 1024-1920px (12 widths tested) and visually
+confirmed laptop (truncates to "All Cate..." etc., acceptable), desktop (unchanged,
+full labels), and mobile (unchanged, stacked full-width). Restore breakpoint is `2xl`
+(1536px) per the same reasoning as Habits — don't use `xl` (1280px), re-measure if unsure.
+
 ### Ghost cards (empty state)
 - Appear **only** when the board/column is empty.
 - Default: due date visible, no footer.
