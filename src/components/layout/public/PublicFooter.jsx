@@ -67,7 +67,7 @@ const PublicFooter = () => {
             : 'py-7.5 md:py-17.5'
         }`}
       >
-        <div className="mx-auto max-w-325 px-3 md:px-5 lg:px-0">
+        <div className="mx-auto max-w-325 px-3 md:px-5 lg:pl-10 lg:pr-5 xl:px-0">
           {/* Mobile footer */}
           <div className="flex flex-col gap-7.5 md:hidden">
             <div className="flex flex-col gap-4">
@@ -127,8 +127,8 @@ const PublicFooter = () => {
           </div>
 
           {/* Tablet + Desktop footer */}
-          <div className="hidden items-start justify-between md:flex">
-            <div className="flex min-h-45 flex-col justify-between self-stretch">
+          <div className="hidden items-start justify-start gap-12 lg:gap-20 xl:gap-0 xl:justify-between md:flex">
+            <div className="flex min-h-45 flex-col justify-between self-stretch shrink-0">
               <div className="flex flex-col gap-5">
                 <Link to="/" className="inline-flex no-underline">
                   <img src="/logo.png" alt="Elyxa.Ai" className="h-11 w-auto" />
@@ -159,7 +159,7 @@ const PublicFooter = () => {
               </div>
             </div>
 
-            <div className="flex gap-5 lg:gap-25">
+            <div className="flex gap-5 lg:gap-25 shrink-0">
               {COLUMNS.map((col) => (
                 <div key={col.heading} className="flex flex-col gap-7.5">
                   <p className="font-['Inter',sans-serif] text-sm leading-none font-normal text-[#c2c2c2]">
