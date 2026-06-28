@@ -484,7 +484,10 @@ function FilterDropdown({ defaultLabel, options }) {
         className="flex w-full items-center justify-between rounded-lg border border-[#f2f2f2] bg-white px-3 py-[7px] text-[12px] font-medium leading-[1.5] text-[#181818] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white max-lg:gap-2 max-lg:py-2.5 max-lg:text-base 2xl:w-30"
       >
         <span className="truncate max-lg:min-w-0 max-lg:flex-1 max-lg:text-center">{displayLabel}</span>
-        <ChevronDown size={10} className="shrink-0 text-[#a3a3a3]" />
+        <ChevronDown
+          size={14}
+          className={`shrink-0 text-[#a3a3a3] transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+        />
       </button>
 
       {open && (
@@ -499,7 +502,7 @@ function FilterDropdown({ defaultLabel, options }) {
                 setSelected(opt);
                 setOpen(false);
               }}
-              className={`flex w-full items-center px-2 py-1.5 text-left text-[12px] font-medium whitespace-nowrap text-[#181818] dark:text-white max-lg:text-sm ${
+              className={`flex w-full items-center px-2 py-1.5 text-left text-[12px] font-medium text-[#181818] dark:text-white max-lg:text-sm ${
                 hovered === opt ? 'bg-[#f2f2f2] dark:bg-zinc-700' : ''
               }`}
             >
@@ -635,13 +638,13 @@ export default function ActiveGoals() {
           />
         </div>
         <label className="flex w-62.5 items-center gap-2 rounded-lg border border-[#f2f2f2] bg-white px-3 py-1.75 focus-within:border-[#e9e9e9] dark:border-zinc-700 dark:bg-zinc-800 dark:focus-within:border-zinc-600 max-lg:w-full max-lg:py-2">
-          <Search size={12} className="shrink-0 text-[#c2c2c2]" aria-hidden />
+          <Search size={14} className="shrink-0 text-[#c2c2c2]" aria-hidden />
           <input
             type="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search habits in board..."
-            aria-label="Search habits in board"
+            placeholder="Search goals in board..."
+            aria-label="Search goals in board"
             className="w-full bg-transparent text-[12px] font-medium text-[#181818] outline-none placeholder:text-[#c2c2c2] dark:text-white max-lg:text-base"
           />
         </label>
@@ -653,7 +656,7 @@ export default function ActiveGoals() {
           onClick={handleOpenModal}
           className="flex shrink-0 items-center gap-2 rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] font-semibold leading-normal whitespace-nowrap text-white max-lg:w-full max-lg:justify-center max-lg:py-2.5 max-lg:text-base"
         >
-          <Plus size={10} />
+          <Plus size={14} strokeWidth={2.5} className="shrink-0 text-white" />
           New Goal
         </button>
 
