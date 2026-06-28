@@ -306,7 +306,7 @@ const PricingHIW = () => {
           <PricingToggle billing={billing} onChange={setBilling} />
 
           <div className="flex w-full flex-col items-center gap-5 md:gap-7.5">
-            <div className="grid w-full grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid w-full grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4">
               {plans.map((plan, i) => (
                 <PricingCard key={plan.id} plan={plan} cardRef={cardRefs[i]} billing={billing} />
               ))}
