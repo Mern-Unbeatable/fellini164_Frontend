@@ -34,7 +34,7 @@ const PRIORITY_LABELS = {
   LOW: 'Low',
 };
 
-const TODAY_INDEX = 2;
+const TODAY_INDEX = (new Date().getDay() + 6) % 7; // Mon=0 ... Sun=6
 
 function DueDetailPill({ goal }) {
   if (goal.dueDetail) {
@@ -323,6 +323,8 @@ export default function GoalDetailPage() {
   const goal = getGoalById(goalId);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
+  const [isAssistantOpen, setIsAssistantOpen] = useState(true);
+  const [isAssistantExpanded, setIsAssistantExpanded] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -338,10 +340,27 @@ export default function GoalDetailPage() {
   const habits = getPageHabits(goal);
   const hasDue = goal.dueDetail || goal.due;
 
+  const closeAssistant = () => {
+    setIsAssistantOpen(false);
+    setIsAssistantExpanded(false);
+  };
+  const toggleExpandAssistant = () => setIsAssistantExpanded((e) => !e);
+
   return (
     <div className="-mx-10 flex min-h-[calc(100vh-3.25rem)] flex-col py-7.5 max-lg:-mx-4 max-lg:py-4 max-lg:sm:-mx-6 max-lg:sm:py-6">
-      <div className="flex flex-1 flex-col gap-[30px] lg:flex-row">
-        <div className="scrollbar-hidden flex min-h-[min(70vh,798px)] min-w-0 flex-1 flex-col gap-6 overflow-y-auto rounded-2xl border border-[#f2f2f2] bg-white py-5 pl-5 pr-[26px] dark:border-zinc-700 dark:bg-zinc-900">
+      <div className="flex flex-1 flex-col gap-7.5 xl:flex-row xl:items-stretch">
+        <div className="relative scrollbar-hidden flex min-h-[min(70vh,798px)] min-w-0 flex-1 flex-col gap-6 overflow-y-auto rounded-2xl border border-[#f2f2f2] bg-white py-5 pl-5 pr-[26px] xl:min-h-0 dark:border-zinc-700 dark:bg-zinc-900">
+          {!isAssistantOpen && (
+            <button
+              type="button"
+              onClick={() => setIsAssistantOpen(true)}
+              aria-label="Open AI Assistant"
+              className="absolute top-4 right-12 z-10 flex items-center gap-1.5 rounded-lg bg-[#f9f4ff] px-2.5 py-1.5 text-[12px] font-medium text-[#8022fe]"
+            >
+              <Sparkles size={12} />
+              AI Assistant
+            </button>
+          )}
           <div className="flex flex-col gap-3">
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between">
@@ -365,7 +384,7 @@ export default function GoalDetailPage() {
                     aria-label="Goal options"
                     className="text-[#a3a3a3]"
                   >
-                    <MoreHorizontal size={15} />
+                    <MoreHorizontal size={16} />
                   </button>
                   {menuOpen && (
                     <GoalDetailMenu
@@ -469,16 +488,24 @@ export default function GoalDetailPage() {
           </div>
         </div>
 
-        <div className="hidden w-full shrink-0 lg:block lg:w-[400px]">
-          <div className="sticky top-0 h-[min(798px,calc(100vh-8rem))]">
-            <GoalAiAssistant />
+        {isAssistantOpen && !isAssistantExpanded && (
+          <div className="flex h-125 w-full shrink-0 flex-col xl:h-full xl:w-100">
+            <GoalAiAssistant
+              onClose={closeAssistant}
+              onToggleExpand={toggleExpandAssistant}
+              isExpanded={false}
+            />
           </div>
-        </div>
+        )}
       </div>
 
-      <div className="mt-6 lg:hidden">
-        <GoalAiAssistant />
-      </div>
+      {isAssistantOpen && isAssistantExpanded && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="h-[85vh] w-full max-w-2xl">
+            <GoalAiAssistant onClose={closeAssistant} onToggleExpand={toggleExpandAssistant} isExpanded />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

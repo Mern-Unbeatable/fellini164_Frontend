@@ -477,18 +477,21 @@ function FilterDropdown({ defaultLabel, options }) {
   const displayLabel = selected === options[0] ? defaultLabel : selected;
 
   return (
-    <div ref={ref} className="relative max-lg:w-full">
+    <div ref={ref} className="relative max-lg:w-full lg:flex-1 2xl:flex-none">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-[120px] items-center justify-between rounded-lg border border-[#f2f2f2] bg-white px-3 py-[7px] text-[12px] font-medium leading-[1.5] text-[#181818] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white max-lg:w-full max-lg:gap-2 max-lg:py-2.5 max-lg:text-base"
+        className="flex w-full items-center justify-between rounded-lg border border-[#f2f2f2] bg-white px-3 py-[7px] text-[12px] font-medium leading-[1.5] text-[#181818] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white max-lg:gap-2 max-lg:py-2.5 max-lg:text-base 2xl:w-30"
       >
         <span className="truncate max-lg:min-w-0 max-lg:flex-1 max-lg:text-center">{displayLabel}</span>
-        <ChevronDown size={10} className="shrink-0 text-[#a3a3a3]" />
+        <ChevronDown
+          size={14}
+          className={`shrink-0 text-[#a3a3a3] transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+        />
       </button>
 
       {open && (
-        <div className="absolute right-0 top-8 z-50 max-h-60 w-30 overflow-y-auto rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800 max-lg:top-full max-lg:mt-1 max-lg:w-auto lg:left-0 lg:right-auto">
+        <div className="absolute right-0 top-8 z-50 max-h-60 w-25 overflow-y-auto rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800 max-lg:top-full max-lg:mt-1 max-lg:w-auto lg:left-0 lg:right-auto 2xl:w-30">
           {options.map((opt) => (
             <button
               key={opt}
@@ -499,7 +502,7 @@ function FilterDropdown({ defaultLabel, options }) {
                 setSelected(opt);
                 setOpen(false);
               }}
-              className={`flex w-full items-center px-2 py-1.5 text-left text-[12px] font-medium whitespace-nowrap text-[#181818] dark:text-white max-lg:text-sm ${
+              className={`flex w-full items-center px-2 py-1.5 text-left text-[12px] font-medium text-[#181818] dark:text-white max-lg:text-sm ${
                 hovered === opt ? 'bg-[#f2f2f2] dark:bg-zinc-700' : ''
               }`}
             >
@@ -624,7 +627,7 @@ export default function ActiveGoals() {
   const completedThisMonth = FIGMA_BOARD_STATS.completedThisMonth;
 
   return (
-    <div className="py-7.5 max-lg:py-4 max-lg:sm:py-6">
+    <div className="relative flex min-h-full flex-col py-7.5 max-lg:min-h-0 max-lg:py-4 max-lg:sm:py-6">
       {/* Header */}
       <div className="mb-5 flex w-full items-start justify-between max-lg:mb-4 max-lg:flex-col max-lg:gap-4">
         <div className="flex flex-col items-start gap-2">
@@ -635,42 +638,38 @@ export default function ActiveGoals() {
           />
         </div>
         <label className="flex w-62.5 items-center gap-2 rounded-lg border border-[#f2f2f2] bg-white px-3 py-1.75 focus-within:border-[#e9e9e9] dark:border-zinc-700 dark:bg-zinc-800 dark:focus-within:border-zinc-600 max-lg:w-full max-lg:py-2">
-          <Search size={12} className="shrink-0 text-[#c2c2c2]" aria-hidden />
+          <Search size={14} className="shrink-0 text-[#c2c2c2]" aria-hidden />
           <input
             type="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search habits in board..."
-            aria-label="Search habits in board"
+            placeholder="Search goals in board..."
+            aria-label="Search goals in board"
             className="w-full bg-transparent text-[12px] font-medium text-[#181818] outline-none placeholder:text-[#c2c2c2] dark:text-white max-lg:text-base"
           />
         </label>
       </div>
 
       {/* Action row */}
-      <div className="mb-5 flex w-full items-center justify-between max-lg:mb-4 max-lg:flex-col max-lg:items-stretch max-lg:gap-4">
+      <div className="mb-5 flex w-full items-center justify-between gap-3 max-lg:mb-4 max-lg:flex-col max-lg:items-stretch max-lg:gap-4">
         <button
           onClick={handleOpenModal}
-          className="flex items-center gap-2 rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] font-semibold leading-normal text-white max-lg:w-full max-lg:justify-center max-lg:py-2.5 max-lg:text-base"
+          className="flex shrink-0 items-center gap-2 rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] font-semibold leading-normal whitespace-nowrap text-white max-lg:w-full max-lg:justify-center max-lg:py-2.5 max-lg:text-base"
         >
-          <Plus size={10} />
+          <Plus size={14} strokeWidth={2.5} className="shrink-0 text-white" />
           New Goal
         </button>
 
-        <div className="flex flex-wrap items-center justify-end gap-[10px] max-lg:w-full max-lg:flex-col max-lg:gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-1 max-lg:w-full max-lg:flex-col max-lg:gap-2 lg:flex-1 lg:flex-nowrap 2xl:flex-none 2xl:gap-2.5">
           {FILTER_CONFIG.map(({ key, defaultLabel, options }) => (
             <FilterDropdown key={key} defaultLabel={defaultLabel} options={options} />
           ))}
         </div>
       </div>
 
-      {/* Board panel + detail drawer */}
-      <div className="relative w-full">
-      <div
-        className={`flex w-full flex-col gap-[10px] rounded-2xl border border-[#f2f2f2] bg-white p-3 dark:border-zinc-700 dark:bg-zinc-800 ${
-          selectedGoal ? 'lg:pr-[600px]' : ''
-        }`}
-      >
+      {/* Board panel */}
+      <div className="flex min-h-0 w-full flex-1 flex-col">
+      <div className="flex min-h-0 w-full flex-1 flex-col gap-[10px] rounded-2xl border border-[#f2f2f2] bg-white p-3 max-lg:flex-none dark:border-zinc-700 dark:bg-zinc-800">
         <div className="flex items-center gap-2">
           {showGhostCards ? (
             <>
@@ -697,7 +696,7 @@ export default function ActiveGoals() {
               No matching goals.
             </p>
           ) : (
-            <div className="scrollbar-hidden grid grid-cols-1 gap-[10px] overflow-y-auto sm:grid-cols-2 lg:grid-cols-3 lg:max-h-[610px]">
+            <div className="scrollbar-hidden grid grid-cols-1 gap-[10px] overflow-y-auto sm:grid-cols-2 lg:grid-cols-3 lg:min-h-0 lg:flex-1">
               {filteredGhostGoals.map((goal) => (
                 <GhostGoalCard
                   key={goal.id}
@@ -713,7 +712,7 @@ export default function ActiveGoals() {
             {isSearching ? 'No matching goals.' : 'No goals to show yet.'}
           </p>
         ) : (
-          <div className="scrollbar-hidden grid grid-cols-1 gap-[10px] overflow-y-auto sm:grid-cols-2 lg:grid-cols-3 lg:max-h-[610px]">
+          <div className="scrollbar-hidden grid grid-cols-1 gap-[10px] overflow-y-auto sm:grid-cols-2 lg:grid-cols-3 lg:min-h-0 lg:flex-1">
             {filteredGoals.map((goal) => (
               <GoalCard
                 key={goal.id}
@@ -730,7 +729,11 @@ export default function ActiveGoals() {
           </div>
         )}
       </div>
+      </div>
 
+      {/* Detail drawer — sibling of header/action-row/board panel, so its absolute
+          positioning spans the full page height, matching TaskDetailDrawer exactly
+          (not nested inside the board panel's wrapper, which only covers that area). */}
       {selectedGoal && (
         <GoalDetailPanel
           goal={selectedGoal}
@@ -742,7 +745,6 @@ export default function ActiveGoals() {
           onDelete={(g) => handleDeleteGoal(g.id)}
         />
       )}
-      </div>
 
       <GoalProgressModal open={modalProgress} onClose={handleCloseModalProgress} onSave={handleSavePlan} />
       <NewGoalModal open={modal} onClose={handleCloseModal} onSave={handleSavePlan} />

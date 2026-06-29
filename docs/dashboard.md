@@ -89,6 +89,53 @@ Filter dropdowns (Status/Priority/Category/Source/Date) are now wired and actual
 the card list (2026-06-23) — previously they only updated their own visual selection state
 without affecting `filteredColumns`.
 
+#### Laptop-width overflow (fixed 2026-06-26)
+Same class of bug as the Habits board (see §2's "Laptop-width overflow" note) but a
+different culprit: the kanban columns themselves never overflowed (each is `lg:flex-1`,
+genuinely responsive), but the **action row** (New Task button + Board/List toggle +
+5 `FilterDropdown`s) needed ~868-880px and didn't fit in `main`'s available width at
+1024-1149px. Confirmed via Playwright `scrollWidth`/`clientWidth` measurement (not
+assumption) before and after. Fix: `FilterDropdown`'s button+panel width `w-30`→`w-25
+2xl:w-30` (both the trigger and its open panel, kept in sync), action row's outer gap
+`gap-5`→`gap-2 max-lg:gap-3 2xl:gap-5`, filters group gap `gap-2.5`→`gap-1 max-lg:gap-2
+2xl:gap-2.5`. Verified zero overflow at 1024-1920px (12 widths tested) and visually
+confirmed laptop (truncates to "All Cate..." etc., acceptable), desktop (unchanged,
+full labels), and mobile (unchanged, stacked full-width). Restore breakpoint is `2xl`
+(1536px) per the same reasoning as Habits — don't use `xl` (1280px), re-measure if unsure.
+
+**Round 2 (same day) — eliminate the gap, not just the overflow:** the fix above stopped
+the overflow but left a visually awkward empty gap between the left group (New Task +
+Board/List) and the filters (since `justify-between` pushes the now-narrower filters group
+flush to the row's right edge, same mechanic as desktop, but proportionally more visible
+once the filters got compressed). User confirmed (via clarifying question) the wanted
+outcome is "filters stretch to fill the row, no gap anywhere" rather than "shrink the gap."
+Fix: removed the fixed-width compression entirely in favor of **flow-fill**: the right-side
+group becomes `lg:flex-1 2xl:flex-none` (fills 100% of remaining row width after the
+shrink-0 New Task button, instead of sizing to content + leaving a gap), each
+`FilterDropdown`'s wrapper `lg:flex-1 2xl:flex-none` and its button `w-full` (instead of a
+fixed `w-25`) so the extra width distributes evenly across all 5 dropdowns. `2xl:flex-none`
+on every flexed element reverts to the exact original fixed-width/`justify-between` desktop
+behavior. Verified via `getBoundingClientRect()`: filters group's left edge now equals the
+button's right edge exactly (zero gap) and its right edge equals the row's full width
+(zero trailing space) at 1064/1150/1280px — confirmed both numerically and visually, with
+desktop/mobile pixel-unchanged.
+
+**Round 3 (same day) — "zero gap" in Round 2 was itself the bug:** verifying "filters
+group starts exactly where the button ends" is correct for *eliminating dead space*, but
+it also means the New Task button and the first `FilterDropdown` render flush against each
+other with **0px** between them — confirmed via `getBoundingClientRect()` (`gapBetween: 0`)
+and visually (button and "All Status" touching, no breathing room). The parent action row
+relied entirely on `justify-between`'s auto-distributed space for this gap, which Round 2
+removed by making the second child `flex-1` (it now consumes 100% of the leftover space
+itself, leaving none for `justify-between` to distribute). Fix: added an explicit `gap-3`
+(12px) directly on the action row — acts as a *minimum* gap between the two children
+regardless of how they each size themselves; at `2xl` the natural `justify-between` gap is
+already far larger than 12px so this is a no-op there. Re-verified `gapBetween: 12` at
+1064px on both boards, zero overflow at 1024-1920px, desktop/mobile pixel-unchanged.
+**Lesson: when collapsing a `justify-between` layout into a flex-fill layout, the row's own
+`gap` must be set explicitly — don't assume removing the fixed widths preserves the
+original spacing, verify the actual gap distance, not just "no overflow."**
+
 ### Ghost cards (empty state)
 - Appear **only** when the board/column is empty.
 - Default: due date visible, no footer.
@@ -326,6 +373,28 @@ Apply this same `min-h-full`/`flex-1` chain (not a copied px value) to Goals onc
 equivalent single-panel (non-grid) list view, and re-derive by measuring rects, never by
 copying a `h-*` class name from another board at face value — it may have changed since.
 
+#### Laptop-width overflow (fixed 2026-06-26)
+The habit row (`HabitRow.jsx`) and its header (`Habits.jsx`) reserve several fixed-width
+regions per row: title block (`w-97`=388px), streak column (`w-[175px]`), 7 day cells at
+`size-10` (40px each = 280px, never compressed), and reserved right-padding for the hover
+menu (`pr-41`=164px). Total minimum row width ≈1030px. A typical laptop viewport
+(1280-1366px) minus the 220px sidebar and `main`'s `px-10` (80px) leaves only ~740-1064px for
+the panel — not enough, causing horizontal clipping/scroll. Confirmed by measuring
+`panel.scrollWidth > panel.clientWidth` via Playwright at 8 widths (800 through 1920px); only
+1280-1349px actually overflowed.
+
+**Fix:** compress the three non-day-cell regions (title, streak column, reserved padding) at
+`lg`+, restoring the original desktop values only at **`2xl:`** (1536px), not `xl:` (1280px) —
+verified `xl:` restore still overflows in the 1280-1349px window (a common laptop
+resolution), `2xl:` does not, at any tested width. Day-cell size (`size-10`) is deliberately
+**not** touched, so the grid itself still looks like the desktop grid, just with tighter
+surrounding margins — title `w-56 2xl:w-97`, streak `w-24 2xl:w-43.75` (`xl:w-[175px]`
+written as the canonical `w-43.75`), reserved padding `pr-8 2xl:pr-41` (rows) /
+`pr-8 2xl:pr-44` (header). The `compact` variant of `HabitRow` (used only in the New Habit
+modal's AI-preview, fixed `w-[460px]` regardless of breakpoint) is untouched — this fix is
+board-view-only. **Don't restore at `xl:` for any board with a similar dense grid+sidebar
+layout — measure the actual overflow window first, `1280px` alone is not a safe assumption.**
+
 ### Habit card — overflow tags
 - When tags overflow available width, hide extras and show `+N`.
 - Hovering `+N` reveals all hidden tags via dropdown/tooltip — same hover pattern as the rest of the product (don't invent a new hover affordance here).
@@ -545,6 +614,97 @@ documented ahead of time per the user's requirement doc, but don't build them un
 ### Non-MVP (visible in Figma for context only — do not implement)
 Create button, Dashboard (presumably the global nav item, not this board), Announcements,
 AI Coach, Activity, Notification, Go to, Settings, Profile.
+
+#### Laptop-width overflow (fixed 2026-06-26)
+Same class of bug as Tasks/Habits (see their "Laptop-width overflow" notes), but Goals has
+**6** filters (not 5) plus its filter group used `flex-wrap` instead of overflowing — so
+instead of a horizontal scrollbar, the action row visibly wrapped "All Source"/"All Date"
+onto a second line at laptop widths (1024-~1366px). Fix: `FilterDropdown` button+panel width
+`w-[120px]`/`w-30`→`w-25 2xl:w-30` (both kept in sync), filters group gap
+`gap-[10px]`→`gap-1 2xl:gap-2.5`, added `lg:flex-nowrap` (the `flex-wrap` is still needed
+below `lg` where the parent switches to `max-lg:flex-col` anyway, so it's harmless there —
+only `lg:flex-nowrap` actually changes behavior, forcing one row once compressed-enough to
+fit). Also added `shrink-0 whitespace-nowrap` to the "New Goal" button — same fix as Tasks'
+"New Task" button needed, since an un-pinned button can get flex-shrunk and wrap its own
+text once its sibling group tightens up. Verified across 1024-1920px: no wrap, no overflow,
+desktop/mobile pixel-unchanged.
+
+**Round 2 (same day) — flow-fill instead of fixed-width compression:** same upgrade as
+Tasks (see its "Round 2" note) — `w-25`/`w-[120px]` fixed widths replaced with
+`lg:flex-1 2xl:flex-none` on the filters group and each `FilterDropdown` wrapper (button
+itself `w-full`), so the 6 dropdowns stretch evenly to fill the entire row with zero gap
+at laptop widths, instead of leaving dead space after a fixed-width group. `lg:flex-nowrap`
+from Round 1 still applies on top of this.
+
+**Round 3 (same day) — that "zero gap" included the button itself, which was the bug:**
+same correction as Tasks (see its "Round 3" note) — the New Goal button and the first
+filter were rendering flush against each other with 0px between them, because `flex-1` on
+the filters group consumed all the space `justify-between` used to distribute as the gap.
+Fix: explicit `gap-3` (12px minimum) added to the action row. Re-verified `gapBetween: 12`
+at 1064px, zero overflow at 1024-1920px, desktop/mobile pixel-unchanged.
+
+#### Goal detail panel (fixed 2026-06-26) — page-level overflow + icon/pill mismatches
+Three real bugs found by reproducing the exact flow (clicking a goal card) at laptop
+widths with Playwright, compared directly against Tasks' equivalent `TaskDetailDrawer`:
+
+1. **Board panel reserved `lg:pr-[600px]`** for the open drawer — a fixed value that
+   doesn't scale with viewport. At 1064px the 3-column card grid was squeezed into a
+   ~164px sliver (titles truncated to "MED"/"Imp"/"Rate"). **Root cause found by comparing
+   to Tasks**: Tasks' kanban columns reserve **zero** space when its drawer opens — the
+   drawer is `absolute`/`fixed` and simply overlays on top, covering whatever cards are
+   underneath, rather than pushing the layout to make room. Fix: removed `lg:pr-[600px]`
+   entirely from the board panel — it now matches Tasks' overlay behavior exactly at every
+   width (verified 1064-1920px, sidebar stays full 220px, zero page-level overflow).
+2. **Header icons** (`ExternalLink`/`X`) were `size={14}`/`size={12}`; Tasks' equivalent
+   drawer uses `size={16}`/`size={14}`. Matched, plus aligned aria-labels to Tasks' wording.
+3. **`PillBadge` (Category/Due Date) stretched to full drawer width** instead of sizing to
+   content. Root cause: `inline-flex` alone does not override a `flex-col` parent's default
+   `align-items: stretch` — Tasks' equivalent pill has an explicit `w-fit` that Goals'
+   `PillBadge` was missing. Added `w-fit`. Confirmed both bugs were present even with no
+   other state issues (reproduced from a clean page load, not anything specific to a
+   squeezed viewport).
+4. **`MoreHorizontal` (⋯ menu trigger)** was `size={15}`; Tasks' is `size={16}`. Matched.
+5. **`LinkedSectionHeader`'s add/AI-suggest icon gap** was `gap-5` (20px); Tasks' equivalent
+   Subtasks-section header uses `gap-2` (8px). Matched — found by comparing every shared
+   structural element (header padding, title/description typography, badge spacing) against
+   Tasks' drawer one piece at a time, not just the originally-flagged icons.
+
+Confirmed via side-by-side screenshots (Tasks "Exercise Routine" vs Goals "Improve Rate")
+that header chrome, badge row, and typography now line up pixel-for-pixel. The remaining
+*content* differences (Tasks: Status dropdown, Estimate Minutes, Linked Goal, Subtasks
+checklist; Goals: Progress bar, Linked Tasks, Linked Habits) are intentional — Goals and
+Tasks are different entities with different fields, matching each board's own confirmed
+Figma spec — don't force one board's fields onto the other.
+
+**Resolved 2026-06-26 (user explicitly requested exact parity):** ported Tasks'
+`TaskDetailDrawer` resize mechanism verbatim into `GoalDetailPanel` — same
+`DRAWER_DEFAULT_WIDTH`/`MIN`/`MAX` (360/360/720px) constants, same `isResizing` ref +
+`mousemove`/`mouseup` document listeners, same drag-handle button (`absolute inset-y-0
+left-0 w-1 -translate-x-1/2 cursor-col-resize`, `lg:block` only). Goals' old fixed
+`max-w-[600px]` is gone — default width is now 360px, matching Tasks exactly, not the
+previous Figma-derived 600px. Verified by actually dragging the handle in Playwright
+(not just reading the code): cursor changes to `col-resize` on mousedown, width changes
+live during drag (confirmed 360px → 549px mid-drag in one test), persists after release.
+
+**Resolved 2026-06-26 — drawer height was short, didn't span the full page:** the drawer
+covered only the board-panel area (starting below the title/search/action rows), not the
+full page height Tasks' drawer covers. Root cause: `GoalDetailPanel` was rendered *inside*
+the board panel's own wrapper div (`relative flex min-h-0 w-full flex-1 flex-col`), and
+since the drawer's outer container is `lg:absolute lg:inset-0`, it resolved against that
+inner wrapper (its nearest `position:relative` ancestor) instead of the page root —
+covering only the inner wrapper's height, not the whole page. Tasks' `TaskDetailDrawer` is
+a **direct sibling** of the header/action-row at the page-root level (which is itself
+`position:relative`), so its `inset-0` spans the entire page from top to bottom. Fix:
+moved `{selectedGoal && <GoalDetailPanel />}` out of the board panel's wrapper to be a
+direct sibling of it, removed the now-unneeded `relative` from that wrapper. Verified via
+`getBoundingClientRect()`: both drawers now report identical `top`/`bottom` matching
+`main`'s full height exactly (`52`/`950` in one test), not just "looks similar" — measured
+identical, not just visually close.
+
+**Pattern to watch for on Planner/other boards:** any side-drawer with `lg:absolute
+lg:inset-0` must be a direct child of the same `position:relative` ancestor the page title
+sits under — never nest it inside a panel-specific wrapper, or it silently inherits that
+wrapper's (shorter) height instead of the full page.
 
 ---
 
