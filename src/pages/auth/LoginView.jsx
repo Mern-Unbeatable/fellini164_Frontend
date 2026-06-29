@@ -68,7 +68,10 @@ const LoginView = () => {
   const isFormValid = email.trim() && password.trim();
 
   return (
-    <div ref={pageRef} className="flex min-h-screen flex-col bg-white md:h-screen md:flex-row md:gap-5 md:overflow-hidden md:p-5">
+    <div
+      ref={pageRef}
+      className="flex min-h-screen flex-col bg-white md:h-screen md:flex-row md:gap-5 md:overflow-hidden md:p-5"
+    >
       {/* ── Left Visual Panel — bottom on mobile, left on desktop ── */}
       <div ref={visualRef} className="order-2 p-2 md:order-1 md:flex-1 md:p-0">
         <img
