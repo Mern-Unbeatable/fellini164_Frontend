@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { PiCompass, PiInfinity } from 'react-icons/pi';
 import { MdChecklist } from 'react-icons/md';
 
@@ -14,6 +14,7 @@ const HERO_BENEFITS = [
 ];
 
 const HeroHIW = () => {
+  const navigate = useNavigate();
   const secRef = useRef(null);
   const h1Ref = useRef(null);
   const subRef = useRef(null);
@@ -86,6 +87,7 @@ const HeroHIW = () => {
                   if (element) {
                     element.scrollIntoView({ behavior: 'smooth' });
                   }
+                  navigate('/#adapts-section', { replace: true });
                 }}
                 className="w-full shrink-0 rounded-[10px] border-2 border-[#8022fe] bg-transparent px-5 py-3 font-['Inter',sans-serif] text-[14px] font-semibold whitespace-nowrap text-[#8022fe] transition-colors hover:bg-[rgba(128,34,254,0.05)] md:w-auto md:bg-[rgba(128,34,254,0.05)] md:text-[16px]"
               >

@@ -51,6 +51,7 @@ const PublicFooter = () => {
       if (element) {
         e.preventDefault();
         element.scrollIntoView({ behavior: 'smooth' });
+        navigate('/' + href, { replace: true });
       } else {
         e.preventDefault();
         navigate('/' + href);

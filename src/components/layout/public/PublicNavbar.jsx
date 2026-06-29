@@ -69,6 +69,9 @@ const PublicNavbar = () => {
   const getDashboardPath = () => (user?.role === 'admin' ? '/admin/dashboard' : '/dashboard');
 
   const isActive = (link) => {
+    if (link.label === 'How It Works') {
+      return location.pathname === '/how-it-works' || (location.pathname === '/' && activeHash === '#adapts-section');
+    }
     if (link.hash) return location.pathname === link.path && activeHash === link.hash;
     return location.pathname === link.path;
   };
