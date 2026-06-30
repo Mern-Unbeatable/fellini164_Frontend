@@ -85,13 +85,13 @@ const AdminLayout = () => {
       section: 'Operations',
       items: [
         { icon: FileText, label: 'Content', path: '/admin/content' },
-        { icon: MessageSquare, label: 'Support & Feedback', path: '/admin/support' },
+        // { icon: MessageSquare, label: 'Support & Feedback', path: '/admin/support' },
       ],
     },
-    {
-      section: 'System',
-      items: [{ icon: SettingsIcon, label: 'Settings & Team', path: '/admin/settings' }],
-    },
+    // {
+    //   section: 'System',
+    //   items: [{ icon: SettingsIcon, label: 'Settings & Team', path: '/admin/settings' }],
+    // },
   ];
 
   return (
@@ -135,7 +135,7 @@ const AdminLayout = () => {
           </div>
           <div className="flex shrink-0 items-center gap-5">
             {/* Settings button */}
-            <button
+            {/* <button
               type="button"
               onClick={() => navigate('/admin/settings')}
               className="flex items-center justify-center p-1 rounded-full text-[#5d5d5d] hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-zinc-800 transition"
@@ -144,7 +144,7 @@ const AdminLayout = () => {
               <SettingsIcon size={18} strokeWidth={1.75} />
             </button>
 
-            <div className="h-4 w-px bg-[#f2f2f2] dark:bg-zinc-700" />
+            <div className="h-4 w-px bg-[#f2f2f2] dark:bg-zinc-700" /> */}
 
             {/* Profile Dropdown */}
             <div ref={menuRef} className="relative">
