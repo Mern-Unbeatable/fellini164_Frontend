@@ -81,7 +81,7 @@ const AdminLayout = () => {
     {
       section: 'Operations',
       items: [
-        { icon: FileText, label: 'Content (CMS)', path: '/admin/content' },
+        { icon: FileText, label: 'Content', path: '/admin/content' },
         { icon: MessageSquare, label: 'Support & Feedback', path: '/admin/support' },
       ],
     },

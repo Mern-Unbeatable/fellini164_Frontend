@@ -11,11 +11,6 @@ import Modal from './waitingListComponents/Modal';
 import ThreeDot from './waitingListComponents/ThreeDot';
 
 
-
-
-
-
-
 const formatDate = (dateString) => {
   const date = new Date(dateString);
   return date.toLocaleDateString('en-US', {

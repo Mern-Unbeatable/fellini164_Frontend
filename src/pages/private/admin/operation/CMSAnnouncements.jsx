@@ -118,7 +118,7 @@ export default function CMSAnnouncements() {
 
 
   return (
-    <div className="min-h-screen    p-4 sm:p-6 md:p-8">
+    <div className="min-h-screen py-7.5 max-lg:min-h-0 max-lg:py-4 max-lg:sm:py-6">
       <div className="">
         {/* Header */}
         <div className="flex justify-between items-start md:items-center md:mb-8 mb-6 flex-col md:flex-row gap-2">
