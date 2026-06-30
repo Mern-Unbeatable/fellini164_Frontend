@@ -8,7 +8,7 @@ const COLUMNS = [
       { label: 'Features', href: '#features-section' },
       { label: 'Pricing', href: '/pricing' },
       { label: 'How It Works', href: '#adapts-section' },
-      { label: 'Roadmap', href: '/roadmap', accent: true },
+      // { label: 'Roadmap', href: '/roadmap', accent: true },
       { label: 'Early Access', href: '/early-access' },
     ],
   },
@@ -17,8 +17,8 @@ const COLUMNS = [
     links: [
       { label: 'About Us', href: '/about' },
       { label: 'Contact Us', href: '/contact' },
-      { label: 'Blog', href: '/blog' },
-      { label: 'Careers', href: '/careers' },
+      // { label: 'Blog', href: '/blog' },
+      // { label: 'Careers', href: '/careers' },
     ],
   },
   {
@@ -33,7 +33,7 @@ const COLUMNS = [
   {
     heading: 'Support',
     links: [
-      { label: 'Help Center', href: '/help' },
+      // { label: 'Help Center', href: '/help' },
       { label: 'FAQ', href: '/faq' },
       { label: 'Contact Support', href: '/contact' },
     ],
@@ -68,7 +68,7 @@ const PublicFooter = () => {
             : 'py-7.5 lg:py-17.5'
         }`}
       >
-        <div className="mx-auto max-w-325 px-3 lg:px-5 xl:pl-10 xl:pr-5 xl:px-0">
+        <div className="mx-auto max-w-325 px-3 lg:px-5 xl:px-0 xl:pr-5 xl:pl-10">
           {/* Mobile footer */}
           <div className="flex flex-col gap-7.5 lg:hidden">
             <div className="flex flex-col gap-4">
@@ -128,8 +128,8 @@ const PublicFooter = () => {
           </div>
 
           {/* Tablet + Desktop footer */}
-          <div className="hidden items-start justify-start gap-12 lg:flex xl:gap-0 xl:justify-between">
-            <div className="flex min-h-45 flex-col justify-between self-stretch shrink-0">
+          <div className="hidden items-start justify-start gap-12 lg:flex xl:justify-between xl:gap-0">
+            <div className="flex min-h-45 shrink-0 flex-col justify-between self-stretch">
               <div className="flex flex-col gap-5">
                 <Link to="/" className="inline-flex no-underline">
                   <img src="/logo.png" alt="Elyxa.Ai" className="h-11 w-auto" />
@@ -160,7 +160,7 @@ const PublicFooter = () => {
               </div>
             </div>
 
-            <div className="flex gap-5 lg:gap-25 shrink-0">
+            <div className="flex shrink-0 gap-5 lg:gap-25">
               {COLUMNS.map((col) => (
                 <div key={col.heading} className="flex flex-col gap-7.5">
                   <p className="font-['Inter',sans-serif] text-sm leading-none font-normal text-[#c2c2c2]">

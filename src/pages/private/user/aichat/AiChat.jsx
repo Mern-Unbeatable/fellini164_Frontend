@@ -220,14 +220,14 @@ export default function MessagePage() {
               >
                 <ArrowLeft className="h-4 w-4" />
               </button>
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[rgba(128,34,254,0.05)] text-[#8022fe] dark:bg-purple-950/40 dark:text-purple-300">
+              {/* <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[rgba(128,34,254,0.05)] text-[#8022fe] dark:bg-purple-950/40 dark:text-purple-300">
                 <TrainFront className="h-5 w-5" />
-              </div>
+              </div> */}
               <div>
                 <p className="text-[16px] font-medium text-[#181818] dark:text-white">AI Coach</p>
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <span className="block h-2 w-2 rounded-full bg-[#10b981]" />
-                  <span className="text-[12px] font-medium text-[#c2c2c2] dark:text-gray-400">Online</span>
+                  <span className="text-[10px] font-medium text-[#c2c2c2] dark:text-gray-400">Online</span>
                 </div>
               </div>
             </div>
