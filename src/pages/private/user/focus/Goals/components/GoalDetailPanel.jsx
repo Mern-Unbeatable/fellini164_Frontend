@@ -379,7 +379,7 @@ export default function GoalDetailPanel({
   const hasDue = goal.dueDetail || goal.due;
 
   return (
-    <div className="fixed inset-0 z-50 max-lg:bg-black/10">
+    <div className="fixed inset-0 z-50 max-lg:bg-black/10 lg:absolute lg:inset-0 lg:z-30 lg:bg-transparent">
       <button
         type="button"
         aria-label="Close goal detail"

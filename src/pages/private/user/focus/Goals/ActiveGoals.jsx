@@ -153,7 +153,7 @@ function GhostGoalCard({ goal, onDismiss, onRegenerate }) {
           </div>
         </div>
 
-        <div className={`flex flex-wrap items-center gap-1 transition-opacity duration-200 ${faded}`}>
+        <div className={`flex items-center gap-1 transition-opacity duration-200 ${faded}`}>
           <span className="rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
             {goal.category}
           </span>
@@ -311,14 +311,14 @@ function GoalCard({ goal, onSelect, onEdit, onAddTask, onAddHabit, onComplete, o
           onSelect?.(goal);
         }
       }}
-      className={`relative flex h-[186px] w-full cursor-pointer flex-col justify-between rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800 ${
+      className={`relative flex w-full cursor-pointer flex-col items-start rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800 ${
         menuOpen || isHovered
           ? 'z-10 shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)]'
           : ''
       } ${menuOpen ? 'overflow-visible' : 'overflow-hidden'}`}
     >
-      <div className="flex min-h-0 flex-1 flex-col gap-[10px] overflow-hidden p-3">
-        <div className={`flex flex-col gap-2 ${faded}`}>
+      <div className="flex w-full shrink-0 flex-col gap-[10px] p-3">
+        <div className={`flex w-full shrink-0 flex-col gap-2 ${faded}`}>
           <div className="flex items-center justify-between">
             <div className="flex flex-wrap items-center gap-1">
               {!isCompleted && (
@@ -360,7 +360,7 @@ function GoalCard({ goal, onSelect, onEdit, onAddTask, onAddHabit, onComplete, o
           </div>
         </div>
 
-        <div className={`flex flex-wrap items-center gap-1 ${faded}`}>
+        <div className={`flex w-full shrink-0 items-center gap-1 overflow-hidden ${faded}`}>
           <span className="rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
             {goal.category}
           </span>
@@ -434,15 +434,15 @@ function GoalCard({ goal, onSelect, onEdit, onAddTask, onAddHabit, onComplete, o
       )}
 
       {isCompleted ? (
-        <div className="border-t border-[#f2f2f2] px-3 pt-[10px] pb-3 dark:border-zinc-700">
-          <div className="flex h-8 items-center justify-center gap-2 rounded-lg bg-[rgba(42,157,0,0.05)]">
+        <div className="flex h-[54px] w-full shrink-0 items-center justify-center border-t border-[#f2f2f2] px-3 pt-[10px] pb-3 dark:border-zinc-700">
+          <div className="flex h-8 w-full items-center justify-center gap-2 rounded-lg bg-[rgba(42,157,0,0.05)]">
             <p className="text-[12px] font-medium leading-[1.5] text-[#2a9d00]">Completed {goal.completedDate}</p>
             <Check size={11} className="shrink-0 text-[#2a9d00]" strokeWidth={2.5} />
           </div>
         </div>
       ) : (
-        <div className="border-t border-[#f2f2f2] px-3 pt-[10px] pb-3 dark:border-zinc-700">
-          <div className={`flex flex-col gap-1.5 ${faded}`}>
+        <div className="flex w-full shrink-0 items-center justify-center border-t border-[#f2f2f2] px-3 pt-[10px] pb-3 dark:border-zinc-700">
+          <div className={`flex w-full min-w-0 flex-col gap-1.5 ${faded}`}>
             <div className="flex w-full items-center justify-between text-[12px] font-medium leading-[1.5]">
               <p className="text-[#c2c2c2]">Progress</p>
               <p className="text-[#5d5d5d] dark:text-gray-300">{goal.progress}%</p>
@@ -627,7 +627,7 @@ export default function ActiveGoals() {
   const completedThisMonth = FIGMA_BOARD_STATS.completedThisMonth;
 
   return (
-    <div className="relative flex min-h-full flex-col py-7.5 max-lg:min-h-0 max-lg:py-4 max-lg:sm:py-6">
+    <div className="relative flex min-h-0 flex-1 flex-col py-7.5 max-lg:min-h-0 max-lg:flex-none max-lg:py-4 max-lg:sm:py-6">
       {/* Header */}
       <div className="mb-5 flex w-full items-start justify-between max-lg:mb-4 max-lg:flex-col max-lg:gap-4">
         <div className="flex flex-col items-start gap-2">
@@ -667,10 +667,9 @@ export default function ActiveGoals() {
         </div>
       </div>
 
-      {/* Board panel */}
-      <div className="flex min-h-0 w-full flex-1 flex-col">
+      {/* Board panel — Figma 1250:8534: stats bar + scrollable card grid */}
       <div className="flex min-h-0 w-full flex-1 flex-col gap-[10px] rounded-2xl border border-[#f2f2f2] bg-white p-3 max-lg:flex-none dark:border-zinc-700 dark:bg-zinc-800">
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           {showGhostCards ? (
             <>
               <Target size={13} className="shrink-0 text-[#c2c2c2]" />
@@ -696,15 +695,17 @@ export default function ActiveGoals() {
               No matching goals.
             </p>
           ) : (
-            <div className="scrollbar-hidden grid grid-cols-1 gap-[10px] overflow-y-auto sm:grid-cols-2 lg:grid-cols-3 lg:min-h-0 lg:flex-1">
-              {filteredGhostGoals.map((goal) => (
-                <GhostGoalCard
-                  key={goal.id}
-                  goal={goal}
-                  onDismiss={handleDismissGhost}
-                  onRegenerate={handleRegenerateGhost}
-                />
-              ))}
+            <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto">
+              <div className="grid grid-cols-1 items-start gap-[10px] sm:grid-cols-2 lg:grid-cols-3">
+                {filteredGhostGoals.map((goal) => (
+                  <GhostGoalCard
+                    key={goal.id}
+                    goal={goal}
+                    onDismiss={handleDismissGhost}
+                    onRegenerate={handleRegenerateGhost}
+                  />
+                ))}
+              </div>
             </div>
           )
         ) : filteredGoals.length === 0 ? (
@@ -712,28 +713,27 @@ export default function ActiveGoals() {
             {isSearching ? 'No matching goals.' : 'No goals to show yet.'}
           </p>
         ) : (
-          <div className="scrollbar-hidden grid grid-cols-1 gap-[10px] overflow-y-auto sm:grid-cols-2 lg:grid-cols-3 lg:min-h-0 lg:flex-1">
-            {filteredGoals.map((goal) => (
-              <GoalCard
-                key={goal.id}
-                goal={goal}
-                onSelect={handleSelectGoal}
-                onEdit={handleEditGoal}
-                onAddTask={handleAddTask}
-                onAddHabit={handleAddHabit}
-                onComplete={handleCompleteGoal}
-                onPause={handlePauseGoal}
-                onDelete={(g) => handleDeleteGoal(g.id)}
-              />
-            ))}
+          <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto">
+            <div className="grid grid-cols-1 items-start gap-[10px] sm:grid-cols-2 lg:grid-cols-3">
+              {filteredGoals.map((goal) => (
+                <GoalCard
+                  key={goal.id}
+                  goal={goal}
+                  onSelect={handleSelectGoal}
+                  onEdit={handleEditGoal}
+                  onAddTask={handleAddTask}
+                  onAddHabit={handleAddHabit}
+                  onComplete={handleCompleteGoal}
+                  onPause={handlePauseGoal}
+                  onDelete={(g) => handleDeleteGoal(g.id)}
+                />
+              ))}
+            </div>
           </div>
         )}
       </div>
-      </div>
 
-      {/* Detail drawer — sibling of header/action-row/board panel, so its absolute
-          positioning spans the full page height, matching TaskDetailDrawer exactly
-          (not nested inside the board panel's wrapper, which only covers that area). */}
+      {/* Detail drawer — sibling of header/action-row/board panel for full-height peek */}
       {selectedGoal && (
         <GoalDetailPanel
           goal={selectedGoal}
