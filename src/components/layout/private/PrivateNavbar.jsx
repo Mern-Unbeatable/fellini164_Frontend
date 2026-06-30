@@ -16,7 +16,10 @@ const BREADCRUMBS = [
   { prefix: '/user/profile', page: 'Profile' },
   { prefix: '/user/subscription', page: 'Subscription' },
   { prefix: '/user/refer', page: 'Refer a Friend' },
-  { prefix: '/user/ai-coach', page: 'AI Coach Chat' },
+  { prefix: '/user/ai-coach', section: 'Tools', page: 'AI Coach' },
+  { prefix: '/user/activity-log', section: 'Tools', page: 'Activity' },
+  { prefix: '/user/notifications', section: 'Tools', page: 'Notification' },
+  { prefix: '/user/announcements', section: 'Main', page: 'Announcements' },
   { prefix: '/user/analytics', page: 'Analytics' },
 ];
 
