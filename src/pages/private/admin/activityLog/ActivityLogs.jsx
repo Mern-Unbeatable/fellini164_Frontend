@@ -14,7 +14,7 @@ import {
 import AdminActivityStatsCards from './components/AdminActivityStatsCards';
 import AdminActivityFilters from './components/AdminActivityFilters';
 import AdminActivityTimeline from './components/AdminActivityTimeline';
-import UserActivityModal from './components/UserActivityModal';
+import UserActivityPage from './components/UserActivityModal';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const AllUsersActivityLog = () => {
@@ -25,14 +25,12 @@ const AllUsersActivityLog = () => {
   const filters = useSelector(selectAdminActivityFilters);
   const loading = useSelector(selectAdminActivityLoading);
 
-  const [modalOpen, setModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedUserId, setSelectedUserId] = useState(null);
 
   const handleViewUserDetails = (userId, user) => {
     setSelectedUserId(userId);
     setSelectedUser(user);
-    setModalOpen(true);
   };
 
   useEffect(() => {
@@ -61,8 +59,21 @@ const AllUsersActivityLog = () => {
   const canGoPrevious = pagination.page > 1;
   const canGoNext = pagination.page < pagination.totalPages;
 
+  if (selectedUserId) {
+    return (
+      <UserActivityPage
+        userId={selectedUserId}
+        user={selectedUser}
+        onBack={() => {
+          setSelectedUserId(null);
+          setSelectedUser(null);
+        }}
+      />
+    );
+  }
+
   return (
-    <div className="relative flex min-h-full flex-col py-7.5 max-lg:min-h-0 max-lg:py-4 max-lg:sm:py-6">
+    <div className="relative w-full py-7.5 max-lg:py-4 max-lg:sm:py-6">
       {/* Header */}
       <div className="mb-5 flex w-full items-start justify-between max-lg:mb-4 max-lg:flex-col max-lg:gap-4">
         <div className="flex flex-col items-start gap-2">
@@ -88,14 +99,6 @@ const AllUsersActivityLog = () => {
         activities={activities}
         loading={loading}
         onViewUserDetails={handleViewUserDetails}
-      />
-
-      {/* User Activity Modal */}
-      <UserActivityModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        userId={selectedUserId}
-        user={selectedUser}
       />
 
       {/* Pagination */}

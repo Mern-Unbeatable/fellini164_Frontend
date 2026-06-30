@@ -315,7 +315,7 @@ const AllPagination = ({
   return (
     <div className="flex w-full flex-col items-center justify-between gap-4 bg-white dark:bg-zinc-800 px-2 py-3 sm:flex-row sm:px-4">
       {/* Result Text */}
-      <div className="text-center text-sm text-gray-400 dark:text-white  sm:text-left">
+      <div className="text-center text-[12px] text-gray-400 dark:text-white  sm:text-left">
         Showing <span className="font-semibold">{indexOfFirstItem + 1}</span> to{" "}
         <span className="px-1 font-semibold">
           {Math.min(indexOfLastItem, totalResults)}
@@ -331,7 +331,7 @@ const AllPagination = ({
           onClick={handlePrevious}
           disabled={currentPage === 1}
           aria-disabled={currentPage === 1}
-          className="flex h-8 items-center justify-center rounded border px-2 text-sm font-medium bg-white dark:bg-zinc-700 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-100 dark:disabled:bg-zinc-600 disabled:text-gray-400 dark:disabled:text-white sm:h-9 sm:px-3"
+          className="flex h-8 items-center justify-center rounded border px-2 text-[12px] font-medium bg-white dark:bg-zinc-700 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-100 dark:disabled:bg-zinc-600 disabled:text-gray-400 dark:disabled:text-white sm:h-9 sm:px-3"
         >
           {/* Mobile: Show Icon Only */}
           <span className="sm:hidden"> <ChevronLeft /></span>
@@ -344,14 +344,14 @@ const AllPagination = ({
         <div className="flex items-center gap-1 sm:gap-2">
           {getPageItems().map((item, idx) =>
             item === "..." ? (
-              <span key={`dots-${idx}`} className="px-1 text-sm text-gray-400">
+              <span key={`dots-${idx}`} className="px-1 text-[12px] text-gray-400">
                 ...
               </span>
             ) : (
               <button
                 key={item}
                 onClick={() => goToPage(item)}
-                className={`inline-flex h-8 w-8 items-center justify-center rounded-md border text-sm font-medium sm:h-9 sm:w-9 ${currentPage === item
+                className={`inline-flex h-8 w-8 items-center justify-center rounded-md border text-[12px] font-medium sm:h-9 sm:w-9 ${currentPage === item
                   ? "border-[#7C3AED] bg-[#7C3AED] text-white"
                   : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"
                   }`}
@@ -367,7 +367,7 @@ const AllPagination = ({
           onClick={handleNext}
           disabled={currentPage === totalPages || totalPages === 0}
           aria-disabled={currentPage === totalPages || totalPages === 0}
-          className="flex h-8 items-center justify-center rounded border px-2 text-sm font-medium bg-white dark:bg-zinc-700 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-100 dark:disabled:bg-zinc-600 disabled:text-gray-400 dark:disabled:text-white sm:h-9 sm:px-3"
+          className="flex h-8 items-center justify-center rounded border px-2 text-[12px] font-medium bg-white dark:bg-zinc-700 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-100 dark:disabled:bg-zinc-600 disabled:text-gray-400 dark:disabled:text-white sm:h-9 sm:px-3"
         >
           {/* Mobile: Show Icon Only */}
           <span className="sm:hidden"> <ChevronRight /></span>
