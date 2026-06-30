@@ -25,26 +25,12 @@ const RevenueChart = () => {
 
     const lineData = useMemo(() => generateData(Number(selectedRange)), [selectedRange]);
     return (
-        <div className="lg:col-span-2 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white rounded-xl shadow-sm p-4 md:p-6 ">
+        <div className="lg:col-span-2 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white border border-[#f2f2f2] dark:border-zinc-700 rounded-xl shadow-sm p-4 md:p-6 ">
             <div className="flex items-start justify-between mb-4">
-                <h2 className="text-xl font-bold text-gray-800 dark:text-white">Revenue & User Growth</h2>
-                {/* <div className="flex items-center gap-2">
-                    <label htmlFor="range" className="sr-only ">Range</label>
-                    <select
-                        id="range"
-                        value={selectedRange}
-                        onChange={(e) => setSelectedRange(e.target.value)}
-                        className="text-sm text-gray-700 bg-white dark:bg-zinc-500 dark:text-white cursor-pointer rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400"
-                    >
-                        <option value="7">Last 7 Days</option>
-                        <option value="30">Last 30 Days</option>
-                        <option value="60">Last 60 Days</option>
-                        <option value="90">Last 90 Days</option>
-                    </select>
-                </div> */}
-                <select className="w-auto px-3 py-2 text-sm text-gray-600 focus:outline-none border dark:text-white dark:bg-zinc-700 dark:border-gray-600 border-gray-200 rounded-lg">
-                <option className='text-sm'>Last 7 Days</option>
-              </select>
+                <h2 className="text-[16px] font-medium text-[#181818] dark:text-white">Revenue & User Growth</h2>
+                <select className="w-auto px-3 py-1.75 text-[12px] font-medium text-[#5d5d5d] focus:outline-none border dark:text-white dark:bg-zinc-700 dark:border-zinc-600 border-[#f2f2f2] bg-white rounded-lg cursor-pointer">
+                    <option className='text-[12px] font-medium'>Last 7 Days</option>
+                </select>
             </div>
             {/**revenue chart */}
             <div className="h-64">
@@ -57,15 +43,15 @@ const RevenueChart = () => {
                             </linearGradient>
                         </defs>
                         <CartesianGrid strokeDasharray="8 10" stroke="#EEF2F6" vertical={false} />
-                        <XAxis dataKey="name" tick={{ fill: 'currentColor', fontSize: 12 }} axisLine={false} tickMargin={12} />
-                        <YAxis ticks={[0, 800, 1600, 2400, 3200]} tick={{ fill: 'currentColor', fontSize: 12 }} axisLine={false} />
+                        <XAxis dataKey="name" tick={{ fill: 'currentColor', fontSize: 10, fontWeight: 500 }} axisLine={false} tickMargin={12} />
+                        <YAxis ticks={[0, 800, 1600, 2400, 3200]} tick={{ fill: 'currentColor', fontSize: 10, fontWeight: 500 }} axisLine={false} />
                         <Tooltip
                             contentStyle={{
                                 backgroundColor: '#fff',
                                 border: '1px solid #e5e7eb',
                                 borderRadius: '8px',
                                 padding: '8px 12px',
-                                fontSize: '14px'
+                                fontSize: '12px'
                             }}
                             labelStyle={{ color: '#374151', fontWeight: 600 }}
                             itemStyle={{ color: '#7C3AED' }}
@@ -74,7 +60,7 @@ const RevenueChart = () => {
                             type="natural"
                             dataKey="uv"
                             stroke="url(#lineGradient)"
-                            strokeWidth={7}
+                            strokeWidth={5}
                             dot={false}
                             strokeLinecap="round"
                             strokeLinejoin="round"

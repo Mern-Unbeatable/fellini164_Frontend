@@ -28,7 +28,7 @@ const AdminDashView = () => {
     }, [dispatch]);
 
     return (
-        <div className=" p-4 md:p-8 ">
+        <div className=" py-7.5 max-lg:min-h-0 max-lg:py-4 max-lg:sm:py-6 ">
             <StatsCards stats={stats} />
             <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
                 <RevenueChart />
