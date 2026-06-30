@@ -273,7 +273,7 @@ function LinkedSectionHeader({ label, count, onAdd, onAi }) {
           aria-label={`Add ${label.toLowerCase()}`}
           className="text-[#a3a3a3] hover:text-[#5d5d5d]"
         >
-          <Plus size={12} />
+          <Plus size={14} />
         </button>
         <button
           type="button"
@@ -281,7 +281,7 @@ function LinkedSectionHeader({ label, count, onAdd, onAi }) {
           aria-label={`AI suggest ${label.toLowerCase()}`}
           className="text-[#8022fe] hover:opacity-80"
         >
-          <Sparkles size={12} />
+          <Sparkles size={14} />
         </button>
       </div>
     </div>
@@ -387,7 +387,7 @@ export default function GoalDetailPanel({
   const hasDue = goal.dueDetail || goal.due;
 
   return (
-    <div className="fixed inset-0 z-50 max-lg:bg-black/10 lg:absolute lg:inset-0 lg:z-30 lg:bg-transparent">
+    <div className="fixed inset-0 z-50 max-lg:bg-black/10 lg:top-13 lg:z-30 lg:bg-transparent">
       <button
         type="button"
         aria-label="Close goal detail"
