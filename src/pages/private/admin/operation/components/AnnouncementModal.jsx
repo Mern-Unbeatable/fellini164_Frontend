@@ -1,105 +1,204 @@
-import React from 'react';
-import { X, Calendar, ChevronDown } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, ChevronDown } from 'lucide-react';
+import { POST } from '../../../../../services/httpMethods';
+import { toast } from 'react-toastify';
 
-const AnnouncementModal = ({open, onClose, onSave}) => {
+const AnnouncementModal = ({ open, onClose, onSave }) => {
+  const [title, setTitle] = useState('');
+  const [message, setMessage] = useState('');
+  const [type, setType] = useState('INFO');
+  const [targetType, setTargetType] = useState('ALL_USERS');
+  const [scheduledAt, setScheduledAt] = useState('');
+  const [expiresAt, setExpiresAt] = useState('');
+  const [isPinned, setIsPinned] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-    
-    if (!open) return null;
+  if (!open) return null;
 
-  const handleSave = () => {
-  
-    onSave();
-
-    onClose();
+  const resetForm = () => {
+    setTitle('');
+    setMessage('');
+    setType('INFO');
+    setTargetType('ALL_USERS');
+    setScheduledAt('');
+    setExpiresAt('');
+    setIsPinned(false);
+    setLoading(false);
   };
 
+  const handleSave = async () => {
+    if (!title.trim() || !message.trim()) {
+      toast.error('Title and message are required');
+      return;
+    }
 
+    const payload = {
+      title: title.trim(),
+      message: message.trim(),
+      type,
+      targetType,
+      isPinned,
+    };
+
+    if (scheduledAt) payload.scheduledAt = new Date(scheduledAt).toISOString();
+    if (expiresAt) payload.expiresAt = new Date(expiresAt).toISOString();
+
+    try {
+      setLoading(true);
+      const response = await POST('/api/v1/admin/announcements', payload);
+      const created = response?.data?.announcement || response?.announcement || response?.data || response;
+      toast.success(response?.message);
+      if (onSave) onSave(created);
+      resetForm();
+      onClose();
+    } catch (err) {
+      const msg = err?.response?.data?.message || err.message;
+      toast.error(msg);
+      setLoading(false);
+    }
+  };
+
+  const inputClasses =
+    'w-full rounded-lg border border-[#f2f2f2] bg-white px-3 py-2 text-[12px] text-[#181818] outline-none focus:border-[#8022fe] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white';
 
   return (
-    <div onClick={onClose} className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/30  p-4">
-      {/* Modal Container */}
-      <div onClick={(e) => e.stopPropagation()} className="w-full max-w-lg bg-white dark:bg-zinc-800 rounded-xl shadow-xl overflow-hidden font-sans">
-        
+    <div
+      onClick={() => { resetForm(); onClose && onClose(); }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="flex max-h-[90vh] w-full max-w-112.5 flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-900"
+      >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-600">
-          <h2 className="text-xl font-bold text-gray-800 dark:text-white ">Create Announcement</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600  dark:text-gray-200 dark:hover:text-gray-600 transition-colors">
-            <X size={24} />
+        <div className="flex items-center justify-between border-b border-[#f2f2f2] px-3 py-2.5 dark:border-zinc-700">
+          <p className="text-[12px] font-medium text-[#5d5d5d] dark:text-gray-300">
+            Create Announcement
+          </p>
+          <button
+            type="button"
+            onClick={() => { resetForm(); onClose && onClose(); }}
+            className="text-[#5d5d5d] dark:text-gray-300"
+          >
+            <X size={14} />
           </button>
         </div>
 
-        {/* Form Body */}
-        <div className="p-6 space-y-5">
-          
-          {/* Title Field */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1.5">
-              Title
-            </label>
-            <input 
-              type="text" 
-              placeholder="e.g New feature launch"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent placeholder:text-gray-400"
+        {/* Content Body */}
+        <div className="flex flex-col gap-4 overflow-y-auto p-3 flex-1">
+          {/* Title */}
+          <div className="flex flex-col gap-1.5">
+            <p className="text-[12px] font-medium text-[#c2c2c2] dark:text-zinc-500">Title</p>
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              type="text"
+              placeholder="e.g. New feature launch"
+              className={inputClasses}
             />
           </div>
 
-          {/* Status & Date Row */}
-      {/* Status & Date Row */}
-<div className="grid grid-cols-2 gap-4">
-  <div>
-    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1.5">
-      Status
-    </label>
-    {/* 1. Added relative wrapper */}
-    <div className="relative">
-      <select className="w-full px-3 py-2 border border-gray-300  rounded-md bg-white  dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent appearance-none text-gray-600 dark:text-gray-300 pr-10">
-        <option>Draft</option>
-        <option>Scheduled</option>
-        <option>Published</option>
-      </select>
-      {/* 2. Added the ChevronDown icon */}
-      <ChevronDown 
-        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" 
-        size={20} 
-      />
-    </div>
-  </div>
-  
-  <div>
-    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1.5">
-      Date
-    </label>
-    <div className="relative">
-      <input 
-        type="text" 
-        placeholder="MM/DD/YYYY"
-        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent placeholder:text-gray-400"
-      />
-      <Calendar className="absolute right-3 top-2.5 text-gray-400 pointer-events-none" size={18} />
-    </div>
-  </div>
-</div>
-
-          {/* Content Field */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5 dark:text-gray-300">
-              Content
-            </label>
-            <textarea 
+          {/* Content */}
+          <div className="flex flex-col gap-1.5">
+            <p className="text-[12px] font-medium text-[#c2c2c2] dark:text-zinc-500">Content</p>
+            <textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
               rows={4}
               placeholder="Announcement Details"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent placeholder:text-gray-400 resize-none"
+              className={`${inputClasses} resize-none`}
             />
+          </div>
+
+          {/* Status */}
+          <div className="flex flex-col gap-1.5">
+            <p className="text-[12px] font-medium text-[#c2c2c2] dark:text-zinc-500">Status</p>
+            <div className="relative">
+              <select
+                value={type}
+                onChange={(e) => setType(e.target.value)}
+                className={`${inputClasses} appearance-none cursor-pointer pr-10`}
+              >
+                <option value="INFO">INFO</option>
+                <option value="FEATURE">FEATURE</option>
+                <option value="ALERT">ALERT</option>
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-[#c2c2c2] pointer-events-none" size={14} />
+            </div>
+          </div>
+
+          {/* Target */}
+          <div className="flex flex-col gap-1.5">
+            <p className="text-[12px] font-medium text-[#c2c2c2] dark:text-zinc-500">Target</p>
+            <div className="relative">
+              <select
+                value={targetType}
+                onChange={(e) => setTargetType(e.target.value)}
+                className={`${inputClasses} appearance-none cursor-pointer pr-10`}
+              >
+                <option value="ALL_USERS">All users</option>
+                <option value="ALL_INCLUDING_WAITLIST">All including waitlist</option>
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-[#c2c2c2] pointer-events-none" size={14} />
+            </div>
+          </div>
+
+          {/* Schedule */}
+          <div className="flex flex-col gap-1.5">
+            <p className="text-[12px] font-medium text-[#c2c2c2] dark:text-zinc-500">Schedule</p>
+            <input
+              value={scheduledAt}
+              onChange={(e) => setScheduledAt(e.target.value)}
+              type="datetime-local"
+              className={inputClasses}
+            />
+          </div>
+
+          {/* Expires */}
+          <div className="flex flex-col gap-1.5">
+            <p className="text-[12px] font-medium text-[#c2c2c2] dark:text-zinc-500">Expires</p>
+            <input
+              value={expiresAt}
+              onChange={(e) => setExpiresAt(e.target.value)}
+              type="datetime-local"
+              className={inputClasses}
+            />
+          </div>
+
+          {/* Pin Announcement */}
+          <div className="flex items-center gap-2 py-1">
+            <input
+              id="pin"
+              type="checkbox"
+              checked={isPinned}
+              onChange={(e) => setIsPinned(e.target.checked)}
+              className="h-4 w-4 rounded border-gray-300 text-violet-600 focus:ring-violet-500 cursor-pointer"
+            />
+            <label
+              htmlFor="pin"
+              className="text-[12px] font-medium text-[#5d5d5d] dark:text-gray-300 cursor-pointer"
+            >
+              Pin announcement
+            </label>
           </div>
         </div>
 
-        {/* Footer / Buttons */}
-        <div className="px-6 py-6 flex justify-end gap-3">
-          <button  onClick={onClose} className="px-8 py-2.5 border border-gray-400 text-gray-600 dark:text-gray-300 font-medium rounded-md  transition-colors">
+        {/* Footer */}
+        <div className="flex items-center gap-2 border-t border-[#f2f2f2] px-3 py-2.5 dark:border-zinc-700">
+          <button
+            type="button"
+            onClick={() => { resetForm(); onClose && onClose(); }}
+            className="flex flex-1 items-center justify-center rounded-lg bg-[#f2f2f2] px-3 py-2 text-[12px] font-medium text-[#5d5d5d] dark:bg-zinc-700 dark:text-gray-300 transition-colors"
+          >
             Cancel
           </button>
-          <button onClick={handleSave} className="px-8 py-2.5 bg-[#7c3aed] text-white font-medium rounded-md hover:bg-[#6d28d9] transition-colors shadow-sm">
-            Publish
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={loading}
+            className="flex flex-1 items-center justify-center rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] font-semibold text-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Saving...' : 'Publish'}
           </button>
         </div>
       </div>
