@@ -207,25 +207,25 @@ function GhostGoalCard({ goal, onDismiss, onRegenerate }) {
       )}
 
       <div
-        className={`relative flex h-[54px] w-full shrink-0 items-center px-3 pt-[10px] pb-3 ${
+        className={`relative box-border flex h-[54px] w-full shrink-0 flex-col px-3 pt-[10px] pb-3 ${
           isActive
             ? 'border-t border-solid border-[#e9e9e9] dark:border-zinc-700'
             : 'border-t border-dashed border-[#e9e9e9] dark:border-zinc-700'
         }`}
       >
         <div
-          className={`absolute inset-0 flex w-full flex-col gap-1.5 px-3 pt-[10px] pb-3 transition-opacity duration-200 ${
+          className={`flex w-full flex-col gap-1.5 transition-opacity duration-200 ${
             isActive ? 'pointer-events-none opacity-0' : faded
           }`}
         >
-          <div className="flex w-full items-center justify-between text-[12px] leading-[1.5] font-medium">
+          <div className="flex h-[18px] w-full items-center justify-between text-[12px] leading-[1.5] font-medium">
             <p className="text-[#c2c2c2]">Progress</p>
             <p className="text-[#5d5d5d] dark:text-gray-300">0%</p>
           </div>
-          <div className="h-2 w-full rounded-[40px] bg-[#e9e9e9] dark:bg-zinc-600" />
+          <div className="h-2 w-full shrink-0 rounded-[40px] bg-[#e9e9e9] dark:bg-zinc-600" />
         </div>
         <div
-          className={`absolute inset-0 flex w-full items-center justify-between gap-2 px-3 pt-[10px] pb-3 transition-opacity duration-200 ${
+          className={`absolute inset-0 flex items-center justify-between gap-2 px-3 pt-[10px] pb-3 transition-opacity duration-200 ${
             isActive ? 'opacity-100' : 'pointer-events-none opacity-0'
           }`}
         >
@@ -346,9 +346,9 @@ function GoalCard({
         menuOpen || isHovered ? 'z-10 shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)]' : ''
       } ${menuOpen ? 'overflow-visible' : ''}`}
     >
-      {/* Figma 1250:8542 — body 132px + footer 54px = 186px */}
-      <div className="box-border flex h-[132px] w-full shrink-0 flex-col justify-between p-3">
-        <div className={`flex min-h-0 flex-col gap-2 overflow-hidden ${faded}`}>
+      {/* Figma 1250:8542 — body 132px (p-12 + gap-10) + footer 54px (pt-10 pb-12) */}
+      <div className="box-border flex h-[132px] w-full shrink-0 flex-col gap-[10px] p-3">
+        <div className={`flex min-h-0 flex-1 flex-col gap-2 overflow-hidden ${faded}`}>
           <div className="flex min-h-[22px] shrink-0 items-center gap-1 overflow-hidden">
             {!isCompleted && (
               <span
@@ -466,7 +466,7 @@ function GoalCard({
       )}
 
       {isCompleted ? (
-        <div className="box-border flex h-[54px] w-full shrink-0 items-center justify-center border-t border-[#f2f2f2] px-3 pt-[10px] pb-3 dark:border-zinc-700">
+        <div className="box-border flex h-[54px] w-full shrink-0 flex-col border-t border-[#f2f2f2] px-3 pt-[10px] pb-3 dark:border-zinc-700">
           <div className="flex h-8 w-full items-center justify-center gap-2 rounded-lg bg-[rgba(42,157,0,0.05)]">
             <p className="text-[12px] leading-[1.5] font-medium text-[#2a9d00]">
               Completed {goal.completedDate}
@@ -475,13 +475,13 @@ function GoalCard({
           </div>
         </div>
       ) : (
-        <div className="box-border flex h-[54px] w-full shrink-0 items-center justify-center border-t border-[#f2f2f2] px-3 pt-[10px] pb-3 dark:border-zinc-700">
+        <div className="box-border flex h-[54px] w-full shrink-0 flex-col border-t border-[#f2f2f2] px-3 pt-[10px] pb-3 dark:border-zinc-700">
           <div className={`flex w-full min-w-0 flex-col gap-1.5 ${faded}`}>
-            <div className="flex w-full items-center justify-between text-[12px] leading-[1.5] font-medium">
+            <div className="flex h-[18px] w-full items-center justify-between text-[12px] leading-[1.5] font-medium">
               <p className="text-[#c2c2c2]">Progress</p>
               <p className="text-[#5d5d5d] dark:text-gray-300">{goal.progress}%</p>
             </div>
-            <div className="h-2 w-full overflow-hidden rounded-[40px] bg-[#e9e9e9] dark:bg-zinc-600">
+            <div className="h-2 w-full shrink-0 overflow-hidden rounded-[40px] bg-[#e9e9e9] dark:bg-zinc-600">
               <div
                 className={`h-full rounded-[18px] ${isPaused ? 'bg-[#c2c2c2]' : 'bg-[#8022fe]'}`}
                 style={{ width: `${goal.progress}%` }}
