@@ -155,21 +155,21 @@ function GhostGoalCard({ goal, onDismiss, onRegenerate }) {
           </div>
         </div>
 
-        <div className={`flex items-center gap-1 transition-opacity duration-200 ${faded}`}>
-          <span className="rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] leading-[1.5] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+        <div className={`flex h-[22px] min-w-0 shrink-0 items-center gap-1 overflow-hidden ${faded}`}>
+          <span className="shrink-0 whitespace-nowrap rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] leading-[1.5] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
             {goal.category}
           </span>
-          <span className="flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] leading-[1.5] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+          <span className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] leading-[1.5] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
             <ListTodo size={12} className="shrink-0" />
             {goal.tasks} Tasks
           </span>
-          <span className="flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] leading-[1.5] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+          <span className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] leading-[1.5] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
             <Repeat size={12} className="shrink-0" />
             {goal.habits} Habits
           </span>
-          <span className="flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] leading-[1.5] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+          <span className="flex min-w-0 shrink items-center gap-1.5 overflow-hidden whitespace-nowrap rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] leading-[1.5] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
             <Flag size={12} className="shrink-0" />
-            {goal.due}
+            <span className="truncate">{goal.due}</span>
           </span>
         </div>
       </div>
@@ -392,26 +392,26 @@ function GoalCard({
           </div>
         </div>
 
-        <div className={`flex h-[22px] shrink-0 items-center gap-1 overflow-hidden ${faded}`}>
-          <span className="rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] leading-[1.5] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+        <div className={`flex h-[22px] min-w-0 shrink-0 items-center gap-1 overflow-hidden ${faded}`}>
+          <span className="shrink-0 whitespace-nowrap rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] leading-[1.5] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
             {goal.category}
           </span>
           {goal.tasks > 0 && (
-            <span className="flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] leading-[1.5] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+            <span className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] leading-[1.5] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
               <ListTodo size={12} className="shrink-0" />
               {goal.tasks} Tasks
             </span>
           )}
           {goal.habits > 0 && (
-            <span className="flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] leading-[1.5] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+            <span className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] leading-[1.5] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
               <Repeat size={12} className="shrink-0" />
               {goal.habits} Habits
             </span>
           )}
           {goal.due && (
-            <span className="flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] leading-[1.5] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+            <span className="flex min-w-0 shrink items-center gap-1.5 overflow-hidden whitespace-nowrap rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] leading-[1.5] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
               <Flag size={12} className="shrink-0" />
-              {goal.due}
+              <span className="truncate">{goal.due}</span>
             </span>
           )}
         </div>
@@ -661,7 +661,7 @@ export default function ActiveGoals() {
   const completedThisMonth = FIGMA_BOARD_STATS.completedThisMonth;
 
   return (
-    <div className="relative flex min-h-0 flex-1 flex-col py-7.5 max-lg:min-h-0 max-lg:flex-none max-lg:py-4 max-lg:sm:py-6">
+    <div className="relative flex min-h-full flex-col py-7.5 max-lg:py-4 max-lg:sm:py-6">
       {/* Header */}
       <div className="mb-5 flex w-full items-start justify-between max-lg:mb-4 max-lg:flex-col max-lg:gap-4">
         <div className="flex flex-col items-start gap-2">
@@ -702,7 +702,7 @@ export default function ActiveGoals() {
       </div>
 
       {/* Board panel — Figma 1250:8534: stats bar + scrollable card grid */}
-      <div className="flex min-h-0 w-full flex-1 flex-col gap-[10px] rounded-2xl border border-[#f2f2f2] bg-white p-3 max-lg:flex-none dark:border-zinc-700 dark:bg-zinc-800">
+      <div className="flex w-full flex-col gap-[10px] rounded-2xl border border-[#f2f2f2] bg-white p-3 dark:border-zinc-700 dark:bg-zinc-800">
         <div className="flex shrink-0 items-center gap-2">
           {showGhostCards ? (
             <>
@@ -732,8 +732,7 @@ export default function ActiveGoals() {
               No matching goals.
             </p>
           ) : (
-            <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto">
-              <div className="grid auto-rows-[186px] grid-cols-1 gap-[10px] sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid auto-rows-[186px] grid-cols-1 gap-[10px] sm:grid-cols-2 xl:grid-cols-3">
                 {filteredGhostGoals.map((goal) => (
                   <div key={goal.id} className="h-[186px] min-h-[186px]">
                     <GhostGoalCard
@@ -744,15 +743,13 @@ export default function ActiveGoals() {
                   </div>
                 ))}
               </div>
-            </div>
           )
         ) : filteredGoals.length === 0 ? (
           <p className="py-10 text-center text-sm font-medium text-[#c2c2c2] dark:text-gray-500">
             {isSearching ? 'No matching goals.' : 'No goals to show yet.'}
           </p>
         ) : (
-          <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto">
-            <div className="grid auto-rows-[186px] grid-cols-1 gap-[10px] sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid auto-rows-[186px] grid-cols-1 gap-[10px] sm:grid-cols-2 xl:grid-cols-3">
               {filteredGoals.map((goal) => (
                 <div key={goal.id} className="h-[186px] min-h-[186px]">
                   <GoalCard
@@ -768,7 +765,6 @@ export default function ActiveGoals() {
                 </div>
               ))}
             </div>
-          </div>
         )}
       </div>
 
