@@ -311,13 +311,13 @@ function GoalCard({ goal, onSelect, onEdit, onAddTask, onAddHabit, onComplete, o
           onSelect?.(goal);
         }
       }}
-      className={`relative flex min-h-[186px] w-full cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800 ${
+      className={`relative flex h-[186px] w-full cursor-pointer flex-col justify-between rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800 ${
         menuOpen || isHovered
           ? 'z-10 shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)]'
           : ''
-      } ${menuOpen ? 'overflow-visible' : ''}`}
+      } ${menuOpen ? 'overflow-visible' : 'overflow-hidden'}`}
     >
-      <div className="flex flex-col gap-[10px] p-3">
+      <div className="flex min-h-0 flex-1 flex-col gap-[10px] overflow-hidden p-3">
         <div className={`flex flex-col gap-2 ${faded}`}>
           <div className="flex items-center justify-between">
             <div className="flex flex-wrap items-center gap-1">

@@ -104,14 +104,14 @@ export default function GoalAiAssistant({ onClose, onToggleExpand, isExpanded = 
 
       <div className="flex shrink-0 flex-col gap-3 p-3">
         <div className="flex flex-wrap gap-2">
-          {QUICK_ACTIONS.map(({ label, icon: Icon }) => (
+          {QUICK_ACTIONS.map((action) => (
             <button
-              key={label}
+              key={action.label}
               type="button"
               className="flex items-center gap-1.5 rounded-md border border-[#f2f2f2] bg-[#fcfcfc] px-2 pt-0.5 pb-[3px] text-[14px] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300"
             >
-              <Icon size={12} className="shrink-0" />
-              {label}
+              <action.icon size={12} className="shrink-0" />
+              {action.label}
             </button>
           ))}
         </div>
