@@ -13,7 +13,7 @@ const MobileCard = ({
   getStatusDot,
   onManage,
 }) => (
-  <div className="mb-3 rounded-lg border border-gray-200 bg-white dark:bg-zinc-800 p-4 shadow-sm">
+  <div className="mb-3 rounded-lg border border-gray-200 bg-white dark:bg-zinc-800  shadow-sm">
     {/* User Info */}
     <div className="mb-4 flex items-center gap-3">
       <div
@@ -73,21 +73,17 @@ const MobileCard = ({
 
 const TableHeader = () => (
   <thead>
-    <tr className="h-8 border-b border-[#E0E5ED] dark:border-gray-400 bg-[#F8FBFE] dark:bg-zinc-700">
-      <th className="px-6 py-3 text-left text-sm font-medium text-[#666B74] uppercase dark:text-white
-      ">User</th>
-      <th className="px-6 py-3 text-left text-sm font-medium text-[#666B74] uppercase dark:text-white">Plan</th>
-      <th className="px-6 py-3 text-left text-sm font-medium text-[#666B74] uppercase dark:text-white">Status</th>
-      <th className="px-6 py-3 text-left text-sm font-medium text-[#666B74] uppercase dark:text-white">Joined</th>
-      <th className="px-6 py-3 text-left text-sm font-medium text-[#666B74] uppercase dark:text-white">
-        Last Active
-      </th>
-      <th className="px-6 py-3 text-left text-sm font-medium text-[#666B74] uppercase dark:text-white">Actions</th>
+    <tr className="border-b border-[#f2f2f2] dark:border-zinc-700 bg-[#fcfcfc] dark:bg-zinc-800">
+      <th className="px-6 py-2.5 text-left text-[12px] font-medium text-[#c2c2c2] uppercase tracking-wider dark:text-zinc-500">User</th>
+      <th className="px-6 py-2.5 text-left text-[12px] font-medium text-[#c2c2c2] uppercase tracking-wider dark:text-zinc-500">Plan</th>
+      <th className="px-6 py-2.5 text-left text-[12px] font-medium text-[#c2c2c2] uppercase tracking-wider dark:text-zinc-500">Status</th>
+      <th className="px-6 py-2.5 text-left text-[12px] font-medium text-[#c2c2c2] uppercase tracking-wider dark:text-zinc-500">Joined</th>
+      <th className="px-6 py-2.5 text-left text-[12px] font-medium text-[#c2c2c2] uppercase tracking-wider dark:text-zinc-500">Last Active</th>
+      <th className="px-6 py-2.5 text-left text-[12px] font-medium text-[#c2c2c2] uppercase tracking-wider dark:text-zinc-500">Actions</th>
     </tr>
   </thead>
 );
 
-// Status filter using native <select>
 const StatusFilterDropdown = ({ value, onChange }) => {
   const options = ['All Status', 'Waitlist', 'Invited', 'Active', 'Unsubscribe'];
 
@@ -96,17 +92,13 @@ const StatusFilterDropdown = ({ value, onChange }) => {
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="rounded-lg appearance-none border border-[#9CA3AF] bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-[#111827] dark:text-white focus:outline-none md:px-4"
+        className="w-full rounded-lg border border-[#f2f2f2] bg-white px-3 py-1.75 text-[12px] font-medium text-[#181818] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white outline-none cursor-pointer"
       >
         {options.map((opt) => (
-          <option key={opt} value={opt} className="text-center">
+          <option key={opt} value={opt}>
             {opt}
           </option>
         ))}
-         <ChevronDown
-            size={18}
-            className=" text-gray-400 dark:text-white"
-          />
       </select>
     </div>
   );
@@ -122,45 +114,43 @@ const UserRow = ({
   getStatusDot,
   onManage,
 }) => (
-  <tr className="border-b border-gray-200 dark:border-gray-400 transition hover:bg-gray-50 dark:hover:bg-zinc-700">
-    <td className="px-6 py-4">
+  <tr className="border-b border-[#f2f2f2] dark:border-zinc-700 transition hover:bg-[#fcfcfc] dark:hover:bg-zinc-700/50">
+    <td className="px-6 py-2.5">
       <div className="flex items-center gap-3">
         <div
-          className={`h-10 w-10 rounded-full ${getAvatarColor(
-            index
-          )} flex items-center justify-center text-sm font-semibold text-gray-700`}
+          className={`h-7 w-7 rounded-full bg-[#f9f4ff] flex items-center justify-center text-[10px] font-bold text-[#8022fe]`}
         >
           {getInitials(user.name)}
         </div>
         <div>
-          <div className="font-medium text-gray-900 dark:text-white">{user.name}</div>
-          <div className="text-sm text-gray-500  dark:text-white/90">{user.email}</div>
+          <div className="text-[14px] font-medium text-[#181818] dark:text-white">{user.name}</div>
+          <div className="text-[12px] font-medium text-[#c2c2c2] dark:text-zinc-500">{user.email}</div>
         </div>
       </div>
     </td>
 
-    <td className="px-6 py-4">
+    <td className="px-6 py-2.5">
       <span
-        className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${getPlanColor(user.plan)}`}
+        className={`inline-flex rounded-[6px] px-2 py-0.75 text-[12px] font-medium ${getPlanColor(user.plan)}`}
       >
         {user.plan}
       </span>
     </td>
 
-    <td className="px-6 py-4">
+    <td className="px-6 py-2.5">
       <span
-        className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium ${getStatusColor(user.status)}`}
+        className={`inline-flex items-center gap-1.5 rounded-[6px] px-2 py-0.75 text-[12px] font-medium ${getStatusColor(user.status)}`}
       >
-        <span className={`h-2 w-2 rounded-full ${getStatusDot(user.status)}`} />
+        <span className={`h-1.5 w-1.5 rounded-full ${getStatusDot(user.status)}`} />
         {user.status}
       </span>
     </td>
 
-    <td className="px-6 py-4 text-sm text-gray-700 dark:text-white">{user.joined}</td>
-    <td className="px-6 py-4 text-sm text-gray-700 dark:text-white">{user.lastActive}</td>
+    <td className="px-6 py-2.5 text-[12px] font-medium text-[#5d5d5d] dark:text-gray-300">{user.joined}</td>
+    <td className="px-6 py-2.5 text-[12px] font-medium text-[#5d5d5d] dark:text-gray-300">{user.lastActive}</td>
 
-    <td className="px-6 py-4">
-      <button onClick={() => onManage(user.id)} className="text-sm font-medium text-[#7C46EE] dark:text-violet-400">
+    <td className="px-6 py-2.5">
+      <button onClick={() => onManage(user.id)} className="text-[12px] font-semibold text-[#8022fe] dark:text-violet-400 hover:underline">
         Manage
       </button>
     </td>
@@ -242,8 +232,8 @@ const UserTable = ({
   const paginatedUsers = filteredUsers.slice(indexOfFirstItem, indexOfFirstItem + ITEMS_PER_PAGE);
 
   return (
-    <div className="w-full p-4 md:p-8">
-      <div className="rounded-lg bg-white dark:bg-zinc-800 shadow-sm">
+    <div className="w-full py-7.5 max-lg:min-h-0 max-lg:py-4 max-lg:sm:py-6">
+      <div className="rounded-lg bg-white dark:bg-zinc-800 border border-[#f2f2f2] dark:border-zinc-700 shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] ">
         {/* Loading State */}
         {loading && (
           <div className="flex items-center justify-center p-12">
@@ -258,7 +248,7 @@ const UserTable = ({
         {error && (
           <div className="p-6">
             <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-800">
-              <p className="font-medium">⚠️ {error}</p>
+              <p className="font-medium"> {error}</p>
             </div>
           </div>
         )}
@@ -267,15 +257,15 @@ const UserTable = ({
         {!loading && !error && (
           <>
             {/* Header */}
-            <div className="flex flex-col gap-3 rounded-t-lg border-b border-gray-200 bg-[#FCFCFD] dark:bg-zinc-800 px-4 py-4 md:flex-row md:items-center md:justify-between md:px-6">
-              <div className="relative w-full md:w-64">
-                <Search size={18} className="absolute top-2.5 left-3 text-[#9CA3AF] dark:text-white" />
+            <div className="flex flex-col gap-3 rounded-t-lg border-b border-[#f2f2f2] bg-white dark:border-zinc-700 dark:bg-zinc-800 px-4 py-3.5 md:flex-row md:items-center md:justify-between md:px-6">
+              <div className="flex w-full items-center gap-[6px] rounded-lg border border-[#f2f2f2] bg-[#fcfcfc] px-3.5 py-1.75 md:w-64 dark:border-zinc-700 dark:bg-zinc-800">
+                <Search size={14} className="shrink-0 text-[#5d5d5d] dark:text-gray-300" />
                 <input
                   type="text"
                   placeholder="Search Users"
                   value={searchTerm}
                   onChange={(e) => onSearchChange(e.target.value)}
-                  className="w-full rounded-lg dark:text-white border border-[#9CA3AF] py-2 pr-4 pl-10 text-sm focus:outline-0 focus:ring-2 focus:ring-violet-500 focus:outline-none"
+                  className="w-full bg-transparent text-[12px] font-medium text-[#181818] outline-none placeholder:text-[#c2c2c2] dark:text-white"
                 />
               </div>
               <div className="flex items-center gap-2 md:gap-3">
@@ -287,11 +277,10 @@ const UserTable = ({
 
                 <button
                   onClick={onExportCSV}
-                  className="flex items-center gap-1 rounded-lg border border-[#9CA3AF] px-3 py-2 text-xs font-medium text-[#000000] dark:text-white  hover:bg-gray-50 dark:bg-zinc-800 dark:hover:bg-zinc-700 md:gap-2 md:px-4 md:text-sm"
+                  className="flex items-center gap-1.5 rounded-lg border border-[#f2f2f2] bg-[#fcfcfc] px-3 py-1.75 text-[12px] font-semibold text-[#5d5d5d] hover:bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800 dark:text-gray-300 dark:hover:bg-zinc-700"
                 >
-                  <Download size={14} className="md:h-4 md:w-4" />
-                  <span className="hidden sm:inline">Export CSV</span>
-                  <span className="sm:hidden">CSV</span>
+                  <Download size={14} className="shrink-0 text-[#5d5d5d] dark:text-gray-300" />
+                  <span>Export CSV</span>
                 </button>
               </div>
             </div>

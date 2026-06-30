@@ -1,21 +1,20 @@
-
-
-
-
 import { MoreVertical, Eye, Plus } from 'lucide-react';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
+import { GET, DELETE } from '../../../../services/httpMethods';
+import { toast } from 'react-toastify';
 import AnnouncementModal from './components/AnnouncementModal';
 
 export default function CMSAnnouncements() {
   const [modle, setModle] = useState(false);
   // State to track which announcement menu is open (stores the ID)
   const [openMenuId, setOpenMenuId] = useState(null);
-  
+
   const handleOpenModal = () => setModle(true);
+
   const handleCloseModal = () => setModle(false);
 
   const toggleMenu = (id, e) => {
-    e.stopPropagation(); 
+    e.stopPropagation();
     setOpenMenuId(openMenuId === id ? null : id);
   };
 
@@ -26,15 +25,97 @@ export default function CMSAnnouncements() {
     return () => window.removeEventListener('click', closeMenu);
   }, []);
 
-  const handleSavePlan = (data) => {
-    console.log('Saved plan:', data);
+  const [announcements, setAnnouncements] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const handleSavePlan = (createdAnnouncement) => {
+    //
+    const ann = createdAnnouncement?.announcement || createdAnnouncement;
+    if (!ann) return;
+    // Ensure we have an id; if not, create a timestamp id
+    const id = ann.id || `local-${Date.now()}`;
+    const item = {
+      id,
+      title: ann.title || 'Untitled',
+      subtitle: ann.message || '',
+      date: ann.scheduledAt ? new Date(ann.scheduledAt).toLocaleString() : new Date().toLocaleDateString(),
+      views: ann.views || 0,
+      isScheduled: !!ann.scheduledAt,
+      raw: ann,
+    };
+
+    setAnnouncements((prev) => [item, ...prev]);
   };
 
-  const announcements = [
-    { id: 1, status: 'Draft', title: 'Maintenance', subtitle: 'System maintenance in...', date: '2025-12-14', views: 0, isScheduled: false },
-    { id: 2, status: 'Scheduled', title: 'Maintenance Scheduled', subtitle: 'System maintenance in...', date: '2025-2-21', views: 0, isScheduled: true },
-    { id: 3, status: 'Draft', title: 'Black Friday Sale', subtitle: 'Limited time offers...', date: '2024-11-15', views: 0, isScheduled: false },
-  ];
+  const handleDelete = async (id) => {
+    // deprecated: keep for direct calls, but prefer confirm modal
+    if (!id) return;
+    try {
+      const res = await DELETE(`/api/v1/admin/announcements/${id}`);
+      const msg = res?.message || 'Announcement deleted';
+      toast.success(msg);
+      setAnnouncements((prev) => prev.filter((a) => a.id !== id));
+      setOpenMenuId(null);
+    } catch (err) {
+      const msg = err?.response?.data?.message || err.message || 'Failed to delete announcement';
+      toast.error(msg);
+    }
+  };
+
+  const [confirmAnnouncement, setConfirmAnnouncement] = useState(null);
+
+  const openConfirm = (announcement) => {
+    setConfirmAnnouncement(announcement);
+    setOpenMenuId(null);
+  };
+
+  const handleDeleteConfirmed = async () => {
+    if (!confirmAnnouncement) return;
+    const id = confirmAnnouncement.id;
+    try {
+      const res = await DELETE(`/api/v1/admin/announcements/${id}`);
+      const msg = res?.message || 'Announcement deleted';
+      toast.success(msg);
+      setAnnouncements((prev) => prev.filter((a) => a.id !== id));
+    } catch (err) {
+      const msg = err?.response?.data?.message || err.message || 'Failed to delete announcement';
+      toast.error(msg);
+    } finally {
+      setConfirmAnnouncement(null);
+    }
+  };
+
+  useEffect(() => {
+    const toItem = (ann) => ({
+      id: ann.id,
+      title: ann.title,
+      subtitle: ann.message,
+      date: ann.scheduledAt ? new Date(ann.scheduledAt).toLocaleString() : new Date(ann.createdAt).toLocaleString(),
+      views: ann._count?.userNotifications || ann.recipientsCount || 0,
+      isScheduled: !!ann.scheduledAt,
+      status: ann.status,
+      raw: ann,
+    });
+
+    const fetchAnnouncements = async () => {
+      try {
+        setLoading(true);
+        const body = await GET('/api/v1/admin/announcements');
+        const anns = body?.data?.announcements || body?.announcements || body?.data || [];
+        const items = Array.isArray(anns) ? anns.map(toItem) : [];
+        setAnnouncements(items);
+      } catch (err) {
+        const msg = err?.response?.data?.message || err.message || 'Failed to load announcements';
+        toast.error(msg);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAnnouncements();
+  }, []);
+
+
 
   return (
     <div className="min-h-screen    p-4 sm:p-6 md:p-8">
@@ -55,7 +136,7 @@ export default function CMSAnnouncements() {
               <div className="flex justify-between items-start p-4 border-b border-gray-200 dark:border-gray-700">
                 <div>
                   {announcement.isScheduled ? (
-                    <span className="inline-block bg-yellow-200 text-yellow-800 text-xs font-semibold px-3 py-1 rounded mb-2">
+                    <span className="inline-block bg-[#FEF9C3] text-[#AA6207] text-xs font-semibold px-3 py-1 rounded mb-2">
                       Scheduled
                     </span>
                   ) : (
@@ -67,7 +148,7 @@ export default function CMSAnnouncements() {
 
                 {/* DROPDOWN CONTAINER */}
                 <div className="relative">
-                  <button 
+                  <button
                     onClick={(e) => toggleMenu(announcement.id, e)}
                     className="text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-gray-400 p-1"
                   >
@@ -77,15 +158,15 @@ export default function CMSAnnouncements() {
                   {/* The Menu */}
                   {openMenuId === announcement.id && (
                     <div className="absolute right-0 mt-2 w-24 bg-white  border dark:bg-zinc-800 border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-50 overflow-hidden">
-                      <button 
+                      {/* <button
                         className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-200  transition-colors"
-                        onClick={() => console.log('Edit', announcement.id)}
+                        onClick={(e) => { e.stopPropagation(); console.log('Edit', announcement.id); }}
                       >
                         Edit
-                      </button>
-                      <button 
+                      </button> */}
+                      <button
                         className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 transition-colors"
-                        onClick={() => console.log('Delete', announcement.id)}
+                        onClick={(e) => { e.stopPropagation(); openConfirm(announcement); }}
                       >
                         Delete
                       </button>
@@ -109,6 +190,24 @@ export default function CMSAnnouncements() {
         </div>
       </div>
       <AnnouncementModal open={modle} onClose={handleCloseModal} onSave={handleSavePlan} />
+
+      {/* Delete confirmation modal */}
+      {confirmAnnouncement && (
+        <div onClick={() => setConfirmAnnouncement(null)} className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-white dark:bg-zinc-800 rounded-xl shadow-xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-400 dark:border-gray-600">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Confirm delete</h3>
+            </div>
+            <div className="p-6">
+              <p className="text-sm text-gray-700 dark:text-gray-300">Are you sure you want to delete the announcement "{confirmAnnouncement.title}"?</p>
+            </div>
+            <div className="px-6 py-4 flex justify-end gap-3 border-t border-gray-400 dark:border-gray-700">
+              <button onClick={() => setConfirmAnnouncement(null)} className="px-4 py-2 border rounded-md">Cancel</button>
+              <button onClick={handleDeleteConfirmed} className="px-4 py-2 bg-red-600 text-white rounded-md">Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
