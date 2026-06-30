@@ -13,6 +13,7 @@ import {
   Settings as SettingsIcon,
   PanelLeft,
   LogOut,
+  Activity,
 } from 'lucide-react';
 
 const BREADCRUMBS = [
@@ -20,6 +21,7 @@ const BREADCRUMBS = [
   { prefix: '/admin/users', section: 'Management', page: 'User Management' },
   { prefix: '/admin/waiting-list', section: 'Management', page: 'Waiting List' },
   { prefix: '/admin/finance', section: 'Management', page: 'Finance & Subs' },
+  { prefix: '/admin/activity', section: 'Management', page: 'Activity Logs' },
   { prefix: '/admin/content', section: 'Operations', page: 'Content (CMS)' },
   { prefix: '/admin/support', section: 'Operations', page: 'Support & Feedback' },
   { prefix: '/admin/settings', section: 'System', page: 'Settings & Team' },
@@ -76,6 +78,7 @@ const AdminLayout = () => {
         { icon: Users, label: 'User Management', path: '/admin/users' },
         { icon: List, label: 'Waiting List', path: '/admin/waiting-list' },
         { icon: DollarSign, label: 'Finance & Subs', path: '/admin/finance' },
+        { icon: Activity, label: 'Activity Logs', path: '/admin/activity' },
       ],
     },
     {

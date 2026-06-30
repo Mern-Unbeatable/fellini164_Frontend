@@ -9,6 +9,7 @@ import profileReducer from '../features/auth/profileSlice';
 import referralReducer from './users/referralSlice';
 import themeReducer from '../features/theme/themeSlice';
 import aiChatReducer from './aiChat/aiChatSlice';
+import adminActivityLogReducer from './aiChat/adminActivityLog/adminActivityLogSlice';
 
 const store = configureStore({
   reducer: {
@@ -22,6 +23,7 @@ const store = configureStore({
     referral: referralReducer,
     theme: themeReducer,
     aiChat: aiChatReducer,
+    adminActivityLog: adminActivityLogReducer,
   },
 });
 

@@ -100,8 +100,8 @@ export default function CMSAnnouncements() {
     <div className="w-full py-7.5 max-lg:min-h-0 max-lg:py-4 max-lg:sm:py-6">
       <div className="">
         {/* Header */}
-        <div className="flex justify-between items-center mb-6 gap-2">
-          <h1 className="text-[20px] font-medium text-[#181818] dark:text-white">CMS & Announcements</h1>
+        <div className="mb-5 flex w-full items-center justify-between max-lg:mb-4 gap-2">
+          <p className="text-[20px] font-medium text-[#181818] dark:text-white"> Announcements</p>
           <button
             onClick={handleOpenModal}
             className="flex shrink-0 items-center gap-2 rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] font-semibold text-white hover:bg-[#6d18f5] transition-colors"

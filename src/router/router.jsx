@@ -37,6 +37,7 @@ import TransactionTable from '../pages/private/admin/operation/TransactionTable'
 import WaitingList from '../pages/private/admin/management/WaitingList';
 import CMSAnnouncements from '../pages/private/admin/operation/CMSAnnouncements';
 import FinanceAndSubscriptions from '../pages/private/admin/management/FinanceAndSubscriptions';
+import ActivityLogs from '../pages/private/admin/activityLog/ActivityLogs';
 import EarlyAccessView from '../pages/public/public_waitlist/EarlyAccessView';
 
 import ResetPassword from '../pages/auth/ResetPassword';
@@ -114,6 +115,7 @@ const router = createBrowserRouter(
         <Route path="/admin/users" element={<UserManagement />} />
         <Route path="/admin/users/:id" element={<UserDetail />} />
         <Route path="/admin/finance" element={<FinanceAndSubscriptions />} />
+        <Route path="/admin/activity" element={<ActivityLogs />} />
         <Route path="/admin/content" element={<CMSAnnouncements />} />
         <Route path="/admin/support" element={<TransactionTable />} />
         <Route path="/admin/settings" element={<SystemControls />} />

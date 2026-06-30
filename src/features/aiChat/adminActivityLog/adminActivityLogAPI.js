@@ -1,4 +1,4 @@
-import axiosInstance from '../../services/axiosInstance';
+import axiosInstance from '../../../services/axiosInstance';
 
 /**
  * Fetch all users activity logs (Admin)
