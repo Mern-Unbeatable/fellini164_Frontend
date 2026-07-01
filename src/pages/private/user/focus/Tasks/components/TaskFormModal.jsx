@@ -497,7 +497,7 @@ export default function TaskFormModal({ mode = 'create', initialTask, onClose, o
           </button>
         </div>
 
-        <div className="flex flex-col gap-6 overflow-y-auto p-3">
+        <div className="scrollbar-hidden flex flex-col gap-6 overflow-y-auto p-3">
           {!isEdit && (
             <TabToggle
               activeTab={activeTab}
