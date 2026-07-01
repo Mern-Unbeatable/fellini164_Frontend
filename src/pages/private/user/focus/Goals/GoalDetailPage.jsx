@@ -5,7 +5,8 @@ import {
   MoreHorizontal,
   Flag,
   Plus,
-  ChevronDown,
+  ArrowDown,
+  ArrowUp,
   Clock,
   TrendingUp,
   CircleX,
@@ -288,21 +289,26 @@ function HabitRowMenu({ onClose }) {
 
 function PageHabitRow({ habit }) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef(null);
+  const [isHovered, setIsHovered] = useState(false);
+  const cardRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
+      if (cardRef.current && !cardRef.current.contains(e.target)) setMenuOpen(false);
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   return (
-    <div className="flex flex-col gap-2 rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] p-3 dark:border-zinc-700 dark:bg-zinc-800">
-      {/* Main row: fixed-width name col + desktop day cells + menu */}
+    <div
+      ref={cardRef}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className="relative flex flex-col gap-2 rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] p-3 dark:border-zinc-700 dark:bg-zinc-800"
+    >
+      {/* Main row: name col + desktop day cells (menu is absolute, not in flex) */}
       <div className="flex items-start gap-3">
-        {/* w-[220px] matches the LinkedSectionHeader's 252px first-col offset (12 card-pad + 220 + 20 gap = 252) */}
         <div className="w-[220px] shrink-0 flex flex-col gap-2.5">
           <div className="flex flex-col gap-1">
             <p className="text-[16px] font-medium text-[#181818] dark:text-white">{habit.title}</p>
@@ -331,8 +337,8 @@ function PageHabitRow({ habit }) {
             })}
           </div>
         </div>
-        {/* Desktop day cells — flex-1 aligns with header day labels */}
-        <div className="hidden flex-1 items-start gap-5 lg:flex">
+        {/* Desktop day cells — flex-1 fills to card right; justify-evenly = equal gaps */}
+        <div className="hidden flex-1 items-start justify-evenly lg:flex">
           {habit.days.map((day, i) => (
             <HabitDayCell
               key={WEEKDAY_LABELS[i]}
@@ -340,17 +346,6 @@ function PageHabitRow({ habit }) {
               todayProgress={day === 'today' ? habit.todayProgress : null}
             />
           ))}
-        </div>
-        <div ref={menuRef} className="relative shrink-0">
-          <button
-            type="button"
-            onClick={() => setMenuOpen((o) => !o)}
-            aria-label="Habit options"
-            className="text-[#a3a3a3] hover:text-[#5d5d5d]"
-          >
-            <MoreHorizontal size={16} />
-          </button>
-          {menuOpen && <HabitRowMenu onClose={() => setMenuOpen(false)} />}
         </div>
       </div>
       {/* Mobile: day labels row + day cells row (hidden on lg+) */}
@@ -377,6 +372,22 @@ function PageHabitRow({ habit }) {
           ))}
         </div>
       </div>
+      {(isHovered || menuOpen) && (
+        <button
+          type="button"
+          onClick={() => setMenuOpen((o) => !o)}
+          aria-label="Habit options"
+          aria-expanded={menuOpen}
+          className={`absolute right-3 top-3 z-20 rounded-md p-1 text-[#a3a3a3] ${menuOpen ? 'bg-[#f2f2f2]' : 'hover:bg-[#f2f2f2]'}`}
+        >
+          <MoreHorizontal size={14} />
+        </button>
+      )}
+      {menuOpen && (
+        <div className="absolute right-3 top-9 z-50">
+          <HabitRowMenu onClose={() => setMenuOpen(false)} />
+        </div>
+      )}
     </div>
   );
 }
@@ -395,10 +406,10 @@ function LinkedSectionHeader({ label, count, weekdays, onAdd, onAi }) {
   const buttons = (
     <div className="flex shrink-0 items-center gap-5">
       <button type="button" onClick={onAdd} aria-label={`Add ${label}`} className="text-[#a3a3a3]">
-        <Plus size={12} />
+        <Plus size={14} />
       </button>
       <button type="button" onClick={onAi} aria-label={`AI suggest ${label}`} className="text-[#8022fe]">
-        <Sparkles size={12} />
+        <Sparkles size={14} />
       </button>
     </div>
   );
@@ -412,16 +423,17 @@ function LinkedSectionHeader({ label, count, weekdays, onAdd, onAi }) {
     );
   }
 
-  // Habits header: first column is exactly 252px wide so day labels align with day
-  // cells in PageHabitRow (card p-3=12 + name w-220 + gap-5=20 = 252px from left).
+  // Habits header: pr-3.25 (13px) matches the card's border+padding right inset so
+  // the day labels section spans the SAME width as the row's flex-1 day cells.
+  // Buttons are absolute so they don't consume width from the day labels flex-1.
   return (
-    <div className="flex w-full items-center">
-      {/* Desktop: fixed 252px col — aligns with row day-cells start */}
-      <div className="hidden w-[252px] shrink-0 lg:flex">
+    <div className="relative flex w-full items-center lg:pr-3.25">
+      {/* Desktop: fixed 245px col — aligns with row day-cells start */}
+      <div className="hidden w-61.25 shrink-0 lg:flex">
         {labelEl}
       </div>
-      {/* Desktop: day labels fill remaining space */}
-      <div className="hidden min-w-0 flex-1 items-center gap-5 lg:flex">
+      {/* Desktop: day labels — justify-evenly mirrors row cells for equal column spacing */}
+      <div className="hidden min-w-0 flex-1 items-center justify-evenly lg:flex">
         {weekdays.map((day, i) => (
           <span
             key={day}
@@ -433,7 +445,8 @@ function LinkedSectionHeader({ label, count, weekdays, onAdd, onAi }) {
           </span>
         ))}
       </div>
-      <div className="hidden shrink-0 lg:flex">{buttons}</div>
+      {/* Desktop: buttons float at far right without consuming flex space */}
+      <div className="absolute right-0 top-1/2 hidden -translate-y-1/2 items-center lg:flex">{buttons}</div>
       {/* Mobile: just label + buttons, day labels are inside each row card */}
       <div className="flex w-full items-center justify-between lg:hidden">
         {labelEl}
@@ -458,6 +471,7 @@ export default function GoalDetailPage() {
   const menuRef = useRef(null);
   const [isAssistantOpen, setIsAssistantOpen] = useState(true);
   const [isAssistantExpanded, setIsAssistantExpanded] = useState(false);
+  const [showAllTasks, setShowAllTasks] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -490,7 +504,7 @@ export default function GoalDetailPage() {
               aria-label="Open AI Assistant"
               className="absolute top-4 right-12 z-10 flex items-center gap-1.5 rounded-lg bg-[#f9f4ff] px-2.5 py-1.5 text-[12px] font-medium text-[#8022fe]"
             >
-              <Sparkles size={12} />
+              <Sparkles size={14} />
               AI Assistant
             </button>
           )}
@@ -505,7 +519,7 @@ export default function GoalDetailPage() {
                   </span>
                   {goal.source === 'ai' && (
                     <span className="flex items-center gap-1.5 rounded-md bg-[#f9f4ff] px-2 pt-0.5 pb-[3px] text-[14px] font-medium text-[#8022fe]">
-                      <Sparkles size={12} />
+                      <Sparkles size={14} />
                       AI
                     </span>
                   )}
@@ -564,7 +578,7 @@ export default function GoalDetailPage() {
                 <div className="flex flex-col gap-1.5">
                   <p className="text-[12px] font-medium text-[#c2c2c2]">Due Date</p>
                   <PillBadge className="gap-1.5">
-                    <Flag size={12} className="shrink-0 text-[#5d5d5d]" />
+                    <Flag size={14} className="shrink-0 text-[#5d5d5d]" />
                     <DueDetailPill goal={goal} />
                   </PillBadge>
                 </div>
@@ -582,17 +596,18 @@ export default function GoalDetailPage() {
                 ) : (
                   <div className="flex flex-col items-center gap-4">
                     <div className="grid w-full grid-cols-1 gap-2.5 md:grid-cols-2">
-                      {tasks.map((task) => (
+                      {(showAllTasks ? tasks : tasks.slice(0, 4)).map((task) => (
                         <PageTaskCard key={task.id} task={task} />
                       ))}
                     </div>
-                    {(goal.tasks ?? 0) > tasks.length && (
+                    {(tasks.length > 4 || (goal.tasks ?? 0) > tasks.length) && (
                       <button
                         type="button"
-                        className="flex items-center gap-2 text-[12px] font-medium text-[#c2c2c2] hover:text-[#8022fe]"
+                        onClick={() => setShowAllTasks((v) => !v)}
+                        className="flex items-center gap-1.5 text-[13px] font-medium text-[#c2c2c2] hover:text-[#8022fe]"
                       >
-                        View All {goal.tasks} tasks
-                        <ChevronDown size={10} />
+                        {showAllTasks ? 'Show Less' : `View All ${goal.tasks ?? tasks.length} tasks`}
+                        {showAllTasks ? <ArrowUp size={13} /> : <ArrowDown size={13} />}
                       </button>
                     )}
                   </div>

@@ -291,6 +291,26 @@ export const FIGMA_PAGE_TASKS = [
     overdueLabel: 'Overdue',
     overdueOrange: true,
   },
+  {
+    id: 'pt-5',
+    priority: 'HIGH',
+    status: 'In progress',
+    statusUppercase: false,
+    title: 'Prepare Interview Answers',
+    description: 'Review common interview questions and prepare structured responses.',
+    tags: [{ label: 'Career' }, { label: '45 Min', icon: 'clock' }],
+    due: 'Jun 30, 2026',
+  },
+  {
+    id: 'pt-6',
+    priority: 'LOW',
+    status: 'to do',
+    statusUppercase: true,
+    title: 'Research Industry Trends',
+    description: 'Read articles and reports on current trends in your target industry.',
+    tags: [{ label: 'Career' }, { label: '20 Min', icon: 'clock' }],
+    due: 'Jul 5, 2026',
+  },
 ];
 
 // Figma frame 1256:20770 — linked habits with Mon–Sun grid.
@@ -328,8 +348,7 @@ export function getGoalById(id) {
 
 export function getPageTasks(goal) {
   if (!goal?.tasks) return [];
-  if (goal.id === 'goal-1') return FIGMA_PAGE_TASKS;
-  return FIGMA_PAGE_TASKS.slice(0, Math.min(goal.tasks, 4));
+  return FIGMA_PAGE_TASKS.slice(0, Math.min(goal.tasks, FIGMA_PAGE_TASKS.length));
 }
 
 export function getPageHabits(goal) {
