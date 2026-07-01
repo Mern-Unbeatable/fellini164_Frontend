@@ -287,29 +287,26 @@ const AllPagination = ({
 
   const getPageItems = () => {
     const items = [];
-    // Mobile logic: Show fewer items to keep it in one line
-    if (totalPages <= 5) return pageNumbers;
+    if (totalPages <= 7) return pageNumbers;
 
     items.push(1);
 
-    // Adjusted logic to show fewer dots/items on mobile if needed, 
-    // but the main fix is in the CSS below.
-    if (currentPage <= 3) {
-      items.push(2, 3);
-      if (totalPages > 4) items.push('...');
-    } else if (currentPage >= totalPages - 2) {
+    if (currentPage <= 4) {
+      for (let i = 2; i <= 5; i++) items.push(i);
       items.push('...');
-      items.push(totalPages - 2, totalPages - 1);
+    } else if (currentPage >= totalPages - 3) {
+      items.push('...');
+      for (let i = totalPages - 4; i < totalPages; i++) items.push(i);
     } else {
       items.push('...');
+      items.push(currentPage - 1);
       items.push(currentPage);
+      items.push(currentPage + 1);
       items.push('...');
     }
 
-    // Ensure last page is added if not already
-    if (!items.includes(totalPages)) items.push(totalPages);
-
-    return [...new Set(items)]; // Remove duplicates just in case
+    items.push(totalPages);
+    return items;
   };
 
   return (

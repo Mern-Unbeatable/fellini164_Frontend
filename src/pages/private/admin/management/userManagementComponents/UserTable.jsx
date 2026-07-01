@@ -211,7 +211,7 @@ const UserTable = ({
   );
 
   // Pagination (client-side): 6 items per page
-  const ITEMS_PER_PAGE = 6;
+  const ITEMS_PER_PAGE = 8;
   const [currentPage, setCurrentPage] = useState(1);
 
   const totalResults = filteredUsers.length;
@@ -233,6 +233,15 @@ const UserTable = ({
 
   return (
     <div className="w-full py-7.5 max-lg:min-h-0 max-lg:py-4 max-lg:sm:py-6">
+      {/* Header */}
+      <div className="mb-5 flex w-full items-start justify-between max-lg:mb-4 max-lg:flex-col max-lg:gap-4">
+        <div className="flex flex-col items-start gap-2">
+          <p className="text-[20px] font-medium text-[#181818] dark:text-white">User Management</p>
+          <p className="text-[12px] font-medium text-[#c2c2c2] dark:text-gray-400 max-lg:text-sm">
+            View, manage, and monitor registered platform users and their accounts.
+          </p>
+        </div>
+      </div>
       <div className="rounded-lg bg-white dark:bg-zinc-800 border border-[#f2f2f2] dark:border-zinc-700 shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] ">
         {/* Loading State */}
         {loading && (

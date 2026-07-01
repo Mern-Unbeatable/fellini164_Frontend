@@ -39,7 +39,7 @@ const WaitingList = () => {
   const [updatingId, setUpdatingId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
+  const itemsPerPage = 10;
 
   // Load all data from server once - only if not already loaded
   useEffect(() => {
@@ -161,6 +161,15 @@ const WaitingList = () => {
 
   return (
     <div className="w-full py-7.5 max-lg:min-h-0 max-lg:py-4 max-lg:sm:py-6">
+      {/* Header */}
+      <div className="mb-5 flex w-full items-start justify-between max-lg:mb-4 max-lg:flex-col max-lg:gap-4">
+        <div className="flex flex-col items-start gap-2">
+          <p className="text-[20px] font-medium text-[#181818] dark:text-white">Waiting List</p>
+          <p className="text-[12px] font-medium text-[#c2c2c2] dark:text-gray-400 max-lg:text-sm">
+            Manage and invite users currently waiting for access to the platform.
+          </p>
+        </div>
+      </div>
       <div className="w-full rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
         {loading ? (
           <div className="flex items-center justify-center p-12">
@@ -298,7 +307,7 @@ const WaitingList = () => {
               </table>
             </div>
 
-            <div className="border-t border-gray-50 p-6 dark:border-gray-800">
+            <div className="border-t border-gray-50 py-2 px-6 dark:border-gray-800">
               <AllPagination
                 currentPage={currentPage}
                 handleNext={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
