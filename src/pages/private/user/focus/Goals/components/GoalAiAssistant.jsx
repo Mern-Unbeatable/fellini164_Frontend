@@ -12,7 +12,6 @@ function UserBubble({ children }) {
     <div className="flex justify-end pl-15">
       <div className="relative rounded-tl-[10px] rounded-bl-[10px] rounded-br-[10px] rounded-tr-none bg-[#8022fe] px-3 py-2">
         <p className="text-[14px] font-medium text-white">{children}</p>
-        {/* Figma Ellipse 5 — quarter-circle tail at top-right */}
         <svg className="absolute top-0 -right-[11px]" width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true">
           <path d="M11 0C4.92487 0 0 4.92487 0 11V0H11Z" fill="#8022fe" />
         </svg>
@@ -28,12 +27,10 @@ function AiBubble({ children }) {
         <p className="text-[14px] font-medium whitespace-pre-line text-[#181818] dark:text-gray-200">
           {children}
         </p>
-        {/* Figma Ellipse 6 — border shape at top-left */}
         <svg className="absolute -top-px -left-[13px] text-[#f2f2f2] dark:text-zinc-700" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
           <path d="M0 0C6.62742 0 12 5.37258 12 12V0H0Z" fill="currentColor" />
         </svg>
-        {/* Figma Ellipse 7 — bubble-bg fill on top of border (horizontally flipped) */}
-        <svg className="absolute top-0 -left-[6px] text-[#fcfcfc] dark:text-zinc-800" width="8" height="9.5" viewBox="0 0 8 9.5" fill="none" aria-hidden="true">
+        <svg className="absolute top-0 -left-1.5 text-[#fcfcfc] dark:text-zinc-800" width="8" height="9.5" viewBox="0 0 8 9.5" fill="none" aria-hidden="true">
           <path d="M0 0C2.5 0.5 6 4.5 6 9.5L8 0H0Z" fill="currentColor" />
         </svg>
       </div>
@@ -84,7 +81,7 @@ export default function GoalAiAssistant({ onClose, onToggleExpand, isExpanded = 
         </div>
       </div>
 
-      <div className="scrollbar-hidden flex min-h-0 flex-1 flex-col overflow-y-auto py-3 pl-3 pr-[18px]">
+      <div className="scrollbar-hidden flex min-h-0 flex-1 flex-col overflow-y-auto py-3 pl-3 pr-4.5">
         <p className="mb-2.5 text-center text-[12px] font-medium text-[#c2c2c2]">
           Tuesday, May 5 • 7:39 PM
         </p>
@@ -113,19 +110,19 @@ export default function GoalAiAssistant({ onClose, onToggleExpand, isExpanded = 
       </div>
 
       <div className="flex shrink-0 flex-col gap-3">
-        <div className="flex flex-wrap gap-2 px-[10px]">
+        <div className="flex flex-wrap gap-2 px-2.5">
           {QUICK_ACTIONS.map((action) => (
             <button
               key={action.label}
               type="button"
-              className="flex items-center gap-1.5 rounded-md border border-[#f2f2f2] bg-[#fcfcfc] px-2 pt-0.5 pb-[3px] text-[14px] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300"
+              className="flex items-center gap-1.5 rounded-md border border-[#f2f2f2] bg-[#fcfcfc] px-2 pt-0.5 pb-0.75 text-[14px] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300"
             >
               <action.icon size={12} className="shrink-0" />
               {action.label}
             </button>
           ))}
         </div>
-        <div className="flex items-center justify-between border-t border-[#f2f2f2] px-[14px] py-[10px] dark:border-zinc-700">
+        <div className="flex items-center justify-between border-t border-[#f2f2f2] px-3.5 py-2.5 dark:border-zinc-700">
           <textarea
             ref={textareaRef}
             value={prompt}
@@ -137,7 +134,7 @@ export default function GoalAiAssistant({ onClose, onToggleExpand, isExpanded = 
           <button
             type="button"
             aria-label="Send message"
-            className="ml-2 flex size-[30px] shrink-0 items-center justify-center rounded-full bg-[#8022fe] text-white"
+            className="ml-2 flex size-7.5 shrink-0 items-center justify-center rounded-full bg-[#8022fe] text-white"
           >
             <Send size={14} />
           </button>
