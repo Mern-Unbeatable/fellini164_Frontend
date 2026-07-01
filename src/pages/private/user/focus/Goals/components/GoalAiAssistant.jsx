@@ -9,10 +9,13 @@ const QUICK_ACTIONS = [
 
 function UserBubble({ children }) {
   return (
-    <div className="flex justify-end pl-[60px]">
-      <div className="relative rounded-bl-[10px] rounded-br-[10px] rounded-tl-[10px] bg-[#8022fe] px-3 py-2">
+    <div className="flex justify-end pl-15">
+      <div className="relative rounded-tl-[10px] rounded-bl-[10px] rounded-br-[10px] rounded-tr-none bg-[#8022fe] px-3 py-2">
         <p className="text-[14px] font-medium text-white">{children}</p>
-        <span className="absolute -top-px -right-[11px] size-[11px] rounded-full bg-[#8022fe]" />
+        {/* Figma Ellipse 5 — quarter-circle tail at top-right */}
+        <svg className="absolute top-0 -right-[11px]" width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true">
+          <path d="M11 0C4.92487 0 0 4.92487 0 11V0H11Z" fill="#8022fe" />
+        </svg>
       </div>
     </div>
   );
@@ -20,12 +23,19 @@ function UserBubble({ children }) {
 
 function AiBubble({ children }) {
   return (
-    <div className="flex justify-start pr-[60px]">
-      <div className="relative rounded-br-[10px] rounded-bl-[10px] rounded-tr-[10px] border border-[#f2f2f2] bg-[#fcfcfc] px-3 py-2 dark:border-zinc-700 dark:bg-zinc-800">
+    <div className="flex justify-start pr-15">
+      <div className="relative rounded-tr-[10px] rounded-bl-[10px] rounded-br-[10px] rounded-tl-none border border-[#f2f2f2] bg-[#fcfcfc] px-3 py-2 dark:border-zinc-700 dark:bg-zinc-800">
         <p className="text-[14px] font-medium whitespace-pre-line text-[#181818] dark:text-gray-200">
           {children}
         </p>
-        <span className="absolute -top-px -left-3 size-3 rounded-full border-2 border-white bg-[#fcfcfc] dark:border-zinc-800 dark:bg-zinc-800" />
+        {/* Figma Ellipse 6 — border shape at top-left */}
+        <svg className="absolute -top-px -left-[13px] text-[#f2f2f2] dark:text-zinc-700" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+          <path d="M0 0C6.62742 0 12 5.37258 12 12V0H0Z" fill="currentColor" />
+        </svg>
+        {/* Figma Ellipse 7 — bubble-bg fill on top of border (horizontally flipped) */}
+        <svg className="absolute top-0 -left-[6px] text-[#fcfcfc] dark:text-zinc-800" width="8" height="9.5" viewBox="0 0 8 9.5" fill="none" aria-hidden="true">
+          <path d="M0 0C2.5 0.5 6 4.5 6 9.5L8 0H0Z" fill="currentColor" />
+        </svg>
       </div>
     </div>
   );
@@ -102,20 +112,20 @@ export default function GoalAiAssistant({ onClose, onToggleExpand, isExpanded = 
         </div>
       </div>
 
-      <div className="flex shrink-0 flex-col gap-3 p-3">
-        <div className="flex flex-wrap gap-2">
+      <div className="flex shrink-0 flex-col gap-3">
+        <div className="flex flex-wrap gap-2 px-[10px]">
           {QUICK_ACTIONS.map((action) => (
             <button
               key={action.label}
               type="button"
-              className="flex items-center gap-1.5 rounded-md border border-[#f2f2f2] bg-[#fcfcfc] px-2 pt-0.5 pb-0.75 text-[14px] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300"
+              className="flex items-center gap-1.5 rounded-md border border-[#f2f2f2] bg-[#fcfcfc] px-2 pt-0.5 pb-[3px] text-[14px] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300"
             >
               <action.icon size={12} className="shrink-0" />
               {action.label}
             </button>
           ))}
         </div>
-        <div className="flex items-center justify-between rounded-xl border border-[#f2f2f2] px-3.5 py-2.5 dark:border-zinc-700">
+        <div className="flex items-center justify-between border-t border-[#f2f2f2] px-[14px] py-[10px] dark:border-zinc-700">
           <textarea
             ref={textareaRef}
             value={prompt}
@@ -132,9 +142,6 @@ export default function GoalAiAssistant({ onClose, onToggleExpand, isExpanded = 
             <Send size={14} />
           </button>
         </div>
-        <p className="text-center text-[10px] font-normal text-[#c2c2c2]">
-          AI can make mistakes. Verify important info
-        </p>
       </div>
     </div>
   );
