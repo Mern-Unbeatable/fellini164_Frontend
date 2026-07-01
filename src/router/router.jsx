@@ -11,6 +11,7 @@ import ServicesView from '../pages/public/public_services/ServicesView';
 import ContactView from '../pages/public/prublic_contact/ContactView';
 import PricingView from '../pages/public/prublic_pricing/PricingView';
 import FAQView from '../pages/public/prublic_faq/FAQView';
+import AboutView from '../pages/public/prublic_about/AboutView';
 import LoginView from '../pages/auth/LoginView';
 import RegisterView from '../pages/auth/RegisterView';
 import OTPVerifyView from '../pages/auth/OTPVerifyView';
@@ -60,6 +61,7 @@ const router = createBrowserRouter(
         <Route path="/contact" element={<ContactView />} />
         <Route path="/services" element={<ServicesView />} />
         <Route path="/early-access" element={<EarlyAccessView />} />
+        <Route path="/about" element={<AboutView />} />
       </Route>
 
       {/* Auth Routes */}
