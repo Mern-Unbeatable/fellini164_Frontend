@@ -12,6 +12,10 @@ import ContactView from '../pages/public/prublic_contact/ContactView';
 import PricingView from '../pages/public/prublic_pricing/PricingView';
 import FAQView from '../pages/public/prublic_faq/FAQView';
 import AboutView from '../pages/public/prublic_about/AboutView';
+import TermsView from '../pages/public/legal/TermsView';
+import PrivacyView from '../pages/public/legal/PrivacyView';
+import RefundView from '../pages/public/legal/RefundView';
+import SecurityView from '../pages/public/legal/SecurityView';
 import LoginView from '../pages/auth/LoginView';
 import RegisterView from '../pages/auth/RegisterView';
 import OTPVerifyView from '../pages/auth/OTPVerifyView';
@@ -62,6 +66,10 @@ const router = createBrowserRouter(
         <Route path="/services" element={<ServicesView />} />
         <Route path="/early-access" element={<EarlyAccessView />} />
         <Route path="/about" element={<AboutView />} />
+        <Route path="/terms" element={<TermsView />} />
+        <Route path="/privacy" element={<PrivacyView />} />
+        <Route path="/refund" element={<RefundView />} />
+        <Route path="/security" element={<SecurityView />} />
       </Route>
 
       {/* Auth Routes */}
