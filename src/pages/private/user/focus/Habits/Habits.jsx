@@ -515,7 +515,7 @@ export default function Habits() {
 
       {/* Board panel */}
       <div className="relative flex min-h-0 w-full flex-1 flex-col gap-2.5 overflow-hidden rounded-2xl border border-[#f2f2f2] bg-white p-3 max-lg:h-auto max-lg:flex-none dark:border-zinc-700 dark:bg-zinc-800">
-        <div className="flex items-center max-lg:flex-wrap max-lg:gap-2">
+        <div className="flex items-center max-lg:flex-wrap max-lg:gap-2 lg:px-3.25">
           {boardIsEmpty ? (
             <div className="flex w-56 shrink-0 items-center gap-2 max-lg:w-auto 2xl:w-100">
               <RotateCw size={16} className="shrink-0 text-[#c2c2c2]" />
@@ -529,7 +529,7 @@ export default function Habits() {
               <RotateCw size={16} className="shrink-0 text-[#c2c2c2]" />
               <p className="text-sm font-medium text-[#5d5d5d] dark:text-gray-300">{activeCount} active</p>
               <span className="rounded-[6px] bg-[#f2f2f2] px-[6px] py-[2px] text-xs font-medium text-[#5d5d5d] dark:bg-zinc-700 dark:text-gray-300">
-                {pausedCount} paused <span className="text-[#c2c2c2]">•</span> {completedCount} completed this month
+                {pausedCount} paused<span className="max-xl:hidden"> <span className="text-[#c2c2c2]">•</span> {completedCount} completed this month</span>
               </span>
             </div>
           )}
