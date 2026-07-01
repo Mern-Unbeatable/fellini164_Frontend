@@ -36,7 +36,7 @@ function ActionPill({ children, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="rounded-[6px] bg-[#f9f4ff] px-2 pt-0.5 pb-[3px] text-[14px] font-medium text-[#8022fe]"
+      className="w-fit rounded-md bg-[#f9f4ff] px-2 pt-0.5 pb-0.75 text-[14px] font-medium text-[#8022fe]"
     >
       {children}
     </button>
@@ -108,7 +108,7 @@ export default function GoalAiAssistant({ onClose, onToggleExpand, isExpanded = 
             <button
               key={action.label}
               type="button"
-              className="flex items-center gap-1.5 rounded-md border border-[#f2f2f2] bg-[#fcfcfc] px-2 pt-0.5 pb-[3px] text-[14px] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300"
+              className="flex items-center gap-1.5 rounded-md border border-[#f2f2f2] bg-[#fcfcfc] px-2 pt-0.5 pb-0.75 text-[14px] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300"
             >
               <action.icon size={12} className="shrink-0" />
               {action.label}
