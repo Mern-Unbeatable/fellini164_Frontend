@@ -495,8 +495,8 @@ export default function GoalDetailPage() {
 
   return (
     <div className="flex min-h-full flex-col py-7.5 max-lg:py-4 max-lg:sm:py-6">
-      <div className="flex flex-1 min-h-0 flex-col gap-7.5 xl:flex-row xl:items-stretch">
-        <div className="relative scrollbar-hidden flex min-h-0 min-w-0 flex-1 flex-col gap-6 overflow-y-auto rounded-2xl border border-[#f2f2f2] bg-white py-5 pl-5 pr-[26px] dark:border-zinc-700 dark:bg-zinc-900">
+      <div className="flex flex-1 min-h-0 flex-col gap-7.5 lg:flex-row lg:items-stretch">
+        <div className="relative scrollbar-hidden flex min-h-[min(60vh,520px)] min-w-0 flex-1 flex-col gap-6 overflow-y-auto rounded-2xl border border-[#f2f2f2] bg-white py-5 pl-5 pr-[26px] lg:min-h-0 dark:border-zinc-700 dark:bg-zinc-900">
           {!isAssistantOpen && (
             <button
               type="button"
@@ -637,7 +637,7 @@ export default function GoalDetailPage() {
         </div>
 
         {isAssistantOpen && !isAssistantExpanded && (
-          <div className="flex h-125 w-full shrink-0 flex-col xl:h-full xl:w-100">
+          <div className="flex h-125 w-full shrink-0 flex-col lg:h-full lg:w-80 xl:w-100">
             <GoalAiAssistant
               onClose={closeAssistant}
               onToggleExpand={toggleExpandAssistant}
