@@ -56,7 +56,7 @@ function DueDetailPill({ goal }) {
 function PillBadge({ children, className = '' }) {
   return (
     <span
-      className={`inline-flex items-center rounded-md border border-[#f2f2f2] px-2 pt-0.5 pb-[3px] text-[14px] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300 ${className}`}
+      className={`inline-flex w-fit items-center rounded-md border border-[#f2f2f2] px-2 pt-0.5 pb-0.75 text-[14px] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300 ${className}`}
     >
       {children}
     </span>
