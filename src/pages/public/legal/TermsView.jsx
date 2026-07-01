@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FinalCTASection } from '../prublic_home/components/how-it-works/FinalCTASection';
 
 const SECTIONS = [
@@ -17,14 +17,54 @@ const SECTIONS = [
 ];
 
 const TermsView = () => {
+  const [activeSection, setActiveSection] = useState('use');
+  const isManualScrolling = useRef(false);
+  const timeoutRef = useRef(null);
+
   const handleScroll = (id) => {
+    isManualScrolling.current = true;
+    setActiveSection(id);
     const el = document.getElementById(id);
     if (el) {
       const yOffset = -100; // offset to prevent heading being covered by sticky header
       const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
       window.scrollTo({ top: y, behavior: 'smooth' });
     }
+
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
+      isManualScrolling.current = false;
+    }, 800);
   };
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (isManualScrolling.current) return;
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        });
+      },
+      {
+        rootMargin: '-15% 0px -70% 0px', // detects when section is in the top-middle part of viewport
+      }
+    );
+
+    SECTIONS.forEach((sec) => {
+      const el = document.getElementById(sec.id);
+      if (el) observer.observe(el);
+    });
+
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      SECTIONS.forEach((sec) => {
+        const el = document.getElementById(sec.id);
+        if (el) observer.unobserve(el);
+      });
+    };
+  }, []);
 
   return (
     <div className="w-full bg-white pt-12.5 pb-20 md:pt-22.5 md:pb-24">
@@ -36,6 +76,14 @@ const TermsView = () => {
             Terms of <span className="text-[#8022fe]">Service</span>
             <span className="text-[#14f1d9]">.</span>
           </h1>
+          <div>
+            <p className="mb-4 font-semibold text-[#181818] dark:text-white">
+              Welcome to Elyxa. These Terms of Service govern your access to and use of the Elyxa website, platform, software, and related services.
+            </p>
+            <p>
+              By using Elyxa, you agree to these Terms. If you do not agree, please do not use the service.
+            </p>
+          </div>
           <p className="font-['Inter',sans-serif] text-[14px] font-medium text-[#888] md:text-[15px]">
             Effective Date: July 1, 2026
           </p>
@@ -45,7 +93,7 @@ const TermsView = () => {
         <div className="flex flex-col lg:flex-row gap-10 lg:gap-16 items-start">
           
           {/* Left option bar (sticky sidebar) */}
-          <div className="w-full lg:w-72 lg:sticky lg:top-24 flex flex-col gap-1 shrink-0 bg-white dark:bg-zinc-800 border border-[#f2f2f2] dark:border-zinc-700 rounded-[20px] p-5 shadow-[0px_4px_20px_0px_rgba(0,0,0,0.03)]">
+          <div className="hidden lg:flex lg:w-72 lg:sticky lg:top-24 flex-col gap-1 shrink-0 bg-white dark:bg-zinc-800 border border-[#f2f2f2] dark:border-zinc-700 rounded-lg p-5 shadow-[0px_4px_20px_0px_rgba(0,0,0,0.03)]">
             <p className="font-semibold text-[11px] text-[#c2c2c2] uppercase tracking-wider mb-2">
               Table of Contents
             </p>
@@ -54,7 +102,9 @@ const TermsView = () => {
                 <button
                   key={sec.id}
                   onClick={() => handleScroll(sec.id)}
-                  className="text-left font-['Inter',sans-serif] text-[13px] font-semibold text-[#5d5d5d] hover:text-[#8022fe] transition-colors py-1.5 focus:outline-none"
+                  className={`text-left font-['Inter',sans-serif] text-[13px] font-semibold transition-colors py-1.5 focus:outline-none ${
+                    activeSection === sec.id ? 'text-[#8022fe]' : 'text-[#5d5d5d]'
+                  }`}
                 >
                   {sec.title}
                 </button>
@@ -64,18 +114,14 @@ const TermsView = () => {
 
           {/* Right main content */}
           <div className="flex-1 font-['Inter',sans-serif] text-[15px] leading-relaxed text-[#5d5d5d] dark:text-gray-300 space-y-10 md:text-[16px]">
-            <div>
-              <p className="mb-4 font-semibold text-[#181818] dark:text-white">
-                Welcome to Elyxa. These Terms of Service govern your access to and use of the Elyxa website, platform, software, and related services.
-              </p>
-              <p>
-                By using Elyxa, you agree to these Terms. If you do not agree, please do not use the service.
-              </p>
-            </div>
-
+            
             {/* Section 1 */}
             <div id="use" className="scroll-mt-24">
-              <h2 className="text-lg font-bold text-[#181818] dark:text-white mb-3">1. Use of Elyxa</h2>
+              <h2 className={`text-lg font-bold mb-3 transition-colors ${
+                activeSection === 'use' ? 'text-[#8022fe]' : 'text-[#181818] dark:text-white'
+              }`}>
+                1. Use of Elyxa
+              </h2>
               <p className="mb-3">
                 Elyxa provides AI-powered planning, productivity, task, habit, goal, and scheduling tools. You may use Elyxa only for lawful purposes and in accordance with these Terms.
               </p>
@@ -106,7 +152,11 @@ const TermsView = () => {
 
             {/* Section 2 */}
             <div id="account" className="scroll-mt-24">
-              <h2 className="text-lg font-bold text-[#181818] dark:text-white mb-3">2. Account Registration</h2>
+              <h2 className={`text-lg font-bold mb-3 transition-colors ${
+                activeSection === 'account' ? 'text-[#8022fe]' : 'text-[#181818] dark:text-white'
+              }`}>
+                2. Account Registration
+              </h2>
               <p>
                 To use certain features, you may need to create an account. You are responsible for keeping your login information secure and for all activity under your account. You agree to provide accurate and up-to-date information when creating your account.
               </p>
@@ -114,7 +164,11 @@ const TermsView = () => {
 
             {/* Section 3 */}
             <div id="ai" className="scroll-mt-24">
-              <h2 className="text-lg font-bold text-[#181818] dark:text-white mb-3">3. AI-Generated Content</h2>
+              <h2 className={`text-lg font-bold mb-3 transition-colors ${
+                activeSection === 'ai' ? 'text-[#8022fe]' : 'text-[#181818] dark:text-white'
+              }`}>
+                3. AI-Generated Content
+              </h2>
               <p>
                 Elyxa uses AI to help generate plans, suggestions, task recommendations, habit ideas, and productivity guidance. AI-generated output may not always be perfect, accurate, or suitable for every situation. You are responsible for reviewing and deciding whether to follow any suggestions provided by Elyxa. Elyxa does not provide medical, legal, financial, or professional advice.
               </p>
@@ -122,7 +176,11 @@ const TermsView = () => {
 
             {/* Section 4 */}
             <div id="beta" className="scroll-mt-24">
-              <h2 className="text-lg font-bold text-[#181818] dark:text-white mb-3">4. Soft Launch / Beta Access</h2>
+              <h2 className={`text-lg font-bold mb-3 transition-colors ${
+                activeSection === 'beta' ? 'text-[#8022fe]' : 'text-[#181818] dark:text-white'
+              }`}>
+                4. Soft Launch / Beta Access
+              </h2>
               <p>
                 Elyxa may currently be offered as a soft launch or beta product. During this phase, some features may be incomplete, changed, removed, or updated at any time. You understand that the product may contain bugs, errors, or limitations during this early stage.
               </p>
@@ -130,7 +188,11 @@ const TermsView = () => {
 
             {/* Section 5 */}
             <div id="payment" className="scroll-mt-24">
-              <h2 className="text-lg font-bold text-[#181818] dark:text-white mb-3">5. Subscriptions and Payments</h2>
+              <h2 className={`text-lg font-bold mb-3 transition-colors ${
+                activeSection === 'payment' ? 'text-[#8022fe]' : 'text-[#181818] dark:text-white'
+              }`}>
+                5. Subscriptions and Payments
+              </h2>
               <p>
                 Some Elyxa features may require a paid subscription. Pricing, billing cycles, and plan details will be shown before purchase. By subscribing, you authorize Elyxa or its payment processor to charge your selected payment method according to the selected plan.
               </p>
@@ -138,7 +200,11 @@ const TermsView = () => {
 
             {/* Section 6 */}
             <div id="cancel" className="scroll-mt-24">
-              <h2 className="text-lg font-bold text-[#181818] dark:text-white mb-3">6. Cancellations</h2>
+              <h2 className={`text-lg font-bold mb-3 transition-colors ${
+                activeSection === 'cancel' ? 'text-[#8022fe]' : 'text-[#181818] dark:text-white'
+              }`}>
+                6. Cancellations
+              </h2>
               <p>
                 You may cancel your subscription according to the cancellation process made available through your account or billing portal. Cancellation prevents future billing but does not automatically refund past payments unless stated in our Refund Policy.
               </p>
@@ -146,7 +212,11 @@ const TermsView = () => {
 
             {/* Section 7 */}
             <div id="content" className="scroll-mt-24">
-              <h2 className="text-lg font-bold text-[#181818] dark:text-white mb-3">7. User Content</h2>
+              <h2 className={`text-lg font-bold mb-3 transition-colors ${
+                activeSection === 'content' ? 'text-[#8022fe]' : 'text-[#181818] dark:text-white'
+              }`}>
+                7. User Content
+              </h2>
               <p>
                 You may input goals, tasks, habits, notes, preferences, and other information into Elyxa. You retain ownership of your content. By using Elyxa, you grant us permission to process your content only as necessary to provide and improve the service.
               </p>
@@ -154,7 +224,11 @@ const TermsView = () => {
 
             {/* Section 8 */}
             <div id="availability" className="scroll-mt-24">
-              <h2 className="text-lg font-bold text-[#181818] dark:text-white mb-3">8. Service Availability</h2>
+              <h2 className={`text-lg font-bold mb-3 transition-colors ${
+                activeSection === 'availability' ? 'text-[#8022fe]' : 'text-[#181818] dark:text-white'
+              }`}>
+                8. Service Availability
+              </h2>
               <p>
                 We aim to provide a stable and reliable service, but we do not guarantee that Elyxa will always be available, uninterrupted, or error-free.
               </p>
@@ -162,7 +236,11 @@ const TermsView = () => {
 
             {/* Section 9 */}
             <div id="termination" className="scroll-mt-24">
-              <h2 className="text-lg font-bold text-[#181818] dark:text-white mb-3">9. Termination</h2>
+              <h2 className={`text-lg font-bold mb-3 transition-colors ${
+                activeSection === 'termination' ? 'text-[#8022fe]' : 'text-[#181818] dark:text-white'
+              }`}>
+                9. Termination
+              </h2>
               <p>
                 We may suspend or terminate access to Elyxa if a user violates these Terms, misuses the platform, or creates risk for the service or other users.
               </p>
@@ -170,7 +248,11 @@ const TermsView = () => {
 
             {/* Section 10 */}
             <div id="liability" className="scroll-mt-24">
-              <h2 className="text-lg font-bold text-[#181818] dark:text-white mb-3">10. Limitation of Liability</h2>
+              <h2 className={`text-lg font-bold mb-3 transition-colors ${
+                activeSection === 'liability' ? 'text-[#8022fe]' : 'text-[#181818] dark:text-white'
+              }`}>
+                10. Limitation of Liability
+              </h2>
               <p>
                 To the maximum extent permitted by law, Elyxa is not liable for indirect, incidental, special, or consequential damages arising from your use of the service.
               </p>
@@ -178,7 +260,11 @@ const TermsView = () => {
 
             {/* Section 11 */}
             <div id="changes" className="scroll-mt-24">
-              <h2 className="text-lg font-bold text-[#181818] dark:text-white mb-3">11. Changes to These Terms</h2>
+              <h2 className={`text-lg font-bold mb-3 transition-colors ${
+                activeSection === 'changes' ? 'text-[#8022fe]' : 'text-[#181818] dark:text-white'
+              }`}>
+                11. Changes to These Terms
+              </h2>
               <p>
                 We may update these Terms from time to time. Continued use of Elyxa after changes means you accept the updated Terms.
               </p>
@@ -186,7 +272,11 @@ const TermsView = () => {
 
             {/* Section 12 */}
             <div id="contact-section" className="scroll-mt-24">
-              <h2 className="text-lg font-bold text-[#181818] dark:text-white mb-3">12. Contact</h2>
+              <h2 className={`text-lg font-bold mb-3 transition-colors ${
+                activeSection === 'contact-section' ? 'text-[#8022fe]' : 'text-[#181818] dark:text-white'
+              }`}>
+                12. Contact
+              </h2>
               <p>
                 For questions about these Terms, contact us at:{' '}
                 <a href="mailto:support@elyxaai.com" className="text-[#8022fe] font-semibold hover:underline">
