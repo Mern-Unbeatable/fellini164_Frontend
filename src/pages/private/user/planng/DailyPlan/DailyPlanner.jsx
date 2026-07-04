@@ -436,6 +436,7 @@ export default function DailyPlanner() {
             selectedDate={selectedDate}
             setSelectedDate={setSelectedDate}
             viewMode={viewMode}
+            setViewMode={setViewMode}
             plans={plans}
             calendarDays={calendarDays}
             getFormattedDateString={getFormattedDateString}

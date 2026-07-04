@@ -5,7 +5,8 @@ export default function MonthlyView({
   getFormattedDateString,
   plans,
   selectedDate,
-  setSelectedDate
+  setSelectedDate,
+  setViewMode
 }) {
   return (
     <div className="flex-1 bg-white dark:bg-zinc-900 border border-[#F2F2F2] dark:border-zinc-800/80 rounded-2xl overflow-hidden shadow-sm flex flex-col">
@@ -36,7 +37,12 @@ export default function MonthlyView({
           return (
             <div 
               key={index}
-              onClick={() => setSelectedDate(new Date(dayObj.year, dayObj.month, dayObj.day))}
+              onClick={() => {
+                setSelectedDate(new Date(dayObj.year, dayObj.month, dayObj.day));
+                if (setViewMode) {
+                  setViewMode('Daily');
+                }
+              }}
               className={`min-h-[50px] sm:min-h-[120px] p-1 sm:p-3 bg-white dark:bg-zinc-900 ${
                 !isLastColumn ? 'border-r' : ''
               } ${

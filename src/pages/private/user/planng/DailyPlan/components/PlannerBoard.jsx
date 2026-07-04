@@ -8,6 +8,7 @@ export default function PlannerBoard({
   selectedDate,
   setSelectedDate,
   viewMode,
+  setViewMode,
   plans,
   calendarDays,
   getFormattedDateString,
@@ -40,6 +41,7 @@ export default function PlannerBoard({
           plans={plans}
           selectedDate={selectedDate}
           setSelectedDate={setSelectedDate}
+          setViewMode={setViewMode}
           isLoading={isLoading}
         />
       )}
