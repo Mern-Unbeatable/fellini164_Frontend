@@ -48,7 +48,7 @@ const ThreeDot = ({ setOpenMenuId, openMenuId, user, handleToggleSubscription, u
                 className={`inline-flex min-w-[110px] items-center justify-center gap-2 rounded-lg px-4 py-1.5 text-sm font-medium shadow-sm transition-all hover:opacity-90 active:scale-95 disabled:opacity-50 ${
                   user.status === 'UNSUBSCRIBED'
                     ? 'bg-green-600 text-white'
-                    : 'border border-gray-200 dark:border-zinc-700  text-black dark:text-white dark:shadow-2xl bg-zinc-500'
+                    : 'border border-gray-200 dark:border-zinc-700  text-white dark:text-white dark:shadow-2xl bg-zinc-500'
                 }`}
               >
                 {updatingId === user.id ? (
