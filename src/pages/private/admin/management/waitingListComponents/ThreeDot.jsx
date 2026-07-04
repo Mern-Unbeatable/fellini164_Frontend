@@ -37,22 +37,22 @@ const ThreeDot = ({ setOpenMenuId, openMenuId, user, handleToggleSubscription, u
       {openMenuId === user.id && (
         <div
           ref={dropdownRef}
-          className="absolute right-0 z-50 mt-2 w-40 rounded-lg border border-gray-100 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-4 shadow-lg"
+          className="absolute right-0 z-50 mt-2 w-40 rounded-lg border border-gray-100 bg-white p-4 shadow-lg dark:border-zinc-700 dark:bg-zinc-800"
         >
-          <div className="flex flex-col ">
+          <div className="flex flex-col">
             {/* Subscribe/Unsubscribe Button */}
-            <div className="block w-full ">
+            <div className="block w-full">
               <button
                 disabled={updatingId === user.id}
                 onClick={() => handleToggleSubscription(user.id, user.status)}
                 className={`inline-flex min-w-[110px] items-center justify-center gap-2 rounded-lg px-4 py-1.5 text-sm font-medium shadow-sm transition-all hover:opacity-90 active:scale-95 disabled:opacity-50 ${
                   user.status === 'UNSUBSCRIBED'
                     ? 'bg-green-600 text-white'
-                    : 'border border-gray-200 dark:border-zinc-700  text-white dark:text-white dark:shadow-2xl bg-zinc-500'
+                    : 'border border-gray-200 bg-zinc-500 text-white dark:border-zinc-700 dark:text-white dark:shadow-2xl'
                 }`}
               >
                 {updatingId === user.id ? (
-                  <Loader2 className="h-3 w-3 animate-spin " />
+                  <Loader2 className="h-3 w-3 animate-spin" />
                 ) : user.status === 'UNSUBSCRIBED' ? (
                   'Resubscribe'
                 ) : (
@@ -60,13 +60,9 @@ const ThreeDot = ({ setOpenMenuId, openMenuId, user, handleToggleSubscription, u
                 )}
               </button>
             </div>
-           
-           
           </div>
         </div>
       )}
-
-     
     </div>
   );
 };

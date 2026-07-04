@@ -80,7 +80,7 @@ const FILTER_CONFIG = [
 
 function GhostGoalMenu({ onRegenerate, onDismiss }) {
   return (
-    <div className="absolute right-0 top-full z-30 mt-1 flex w-max flex-col overflow-hidden rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
+    <div className="absolute top-full right-0 z-30 mt-1 flex w-max flex-col overflow-hidden rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
       <button
         type="button"
         onClick={onRegenerate}
@@ -122,11 +122,11 @@ function GhostGoalCard({ goal, onDismiss, onRegenerate }) {
       ref={cardRef}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`relative flex w-full flex-col justify-between overflow-hidden rounded-2xl border transition-all ${
+      className={`relative flex h-full min-h-[186px] w-full flex-col justify-between overflow-hidden rounded-2xl border transition-all ${
         menuOpen ? 'overflow-visible' : ''
       } ${
         isActive
-          ? 'min-h-[186px] border-solid border-[#e9e9e9] bg-[#fcfcfc] shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800'
+          ? 'h-[186px] border-solid border-[#e9e9e9] bg-[#fcfcfc] shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800'
           : 'h-[186px] border-dashed border-[#e9e9e9] bg-transparent dark:border-zinc-700'
       }`}
     >
@@ -135,39 +135,41 @@ function GhostGoalCard({ goal, onDismiss, onRegenerate }) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1">
               <span
-                className={`rounded-[6px] px-[6px] py-[2px] text-[12px] font-medium uppercase leading-[1.5] ${PRIORITY_STYLES[goal.priority]}`}
+                className={`rounded-[6px] px-[6px] py-[2px] text-[12px] leading-[1.5] font-medium uppercase ${PRIORITY_STYLES[goal.priority]}`}
               >
                 {PRIORITY_LABELS[goal.priority]}
               </span>
-              <span className="flex items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-[12px] font-medium leading-[1.5] text-[#8022fe]">
+              <span className="flex items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-[12px] leading-[1.5] font-medium text-[#8022fe]">
                 <Sparkles size={10} />
                 AI
               </span>
             </div>
           </div>
           <div className="flex flex-col gap-1">
-            <p className="text-[16px] font-medium leading-[1.5] text-[#181818] dark:text-white">{goal.title}</p>
-            <p className="overflow-hidden text-ellipsis whitespace-nowrap text-[12px] font-medium leading-[1.5] text-[#a3a3a3]">
+            <p className="text-[16px] leading-[1.5] font-medium text-[#181818] dark:text-white">
+              {goal.title}
+            </p>
+            <p className="overflow-hidden text-[12px] leading-[1.5] font-medium text-ellipsis whitespace-nowrap text-[#a3a3a3]">
               {goal.description}
             </p>
           </div>
         </div>
 
-        <div className={`flex flex-wrap items-center gap-1 transition-opacity duration-200 ${faded}`}>
-          <span className="rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+        <div className={`flex h-[22px] min-w-0 shrink-0 items-center gap-1 overflow-hidden ${faded}`}>
+          <span className="shrink-0 whitespace-nowrap rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] leading-[1.5] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
             {goal.category}
           </span>
-          <span className="flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+          <span className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] leading-[1.5] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
             <ListTodo size={12} className="shrink-0" />
             {goal.tasks} Tasks
           </span>
-          <span className="flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+          <span className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] leading-[1.5] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
             <Repeat size={12} className="shrink-0" />
             {goal.habits} Habits
           </span>
-          <span className="flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+          <span className="flex min-w-0 shrink items-center gap-1.5 overflow-hidden whitespace-nowrap rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] leading-[1.5] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
             <Flag size={12} className="shrink-0" />
-            {goal.due}
+            <span className="truncate">{goal.due}</span>
           </span>
         </div>
       </div>
@@ -181,7 +183,7 @@ function GhostGoalCard({ goal, onDismiss, onRegenerate }) {
           }}
           aria-label="Ghost goal menu"
           aria-expanded={menuOpen}
-          className={`animate-fade-in absolute right-3 top-3 z-20 shrink-0 rounded-[6px] p-1 text-[#5d5d5d] ${
+          className={`animate-fade-in absolute top-3 right-3 z-20 shrink-0 rounded-[6px] p-1 text-[#5d5d5d] ${
             menuOpen ? 'bg-[#f2f2f2]' : 'hover:bg-[#f2f2f2]'
           }`}
         >
@@ -190,7 +192,7 @@ function GhostGoalCard({ goal, onDismiss, onRegenerate }) {
       )}
 
       {menuOpen && (
-        <div className="absolute right-3 top-9 z-50">
+        <div className="absolute top-9 right-3 z-50">
           <GhostGoalMenu
             onRegenerate={() => {
               setMenuOpen(false);
@@ -205,30 +207,34 @@ function GhostGoalCard({ goal, onDismiss, onRegenerate }) {
       )}
 
       <div
-        className={`relative flex h-[54px] w-full shrink-0 items-center px-3 pt-[10px] pb-3 ${
-          isActive ? 'border-t border-solid border-[#e9e9e9] dark:border-zinc-700' : 'border-t border-dashed border-[#e9e9e9] dark:border-zinc-700'
+        className={`relative box-border flex h-[54px] w-full shrink-0 flex-col px-3 pt-[10px] pb-3 ${
+          isActive
+            ? 'border-t border-solid border-[#e9e9e9] dark:border-zinc-700'
+            : 'border-t border-dashed border-[#e9e9e9] dark:border-zinc-700'
         }`}
       >
         <div
-          className={`absolute inset-0 flex w-full flex-col gap-1.5 px-3 pt-[10px] pb-3 transition-opacity duration-200 ${
+          className={`flex w-full flex-col gap-1.5 transition-opacity duration-200 ${
             isActive ? 'pointer-events-none opacity-0' : faded
           }`}
         >
-          <div className="flex w-full items-center justify-between text-[12px] font-medium leading-[1.5]">
+          <div className="flex h-[18px] w-full items-center justify-between text-[12px] leading-[1.5] font-medium">
             <p className="text-[#c2c2c2]">Progress</p>
             <p className="text-[#5d5d5d] dark:text-gray-300">0%</p>
           </div>
-          <div className="h-2 w-full rounded-[40px] bg-[#e9e9e9] dark:bg-zinc-600" />
+          <div className="h-2 w-full shrink-0 rounded-[40px] bg-[#e9e9e9] dark:bg-zinc-600" />
         </div>
         <div
-          className={`absolute inset-0 flex w-full items-center justify-between gap-2 px-3 pt-[10px] pb-3 transition-opacity duration-200 ${
+          className={`absolute inset-0 flex items-center justify-between gap-2 px-3 pt-[10px] pb-3 transition-opacity duration-200 ${
             isActive ? 'opacity-100' : 'pointer-events-none opacity-0'
           }`}
         >
-          <p className="min-w-0 truncate text-[12px] font-medium leading-[1.5] text-[#c2c2c2]">AI suggested based on your profile</p>
+          <p className="min-w-0 truncate text-[12px] leading-[1.5] font-medium text-[#c2c2c2]">
+            AI suggested based on your profile
+          </p>
           <button
             type="button"
-            className="flex shrink-0 items-center gap-1.5 rounded-[6px] bg-[#f9f4ff] px-2 py-0.5 text-[12px] font-medium leading-[1.5] text-[#8022fe]"
+            className="flex shrink-0 items-center gap-1.5 rounded-[6px] bg-[#f9f4ff] px-2 py-0.5 text-[12px] leading-[1.5] font-medium text-[#8022fe]"
           >
             Accept Goal
             <Check size={10} strokeWidth={2.5} />
@@ -248,7 +254,11 @@ function GoalCardMenu({ onEdit, onAddTask, onAddHabit, onComplete, onPause, onDe
       className="flex w-max flex-col overflow-hidden rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800"
       onMouseDown={(e) => e.stopPropagation()}
     >
-      <button type="button" onClick={onEdit} className={`${itemBase} border-b border-[#f2f2f2] text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300`}>
+      <button
+        type="button"
+        onClick={onEdit}
+        className={`${itemBase} border-b border-[#f2f2f2] text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300`}
+      >
         <Pencil size={10} className="shrink-0" />
         Edit
       </button>
@@ -260,15 +270,27 @@ function GoalCardMenu({ onEdit, onAddTask, onAddHabit, onComplete, onPause, onDe
         <Sparkles size={10} className="shrink-0" />
         Add Habit
       </button>
-      <button type="button" onClick={onComplete} className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}>
+      <button
+        type="button"
+        onClick={onComplete}
+        className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}
+      >
         <Check size={10} className="shrink-0" />
         Complete
       </button>
-      <button type="button" onClick={onPause} className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}>
+      <button
+        type="button"
+        onClick={onPause}
+        className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}
+      >
         <Pause size={10} className="shrink-0" />
         Pause
       </button>
-      <button type="button" onClick={onDelete} className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}>
+      <button
+        type="button"
+        onClick={onDelete}
+        className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}
+      >
         <Trash2 size={10} className="shrink-0" />
         Delete
       </button>
@@ -276,7 +298,16 @@ function GoalCardMenu({ onEdit, onAddTask, onAddHabit, onComplete, onPause, onDe
   );
 }
 
-function GoalCard({ goal, onSelect, onEdit, onAddTask, onAddHabit, onComplete, onPause, onDelete }) {
+function GoalCard({
+  goal,
+  onSelect,
+  onEdit,
+  onAddTask,
+  onAddHabit,
+  onComplete,
+  onPause,
+  onDelete,
+}) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const cardRef = useRef(null);
@@ -311,75 +342,76 @@ function GoalCard({ goal, onSelect, onEdit, onAddTask, onAddHabit, onComplete, o
           onSelect?.(goal);
         }
       }}
-      className={`relative flex min-h-[186px] w-full cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800 ${
-        menuOpen || isHovered
-          ? 'z-10 shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)]'
-          : ''
+      className={`relative box-border flex h-full min-h-[186px] w-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800 ${
+        menuOpen || isHovered ? 'z-10 shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)]' : ''
       } ${menuOpen ? 'overflow-visible' : ''}`}
     >
-      <div className="flex flex-col gap-[10px] p-3">
-        <div className={`flex flex-col gap-2 ${faded}`}>
-          <div className="flex items-center justify-between">
-            <div className="flex flex-wrap items-center gap-1">
-              {!isCompleted && (
-                <span
-                  className={`rounded-[6px] px-[6px] py-[2px] text-[12px] font-medium uppercase leading-[1.5] ${PRIORITY_STYLES[goal.priority]}`}
-                >
-                  {PRIORITY_LABELS[goal.priority]}
-                </span>
-              )}
-              {isPaused && (
-                <span className={`rounded-[6px] px-[6px] py-[2px] text-[12px] font-medium leading-[1.5] ${STATUS_STYLES.paused}`}>
-                  Paused
-                </span>
-              )}
-              {isCompleted && (
-                <span className={`rounded-[6px] px-[6px] py-[2px] text-[12px] font-medium leading-[1.5] ${STATUS_STYLES.completed}`}>
-                  Completed
-                </span>
-              )}
-              {goal.source === 'ai' && (
-                <span className="flex items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-[12px] font-medium leading-[1.5] text-[#8022fe]">
-                  <Sparkles size={10} />
-                  AI
-                </span>
-              )}
-            </div>
+      {/* Figma 1250:8542 — body 132px (p-12 + gap-10) + footer 54px (pt-10 pb-12) */}
+      <div className="box-border flex h-[132px] w-full shrink-0 flex-col gap-[10px] p-3">
+        <div className={`flex min-h-0 flex-1 flex-col gap-2 overflow-hidden ${faded}`}>
+          <div className="flex min-h-[22px] shrink-0 items-center gap-1 overflow-hidden">
+            {!isCompleted && (
+              <span
+                className={`shrink-0 rounded-[6px] px-[6px] py-[2px] text-[12px] leading-[1.5] font-medium uppercase ${PRIORITY_STYLES[goal.priority]}`}
+              >
+                {PRIORITY_LABELS[goal.priority]}
+              </span>
+            )}
+            {isPaused && (
+              <span
+                className={`shrink-0 rounded-[6px] px-[6px] py-[2px] text-[12px] leading-[1.5] font-medium ${STATUS_STYLES.paused}`}
+              >
+                Paused
+              </span>
+            )}
+            {isCompleted && (
+              <span
+                className={`shrink-0 rounded-[6px] px-[6px] py-[2px] text-[12px] leading-[1.5] font-medium ${STATUS_STYLES.completed}`}
+              >
+                Completed
+              </span>
+            )}
+            {goal.source === 'ai' && (
+              <span className="flex shrink-0 items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-[12px] leading-[1.5] font-medium text-[#8022fe]">
+                <Sparkles size={10} />
+                AI
+              </span>
+            )}
           </div>
-          <div className="flex flex-col gap-1">
+          <div className="flex min-h-0 flex-col gap-1 overflow-hidden">
             <p
-              className={`text-[16px] font-medium leading-[1.5] ${isPaused ? 'text-[#5d5d5d] dark:text-gray-400' : 'text-[#181818] dark:text-white'}`}
+              className={`truncate text-[16px] leading-[1.5] font-medium ${isPaused ? 'text-[#5d5d5d] dark:text-gray-400' : 'text-[#181818] dark:text-white'}`}
             >
               {goal.title}
             </p>
             <p
-              className={`overflow-hidden text-ellipsis whitespace-nowrap text-[12px] font-medium leading-[1.5] ${isPaused ? 'text-[#c2c2c2]' : 'text-[#a3a3a3]'}`}
+              className={`truncate text-[12px] leading-[1.5] font-medium ${isPaused ? 'text-[#c2c2c2]' : 'text-[#a3a3a3]'}`}
             >
               {goal.description}
             </p>
           </div>
         </div>
 
-        <div className={`flex flex-wrap items-center gap-1 ${faded}`}>
-          <span className="rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+        <div className={`flex h-[22px] min-w-0 shrink-0 items-center gap-1 overflow-hidden ${faded}`}>
+          <span className="shrink-0 whitespace-nowrap rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] leading-[1.5] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
             {goal.category}
           </span>
           {goal.tasks > 0 && (
-            <span className="flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+            <span className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] leading-[1.5] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
               <ListTodo size={12} className="shrink-0" />
               {goal.tasks} Tasks
             </span>
           )}
           {goal.habits > 0 && (
-            <span className="flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+            <span className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] leading-[1.5] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
               <Repeat size={12} className="shrink-0" />
               {goal.habits} Habits
             </span>
           )}
           {goal.due && (
-            <span className="flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+            <span className="flex min-w-0 shrink items-center gap-1.5 overflow-hidden whitespace-nowrap rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] leading-[1.5] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
               <Flag size={12} className="shrink-0" />
-              {goal.due}
+              <span className="truncate">{goal.due}</span>
             </span>
           )}
         </div>
@@ -394,7 +426,7 @@ function GoalCard({ goal, onSelect, onEdit, onAddTask, onAddHabit, onComplete, o
           }}
           aria-label="Goal menu"
           aria-expanded={menuOpen}
-          className={`animate-fade-in absolute right-3 top-3 z-20 shrink-0 rounded-[6px] p-1 text-[#5d5d5d] ${
+          className={`animate-fade-in absolute top-3 right-3 z-20 shrink-0 rounded-[6px] p-1 text-[#5d5d5d] ${
             menuOpen ? 'bg-[#f2f2f2] dark:bg-zinc-600' : 'hover:bg-[#f2f2f2] dark:hover:bg-zinc-600'
           }`}
         >
@@ -403,7 +435,7 @@ function GoalCard({ goal, onSelect, onEdit, onAddTask, onAddHabit, onComplete, o
       )}
 
       {menuOpen && (
-        <div className="absolute right-3 top-9 z-50">
+        <div className="absolute top-9 right-3 z-50">
           <GoalCardMenu
             onEdit={() => {
               setMenuOpen(false);
@@ -434,20 +466,22 @@ function GoalCard({ goal, onSelect, onEdit, onAddTask, onAddHabit, onComplete, o
       )}
 
       {isCompleted ? (
-        <div className="border-t border-[#f2f2f2] px-3 pt-[10px] pb-3 dark:border-zinc-700">
-          <div className="flex h-8 items-center justify-center gap-2 rounded-lg bg-[rgba(42,157,0,0.05)]">
-            <p className="text-[12px] font-medium leading-[1.5] text-[#2a9d00]">Completed {goal.completedDate}</p>
+        <div className="box-border flex h-[54px] w-full shrink-0 flex-col border-t border-[#f2f2f2] px-3 pt-[10px] pb-3 dark:border-zinc-700">
+          <div className="flex h-8 w-full items-center justify-center gap-2 rounded-lg bg-[rgba(42,157,0,0.05)]">
+            <p className="text-[12px] leading-[1.5] font-medium text-[#2a9d00]">
+              Completed {goal.completedDate}
+            </p>
             <Check size={11} className="shrink-0 text-[#2a9d00]" strokeWidth={2.5} />
           </div>
         </div>
       ) : (
-        <div className="border-t border-[#f2f2f2] px-3 pt-[10px] pb-3 dark:border-zinc-700">
-          <div className={`flex flex-col gap-1.5 ${faded}`}>
-            <div className="flex w-full items-center justify-between text-[12px] font-medium leading-[1.5]">
+        <div className="box-border flex h-[54px] w-full shrink-0 flex-col border-t border-[#f2f2f2] px-3 pt-[10px] pb-3 dark:border-zinc-700">
+          <div className={`flex w-full min-w-0 flex-col gap-1.5 ${faded}`}>
+            <div className="flex h-[18px] w-full items-center justify-between text-[12px] leading-[1.5] font-medium">
               <p className="text-[#c2c2c2]">Progress</p>
               <p className="text-[#5d5d5d] dark:text-gray-300">{goal.progress}%</p>
             </div>
-            <div className="h-2 w-full overflow-hidden rounded-[40px] bg-[#e9e9e9] dark:bg-zinc-600">
+            <div className="h-2 w-full shrink-0 overflow-hidden rounded-[40px] bg-[#e9e9e9] dark:bg-zinc-600">
               <div
                 className={`h-full rounded-[18px] ${isPaused ? 'bg-[#c2c2c2]' : 'bg-[#8022fe]'}`}
                 style={{ width: `${goal.progress}%` }}
@@ -481,9 +515,11 @@ function FilterDropdown({ defaultLabel, options }) {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-between rounded-lg border border-[#f2f2f2] bg-white px-3 py-[7px] text-[12px] font-medium leading-[1.5] text-[#181818] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white max-lg:gap-2 max-lg:py-2.5 max-lg:text-base 2xl:w-30"
+        className="flex w-full items-center justify-between rounded-lg border border-[#f2f2f2] bg-white px-3 py-[7px] text-[12px] leading-[1.5] font-medium text-[#181818] max-lg:gap-2 max-lg:py-2.5 max-lg:text-base 2xl:w-30 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
       >
-        <span className="truncate max-lg:min-w-0 max-lg:flex-1 max-lg:text-center">{displayLabel}</span>
+        <span className="truncate max-lg:min-w-0 max-lg:flex-1 max-lg:text-center">
+          {displayLabel}
+        </span>
         <ChevronDown
           size={14}
           className={`shrink-0 text-[#a3a3a3] transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
@@ -491,7 +527,7 @@ function FilterDropdown({ defaultLabel, options }) {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-8 z-50 max-h-60 w-25 overflow-y-auto rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800 max-lg:top-full max-lg:mt-1 max-lg:w-auto lg:left-0 lg:right-auto 2xl:w-30">
+        <div className="absolute top-8 right-0 z-50 max-h-60 w-25 overflow-y-auto rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] max-lg:top-full max-lg:mt-1 max-lg:w-auto lg:right-auto lg:left-0 2xl:w-30 dark:border-zinc-700 dark:bg-zinc-800">
           {options.map((opt) => (
             <button
               key={opt}
@@ -502,7 +538,7 @@ function FilterDropdown({ defaultLabel, options }) {
                 setSelected(opt);
                 setOpen(false);
               }}
-              className={`flex w-full items-center px-2 py-1.5 text-left text-[12px] font-medium text-[#181818] dark:text-white max-lg:text-sm ${
+              className={`flex w-full items-center px-2 py-1.5 text-left text-[12px] font-medium text-[#181818] max-lg:text-sm dark:text-white ${
                 hovered === opt ? 'bg-[#f2f2f2] dark:bg-zinc-700' : ''
               }`}
             >
@@ -592,9 +628,7 @@ export default function ActiveGoals() {
   const handlePauseGoal = (goal) => {
     setGoals((prev) =>
       prev.map((g) =>
-        g.id === goal.id
-          ? { ...g, status: g.status === 'paused' ? 'active' : 'paused' }
-          : g
+        g.id === goal.id ? { ...g, status: g.status === 'paused' ? 'active' : 'paused' } : g
       )
     );
   };
@@ -627,17 +661,17 @@ export default function ActiveGoals() {
   const completedThisMonth = FIGMA_BOARD_STATS.completedThisMonth;
 
   return (
-    <div className="relative flex min-h-full flex-col py-7.5 max-lg:min-h-0 max-lg:py-4 max-lg:sm:py-6">
+    <div className="relative flex min-h-full flex-col py-7.5 max-lg:py-4 max-lg:sm:py-6">
       {/* Header */}
       <div className="mb-5 flex w-full items-start justify-between max-lg:mb-4 max-lg:flex-col max-lg:gap-4">
         <div className="flex flex-col items-start gap-2">
           <p className="text-[20px] font-medium text-[#181818] dark:text-white">Goals Board</p>
           <TypewriterText
             phrases={GOALS_SUBTITLE_PHRASES}
-            className="text-[12px] font-medium text-[#c2c2c2] dark:text-gray-400 max-lg:text-sm"
+            className="text-[12px] font-medium text-[#c2c2c2] max-lg:text-sm dark:text-gray-400"
           />
         </div>
-        <label className="flex w-62.5 items-center gap-2 rounded-lg border border-[#f2f2f2] bg-white px-3 py-1.75 focus-within:border-[#e9e9e9] dark:border-zinc-700 dark:bg-zinc-800 dark:focus-within:border-zinc-600 max-lg:w-full max-lg:py-2">
+        <label className="flex w-62.5 items-center gap-2 rounded-lg border border-[#f2f2f2] bg-white px-3 py-1.75 focus-within:border-[#e9e9e9] max-lg:w-full max-lg:py-2 dark:border-zinc-700 dark:bg-zinc-800 dark:focus-within:border-zinc-600">
           <Search size={14} className="shrink-0 text-[#c2c2c2]" aria-hidden />
           <input
             type="search"
@@ -645,7 +679,7 @@ export default function ActiveGoals() {
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search goals in board..."
             aria-label="Search goals in board"
-            className="w-full bg-transparent text-[12px] font-medium text-[#181818] outline-none placeholder:text-[#c2c2c2] dark:text-white max-lg:text-base"
+            className="w-full bg-transparent text-[12px] font-medium text-[#181818] outline-none placeholder:text-[#c2c2c2] max-lg:text-base dark:text-white"
           />
         </label>
       </div>
@@ -654,7 +688,7 @@ export default function ActiveGoals() {
       <div className="mb-5 flex w-full items-center justify-between gap-3 max-lg:mb-4 max-lg:flex-col max-lg:items-stretch max-lg:gap-4">
         <button
           onClick={handleOpenModal}
-          className="flex shrink-0 items-center gap-2 rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] font-semibold leading-normal whitespace-nowrap text-white max-lg:w-full max-lg:justify-center max-lg:py-2.5 max-lg:text-base"
+          className="flex shrink-0 items-center gap-2 rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] leading-normal font-semibold whitespace-nowrap text-white max-lg:w-full max-lg:justify-center max-lg:py-2.5 max-lg:text-base"
         >
           <Plus size={14} strokeWidth={2.5} className="shrink-0 text-white" />
           New Goal
@@ -667,14 +701,13 @@ export default function ActiveGoals() {
         </div>
       </div>
 
-      {/* Board panel */}
-      <div className="flex min-h-0 w-full flex-1 flex-col">
-      <div className="flex min-h-0 w-full flex-1 flex-col gap-[10px] rounded-2xl border border-[#f2f2f2] bg-white p-3 max-lg:flex-none dark:border-zinc-700 dark:bg-zinc-800">
-        <div className="flex items-center gap-2">
+      {/* Board panel — Figma 1250:8534: stats bar + scrollable card grid */}
+      <div className="flex w-full flex-col gap-[10px] rounded-2xl border border-[#f2f2f2] bg-white p-3 dark:border-zinc-700 dark:bg-zinc-800">
+        <div className="flex shrink-0 items-center gap-2">
           {showGhostCards ? (
             <>
               <Target size={13} className="shrink-0 text-[#c2c2c2]" />
-              <span className="flex shrink-0 items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-[12px] font-medium leading-[1.5] text-[#8022fe]">
+              <span className="flex shrink-0 items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-[12px] leading-[1.5] font-medium text-[#8022fe]">
                 <Sparkles size={10} />
                 {filteredGhostGoals.length} AI Suggestions
               </span>
@@ -682,9 +715,12 @@ export default function ActiveGoals() {
           ) : (
             <>
               <Target size={13} className="shrink-0 text-[#5d5d5d] dark:text-gray-300" />
-              <p className="text-[14px] font-medium leading-[1.5] text-[#5d5d5d] dark:text-gray-300">{activeCount} active</p>
-              <span className="rounded-[6px] bg-[#f2f2f2] px-[6px] py-[2px] text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:bg-zinc-700 dark:text-gray-300">
-                {pausedCount} paused <span className="text-[#c2c2c2]">•</span> {completedThisMonth} completed this month
+              <p className="text-[14px] leading-[1.5] font-medium text-[#5d5d5d] dark:text-gray-300">
+                {activeCount} active
+              </p>
+              <span className="rounded-[6px] bg-[#f2f2f2] px-[6px] py-[2px] text-[12px] leading-[1.5] font-medium text-[#5d5d5d] dark:bg-zinc-700 dark:text-gray-300">
+                {pausedCount} paused <span className="text-[#c2c2c2]">•</span> {completedThisMonth}{' '}
+                completed this month
               </span>
             </>
           )}
@@ -696,44 +732,43 @@ export default function ActiveGoals() {
               No matching goals.
             </p>
           ) : (
-            <div className="scrollbar-hidden grid grid-cols-1 gap-[10px] overflow-y-auto sm:grid-cols-2 lg:grid-cols-3 lg:min-h-0 lg:flex-1">
-              {filteredGhostGoals.map((goal) => (
-                <GhostGoalCard
-                  key={goal.id}
-                  goal={goal}
-                  onDismiss={handleDismissGhost}
-                  onRegenerate={handleRegenerateGhost}
-                />
-              ))}
-            </div>
+            <div className="grid auto-rows-[186px] grid-cols-1 gap-[10px] sm:grid-cols-2 xl:grid-cols-3">
+                {filteredGhostGoals.map((goal) => (
+                  <div key={goal.id} className="h-[186px] min-h-[186px]">
+                    <GhostGoalCard
+                    goal={goal}
+                    onDismiss={handleDismissGhost}
+                    onRegenerate={handleRegenerateGhost}
+                  />
+                  </div>
+                ))}
+              </div>
           )
         ) : filteredGoals.length === 0 ? (
           <p className="py-10 text-center text-sm font-medium text-[#c2c2c2] dark:text-gray-500">
             {isSearching ? 'No matching goals.' : 'No goals to show yet.'}
           </p>
         ) : (
-          <div className="scrollbar-hidden grid grid-cols-1 gap-[10px] overflow-y-auto sm:grid-cols-2 lg:grid-cols-3 lg:min-h-0 lg:flex-1">
-            {filteredGoals.map((goal) => (
-              <GoalCard
-                key={goal.id}
-                goal={goal}
-                onSelect={handleSelectGoal}
-                onEdit={handleEditGoal}
-                onAddTask={handleAddTask}
-                onAddHabit={handleAddHabit}
-                onComplete={handleCompleteGoal}
-                onPause={handlePauseGoal}
-                onDelete={(g) => handleDeleteGoal(g.id)}
-              />
-            ))}
-          </div>
+          <div className="grid auto-rows-[186px] grid-cols-1 gap-[10px] sm:grid-cols-2 xl:grid-cols-3">
+              {filteredGoals.map((goal) => (
+                <div key={goal.id} className="h-[186px] min-h-[186px]">
+                  <GoalCard
+                  goal={goal}
+                  onSelect={handleSelectGoal}
+                  onEdit={handleEditGoal}
+                  onAddTask={handleAddTask}
+                  onAddHabit={handleAddHabit}
+                  onComplete={handleCompleteGoal}
+                  onPause={handlePauseGoal}
+                  onDelete={(g) => handleDeleteGoal(g.id)}
+                />
+                </div>
+              ))}
+            </div>
         )}
       </div>
-      </div>
 
-      {/* Detail drawer — sibling of header/action-row/board panel, so its absolute
-          positioning spans the full page height, matching TaskDetailDrawer exactly
-          (not nested inside the board panel's wrapper, which only covers that area). */}
+      {/* Detail drawer — sibling of header/action-row/board panel for full-height peek */}
       {selectedGoal && (
         <GoalDetailPanel
           goal={selectedGoal}
@@ -746,7 +781,11 @@ export default function ActiveGoals() {
         />
       )}
 
-      <GoalProgressModal open={modalProgress} onClose={handleCloseModalProgress} onSave={handleSavePlan} />
+      <GoalProgressModal
+        open={modalProgress}
+        onClose={handleCloseModalProgress}
+        onSave={handleSavePlan}
+      />
       <NewGoalModal open={modal} onClose={handleCloseModal} onSave={handleSavePlan} />
     </div>
   );

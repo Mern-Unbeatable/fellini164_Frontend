@@ -145,9 +145,13 @@ function GoalDetailMenu({ onClose, onEdit, onImprove, onPause, onDelete }) {
   );
 }
 
-function LinkedTaskCard({ task }) {
+function LinkedTaskCard({ task, compact = false }) {
   return (
-    <div className="flex w-[270px] shrink-0 flex-col overflow-hidden rounded-xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800">
+    <div
+      className={`flex shrink-0 flex-col overflow-hidden rounded-xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800 ${
+        compact ? 'w-[270px]' : 'w-[310px]'
+      }`}
+    >
       <div className="p-2.5">
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center gap-2.5">
@@ -199,11 +203,15 @@ function LinkedTaskCard({ task }) {
   );
 }
 
-function LinkedHabitCard({ habit }) {
+function LinkedHabitCard({ habit, compact = false }) {
   const progress = habit.todayProgress;
 
   return (
-    <div className="flex w-[270px] shrink-0 items-end overflow-hidden rounded-xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800">
+    <div
+      className={`flex shrink-0 items-end overflow-hidden rounded-xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800 ${
+        compact ? 'w-[270px]' : 'w-[310px]'
+      }`}
+    >
       <div className="flex min-w-0 flex-1 flex-col gap-1.5 px-2.5 pt-2 pb-2.5">
         <div className="flex flex-col gap-0.5">
           <p className="text-[14px] font-medium text-[#5d5d5d] dark:text-gray-300">{habit.title}</p>
@@ -265,7 +273,7 @@ function LinkedSectionHeader({ label, count, onAdd, onAi }) {
           aria-label={`Add ${label.toLowerCase()}`}
           className="text-[#a3a3a3] hover:text-[#5d5d5d]"
         >
-          <Plus size={12} />
+          <Plus size={14} />
         </button>
         <button
           type="button"
@@ -273,7 +281,7 @@ function LinkedSectionHeader({ label, count, onAdd, onAi }) {
           aria-label={`AI suggest ${label.toLowerCase()}`}
           className="text-[#8022fe] hover:opacity-80"
         >
-          <Sparkles size={12} />
+          <Sparkles size={14} />
         </button>
       </div>
     </div>
@@ -379,7 +387,7 @@ export default function GoalDetailPanel({
   const hasDue = goal.dueDetail || goal.due;
 
   return (
-    <div className="fixed inset-0 z-40 max-lg:bg-black/10 lg:absolute lg:inset-0 lg:z-50 lg:bg-transparent">
+    <div className="fixed inset-0 z-50 max-lg:bg-black/10 lg:top-13 lg:z-30 lg:bg-transparent">
       <button
         type="button"
         aria-label="Close goal detail"
@@ -389,7 +397,7 @@ export default function GoalDetailPanel({
 
       <aside
         style={isDesktop ? { width } : undefined}
-        className="absolute inset-y-0 right-0 flex w-full max-w-full flex-col overflow-hidden border-l border-[#f2f2f2] bg-white dark:border-zinc-700 dark:bg-zinc-900"
+        className="absolute inset-y-0 right-0 flex w-full max-w-full flex-col items-start overflow-hidden border-l border-[#f2f2f2] bg-white dark:border-zinc-700 dark:bg-zinc-900 lg:max-w-[720px]"
         aria-label="Goal detail"
       >
         <button
@@ -399,7 +407,7 @@ export default function GoalDetailPanel({
           className="absolute inset-y-0 left-0 hidden w-1 -translate-x-1/2 cursor-col-resize hover:bg-[#8022fe]/20 lg:block"
         />
 
-        <div className="flex shrink-0 items-center justify-between border-b border-[#f2f2f2] px-5 py-4 dark:border-zinc-700">
+        <div className="flex w-full shrink-0 items-center justify-between border-b border-[#f2f2f2] px-5 py-4 dark:border-zinc-700">
           <button
             type="button"
             onClick={() => onOpenFullPage?.(goal)}
@@ -418,10 +426,10 @@ export default function GoalDetailPanel({
           </button>
         </div>
 
-        <div className="scrollbar-hidden flex flex-1 flex-col gap-6 overflow-y-auto py-5 pl-5 pr-[30px]">
-          <div className="flex flex-col gap-3">
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between">
+        <div className="scrollbar-hidden flex min-h-0 w-full flex-1 flex-col gap-6 overflow-y-auto py-5 pl-5 pr-[30px]">
+          <div className="flex w-full flex-col gap-3">
+            <div className="flex w-full flex-col gap-3">
+              <div className="flex w-full items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span
                     className={`rounded-md px-2 pt-0.5 pb-[3px] text-[14px] font-medium uppercase ${PRIORITY_STYLES[goal.priority]}`}
@@ -469,18 +477,18 @@ export default function GoalDetailPanel({
                 </div>
               </div>
 
-              <div className="flex flex-col gap-1">
+              <div className="flex w-full flex-col gap-1">
                 <h2 className="text-[24px] font-semibold leading-[1.3] text-[#181818] dark:text-white">
                   {goal.title}
                 </h2>
                 {goal.description && (
-                  <p className="text-[14px] font-medium text-[#a3a3a3]">{goal.description}</p>
+                  <p className="text-[14px] font-medium leading-normal text-[#a3a3a3]">{goal.description}</p>
                 )}
               </div>
             </div>
 
             {!goal.completedDate && goal.status !== 'completed' && (
-              <div className="flex flex-col gap-2">
+              <div className="flex w-full flex-col gap-2">
                 <div className="flex items-center justify-between text-[14px] font-medium">
                   <span className="text-[#c2c2c2]">Progress</span>
                   <span className="text-[#5d5d5d] dark:text-gray-300">{goal.progress ?? 0}%</span>
@@ -495,16 +503,16 @@ export default function GoalDetailPanel({
             )}
           </div>
 
-          <div className="h-px w-full bg-[#f2f2f2] dark:bg-zinc-700" />
+          <div className="h-px w-full shrink-0 bg-[#f2f2f2] dark:bg-zinc-700" />
 
-          <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-1.5">
+          <div className="flex w-full flex-col gap-6">
+            <div className="flex w-full flex-col gap-1.5">
               <p className="text-[12px] font-medium text-[#c2c2c2]">Category</p>
               <PillBadge>{goal.category}</PillBadge>
             </div>
 
             {hasDue && (
-              <div className="flex flex-col gap-1.5">
+              <div className="flex w-full flex-col gap-1.5">
                 <p className="text-[12px] font-medium text-[#c2c2c2]">Due Date</p>
                 <PillBadge className="gap-1.5">
                   <Flag size={12} className="shrink-0 text-[#5d5d5d]" />
@@ -513,27 +521,27 @@ export default function GoalDetailPanel({
               </div>
             )}
 
-            <div className="flex flex-col gap-1.5">
+            <div className="flex w-full flex-col gap-1.5">
               <LinkedSectionHeader label="Linked Tasks" count={taskCount} onAdd={() => {}} onAi={() => {}} />
               {linkedTasks.length === 0 ? (
                 <EmptyLinkedState message="No linked tasks yet" />
               ) : (
-                <div className="scrollbar-hidden -mx-5 flex gap-2 overflow-x-auto px-5 pb-1 pl-5 pr-[30px]">
-                  {linkedTasks.map((task) => (
-                    <LinkedTaskCard key={task.id} task={task} />
+                <div className="scrollbar-hidden flex w-full gap-2 overflow-x-auto pb-1">
+                  {linkedTasks.map((task, index) => (
+                    <LinkedTaskCard key={task.id} task={task} compact={index > 0} />
                   ))}
                 </div>
               )}
             </div>
 
-            <div className="flex flex-col gap-1.5">
+            <div className="flex w-full flex-col gap-1.5">
               <LinkedSectionHeader label="Linked Habits" count={habitCount} onAdd={() => {}} onAi={() => {}} />
               {linkedHabits.length === 0 ? (
                 <EmptyLinkedState message="No linked habits yet" />
               ) : (
-                <div className="scrollbar-hidden -mx-5 flex gap-2 overflow-x-auto px-5 pb-1 pl-5 pr-[30px]">
-                  {linkedHabits.map((habit) => (
-                    <LinkedHabitCard key={habit.id} habit={habit} />
+                <div className="scrollbar-hidden flex w-full gap-2 overflow-x-auto pb-1">
+                  {linkedHabits.map((habit, index) => (
+                    <LinkedHabitCard key={habit.id} habit={habit} compact={index > 0} />
                   ))}
                 </div>
               )}

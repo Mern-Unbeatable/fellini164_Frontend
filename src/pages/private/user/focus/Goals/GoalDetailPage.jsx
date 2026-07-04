@@ -5,7 +5,8 @@ import {
   MoreHorizontal,
   Flag,
   Plus,
-  ChevronDown,
+  ArrowDown,
+  ArrowUp,
   Clock,
   TrendingUp,
   CircleX,
@@ -56,7 +57,7 @@ function DueDetailPill({ goal }) {
 function PillBadge({ children, className = '' }) {
   return (
     <span
-      className={`inline-flex items-center rounded-md border border-[#f2f2f2] px-2 pt-0.5 pb-[3px] text-[14px] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300 ${className}`}
+      className={`inline-flex w-fit items-center rounded-md border border-[#f2f2f2] px-2 pt-0.5 pb-0.75 text-[14px] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300 ${className}`}
     >
       {children}
     </span>
@@ -93,6 +94,28 @@ function GoalDetailMenu({ onClose, onEdit, onImprove, onPause, onDelete }) {
   );
 }
 
+function TaskCardMenu({ onClose }) {
+  const itemBase =
+    'flex w-full items-center gap-1.5 px-2.5 py-1.5 text-left text-[12px] font-medium whitespace-nowrap hover:bg-[#fcfcfc] dark:hover:bg-zinc-700';
+  return (
+    <div className="absolute right-0 top-full z-50 mt-1 flex w-max flex-col overflow-hidden rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
+      <button type="button" onClick={onClose} className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}>
+        <Pencil size={10} className="shrink-0" />
+        Edit task
+      </button>
+      <button type="button" onClick={onClose} className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}>
+        <Check size={10} className="shrink-0" />
+        Complete
+      </button>
+      <div className="h-px w-full bg-[#f2f2f2] dark:bg-zinc-700" />
+      <button type="button" onClick={onClose} className={`${itemBase} text-[#dc2626]`}>
+        <Trash2 size={10} className="shrink-0" />
+        Delete
+      </button>
+    </div>
+  );
+}
+
 function MetaTag({ tag }) {
   const Icon = tag.icon === 'clock' ? Clock : tag.linkedGoal ? TrendingUp : null;
   return (
@@ -105,6 +128,16 @@ function MetaTag({ tag }) {
 
 function PageTaskCard({ task }) {
   const isDone = task.faded;
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <div className="flex flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800">
@@ -138,7 +171,17 @@ function PageTaskCard({ task }) {
                 </>
               )}
             </div>
-            <MoreHorizontal size={15} className="shrink-0 text-[#a3a3a3]" />
+            <div ref={menuRef} className="relative shrink-0">
+              <button
+                type="button"
+                onClick={() => setMenuOpen((o) => !o)}
+                aria-label="Task options"
+                className="text-[#a3a3a3] hover:text-[#5d5d5d]"
+              >
+                <MoreHorizontal size={16} />
+              </button>
+              {menuOpen && <TaskCardMenu onClose={() => setMenuOpen(false)} />}
+            </div>
           </div>
           <div className="flex flex-col gap-1">
             <p
@@ -222,43 +265,80 @@ function HabitDayCell({ state, todayProgress }) {
   );
 }
 
-function PageHabitRow({ habit }) {
+function HabitRowMenu({ onClose }) {
+  const itemBase =
+    'flex w-full items-center gap-1.5 px-2.5 py-1.5 text-left text-[12px] font-medium whitespace-nowrap hover:bg-[#fcfcfc] dark:hover:bg-zinc-700';
   return (
-    <div className="flex items-start justify-between gap-3 rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] p-3 dark:border-zinc-700 dark:bg-zinc-800">
-      <div className="flex min-w-0 flex-1 items-start gap-5">
-        <div className="w-full max-w-[250px] shrink-0 pr-5">
-          <div className="flex flex-col gap-2.5">
-            <div className="flex flex-col gap-1">
-              <p className="text-[16px] font-medium text-[#181818] dark:text-white">{habit.title}</p>
-              <p className="truncate text-[12px] font-medium text-[#a3a3a3]">{habit.description}</p>
-            </div>
-            <div className="flex flex-wrap items-center gap-1">
-              {habit.tags.map((tag) => {
-                const Icon =
-                  tag.icon === 'flame' ? Flame : tag.icon === 'hourglass' ? Hourglass : null;
-                return (
-                  <span
-                    key={tag.label}
-                    className="flex items-center gap-1.5 rounded-md border border-[#f2f2f2] px-1.5 py-0.5 text-[12px] font-medium dark:border-zinc-700"
-                  >
-                    {Icon && (
-                      <Icon
-                        size={11}
-                        className={`shrink-0 ${tag.accent ? 'text-[#f97316]' : 'text-[#5d5d5d]'}`}
-                      />
-                    )}
-                    <span
-                      className={tag.accent ? 'text-[#f97316]' : 'text-[#5d5d5d] dark:text-gray-300'}
-                    >
-                      {tag.label}
-                    </span>
+    <div className="absolute right-0 top-full z-50 mt-1 flex w-max flex-col overflow-hidden rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
+      <button type="button" onClick={onClose} className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}>
+        <Pencil size={10} className="shrink-0" />
+        Edit habit
+      </button>
+      <button type="button" onClick={onClose} className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}>
+        <Pause size={10} className="shrink-0" />
+        Skip today
+      </button>
+      <div className="h-px w-full bg-[#f2f2f2] dark:bg-zinc-700" />
+      <button type="button" onClick={onClose} className={`${itemBase} text-[#dc2626]`}>
+        <Trash2 size={10} className="shrink-0" />
+        Delete
+      </button>
+    </div>
+  );
+}
+
+function PageHabitRow({ habit }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const cardRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (cardRef.current && !cardRef.current.contains(e.target)) setMenuOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div
+      ref={cardRef}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className="relative flex flex-col gap-2 rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] p-3 dark:border-zinc-700 dark:bg-zinc-800"
+    >
+      {/* Main row: name col + desktop day cells (menu is absolute, not in flex) */}
+      <div className="flex items-start gap-3">
+        <div className="w-[220px] shrink-0 flex flex-col gap-2.5">
+          <div className="flex flex-col gap-1">
+            <p className="text-[16px] font-medium text-[#181818] dark:text-white">{habit.title}</p>
+            <p className="truncate text-[12px] font-medium text-[#a3a3a3]">{habit.description}</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-1">
+            {habit.tags.map((tag) => {
+              const Icon =
+                tag.icon === 'flame' ? Flame : tag.icon === 'hourglass' ? Hourglass : null;
+              return (
+                <span
+                  key={tag.label}
+                  className="flex items-center gap-1.5 rounded-md border border-[#f2f2f2] px-1.5 py-0.5 text-[12px] font-medium dark:border-zinc-700"
+                >
+                  {Icon && (
+                    <Icon
+                      size={11}
+                      className={`shrink-0 ${tag.accent ? 'text-[#f97316]' : 'text-[#5d5d5d]'}`}
+                    />
+                  )}
+                  <span className={tag.accent ? 'text-[#f97316]' : 'text-[#5d5d5d] dark:text-gray-300'}>
+                    {tag.label}
                   </span>
-                );
-              })}
-            </div>
+                </span>
+              );
+            })}
           </div>
         </div>
-        <div className="hidden items-start gap-5 lg:flex">
+        {/* Desktop day cells — flex-1 fills to card right; justify-evenly = equal gaps */}
+        <div className="hidden flex-1 items-start justify-evenly lg:flex">
           {habit.days.map((day, i) => (
             <HabitDayCell
               key={WEEKDAY_LABELS[i]}
@@ -268,25 +348,10 @@ function PageHabitRow({ habit }) {
           ))}
         </div>
       </div>
-      <MoreHorizontal size={15} className="shrink-0 text-[#a3a3a3]" />
-    </div>
-  );
-}
-
-function LinkedSectionHeader({ label, count, weekdays, onAdd, onAi }) {
-  return (
-    <div className="flex w-full items-center justify-between gap-3">
-      <div className="flex shrink-0 items-center gap-1.5">
-        <p className="text-[12px] font-medium text-[#c2c2c2]">{label}</p>
-        {count > 0 && (
-          <span className="flex h-5 w-5 items-center justify-center rounded-[5px] bg-[#fcfcfc] text-[12px] font-medium text-[#c2c2c2] dark:bg-zinc-800">
-            {count}
-          </span>
-        )}
-      </div>
-      {weekdays && (
-        <div className="hidden min-w-0 flex-1 items-center justify-center gap-5 pl-[178px] lg:flex">
-          {weekdays.map((day, i) => (
+      {/* Mobile: day labels row + day cells row (hidden on lg+) */}
+      <div className="flex flex-col gap-1.5 lg:hidden">
+        <div className="flex items-center justify-between">
+          {WEEKDAY_LABELS.map((day, i) => (
             <span
               key={day}
               className={`w-[30px] text-center text-[12px] font-medium ${
@@ -297,14 +362,95 @@ function LinkedSectionHeader({ label, count, weekdays, onAdd, onAi }) {
             </span>
           ))}
         </div>
+        <div className="flex items-start justify-between">
+          {habit.days.map((day, i) => (
+            <HabitDayCell
+              key={`m-${WEEKDAY_LABELS[i]}`}
+              state={day}
+              todayProgress={day === 'today' ? habit.todayProgress : null}
+            />
+          ))}
+        </div>
+      </div>
+      {(isHovered || menuOpen) && (
+        <button
+          type="button"
+          onClick={() => setMenuOpen((o) => !o)}
+          aria-label="Habit options"
+          aria-expanded={menuOpen}
+          className={`absolute right-3 top-3 z-20 rounded-md p-1 text-[#a3a3a3] ${menuOpen ? 'bg-[#f2f2f2]' : 'hover:bg-[#f2f2f2]'}`}
+        >
+          <MoreHorizontal size={14} />
+        </button>
       )}
-      <div className="flex shrink-0 items-center gap-5">
-        <button type="button" onClick={onAdd} aria-label={`Add ${label}`} className="text-[#a3a3a3]">
-          <Plus size={12} />
-        </button>
-        <button type="button" onClick={onAi} aria-label={`AI suggest ${label}`} className="text-[#8022fe]">
-          <Sparkles size={12} />
-        </button>
+      {menuOpen && (
+        <div className="absolute right-3 top-9 z-50">
+          <HabitRowMenu onClose={() => setMenuOpen(false)} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function LinkedSectionHeader({ label, count, weekdays, onAdd, onAi }) {
+  const labelEl = (
+    <div className="flex items-center gap-1.5">
+      <p className="text-[12px] font-medium text-[#c2c2c2]">{label}</p>
+      {count > 0 && (
+        <span className="flex h-5 w-5 items-center justify-center rounded-[5px] bg-[#fcfcfc] text-[12px] font-medium text-[#c2c2c2] dark:bg-zinc-800">
+          {count}
+        </span>
+      )}
+    </div>
+  );
+  const buttons = (
+    <div className="flex shrink-0 items-center gap-5">
+      <button type="button" onClick={onAdd} aria-label={`Add ${label}`} className="text-[#a3a3a3]">
+        <Plus size={14} />
+      </button>
+      <button type="button" onClick={onAi} aria-label={`AI suggest ${label}`} className="text-[#8022fe]">
+        <Sparkles size={14} />
+      </button>
+    </div>
+  );
+
+  if (!weekdays) {
+    return (
+      <div className="flex w-full items-center justify-between gap-3">
+        {labelEl}
+        {buttons}
+      </div>
+    );
+  }
+
+  // Habits header: pr-3.25 (13px) matches the card's border+padding right inset so
+  // the day labels section spans the SAME width as the row's flex-1 day cells.
+  // Buttons are absolute so they don't consume width from the day labels flex-1.
+  return (
+    <div className="relative flex w-full items-center lg:pr-3.25">
+      {/* Desktop: fixed 245px col — aligns with row day-cells start */}
+      <div className="hidden w-61.25 shrink-0 lg:flex">
+        {labelEl}
+      </div>
+      {/* Desktop: day labels — justify-evenly mirrors row cells for equal column spacing */}
+      <div className="hidden min-w-0 flex-1 items-center justify-evenly lg:flex">
+        {weekdays.map((day, i) => (
+          <span
+            key={day}
+            className={`w-[30px] text-center text-[12px] font-medium ${
+              i === TODAY_INDEX ? 'text-[#8022fe]' : 'text-[#5d5d5d] dark:text-gray-300'
+            }`}
+          >
+            {day}
+          </span>
+        ))}
+      </div>
+      {/* Desktop: buttons float at far right without consuming flex space */}
+      <div className="absolute right-0 top-1/2 hidden -translate-y-1/2 items-center lg:flex">{buttons}</div>
+      {/* Mobile: just label + buttons, day labels are inside each row card */}
+      <div className="flex w-full items-center justify-between lg:hidden">
+        {labelEl}
+        {buttons}
       </div>
     </div>
   );
@@ -325,6 +471,7 @@ export default function GoalDetailPage() {
   const menuRef = useRef(null);
   const [isAssistantOpen, setIsAssistantOpen] = useState(true);
   const [isAssistantExpanded, setIsAssistantExpanded] = useState(false);
+  const [showAllTasks, setShowAllTasks] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -347,9 +494,9 @@ export default function GoalDetailPage() {
   const toggleExpandAssistant = () => setIsAssistantExpanded((e) => !e);
 
   return (
-    <div className="-mx-10 flex min-h-[calc(100vh-3.25rem)] flex-col py-7.5 max-lg:-mx-4 max-lg:py-4 max-lg:sm:-mx-6 max-lg:sm:py-6">
-      <div className="flex flex-1 flex-col gap-7.5 xl:flex-row xl:items-stretch">
-        <div className="relative scrollbar-hidden flex min-h-[min(70vh,798px)] min-w-0 flex-1 flex-col gap-6 overflow-y-auto rounded-2xl border border-[#f2f2f2] bg-white py-5 pl-5 pr-[26px] xl:min-h-0 dark:border-zinc-700 dark:bg-zinc-900">
+    <div className="flex min-h-full flex-col py-7.5 max-lg:py-4 max-lg:sm:py-6">
+      <div className="flex flex-1 min-h-0 flex-col gap-7.5 xl:flex-row xl:items-stretch">
+        <div className="relative scrollbar-hidden flex min-h-[min(60vh,520px)] min-w-0 flex-1 flex-col gap-6 overflow-y-auto rounded-2xl border border-[#f2f2f2] bg-white py-5 pl-5 pr-[26px] xl:min-h-0 dark:border-zinc-700 dark:bg-zinc-900">
           {!isAssistantOpen && (
             <button
               type="button"
@@ -357,7 +504,7 @@ export default function GoalDetailPage() {
               aria-label="Open AI Assistant"
               className="absolute top-4 right-12 z-10 flex items-center gap-1.5 rounded-lg bg-[#f9f4ff] px-2.5 py-1.5 text-[12px] font-medium text-[#8022fe]"
             >
-              <Sparkles size={12} />
+              <Sparkles size={14} />
               AI Assistant
             </button>
           )}
@@ -372,7 +519,7 @@ export default function GoalDetailPage() {
                   </span>
                   {goal.source === 'ai' && (
                     <span className="flex items-center gap-1.5 rounded-md bg-[#f9f4ff] px-2 pt-0.5 pb-[3px] text-[14px] font-medium text-[#8022fe]">
-                      <Sparkles size={12} />
+                      <Sparkles size={14} />
                       AI
                     </span>
                   )}
@@ -431,7 +578,7 @@ export default function GoalDetailPage() {
                 <div className="flex flex-col gap-1.5">
                   <p className="text-[12px] font-medium text-[#c2c2c2]">Due Date</p>
                   <PillBadge className="gap-1.5">
-                    <Flag size={12} className="shrink-0 text-[#5d5d5d]" />
+                    <Flag size={14} className="shrink-0 text-[#5d5d5d]" />
                     <DueDetailPill goal={goal} />
                   </PillBadge>
                 </div>
@@ -449,17 +596,18 @@ export default function GoalDetailPage() {
                 ) : (
                   <div className="flex flex-col items-center gap-4">
                     <div className="grid w-full grid-cols-1 gap-2.5 md:grid-cols-2">
-                      {tasks.map((task) => (
+                      {(showAllTasks ? tasks : tasks.slice(0, 4)).map((task) => (
                         <PageTaskCard key={task.id} task={task} />
                       ))}
                     </div>
-                    {(goal.tasks ?? 0) > tasks.length && (
+                    {(tasks.length > 4 || (goal.tasks ?? 0) > tasks.length) && (
                       <button
                         type="button"
-                        className="flex items-center gap-2 text-[12px] font-medium text-[#c2c2c2] hover:text-[#8022fe]"
+                        onClick={() => setShowAllTasks((v) => !v)}
+                        className="flex items-center gap-1.5 text-[13px] font-medium text-[#c2c2c2] hover:text-[#8022fe]"
                       >
-                        View All {goal.tasks} tasks
-                        <ChevronDown size={10} />
+                        {showAllTasks ? 'Show Less' : `View All ${goal.tasks ?? tasks.length} tasks`}
+                        {showAllTasks ? <ArrowUp size={13} /> : <ArrowDown size={13} />}
                       </button>
                     )}
                   </div>
