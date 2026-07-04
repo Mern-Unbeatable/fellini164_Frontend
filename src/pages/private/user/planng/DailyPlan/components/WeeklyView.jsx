@@ -5,7 +5,7 @@ export default function WeeklyView() {
   return (
     <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-[#F2F2F2] bg-white shadow-sm dark:border-zinc-800/80 dark:bg-zinc-900">
       <div className="overflow-x-auto w-full flex-1 flex flex-col">
-        <div className="min-w-[850px] lg:min-w-0 flex flex-col flex-1">
+        <div className="min-w-[950px] w-full flex flex-col flex-1">
           {/* Weekday Names with Date Numbers */}
           <div className="grid grid-cols-[64px_1fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-0 border-b border-[#F2F2F2] dark:border-zinc-800/80">
             {/* Corner Cell (Time column spacer) */}
