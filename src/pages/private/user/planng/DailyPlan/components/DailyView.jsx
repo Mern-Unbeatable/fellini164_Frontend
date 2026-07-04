@@ -1,7 +1,14 @@
 import React from 'react';
 import { Sparkles, Clock, Target, BarChart2 } from 'lucide-react';
 
-export default function DailyView({ currentDate, selectedDate, isLoading, aiActionState, onAccept, onDismiss }) {
+export default function DailyView({
+  currentDate,
+  selectedDate,
+  isLoading,
+  aiActionState,
+  onAccept,
+  onDismiss,
+}) {
   // Get short weekday name and date number of selectedDate or currentDate
   const dateToUse = selectedDate || currentDate || new Date(2026, 4, 13);
   const weekdayShort = dateToUse.toLocaleDateString('en-US', { weekday: 'short' });
@@ -17,11 +24,11 @@ export default function DailyView({ currentDate, selectedDate, isLoading, aiActi
         </div>
 
         {/* Shimmer Slots */}
-        <div className="max-h-[580px] flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="max-h-[580px] flex-1 space-y-4 overflow-y-auto p-4">
           {[1, 2, 3, 4, 5].map((val) => (
-            <div key={val} className="flex gap-4 items-center animate-pulse">
-              <div className="h-4 w-10 rounded bg-gray-150 dark:bg-zinc-850"></div>
-              <div className="flex-1 h-20 rounded-xl bg-gray-100 dark:bg-zinc-800 flex flex-col justify-center px-4 gap-2">
+            <div key={val} className="flex animate-pulse items-center gap-4">
+              <div className="bg-gray-150 dark:bg-zinc-850 h-4 w-10 rounded"></div>
+              <div className="flex h-20 flex-1 flex-col justify-center gap-2 rounded-xl bg-gray-100 px-4 dark:bg-zinc-800">
                 <div className="h-3.5 w-1/3 rounded bg-gray-200 dark:bg-zinc-700"></div>
                 <div className="h-2 w-1/2 rounded bg-gray-200 dark:bg-zinc-700"></div>
               </div>
@@ -79,7 +86,9 @@ export default function DailyView({ currentDate, selectedDate, isLoading, aiActi
               )}
 
               {hour === '1 AM' && aiActionState !== 'free_evening' && (
-                <div className={`flex flex-col sm:flex-row sm:items-center w-full justify-start gap-2.5 rounded-lg border border-gray-100 bg-white p-3 shadow-sm dark:border-zinc-700 dark:bg-zinc-800 transition-all ${aiActionState === 'optimized' ? 'border-purple-200 bg-purple-50/10' : ''}`}>
+                <div
+                  className={`flex w-full flex-col justify-start gap-2.5 rounded-lg border border-gray-100 bg-white p-3 shadow-sm transition-all sm:flex-row sm:items-center dark:border-zinc-700 dark:bg-zinc-800 ${aiActionState === 'optimized' ? 'border-purple-200 bg-purple-50/10' : ''}`}
+                >
                   <span className="text-xs font-medium text-slate-700 dark:text-gray-300">
                     Morning Workout Routine
                   </span>
@@ -91,7 +100,7 @@ export default function DailyView({ currentDate, selectedDate, isLoading, aiActi
                       <Sparkles size={8} /> AI
                     </span>
                     {aiActionState === 'optimized' && (
-                      <span className="text-[8px] font-semibold bg-green-50 text-green-600 dark:bg-green-950/20 dark:text-green-400 px-2 py-0.5 rounded">
+                      <span className="rounded bg-green-50 px-2 py-0.5 text-[8px] font-semibold text-green-600 dark:bg-green-950/20 dark:text-green-400">
                         Optimized
                       </span>
                     )}
@@ -106,18 +115,18 @@ export default function DailyView({ currentDate, selectedDate, isLoading, aiActi
               {hour === '2 AM' && aiActionState !== 'free_evening' && (
                 <>
                   {aiActionState === 'overload_reduced' ? (
-                    <div className="flex w-full items-center justify-between gap-2.5 rounded-lg border border-dashed border-gray-200 bg-gray-50/30 p-3.5 dark:border-zinc-700 dark:bg-zinc-800/20 opacity-60">
+                    <div className="flex w-full items-center justify-between gap-2.5 rounded-lg border border-dashed border-gray-200 bg-gray-50/30 p-3.5 opacity-60 dark:border-zinc-700 dark:bg-zinc-800/20">
                       <div className="flex flex-col">
                         <span className="text-xs font-medium text-slate-400 line-through dark:text-gray-500">
                           Complete Work Task
                         </span>
-                        <span className="text-[9px] text-[#7C3AED] dark:text-purple-400 font-semibold mt-0.5">
+                        <span className="mt-0.5 text-[9px] font-semibold text-[#7C3AED] dark:text-purple-400">
                           Rescheduled to tomorrow morning by AI to reduce overload
                         </span>
                       </div>
                     </div>
                   ) : (
-                    <div className="flex flex-col sm:flex-row sm:items-center w-full justify-start gap-2.5 rounded-lg border border-gray-100 bg-white p-3 shadow-sm dark:border-zinc-700 dark:bg-zinc-800">
+                    <div className="flex w-full flex-col justify-start gap-2.5 rounded-lg border border-gray-100 bg-white p-3 shadow-sm sm:flex-row sm:items-center dark:border-zinc-700 dark:bg-zinc-800">
                       <span className="text-xs font-medium text-slate-700 dark:text-gray-300">
                         Complete Work Task
                       </span>
@@ -136,8 +145,10 @@ export default function DailyView({ currentDate, selectedDate, isLoading, aiActi
               )}
 
               {hour === '4 AM' && aiActionState !== 'free_evening' && (
-                <div className={`flex w-full flex-col gap-1 rounded-lg border border-gray-100 bg-white p-3 shadow-sm dark:border-zinc-700 dark:bg-zinc-800 transition-all ${aiActionState === 'optimized' ? 'border-purple-200 bg-purple-50/10' : ''}`}>
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-start gap-2">
+                <div
+                  className={`flex w-full flex-col gap-1 rounded-lg border border-gray-100 bg-white p-3 shadow-sm transition-all dark:border-zinc-700 dark:bg-zinc-800 ${aiActionState === 'optimized' ? 'border-purple-200 bg-purple-50/10' : ''}`}
+                >
+                  <div className="flex flex-col justify-start gap-2 sm:flex-row sm:items-center">
                     <span className="text-xs font-medium text-slate-700 dark:text-gray-300">
                       Exercise Routine
                     </span>
@@ -149,7 +160,7 @@ export default function DailyView({ currentDate, selectedDate, isLoading, aiActi
                         <Sparkles size={8} /> AI
                       </span>
                       {aiActionState === 'optimized' && (
-                        <span className="text-[8px] font-semibold bg-green-50 text-green-600 dark:bg-green-950/20 dark:text-green-400 px-2 py-0.5 rounded">
+                        <span className="rounded bg-green-50 px-2 py-0.5 text-[8px] font-semibold text-green-600 dark:bg-green-950/20 dark:text-green-400">
                           Time Adjusted (Optimized)
                         </span>
                       )}
@@ -195,7 +206,7 @@ export default function DailyView({ currentDate, selectedDate, isLoading, aiActi
 
                   {/* Drink Water card */}
                   <div className="flex items-center justify-between rounded-lg border border-gray-100 bg-white p-3.5 shadow-sm dark:border-zinc-700 dark:bg-zinc-800">
-                    <div className="flex flex-col gap-1 pr-4 min-w-0">
+                    <div className="flex min-w-0 flex-col gap-1 pr-4">
                       <span className="text-xs font-medium text-slate-700 dark:text-gray-300">
                         Drink Water
                       </span>
@@ -215,8 +226,8 @@ export default function DailyView({ currentDate, selectedDate, isLoading, aiActi
 
               {/* Recalibrate AI Suggested card at 8 AM */}
               {hour === '8 AM' && aiActionState === 'recalibrated' && (
-                <div className="flex flex-col md:flex-row md:items-center w-full justify-between gap-3 rounded-lg border border-purple-200 bg-purple-50/20 p-3.5 shadow-sm dark:border-purple-900/40 dark:bg-purple-950/10 animate-fade-in">
-                  <div className="flex flex-col gap-1 pr-4 min-w-0">
+                <div className="animate-fade-in flex w-full flex-col justify-between gap-3 rounded-lg border border-purple-200 bg-purple-50/20 p-3.5 shadow-sm md:flex-row md:items-center dark:border-purple-900/40 dark:bg-purple-950/10">
+                  <div className="flex min-w-0 flex-col gap-1 pr-4">
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-semibold text-purple-700 dark:text-purple-400">
                         Read Book & Meditate
@@ -229,11 +240,17 @@ export default function DailyView({ currentDate, selectedDate, isLoading, aiActi
                       30 mins of reading followed by mindfulness meditation.
                     </p>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <button onClick={onAccept} className="rounded-lg bg-purple-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-purple-700">
+                  <div className="flex shrink-0 items-center gap-2">
+                    <button
+                      onClick={onAccept}
+                      className="rounded-lg bg-purple-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-purple-700"
+                    >
                       Accept
                     </button>
-                    <button onClick={onDismiss} className="rounded-lg bg-gray-100 dark:bg-zinc-800 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-gray-300 hover:bg-gray-200">
+                    <button
+                      onClick={onDismiss}
+                      className="rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-gray-200 dark:bg-zinc-800 dark:text-gray-300"
+                    >
                       Dismiss
                     </button>
                   </div>
@@ -241,7 +258,9 @@ export default function DailyView({ currentDate, selectedDate, isLoading, aiActi
               )}
 
               {hour === '11 AM' && aiActionState !== 'free_evening' && (
-                <div className={`flex w-full flex-col gap-1.5 rounded-lg border border-gray-100 bg-white p-3.5 shadow-sm dark:border-zinc-700 dark:bg-zinc-800 transition-all ${aiActionState === 'recalibrated' ? 'border-purple-200 bg-purple-50/10' : ''}`}>
+                <div
+                  className={`flex w-full flex-col gap-1.5 rounded-lg border border-gray-100 bg-white p-3.5 shadow-sm transition-all dark:border-zinc-700 dark:bg-zinc-800 ${aiActionState === 'recalibrated' ? 'border-purple-200 bg-purple-50/10' : ''}`}
+                >
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-xs font-bold text-slate-700 dark:text-gray-300">
                       Career Development Plan
@@ -254,7 +273,7 @@ export default function DailyView({ currentDate, selectedDate, isLoading, aiActi
                         <Sparkles size={8} /> AI
                       </span>
                       {aiActionState === 'recalibrated' && (
-                        <span className="text-[8px] font-semibold bg-green-50 text-green-600 dark:bg-green-950/20 dark:text-green-400 px-2 py-0.5 rounded">
+                        <span className="rounded bg-green-50 px-2 py-0.5 text-[8px] font-semibold text-green-600 dark:bg-green-950/20 dark:text-green-400">
                           AI Balanced
                         </span>
                       )}
@@ -287,7 +306,7 @@ export default function DailyView({ currentDate, selectedDate, isLoading, aiActi
 
               {/* Faded empty slot representation when evening is freed up */}
               {aiActionState === 'free_evening' && (
-                <div className="text-center py-4 text-xs text-gray-350 dark:text-zinc-600 italic">
+                <div className="text-gray-350 py-4 text-center text-xs italic dark:text-zinc-600">
                   Evening freed up by AI assistant.
                 </div>
               )}

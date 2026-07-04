@@ -33,7 +33,10 @@ export default function AIAssistant({
         </div>
 
         {/* Chat Messages */}
-        <div ref={chatContainerRef} className="flex-1 space-y-4 overflow-y-auto scrollbar-white bg-white p-5 dark:bg-zinc-900">
+        <div
+          ref={chatContainerRef}
+          className="scrollbar-white flex-1 space-y-4 overflow-y-auto bg-white p-5 dark:bg-zinc-900"
+        >
           {messages.map((msg) => (
             <div
               key={msg.id}
