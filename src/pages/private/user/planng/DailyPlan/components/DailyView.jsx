@@ -1,11 +1,36 @@
 import React from 'react';
 import { Sparkles, Clock, Target, BarChart2 } from 'lucide-react';
 
-export default function DailyView({ currentDate, selectedDate }) {
+export default function DailyView({ currentDate, selectedDate, isLoading, aiActionState, onAccept, onDismiss }) {
   // Get short weekday name and date number of selectedDate or currentDate
   const dateToUse = selectedDate || currentDate || new Date(2026, 4, 13);
   const weekdayShort = dateToUse.toLocaleDateString('en-US', { weekday: 'short' });
   const dateNum = dateToUse.getDate();
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-zinc-800/80 dark:bg-zinc-900">
+        {/* Daily Date Header Skeleton */}
+        <div className="flex flex-col items-start border-b border-gray-100 bg-white p-4 dark:border-zinc-800/80 dark:bg-zinc-900">
+          <div className="h-3 w-10 animate-pulse rounded bg-gray-200 dark:bg-zinc-800"></div>
+          <div className="mt-1.5 h-7 w-7 animate-pulse rounded-lg bg-gray-200 dark:bg-zinc-800"></div>
+        </div>
+
+        {/* Shimmer Slots */}
+        <div className="max-h-[580px] flex-1 overflow-y-auto p-4 space-y-4">
+          {[1, 2, 3, 4, 5].map((val) => (
+            <div key={val} className="flex gap-4 items-center animate-pulse">
+              <div className="h-4 w-10 rounded bg-gray-150 dark:bg-zinc-850"></div>
+              <div className="flex-1 h-20 rounded-xl bg-gray-100 dark:bg-zinc-800 flex flex-col justify-center px-4 gap-2">
+                <div className="h-3.5 w-1/3 rounded bg-gray-200 dark:bg-zinc-700"></div>
+                <div className="h-2 w-1/2 rounded bg-gray-200 dark:bg-zinc-700"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-zinc-800/80 dark:bg-zinc-900">
@@ -46,15 +71,15 @@ export default function DailyView({ currentDate, selectedDate }) {
             {/* Hour Task Slot */}
             <div className="relative flex min-h-[90px] flex-col justify-center bg-white p-3 dark:bg-zinc-900">
               {/* Time Line Indicator Overlay at 4 AM slot */}
-              {hour === '4 AM' && (
+              {hour === '4 AM' && !isLoading && (
                 <div className="pointer-events-none absolute top-1/4 right-0 left-0 z-10 flex -translate-y-1/2 items-center">
                   <div className="ml-[-4px] h-2 w-2 rounded-full border border-white bg-purple-600 shadow-sm dark:border-zinc-900"></div>
                   <div className="h-[2px] flex-1 bg-purple-500/85"></div>
                 </div>
               )}
 
-              {hour === '1 AM' && (
-                <div className="flex flex-col sm:flex-row sm:items-center w-full justify-start gap-2.5 rounded-lg border border-gray-100 bg-white p-3 shadow-sm dark:border-zinc-700 dark:bg-zinc-800">
+              {hour === '1 AM' && aiActionState !== 'free_evening' && (
+                <div className={`flex flex-col sm:flex-row sm:items-center w-full justify-start gap-2.5 rounded-lg border border-gray-100 bg-white p-3 shadow-sm dark:border-zinc-700 dark:bg-zinc-800 transition-all ${aiActionState === 'optimized' ? 'border-purple-200 bg-purple-50/10' : ''}`}>
                   <span className="text-xs font-medium text-slate-700 dark:text-gray-300">
                     Morning Workout Routine
                   </span>
@@ -65,6 +90,11 @@ export default function DailyView({ currentDate, selectedDate }) {
                     <span className="text-primary flex items-center gap-1 rounded bg-[#7C3AED]/10 px-2 py-0.5 text-[8px] font-medium dark:border-none dark:bg-[#F9F4FF] dark:text-purple-400">
                       <Sparkles size={8} /> AI
                     </span>
+                    {aiActionState === 'optimized' && (
+                      <span className="text-[8px] font-semibold bg-green-50 text-green-600 dark:bg-green-950/20 dark:text-green-400 px-2 py-0.5 rounded">
+                        Optimized
+                      </span>
+                    )}
                     <div className="mx-0.5 h-3 w-[1px] bg-gray-200 dark:bg-zinc-700"></div>
                     <span className="rounded border border-gray-100 bg-gray-50 px-2 py-0.5 text-[8px] font-medium text-gray-400 dark:border-none dark:bg-zinc-700 dark:text-gray-400">
                       TO DO
@@ -73,25 +103,40 @@ export default function DailyView({ currentDate, selectedDate }) {
                 </div>
               )}
 
-              {hour === '2 AM' && (
-                <div className="flex flex-col sm:flex-row sm:items-center w-full justify-start gap-2.5 rounded-lg border border-gray-100 bg-white p-3 shadow-sm dark:border-zinc-700 dark:bg-zinc-800">
-                  <span className="text-xs font-medium text-slate-700 dark:text-gray-300">
-                    Complete Work Task
-                  </span>
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="rounded border border-yellow-100 bg-yellow-50 px-2 py-0.5 text-[8px] font-bold text-yellow-600 dark:border-none dark:bg-yellow-950/30 dark:text-yellow-400">
-                      MEDIUM
-                    </span>
-                    <div className="mx-0.5 h-3 w-[1px] bg-gray-200 dark:bg-zinc-700"></div>
-                    <span className="rounded border border-gray-100 bg-gray-50 px-2 py-0.5 text-[8px] font-bold text-gray-400 dark:border-none dark:bg-zinc-700 dark:text-gray-400">
-                      TO DO
-                    </span>
-                  </div>
-                </div>
+              {hour === '2 AM' && aiActionState !== 'free_evening' && (
+                <>
+                  {aiActionState === 'overload_reduced' ? (
+                    <div className="flex w-full items-center justify-between gap-2.5 rounded-lg border border-dashed border-gray-200 bg-gray-50/30 p-3.5 dark:border-zinc-700 dark:bg-zinc-800/20 opacity-60">
+                      <div className="flex flex-col">
+                        <span className="text-xs font-medium text-slate-400 line-through dark:text-gray-500">
+                          Complete Work Task
+                        </span>
+                        <span className="text-[9px] text-[#7C3AED] dark:text-purple-400 font-semibold mt-0.5">
+                          Rescheduled to tomorrow morning by AI to reduce overload
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col sm:flex-row sm:items-center w-full justify-start gap-2.5 rounded-lg border border-gray-100 bg-white p-3 shadow-sm dark:border-zinc-700 dark:bg-zinc-800">
+                      <span className="text-xs font-medium text-slate-700 dark:text-gray-300">
+                        Complete Work Task
+                      </span>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="rounded border border-yellow-100 bg-yellow-50 px-2 py-0.5 text-[8px] font-bold text-yellow-600 dark:border-none dark:bg-yellow-950/30 dark:text-yellow-400">
+                          MEDIUM
+                        </span>
+                        <div className="mx-0.5 h-3 w-[1px] bg-gray-200 dark:bg-zinc-700"></div>
+                        <span className="rounded border border-gray-100 bg-gray-50 px-2 py-0.5 text-[8px] font-bold text-gray-400 dark:border-none dark:bg-zinc-700 dark:text-gray-400">
+                          TO DO
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
 
-              {hour === '4 AM' && (
-                <div className="flex w-full flex-col gap-1 rounded-lg border border-gray-100 bg-white p-3 shadow-sm dark:border-zinc-700 dark:bg-zinc-800">
+              {hour === '4 AM' && aiActionState !== 'free_evening' && (
+                <div className={`flex w-full flex-col gap-1 rounded-lg border border-gray-100 bg-white p-3 shadow-sm dark:border-zinc-700 dark:bg-zinc-800 transition-all ${aiActionState === 'optimized' ? 'border-purple-200 bg-purple-50/10' : ''}`}>
                   <div className="flex flex-col sm:flex-row sm:items-center justify-start gap-2">
                     <span className="text-xs font-medium text-slate-700 dark:text-gray-300">
                       Exercise Routine
@@ -103,6 +148,11 @@ export default function DailyView({ currentDate, selectedDate }) {
                       <span className="flex items-center gap-1 rounded border border-[#7C3AED]/20 bg-[#7C3AED]/10 px-2 py-0.5 text-[8px] font-medium text-[#7C3AED] dark:border-none dark:bg-purple-950/30 dark:text-purple-400">
                         <Sparkles size={8} /> AI
                       </span>
+                      {aiActionState === 'optimized' && (
+                        <span className="text-[8px] font-semibold bg-green-50 text-green-600 dark:bg-green-950/20 dark:text-green-400 px-2 py-0.5 rounded">
+                          Time Adjusted (Optimized)
+                        </span>
+                      )}
                       <div className="mx-0.5 h-3 w-[1px] bg-gray-200 dark:bg-zinc-700"></div>
                       <span className="rounded bg-gray-50 px-2 py-0.5 text-[8px] font-medium text-gray-400 dark:border-none dark:text-gray-400">
                         TO DO
@@ -115,7 +165,7 @@ export default function DailyView({ currentDate, selectedDate }) {
                 </div>
               )}
 
-              {hour === '7 AM' && (
+              {hour === '7 AM' && aiActionState !== 'free_evening' && (
                 <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2">
                   {/* Update Resume card */}
                   <div className="flex flex-col gap-2 rounded-lg border border-gray-100 bg-white p-3.5 shadow-sm dark:border-zinc-700 dark:bg-zinc-800">
@@ -163,8 +213,35 @@ export default function DailyView({ currentDate, selectedDate }) {
                 </div>
               )}
 
-              {hour === '11 AM' && (
-                <div className="flex w-full flex-col gap-1.5 rounded-lg border border-gray-100 bg-white p-3.5 shadow-sm dark:border-zinc-700 dark:bg-zinc-800">
+              {/* Recalibrate AI Suggested card at 8 AM */}
+              {hour === '8 AM' && aiActionState === 'recalibrated' && (
+                <div className="flex flex-col md:flex-row md:items-center w-full justify-between gap-3 rounded-lg border border-purple-200 bg-purple-50/20 p-3.5 shadow-sm dark:border-purple-900/40 dark:bg-purple-950/10 animate-fade-in">
+                  <div className="flex flex-col gap-1 pr-4 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold text-purple-700 dark:text-purple-400">
+                        Read Book & Meditate
+                      </span>
+                      <span className="text-primary flex items-center gap-1 rounded bg-[#7C3AED]/10 px-2 py-0.5 text-[8px] font-medium dark:border-none dark:bg-[#F9F4FF] dark:text-purple-400">
+                        <Sparkles size={8} /> AI Suggested
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-gray-400 dark:text-gray-500">
+                      30 mins of reading followed by mindfulness meditation.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button onClick={onAccept} className="rounded-lg bg-purple-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-purple-700">
+                      Accept
+                    </button>
+                    <button onClick={onDismiss} className="rounded-lg bg-gray-100 dark:bg-zinc-800 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-gray-300 hover:bg-gray-200">
+                      Dismiss
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {hour === '11 AM' && aiActionState !== 'free_evening' && (
+                <div className={`flex w-full flex-col gap-1.5 rounded-lg border border-gray-100 bg-white p-3.5 shadow-sm dark:border-zinc-700 dark:bg-zinc-800 transition-all ${aiActionState === 'recalibrated' ? 'border-purple-200 bg-purple-50/10' : ''}`}>
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-xs font-bold text-slate-700 dark:text-gray-300">
                       Career Development Plan
@@ -176,6 +253,11 @@ export default function DailyView({ currentDate, selectedDate }) {
                       <span className="flex items-center gap-1 rounded border border-[#7C3AED]/20 bg-[#7C3AED]/10 px-2 py-0.5 text-[8px] font-bold text-[#7C3AED] dark:border-none dark:bg-purple-950/30 dark:text-purple-400">
                         <Sparkles size={8} /> AI
                       </span>
+                      {aiActionState === 'recalibrated' && (
+                        <span className="text-[8px] font-semibold bg-green-50 text-green-600 dark:bg-green-950/20 dark:text-green-400 px-2 py-0.5 rounded">
+                          AI Balanced
+                        </span>
+                      )}
                       <div className="mx-0.5 h-3 w-[1px] bg-gray-200 dark:bg-zinc-700"></div>
                       <span className="rounded border border-gray-100 bg-gray-50 px-2 py-0.5 text-[8px] font-bold text-gray-500 dark:border-none dark:bg-zinc-700 dark:text-gray-300">
                         IN PROGRESS
@@ -200,6 +282,13 @@ export default function DailyView({ currentDate, selectedDate }) {
                       <BarChart2 size={8} /> 0/4 Steps
                     </span>
                   </div>
+                </div>
+              )}
+
+              {/* Faded empty slot representation when evening is freed up */}
+              {aiActionState === 'free_evening' && (
+                <div className="text-center py-4 text-xs text-gray-350 dark:text-zinc-600 italic">
+                  Evening freed up by AI assistant.
                 </div>
               )}
             </div>

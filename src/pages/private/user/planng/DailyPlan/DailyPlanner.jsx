@@ -16,6 +16,14 @@ export default function DailyPlanner() {
   const [viewMode, setViewMode] = useState('Monthly');
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
+  // loading state for shimmer skeleton
+  const [isLoading, setIsLoading] = useState(false);
+  // state to manage simulated planner configurations
+  const [aiActionState, setAiActionState] = useState(null); // 'recalibrated' | 'overload_reduced' | 'optimized' | 'balanced' | 'free_evening' | null
+
+  // Backup of plans for undo functionality
+  const [plansBackup, setPlansBackup] = useState(null);
+
   // Plans/tasks data mapping
   const [plans, setPlans] = useState({
     '2026-05-13': [
@@ -109,18 +117,169 @@ export default function DailyPlanner() {
   const calendarDays = getDaysInMonth(currentDate.getFullYear(), currentDate.getMonth());
 
   const handleQuickAction = (actionType) => {
+    const timestamp =
+      'Today • ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const userMsgId = Date.now().toString();
+
+    if (actionType === 'ai_actions_menu') {
+      setMessages((prev) => [
+        ...prev,
+        { id: userMsgId, sender: 'user', text: 'Select AI Action', timestamp },
+        {
+          id: userMsgId + '_ai',
+          sender: 'ai',
+          text: 'Here are the available AI actions you can run on your planner:',
+          timestamp,
+          actions: [
+            { label: 'Recalibrate my day', actionId: 'recalibrate_day' },
+            { label: 'Reduce overload', actionId: 'reduce_overload' },
+            { label: 'Optimize schedule', actionId: 'optimize_schedule' },
+          ],
+        },
+      ]);
+      return;
+    }
+
+    if (actionType === 'recalibrate_day') {
+      setPlansBackup(JSON.parse(JSON.stringify(plans)));
+      setIsLoading(true);
+      setMessages((prev) => [
+        ...prev,
+        { id: userMsgId, sender: 'user', text: 'Recalibrate my day', timestamp },
+        { id: userMsgId + '_ai_loading', sender: 'ai', text: 'Recalibrating your day based on your tasks, habits, and priorities... Please wait.', timestamp }
+      ]);
+      setTimeout(() => {
+        setIsLoading(false);
+        setAiActionState('recalibrated');
+        setPlans((prev) => ({
+          ...prev,
+          '2026-05-13': [
+            { id: '1', title: 'Morning Workout...', source: 'ai', status: 'To Do', priority: 'HIGH' },
+            { id: '2', title: 'Complete Work T...', source: 'ai', status: 'To Do', priority: 'MEDIUM' },
+            { id: '3', title: 'Exercise Routine', source: 'ai', status: 'To Do', priority: 'URGENT' },
+            { id: '4', title: 'Career Development Plan', source: 'ai', status: 'In Progress', priority: 'HIGH' },
+            { id: '5', title: 'Read Book & Meditate', source: 'ai', status: 'To Do', priority: 'LOW' }
+          ]
+        }));
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: userMsgId + '_ai_done',
+            sender: 'ai',
+            text: "I've recalibrated your schedule. I've added a Career Block and a balanced cognitive buffer to optimize performance. Do you want to keep it?",
+            timestamp,
+            actions: [
+              { label: 'Accept plan', actionId: 'accept_recalibrate' },
+              { label: 'Dismiss', actionId: 'dismiss_recalibrate' },
+            ]
+          }
+        ]);
+      }, 1500);
+      return;
+    }
+
+    if (actionType === 'reduce_overload') {
+      setPlansBackup(JSON.parse(JSON.stringify(plans)));
+      setIsLoading(true);
+      setMessages((prev) => [
+        ...prev,
+        { id: userMsgId, sender: 'user', text: 'Reduce overload', timestamp },
+        { id: userMsgId + '_ai_loading', sender: 'ai', text: 'Rebalancing tasks to reduce cognitive overload... Please wait.', timestamp }
+      ]);
+      setTimeout(() => {
+        setIsLoading(false);
+        setAiActionState('overload_reduced');
+        setPlans((prev) => {
+          const updated = { ...prev };
+          const items = updated['2026-05-13'] || [];
+          updated['2026-05-13'] = items.filter(x => x.id !== '2'); // Move Complete Work Task
+          updated['2026-05-14'] = [
+            ...(updated['2026-05-14'] || []),
+            { id: '2', title: 'Complete Work Task (Rescheduled)', source: 'ai', status: 'To Do', priority: 'MEDIUM' }
+          ];
+          return updated;
+        });
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: userMsgId + '_ai_done',
+            sender: 'ai',
+            text: "Reduced overload. I've moved 'Complete Work Task' to tomorrow (May 14) and left only urgent items for today to reduce cognitive pressure. Do you want to keep this?",
+            timestamp,
+            actions: [
+              { label: 'Accept changes', actionId: 'accept_recalibrate' },
+              { label: 'Undo changes', actionId: 'dismiss_recalibrate' },
+            ]
+          }
+        ]);
+      }, 1500);
+      return;
+    }
+
+    if (actionType === 'optimize_schedule') {
+      setPlansBackup(JSON.parse(JSON.stringify(plans)));
+      setIsLoading(true);
+      setMessages((prev) => [
+        ...prev,
+        { id: userMsgId, sender: 'user', text: 'Optimize schedule', timestamp },
+        { id: userMsgId + '_ai_loading', sender: 'ai', text: 'Optimizing your daily planner layout... Please wait.', timestamp }
+      ]);
+      setTimeout(() => {
+        setIsLoading(false);
+        setAiActionState('optimized');
+        setPlans((prev) => ({
+          ...prev,
+          '2026-05-13': [
+            { id: '1', title: 'Morning Workout...', source: 'ai', status: 'To Do', priority: 'HIGH' },
+            { id: '3', title: 'Exercise Routine', source: 'ai', status: 'To Do', priority: 'URGENT' },
+            { id: '2', title: 'Complete Work T...', source: 'ai', status: 'To Do', priority: 'MEDIUM' }
+          ]
+        }));
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: userMsgId + '_ai_done',
+            sender: 'ai',
+            text: "Schedule optimized. I've re-arranged your Workout and Exercise blocks to align with your peak focus hours. Do you want to keep this?",
+            timestamp,
+            actions: [
+              { label: 'Accept changes', actionId: 'accept_recalibrate' },
+              { label: 'Undo changes', actionId: 'dismiss_recalibrate' },
+            ]
+          }
+        ]);
+      }, 1500);
+      return;
+    }
+
     let userMsg = '';
     let aiResponse = '';
 
     if (actionType === 'balance') {
+      setPlansBackup(JSON.parse(JSON.stringify(plans)));
       userMsg = 'Balance my schedule';
-      aiResponse =
-        "I've re-distributed your tasks for May 13 to allow for better work-life balance and deep focus time. Do you want to keep it?";
-    } else if (actionType === 'free_evening') {
-      userMsg = 'Free up my evening';
-      aiResponse =
-        "I've moved evening tasks to tomorrow morning to ensure you have a relaxed evening.";
+      aiResponse = "I've re-distributed your tasks for May 13 to allow for better work-life balance and deep focus time. Do you want to keep it?";
+      setIsLoading(true);
       setTimeout(() => {
+        setIsLoading(false);
+        setAiActionState('balanced');
+        setPlans((prev) => ({
+          ...prev,
+          '2026-05-13': [
+            { id: '1', title: 'Morning Workout...', source: 'ai', status: 'To Do', priority: 'HIGH' },
+            { id: '2', title: 'Complete Work T...', source: 'ai', status: 'To Do', priority: 'MEDIUM' },
+            { id: '3', title: 'Exercise Routine', source: 'ai', status: 'To Do', priority: 'URGENT' },
+          ]
+        }));
+      }, 1500);
+    } else if (actionType === 'free_evening') {
+      setPlansBackup(JSON.parse(JSON.stringify(plans)));
+      userMsg = 'Free up my evening';
+      aiResponse = "I've moved evening tasks to tomorrow morning to ensure you have a relaxed evening.";
+      setIsLoading(true);
+      setTimeout(() => {
+        setIsLoading(false);
+        setAiActionState('free_evening');
         setPlans((prev) => {
           const updated = { ...prev };
           const eveningPlans = updated['2026-05-13'] || [];
@@ -128,61 +287,77 @@ export default function DailyPlanner() {
           updated['2026-05-13'] = [];
           return updated;
         });
-      }, 1000);
+      }, 1500);
     } else if (actionType === 'monthly_plan') {
       userMsg = 'Generate Monthly Plan';
-      aiResponse =
-        "I've generated focus blocks for May 2026. The calendar has been updated with these slots.";
+      aiResponse = "I've generated focus blocks for May 2026. The calendar has been updated with these slots.";
+      setIsLoading(true);
+      setTimeout(() => {
+        setIsLoading(false);
+        setPlans((prev) => ({
+          ...prev,
+          '2026-05-11': [{ id: 'm1', title: 'Sprint Focus Block' }],
+          '2026-05-13': [
+            { id: '1', title: 'Morning Workout...' },
+            { id: '2', title: 'Complete Work T...' },
+            { id: '3', title: 'Exercise Routine' }
+          ],
+          '2026-05-15': [{ id: 'm2', title: 'Client Review Block' }],
+          '2026-05-20': [{ id: 'm3', title: 'Product Rebalance Block' }],
+        }));
+      }, 1500);
     }
 
-    const timestamp =
-      'Today • ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const userMsgId = Date.now().toString();
+    const userMsgIdRaw = Date.now().toString();
 
     setMessages((prev) => [
       ...prev,
-      { id: userMsgId, sender: 'user', text: userMsg, timestamp },
-      { id: userMsgId + '_ai', sender: 'ai', text: aiResponse, timestamp },
+      { id: userMsgIdRaw, sender: 'user', text: userMsg, timestamp },
+      {
+        id: userMsgIdRaw + '_ai',
+        sender: 'ai',
+        text: aiResponse,
+        timestamp,
+        actions: [
+          { label: 'Accept changes', actionId: 'accept_recalibrate' },
+          { label: 'Undo changes', actionId: 'dismiss_recalibrate' },
+        ]
+      },
     ]);
   };
 
   const handleActionClick = (actionId) => {
     const timestamp =
       'Today • ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    if (actionId === 'accept_initial') {
+
+    if (actionId === 'accept_initial' || actionId === 'accept_recalibrate') {
       setMessages((prev) => [
         ...prev,
-        { id: 'user_accept', sender: 'user', text: 'Accept plan', timestamp },
+        { id: 'user_accept_' + Date.now(), sender: 'user', text: 'Accept changes', timestamp },
         {
-          id: 'ai_accept_reply',
+          id: 'ai_accept_reply_' + Date.now(),
           sender: 'ai',
-          text: 'Great. Your day is set. You can adjust anything by typing here or using the actions above.',
+          text: 'Great! The changes have been successfully applied to your planner layout.',
           timestamp,
-          links: [{ label: 'Undo changes', actionId: 'undo_initial' }],
+          links: [{ label: 'Undo changes', actionId: 'dismiss_recalibrate' }],
         },
       ]);
-    } else if (actionId === 'undo_initial') {
+      setAiActionState(null);
+    } else if (actionId === 'dismiss_initial' || actionId === 'dismiss_recalibrate') {
+      if (plansBackup) {
+        setPlans(plansBackup);
+      }
       setMessages((prev) => [
         ...prev,
-        { id: 'user_undo', sender: 'user', text: 'Undo changes', timestamp },
+        { id: 'user_undo_' + Date.now(), sender: 'user', text: 'Undo changes', timestamp },
         {
-          id: 'ai_undo_reply',
+          id: 'ai_undo_reply_' + Date.now(),
           sender: 'ai',
           text: 'Restored your previous schedule settings.',
           timestamp,
         },
       ]);
-    } else if (actionId === 'dismiss_initial') {
-      setMessages((prev) => [
-        ...prev,
-        { id: 'user_dismiss', sender: 'user', text: 'Dismiss plan', timestamp },
-        {
-          id: 'ai_dismiss_reply',
-          sender: 'ai',
-          text: 'Suggested plan dismissed. Let me know how else I can help.',
-          timestamp,
-        },
-      ]);
+      setAiActionState(null);
     }
   };
 
@@ -264,6 +439,10 @@ export default function DailyPlanner() {
             plans={plans}
             calendarDays={calendarDays}
             getFormattedDateString={getFormattedDateString}
+            isLoading={isLoading}
+            aiActionState={aiActionState}
+            onAccept={() => handleActionClick('accept_recalibrate')}
+            onDismiss={() => handleActionClick('dismiss_recalibrate')}
           />
         </div>
 

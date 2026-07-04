@@ -10,15 +10,29 @@ export default function PlannerBoard({
   viewMode,
   plans,
   calendarDays,
-  getFormattedDateString
+  getFormattedDateString,
+  isLoading,
+  aiActionState,
+  onAccept,
+  onDismiss
 }) {
   return (
     <div className="flex-1 flex flex-col">
       {/* Calendar Month/Weekly/Daily Grid */}
       {viewMode === 'Daily' ? (
-        <DailyView currentDate={currentDate} selectedDate={selectedDate} />
+        <DailyView 
+          currentDate={currentDate} 
+          selectedDate={selectedDate} 
+          isLoading={isLoading} 
+          aiActionState={aiActionState} 
+          onAccept={onAccept}
+          onDismiss={onDismiss}
+        />
       ) : viewMode === 'Weekly' ? (
-        <WeeklyView />
+        <WeeklyView 
+          isLoading={isLoading} 
+          aiActionState={aiActionState} 
+        />
       ) : (
         <MonthlyView
           calendarDays={calendarDays}
@@ -26,6 +40,7 @@ export default function PlannerBoard({
           plans={plans}
           selectedDate={selectedDate}
           setSelectedDate={setSelectedDate}
+          isLoading={isLoading}
         />
       )}
     </div>

@@ -18,7 +18,7 @@ export default function PlannerControls({
       {/* Action Buttons */}
       <div className="flex items-center gap-2.5 max-lg:w-full max-lg:flex-col">
         <button
-          onClick={() => handleQuickAction('monthly_plan')}
+          onClick={() => handleQuickAction('ai_actions_menu')}
           className="bg-primary flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-semibold text-white transition-colors max-lg:w-full max-lg:justify-center max-lg:py-2.5 max-lg:text-base"
         >
           <Sparkles size={14} className="fill-white/20" />
