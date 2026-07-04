@@ -36,7 +36,7 @@ export default function DailyView({ currentDate, selectedDate }) {
         ].map((hour) => (
           <div
             key={hour}
-            className="relative grid grid-cols-[64px_1fr] gap-0 border-b border-gray-100 last:border-b-0 dark:border-zinc-800/80"
+            className="relative grid grid-cols-[64px_minmax(0,1fr)] gap-0 border-b border-gray-100 last:border-b-0 dark:border-zinc-800/80"
           >
             {/* Hour Label */}
             <div className="border-r border-gray-100 bg-white py-4 pr-3 text-right text-[10px] font-semibold text-gray-400 dark:border-zinc-800/80 dark:bg-zinc-900 dark:text-gray-500">
@@ -54,11 +54,11 @@ export default function DailyView({ currentDate, selectedDate }) {
               )}
 
               {hour === '1 AM' && (
-                <div className="flex w-full items-center justify-start gap-2.5 rounded-lg border border-gray-100 bg-white p-3 shadow-sm dark:border-zinc-700 dark:bg-zinc-800">
+                <div className="flex flex-col sm:flex-row sm:items-center w-full justify-start gap-2.5 rounded-lg border border-gray-100 bg-white p-3 shadow-sm dark:border-zinc-700 dark:bg-zinc-800">
                   <span className="text-xs font-medium text-slate-700 dark:text-gray-300">
                     Morning Workout Routine
                   </span>
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex flex-wrap items-center gap-1.5">
                     <span className="rounded bg-[#F973160D] px-2 py-0.5 text-[8px] font-medium text-[#F97316] dark:border-none dark:bg-[#F973160D] dark:text-orange-400">
                       HIGH
                     </span>
@@ -74,11 +74,11 @@ export default function DailyView({ currentDate, selectedDate }) {
               )}
 
               {hour === '2 AM' && (
-                <div className="flex w-full items-center justify-start gap-2.5 rounded-lg border border-gray-100 bg-white p-3 shadow-sm dark:border-zinc-700 dark:bg-zinc-800">
+                <div className="flex flex-col sm:flex-row sm:items-center w-full justify-start gap-2.5 rounded-lg border border-gray-100 bg-white p-3 shadow-sm dark:border-zinc-700 dark:bg-zinc-800">
                   <span className="text-xs font-medium text-slate-700 dark:text-gray-300">
                     Complete Work Task
                   </span>
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex flex-wrap items-center gap-1.5">
                     <span className="rounded border border-yellow-100 bg-yellow-50 px-2 py-0.5 text-[8px] font-bold text-yellow-600 dark:border-none dark:bg-yellow-950/30 dark:text-yellow-400">
                       MEDIUM
                     </span>
@@ -92,11 +92,11 @@ export default function DailyView({ currentDate, selectedDate }) {
 
               {hour === '4 AM' && (
                 <div className="flex w-full flex-col gap-1 rounded-lg border border-gray-100 bg-white p-3 shadow-sm dark:border-zinc-700 dark:bg-zinc-800">
-                  <div className="flex items-center justify-start gap-2.5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-start gap-2">
                     <span className="text-xs font-medium text-slate-700 dark:text-gray-300">
                       Exercise Routine
                     </span>
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex flex-wrap items-center gap-1.5">
                       <span className="rounded bg-red-50 px-2 py-0.5 text-[8px] font-medium text-red-500 dark:border-none dark:text-red-400">
                         URGENT
                       </span>
@@ -145,7 +145,7 @@ export default function DailyView({ currentDate, selectedDate }) {
 
                   {/* Drink Water card */}
                   <div className="flex items-center justify-between rounded-lg border border-gray-100 bg-white p-3.5 shadow-sm dark:border-zinc-700 dark:bg-zinc-800">
-                    <div className="flex flex-col gap-1 pr-4">
+                    <div className="flex flex-col gap-1 pr-4 min-w-0">
                       <span className="text-xs font-medium text-slate-700 dark:text-gray-300">
                         Drink Water
                       </span>
@@ -165,11 +165,11 @@ export default function DailyView({ currentDate, selectedDate }) {
 
               {hour === '11 AM' && (
                 <div className="flex w-full flex-col gap-1.5 rounded-lg border border-gray-100 bg-white p-3.5 shadow-sm dark:border-zinc-700 dark:bg-zinc-800">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-slate-700 dark:text-gray-300">
-                        Career Development Plan
-                      </span>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-xs font-bold text-slate-700 dark:text-gray-300">
+                      Career Development Plan
+                    </span>
+                    <div className="flex flex-wrap items-center gap-1.5">
                       <span className="rounded border border-orange-100 bg-orange-50 px-2 py-0.5 text-[8px] font-bold text-orange-500 dark:border-none dark:bg-orange-950/30 dark:text-orange-400">
                         HIGH
                       </span>
