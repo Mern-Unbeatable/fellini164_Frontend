@@ -11,7 +11,7 @@ const BREADCRUMBS = [
   { prefix: '/user/daily-plan', section: 'Organization', page: 'Planner' },
   { prefix: '/user/weekly-plan', section: 'Organization', page: 'Planner' },
   { prefix: '/user/monthly-plan', section: 'Organization', page: 'Planner' },
-  { prefix: '/dashboard', page: 'Dashboard' },
+  { prefix: '/dashboard', section: 'Main', page: 'Dashboard' },
   { prefix: '/settings', page: 'Settings' },
   { prefix: '/user/profile', page: 'Profile' },
   { prefix: '/user/subscription', page: 'Subscription' },
