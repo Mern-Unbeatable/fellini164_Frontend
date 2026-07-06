@@ -1,5 +1,19 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Instagram } from 'lucide-react';
+
+const TiktokIcon = ({ size = 20 }) => (
+  <svg
+    stroke="currentColor"
+    fill="currentColor"
+    strokeWidth="0"
+    viewBox="0 0 448 512"
+    style={{ width: size, height: size }}
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path d="M448,209.91a210.06,210.06,0,0,1-122.77-39.25V349.38A162.55,162.55,0,1,1,185,188.31V278.2a74.62,74.62,0,1,0,52.23,71.18V0l88,0a121.18,121.18,0,0,0,1.86,22.17h0A122.18,122.18,0,0,0,381,102.39a121.43,121.43,0,0,0,67,20.14Z"></path>
+  </svg>
+);
 
 const COLUMNS = [
   {
@@ -17,6 +31,7 @@ const COLUMNS = [
     links: [
       { label: 'About Us', href: '/about' },
       { label: 'Contact Us', href: '/contact' },
+         { label: 'FAQ', href: '/faq' },
       // { label: 'Blog', href: '/blog' },
       // { label: 'Careers', href: '/careers' },
     ],
@@ -31,11 +46,20 @@ const COLUMNS = [
     ],
   },
   {
-    heading: 'Support',
+    heading: 'Follow Us',
     links: [
-      // { label: 'Help Center', href: '/help' },
-      { label: 'FAQ', href: '/faq' },
-      { label: 'Contact Support', href: '/contact' },
+      {
+        label: 'Instagram',
+        href: 'https://www.instagram.com/elyxaai?igsh=ZDdyNXZzcW5ocTh4',
+        isExternal: true,
+        icon: <Instagram size={14} />,
+      },
+      {
+        label: 'TikTok',
+        href: 'https://www.tiktok.com/@elyxaai?_r=1&_t=ZS-97nULDDKxPt',
+        isExternal: true,
+        icon: <TiktokIcon size={14} />,
+      },
     ],
   },
 ];
@@ -109,18 +133,31 @@ const PublicFooter = () => {
                     {col.heading}
                   </p>
                   <div className="flex flex-col gap-4">
-                    {col.links.map((link) => (
-                      <Link
-                        key={link.label}
-                        to={link.href}
-                        onClick={(e) => handleLinkClick(e, link.href)}
-                        className={`font-['Inter',sans-serif] text-xs leading-none font-semibold text-[#181818] no-underline transition-colors hover:text-[#8022fe] ${
-                          link.accent ? 'lg:text-[#8022fe]' : ''
-                        }`}
-                      >
-                        {link.label}
-                      </Link>
-                    ))}
+                    {col.links.map((link) =>
+                      link.isExternal ? (
+                        <a
+                          key={link.label}
+                          href={link.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-['Inter',sans-serif] text-xs leading-none font-semibold text-[#181818] no-underline transition-colors hover:text-[#8022fe] inline-flex items-center gap-1.5"
+                        >
+                          {link.icon}
+                          {link.label}
+                        </a>
+                      ) : (
+                        <Link
+                          key={link.label}
+                          to={link.href}
+                          onClick={(e) => handleLinkClick(e, link.href)}
+                          className={`font-['Inter',sans-serif] text-xs leading-none font-semibold text-[#181818] no-underline transition-colors hover:text-[#8022fe] ${
+                            link.accent ? 'lg:text-[#8022fe]' : ''
+                          }`}
+                        >
+                          {link.label}
+                        </Link>
+                      )
+                    )}
                   </div>
                 </div>
               ))}
@@ -167,16 +204,29 @@ const PublicFooter = () => {
                     {col.heading}
                   </p>
                   <div className="flex flex-col gap-5">
-                    {col.links.map((link) => (
-                      <Link
-                        key={link.label}
-                        to={link.href}
-                        onClick={(e) => handleLinkClick(e, link.href)}
-                        className="font-['Inter',sans-serif] text-sm leading-none font-semibold text-[#181818] no-underline transition-colors hover:text-[#8022fe]"
-                      >
-                        {link.label}
-                      </Link>
-                    ))}
+                    {col.links.map((link) =>
+                      link.isExternal ? (
+                        <a
+                          key={link.label}
+                          href={link.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-['Inter',sans-serif] text-sm leading-none font-semibold text-[#181818] no-underline transition-colors hover:text-[#8022fe] inline-flex items-center gap-1.5"
+                        >
+                          {link.icon}
+                          {link.label}
+                        </a>
+                      ) : (
+                        <Link
+                          key={link.label}
+                          to={link.href}
+                          onClick={(e) => handleLinkClick(e, link.href)}
+                          className="font-['Inter',sans-serif] text-sm leading-none font-semibold text-[#181818] no-underline transition-colors hover:text-[#8022fe]"
+                        >
+                          {link.label}
+                        </Link>
+                      )
+                    )}
                   </div>
                 </div>
               ))}
