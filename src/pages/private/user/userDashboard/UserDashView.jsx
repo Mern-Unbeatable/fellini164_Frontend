@@ -1,5 +1,5 @@
 import { useSelector } from 'react-redux';
-import { selectUser } from '../../../features/auth/authSlice';
+import { selectUser } from '../../../../features/auth/authSlice';
 import {
   Check,
   Flame,
@@ -109,7 +109,7 @@ const UserDashView = () => {
             <h2 className="mb-4 flex items-center gap-2 text-[14px] font-semibold text-[#181818] lg:text-[13px] dark:text-white">
               <TrendingUp size={15} className="text-[#8022fe]" /> Focus Analytics
             </h2>
-            <div className="grid grid-cols-2 gap-3 flex-1">
+            <div className="grid flex-1 grid-cols-2 gap-3">
               <div className="flex flex-col justify-center rounded-xl border border-[#f2f2f2] bg-white p-3 dark:border-zinc-700/50 dark:bg-zinc-900/50">
                 <div className="text-[10px] font-medium tracking-wider text-gray-400 uppercase">
                   Focus Streak
@@ -141,9 +141,12 @@ const UserDashView = () => {
                 Daily Quote
               </h2>
               <p className="text-[13px] leading-relaxed text-gray-600 italic dark:text-gray-300">
-                "Success is not final, failure is not fatal: it is the courage to continue that counts."
+                "Success is not final, failure is not fatal: it is the courage to continue that
+                counts."
               </p>
-              <span className="mt-1 block text-[11px] font-medium text-gray-400">— Winston Churchill</span>
+              <span className="mt-1 block text-[11px] font-medium text-gray-400">
+                — Winston Churchill
+              </span>
             </div>
           </div>
         </div>
@@ -165,7 +168,7 @@ const UserDashView = () => {
                     High-priority tasks scheduled for today
                   </p>
                 </div>
-                <span className="shrink-0 whitespace-nowrap rounded-md bg-[#f9f4ff] px-2.5 py-1 text-[12px] font-medium text-[#8022fe] dark:bg-zinc-700 dark:text-gray-300">
+                <span className="shrink-0 rounded-md bg-[#f9f4ff] px-2.5 py-1 text-[12px] font-medium whitespace-nowrap text-[#8022fe] dark:bg-zinc-700 dark:text-gray-300">
                   {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                 </span>
               </div>
@@ -274,40 +277,6 @@ const UserDashView = () => {
                   </div>
                 </div>
               ))}
-            </div>
-          </div>
-
-          {/* AI Coach Suggestion / Insight Box */}
-          <div className="flex flex-1 flex-col justify-between rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] p-5 dark:border-zinc-700 dark:bg-zinc-800">
-            <div className="flex items-start gap-4">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#f9f4ff] text-[#8022fe] dark:bg-zinc-700 dark:text-gray-300">
-                <Sparkles size={18} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-[14px] font-semibold text-[#181818] lg:text-[13px] dark:text-white">
-                    Coach Insight
-                  </h3>
-                  <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-medium text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400">
-                    AI Active
-                  </span>
-                </div>
-                <p className="mt-2 text-[13px] leading-relaxed text-gray-600 dark:text-gray-300">
-                  You typically complete wellness tasks earlier in the morning. Try scheduling{' '}
-                  <strong className="font-medium text-[#181818] dark:text-white">
-                    Morning Meditation
-                  </strong>{' '}
-                  first thing to maintain your streak!
-                </p>
-                <div className="mt-3.5 flex items-center gap-3">
-                  <button className="rounded-lg bg-[#f9f4ff] px-3.5 py-1.5 text-[12px] font-semibold text-[#8022fe] transition hover:bg-[#ebdcfc] dark:bg-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-600">
-                    Apply Schedule
-                  </button>
-                  <button className="text-[12px] font-medium text-gray-500 transition hover:text-[#181818] dark:text-gray-400 dark:hover:text-white">
-                    Dismiss
-                  </button>
-                </div>
-              </div>
             </div>
           </div>
         </div>

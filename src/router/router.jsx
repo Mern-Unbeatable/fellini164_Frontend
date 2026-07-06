@@ -20,7 +20,7 @@ import LoginView from '../pages/auth/LoginView';
 import RegisterView from '../pages/auth/RegisterView';
 import OTPVerifyView from '../pages/auth/OTPVerifyView';
 import OnboardingFlowView from '../pages/auth/OnboardingFlowView';
-import UserDashView from '../pages/private/user/UserDashView';
+import UserDashView from '../pages/private/user/userDashboard/UserDashView';
 import AdminDashView from '../pages/private/admin/AdminDashView';
 import Subscription from '../pages/private/user/account/Subscription';
 import ReferFriend from '../pages/private/user/account/ReferFriend';
