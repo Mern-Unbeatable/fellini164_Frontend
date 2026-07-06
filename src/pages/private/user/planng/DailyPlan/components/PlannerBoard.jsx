@@ -19,7 +19,7 @@ export default function PlannerBoard({
 }) {
   return (
     <div className="flex-1 flex flex-col">
-      {/* Calendar Month/Weekly/Daily Grid */}
+      
       {viewMode === 'Daily' ? (
         <DailyView 
           currentDate={currentDate} 
