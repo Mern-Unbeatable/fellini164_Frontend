@@ -50,7 +50,7 @@ const COLUMNS = [
     links: [
       {
         label: 'Instagram',
-        href: 'https://www.instagram.com/elyxaai?igsh=ZDdyNXZzcW5ocTh4',
+        href: 'https://www.instagram.com/elyxaai?igsh=b3l6cWoxeTF3bmdv&utm_source=qr',
         isExternal: true,
         icon: <Instagram size={14} />,
       },
