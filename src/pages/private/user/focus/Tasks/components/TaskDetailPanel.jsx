@@ -784,7 +784,7 @@ export function TaskDetailDrawer({
   if (!task) return null;
 
   return (
-    <div className="fixed inset-0 z-40 max-lg:bg-black/10 lg:absolute lg:inset-0 lg:z-30 lg:bg-transparent">
+    <div className="fixed inset-0 z-40 max-lg:bg-black/10 lg:top-13 lg:z-30 lg:bg-transparent">
       <button
         type="button"
         aria-label="Close task detail"
