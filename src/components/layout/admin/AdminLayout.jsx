@@ -102,6 +102,7 @@ const AdminLayout = () => {
         menuItems={menuItems}
         user={user}
         onLogout={handleLogout}
+        showLogout={false}
       />
 
       {/* Main Content */}

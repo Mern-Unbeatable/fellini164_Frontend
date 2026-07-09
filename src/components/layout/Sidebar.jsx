@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import { X, LogOut, PanelLeft, PanelLeftClose } from 'lucide-react';
 
-const Sidebar = ({ isOpen, onClose, menuItems, onLogout }) => {
+const Sidebar = ({ isOpen, onClose, menuItems, onLogout, showLogout = true }) => {
   const [collapsed, setCollapsed] = useState(false);
   const showExpanded = !collapsed || isOpen;
 
@@ -111,20 +111,22 @@ const Sidebar = ({ isOpen, onClose, menuItems, onLogout }) => {
         </nav>
 
         {/* User Info / Logout */}
-        <div className="border-t border-[#f2f2f2] dark:border-zinc-700 p-4">
-          <button
-            onClick={onLogout}
-            className={`flex w-full items-center gap-2 rounded-[10px] px-2.5 py-1.5 text-[#5d5d5d] hover:bg-[#fcfcfc] dark:text-gray-300 dark:hover:bg-zinc-800 transition ${
-              !showExpanded ? 'justify-center' : ''
-            }`}
-            title={!showExpanded ? 'Logout' : undefined}
-          >
-            <LogOut size={18} strokeWidth={1.75} className="shrink-0" />
-            {showExpanded && (
-              <span className="text-[14px] font-medium whitespace-nowrap">Logout</span>
-            )}
-          </button>
-        </div>
+        {showLogout && (
+          <div className="border-t border-[#f2f2f2] dark:border-zinc-700 p-4">
+            <button
+              onClick={onLogout}
+              className={`flex w-full items-center gap-2 rounded-[10px] px-2.5 py-1.5 text-[#5d5d5d] hover:bg-[#fcfcfc] dark:text-gray-300 dark:hover:bg-zinc-800 transition ${
+                !showExpanded ? 'justify-center' : ''
+              }`}
+              title={!showExpanded ? 'Logout' : undefined}
+            >
+              <LogOut size={18} strokeWidth={1.75} className="shrink-0" />
+              {showExpanded && (
+                <span className="text-[14px] font-medium whitespace-nowrap">Logout</span>
+              )}
+            </button>
+          </div>
+        )}
       </aside>
     </>
   );

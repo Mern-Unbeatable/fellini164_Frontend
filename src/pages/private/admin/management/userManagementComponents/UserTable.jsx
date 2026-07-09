@@ -1,7 +1,11 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronDown, Download, Search } from 'lucide-react';
+import { ChevronDown, Download, Search, MoreVertical, Eye, Pencil, Trash2, X } from 'lucide-react';
 import AllPagination from '../../../../../components/common/AllPagination';
+import EditUserModal from './EditUserModal';
+import ViewUserModal from './ViewUserModal';
+import ActionDropdown from './ActionDropdown';
+import DeleteConfirmModal from './DeleteConfirmModal';
 
 const MobileCard = ({
   user,
@@ -11,65 +15,81 @@ const MobileCard = ({
   getPlanColor,
   getStatusColor,
   getStatusDot,
-  onManage,
-}) => (
-  <div className="mb-3 rounded-lg border border-gray-200 bg-white dark:bg-zinc-800  shadow-sm">
-    {/* User Info */}
-    <div className="mb-4 flex items-center gap-3">
-      <div
-        className={`h-12 w-12 rounded-full ${getAvatarColor(
-          index
-        )} flex items-center justify-center text-sm font-semibold text-gray-700`}
+  onView,
+  onEdit,
+  onDelete,
+}) => {
+  return (
+    <div className="mb-3 rounded-lg border border-gray-200 bg-white dark:bg-zinc-800 p-4 shadow-sm relative">
+      <div className="mb-4 flex items-center justify-between gap-3 min-w-0">
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          <div
+            className={`h-12 w-12 rounded-full shrink-0 ${getAvatarColor(
+              index
+            )} flex items-center justify-center text-sm font-semibold text-gray-700`}
+          >
+            {getInitials(user.name)}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="font-medium text-gray-900 dark:text-white truncate">{user.name}</div>
+            <div className="text-sm text-gray-500 dark:text-gray-200 truncate">{user.email}</div>
+          </div>
+        </div>
+
+        {/* Dropdown Action Menu */}
+        <ActionDropdown
+          user={user}
+          onView={onView}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          dropdownClass="right-0 top-6"
+        />
+      </div>
+
+      {/* Details Grid */}
+      <div className="mb-4 space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-medium text-gray-500 uppercase dark:text-gray-200">Plan</span>
+          <span
+            className={`inline-flex rounded-md px-3 py-1 text-xs font-semibold ${getPlanColor(user.plan)}`}
+          >
+            {user.plan}
+          </span>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-medium text-gray-500 uppercase dark:text-gray-200">Status</span>
+          <span
+            className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${getStatusColor(user.status)}`}
+          >
+            <span className={`h-2 w-2 rounded-full ${getStatusDot(user.status)}`} />
+            {user.status}
+          </span>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-medium text-gray-500 uppercase dark:text-gray-200">Joined</span>
+          <span className="text-sm text-gray-700 dark:text-gray-200">{user.joined}</span>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-medium text-gray-500 uppercase dark:text-gray-200">Last Active</span>
+          <span className="text-sm text-gray-700 dark:text-gray-200">{user.lastActive}</span>
+        </div>
+      </div>
+
+      {/* Action Button - Commented Out */}
+      {/* 
+      <button
+        onClick={() => onManage(user.id)}
+        className="w-full rounded-lg bg-blue-50 px-4 py-2 text-sm font-medium text-[#7C46EE] transition hover:bg-blue-100"
       >
-        {getInitials(user.name)}
-      </div>
-      <div className="flex-1">
-        <div className="font-medium text-gray-900 dark:text-white">{user.name}</div>
-        <div className="text-sm text-gray-500 dark:text-gray-200">{user.email}</div>
-      </div>
+        Manage
+      </button> 
+      */}
     </div>
-
-    {/* Details Grid */}
-    <div className="mb-4 space-y-2">
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-gray-500 uppercase dark:text-gray-200">Plan</span>
-        <span
-          className={`inline-flex rounded-md px-3 py-1 text-xs font-semibold ${getPlanColor(user.plan)}`}
-        >
-          {user.plan}
-        </span>
-      </div>
-
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-gray-500 uppercase dark:text-gray-200">Status</span>
-        <span
-          className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${getStatusColor(user.status)}`}
-        >
-          <span className={`h-2 w-2 rounded-full ${getStatusDot(user.status)}`} />
-          {user.status}
-        </span>
-      </div>
-
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-gray-500 uppercase dark:text-gray-200">Joined</span>
-        <span className="text-sm text-gray-700 dark:text-gray-200">{user.joined}</span>
-      </div>
-
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-gray-500 uppercase dark:text-gray-200">Last Active</span>
-        <span className="text-sm text-gray-700 dark:text-gray-200">{user.lastActive}</span>
-      </div>
-    </div>
-
-    {/* Action Button */}
-    <button
-      onClick={() => onManage(user.id)}
-      className="w-full rounded-lg bg-blue-50 px-4 py-2 text-sm font-medium text-[#7C46EE] transition hover:bg-blue-100"
-    >
-      Manage
-    </button>
-  </div>
-);
+  );
+};
 
 const TableHeader = () => (
   <thead>
@@ -79,7 +99,7 @@ const TableHeader = () => (
       <th className="px-6 py-2.5 text-left text-[12px] font-medium text-[#c2c2c2] uppercase tracking-wider dark:text-zinc-500">Status</th>
       <th className="px-6 py-2.5 text-left text-[12px] font-medium text-[#c2c2c2] uppercase tracking-wider dark:text-zinc-500">Joined</th>
       <th className="px-6 py-2.5 text-left text-[12px] font-medium text-[#c2c2c2] uppercase tracking-wider dark:text-zinc-500">Last Active</th>
-      <th className="px-6 py-2.5 text-left text-[12px] font-medium text-[#c2c2c2] uppercase tracking-wider dark:text-zinc-500">Actions</th>
+      <th className="px-6 py-2.5 text-center text-[12px] font-medium text-[#c2c2c2] uppercase tracking-wider dark:text-zinc-500">Actions</th>
     </tr>
   </thead>
 );
@@ -112,7 +132,9 @@ const UserRow = ({
   getPlanColor,
   getStatusColor,
   getStatusDot,
-  onManage,
+  onView,
+  onEdit,
+  onDelete,
 }) => (
   <tr className="border-b border-[#f2f2f2] dark:border-zinc-700 transition hover:bg-[#fcfcfc] dark:hover:bg-zinc-700/50">
     <td className="px-6 py-2.5">
@@ -149,10 +171,14 @@ const UserRow = ({
     <td className="px-6 py-2.5 text-[12px] font-medium text-[#5d5d5d] dark:text-gray-300">{user.joined}</td>
     <td className="px-6 py-2.5 text-[12px] font-medium text-[#5d5d5d] dark:text-gray-300">{user.lastActive}</td>
 
-    <td className="px-6 py-2.5">
-      <button onClick={() => onManage(user.id)} className="text-[12px] font-semibold text-[#8022fe] dark:text-violet-400 hover:underline">
-        Manage
-      </button>
+    <td className="px-6 py-2.5 text-center">
+      <ActionDropdown
+        user={user}
+        onView={onView}
+        onEdit={onEdit}
+        onDelete={onDelete}
+        dropdownClass="right-0 top-full mt-2.5"
+      />
     </td>
   </tr>
 );
@@ -168,8 +194,6 @@ const UserTable = ({
   getStatusColor,
   getStatusDot,
 }) => {
-  const navigate = useNavigate();
-
   const getInitials = (name) =>
     name
       .split(' ')
@@ -179,6 +203,61 @@ const UserTable = ({
 
   const getAvatarColor = () => 'bg-purple-200';
   const [statusFilter, setStatusFilter] = useState('All Status');
+  const [localUsers, setLocalUsers] = useState(users);
+
+  // Sync state with props
+  useEffect(() => {
+    setLocalUsers(users);
+  }, [users]);
+
+  // Modal States
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+
+  const handleView = (user) => {
+    setSelectedUser(user);
+    setViewModalOpen(true);
+  };
+
+  const handleEdit = (user) => {
+    setSelectedUser(user);
+    setEditModalOpen(true);
+  };
+
+  const handleSaveEdit = (updatedData) => {
+    setLocalUsers((prev) =>
+      prev.map((u) =>
+        u.id === selectedUser.id
+          ? {
+              ...u,
+              ...updatedData,
+            }
+          : u
+      )
+    );
+    setEditModalOpen(false);
+    setSelectedUser(null);
+  };
+
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
+
+  const handleDelete = (userId) => {
+    const userObj = localUsers.find((u) => u.id === userId);
+    if (userObj) {
+      setUserToDelete(userObj);
+      setDeleteModalOpen(true);
+    }
+  };
+
+  const handleConfirmDelete = () => {
+    if (userToDelete) {
+      setLocalUsers((prev) => prev.filter((u) => u.id !== userToDelete.id));
+      setDeleteModalOpen(false);
+      setUserToDelete(null);
+    }
+  };
 
   const statusLabelToInternal = (label) => {
     const map = {
@@ -192,7 +271,7 @@ const UserTable = ({
 
   const filteredUsers = useMemo(
     () =>
-      users.filter((u) => {
+      localUsers.filter((u) => {
         const matchesText =
           u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           u.email.toLowerCase().includes(searchTerm.toLowerCase());
@@ -207,10 +286,10 @@ const UserTable = ({
 
         return true;
       }),
-    [users, searchTerm, statusFilter]
+    [localUsers, searchTerm, statusFilter]
   );
 
-  // Pagination (client-side): 6 items per page
+  // Pagination (client-side): 8 items per page
   const ITEMS_PER_PAGE = 8;
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -219,12 +298,10 @@ const UserTable = ({
 
   useEffect(() => {
     // reset page when search or status filter changes
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurrentPage(1);
   }, [searchTerm, statusFilter]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (currentPage > totalPages) setCurrentPage(totalPages);
   }, [currentPage, totalPages]);
 
@@ -278,7 +355,7 @@ const UserTable = ({
                 />
               </div>
               <div className="flex items-center gap-2 md:gap-3">
-                {/* Status filter dropdown (matches image) */}
+                {/* Status filter dropdown */}
                 <StatusFilterDropdown
                   onChange={(val) => setStatusFilter(val)}
                   value={statusFilter}
@@ -306,13 +383,15 @@ const UserTable = ({
                   getPlanColor={getPlanColor}
                   getStatusColor={getStatusColor}
                   getStatusDot={getStatusDot}
-                  onManage={(id) => navigate(`/admin/users/${id}`)}
+                  onView={handleView}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
                 />
               ))}
             </div>
 
             {/* Desktop Table View (hidden on mobile & tablet) */}
-            <div className="hidden overflow-x-auto lg:block">
+            <div className="hidden overflow-visible lg:block">
               <table className="w-full">
                 <TableHeader />
                 <tbody>
@@ -326,7 +405,9 @@ const UserTable = ({
                       getPlanColor={getPlanColor}
                       getStatusColor={getStatusColor}
                       getStatusDot={getStatusDot}
-                      onManage={(id) => navigate(`/admin/users/${id}`)}
+                      onView={handleView}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
                     />
                   ))}
                 </tbody>
@@ -349,6 +430,36 @@ const UserTable = ({
           </>
         )}
       </div>
+
+      {/* View User Modal */}
+      <ViewUserModal
+        isOpen={viewModalOpen}
+        onClose={() => setViewModalOpen(false)}
+        user={selectedUser}
+        getInitials={getInitials}
+        getPlanColor={getPlanColor}
+        getStatusColor={getStatusColor}
+        getStatusDot={getStatusDot}
+      />
+
+      {/* Edit User Modal */}
+      <EditUserModal
+        isOpen={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        user={selectedUser}
+        onSave={handleSaveEdit}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setUserToDelete(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        userName={userToDelete?.name || ''}
+      />
     </div>
   );
 };
