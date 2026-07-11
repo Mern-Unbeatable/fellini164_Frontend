@@ -96,7 +96,7 @@ function mockGenerateHabit(prompt) {
   // exact reference row instead of a sparser one.
   return {
     title: 'Drink Water',
-    description: 'Stay hydrated throughout the day',
+    description: 'Stay hydrated throughout the day Stay hydrated throughout the day',
     category: 'Health',
     tags: [
       { label: 'Health' },
@@ -444,7 +444,7 @@ export default function NewHabitsModal({ open, onClose, onSave }) {
               <div className="flex flex-col gap-2.5 rounded-2xl border border-[#f2f2f2] bg-white p-3 dark:border-zinc-700 dark:bg-zinc-900">
                 <div className="flex items-center pl-3 max-lg:hidden">
                   <div className="w-97 shrink-0" />
-                  <div className="flex w-115 shrink-0 items-center justify-end gap-5">
+                  <div className="flex w-115 shrink-0 items-center justify-center gap-5">
                     {TARGET_DAYS.map((day) => (
                       <p
                         key={day}
