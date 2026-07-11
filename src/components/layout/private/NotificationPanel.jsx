@@ -1,17 +1,17 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-export default function NotificationPanel({ isOpen, onClose, notifications, setNotifications }) {
+export default function NotificationPanel({ isOpen, onClose, notifications, onMarkAllRead, onMarkOneRead }) {
   if (!isOpen) return null;
 
   const markAllRead = (e) => {
     e.stopPropagation();
-    setNotifications(prev => prev.map(n => ({ ...n, unread: false })));
+    onMarkAllRead();
   };
 
   const markIndividualRead = (e, id) => {
     e.stopPropagation();
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, unread: false } : n));
+    onMarkOneRead(id);
   };
 
   return (

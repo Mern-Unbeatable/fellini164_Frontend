@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { selectUnreadNotificationCount } from '../../../features/notifications/notificationsSlice';
 import {
   ChevronLeft,
   ChevronRight,
@@ -42,7 +44,7 @@ const WORK_ITEMS = [
 const TOOLS_ITEMS = [
   { label: 'AI Coach', icon: Sparkles,path: '/user/ai-coach', match: ['/user/ai-coach'] },
   { label: 'Activity', icon: Activity, path: '/user/activity-log', match: ['/user/activity-log'] },
-  { label: 'Notification', icon: Bell, path: '/user/notifications', match: ['/user/notifications'], badge: '+2' },
+  { label: 'Notification', icon: Bell, path: '/user/notifications', match: ['/user/notifications'] },
 ];
 
 function buildCalendarGrid(viewDate) {
@@ -165,7 +167,14 @@ function NavItem({ item, isActive, collapsed, onNavigate }) {
       )}
       <Icon size={18} className="shrink-0" strokeWidth={1.75} />
       {!collapsed && (
-        <p className="min-w-0 flex-1 text-[14px] font-medium whitespace-nowrap">{item.label}</p>
+        <>
+          <p className="min-w-0 flex-1 text-[14px] font-medium whitespace-nowrap">{item.label}</p>
+          {item.badge && (
+            <span className="shrink-0 rounded-md bg-[rgba(220,38,38,0.05)] px-1.5 py-0.5 text-[12px] font-medium uppercase leading-normal text-[#dc2626]">
+              {item.badge}
+            </span>
+          )}
+        </>
       )}
     </Link>
   );
@@ -198,8 +207,13 @@ function InertNavItem({ item, collapsed }) {
 export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }) {
   const [collapsed, setCollapsed] = useState(false);
   const showExpanded = !collapsed || isMobileOpen;
+  const unreadCount = useSelector(selectUnreadNotificationCount);
 
   const isItemActive = (item) => item.match.some((p) => pathname.startsWith(p));
+  const withUnreadBadge = (item) =>
+    item.path === '/user/notifications' && unreadCount > 0
+      ? { ...item, badge: `+${unreadCount}` }
+      : item;
 
   return (
     <>
@@ -320,8 +334,9 @@ export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }
         <div className="flex w-full flex-col gap-1.5 px-2 py-3">
           {showExpanded && <SectionSubtitle>Tools</SectionSubtitle>}
           <div className="flex w-full flex-col gap-1">
-            {TOOLS_ITEMS.map((item) =>
-              item.path ? (
+            {TOOLS_ITEMS.map((rawItem) => {
+              const item = withUnreadBadge(rawItem);
+              return item.path ? (
                 <NavItem
                   key={item.label}
                   item={item}
@@ -331,8 +346,8 @@ export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }
                 />
               ) : (
                 <InertNavItem key={item.label} item={item} collapsed={!showExpanded} />
-              )
-            )}
+              );
+            })}
           </div>
         </div>
       </aside>

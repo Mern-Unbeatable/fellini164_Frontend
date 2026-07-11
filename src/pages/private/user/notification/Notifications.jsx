@@ -1,67 +1,32 @@
 import React, { useState, useMemo } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { Bell } from 'lucide-react';
 import NotificationHeader from './components/NotificationHeader';
 import NotificationActionRow from './components/NotificationActionRow';
 import NotificationCard from './components/NotificationCard';
-
-const INITIAL_NOTIFICATIONS = [
-  {
-    id: 'n1',
-    title: 'System Maintenance Scheduled',
-    message: 'We will be performing a scheduled system maintenance on Sunday, June 28th, from 2:00 AM to 4:00 AM UTC. Some services might be temporarily unavailable.',
-    type: 'ALERT',
-    time: '2 hours ago',
-    unread: true,
-    date: '2026-06-24'
-  },
-  {
-    id: 'n2',
-    title: 'New AI Planner Feature Released!',
-    message: 'We have launched a new Daily Planner module powered by AI. Check it out in your side menu to organize your day more productively.',
-    type: 'FEATURE',
-    time: '1 day ago',
-    unread: true,
-    date: '2026-06-23'
-  },
-  {
-    id: 'n3',
-    title: 'Welcome to Fellini164',
-    message: 'Welcome to our platform! Please take a moment to complete your profile setup and review your dashboard settings.',
-    type: 'INFO',
-    time: '3 days ago',
-    unread: false,
-    date: '2026-06-21'
-  },
-  {
-    id: 'n4',
-    title: 'Updated Privacy Policy',
-    message: 'We have updated our Privacy Policy to better serve you. Please review the updated terms on our policy page.',
-    type: 'INFO',
-    time: '4 days ago',
-    unread: false,
-    date: '2026-06-20'
-  }
-];
+import {
+  selectNotifications,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+  deleteNotification,
+} from '../../../../features/notifications/notificationsSlice';
 
 export default function Notifications() {
-  const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
+  const dispatch = useDispatch();
+  const notifications = useSelector(selectNotifications);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('ALL'); // ALL, UNREAD, READ
 
   const handleMarkAsRead = (id) => {
-    setNotifications(prev =>
-      prev.map(n => n.id === id ? { ...n, unread: false } : n)
-    );
+    dispatch(markNotificationAsRead(id));
   };
 
   const handleMarkAllRead = () => {
-    setNotifications(prev =>
-      prev.map(n => ({ ...n, unread: false }))
-    );
+    dispatch(markAllNotificationsAsRead());
   };
 
   const handleDelete = (id) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
+    dispatch(deleteNotification(id));
   };
 
   const filteredNotifications = useMemo(() => {

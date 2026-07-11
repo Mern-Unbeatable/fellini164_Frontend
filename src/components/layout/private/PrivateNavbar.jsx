@@ -1,7 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import { LogOut, Bell, Settings, PanelLeft } from 'lucide-react';
 import { getGoalById } from '../../../pages/private/user/focus/Goals/goalsData';
+import {
+  selectNotifications,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+} from '../../../features/notifications/notificationsSlice';
 import NotificationPanel from './NotificationPanel';
 
 const BREADCRUMBS = [
@@ -21,33 +27,6 @@ const BREADCRUMBS = [
   { prefix: '/user/notifications', section: 'Tools', page: 'Notification' },
   { prefix: '/user/announcements', section: 'Main', page: 'Announcements' },
   { prefix: '/user/analytics', page: 'Analytics' },
-];
-
-const DUMMY_NOTIFICATIONS = [
-  {
-    id: 'n1',
-    title: 'System Maintenance Scheduled',
-    message: 'Maintenance scheduled on Sunday, June 28th, 2:00 AM UTC.',
-    type: 'ALERT',
-    time: '2 hours ago',
-    unread: true,
-  },
-  {
-    id: 'n2',
-    title: 'New AI Planner Live',
-    message: 'Organize your day with the new AI-powered Daily Planner.',
-    type: 'FEATURE',
-    time: '1 day ago',
-    unread: true,
-  },
-  {
-    id: 'n3',
-    title: 'Welcome to Elyxa.Ai',
-    message: 'Thanks for signing up! Get started by setting your daily goals.',
-    type: 'INFO',
-    time: '3 days ago',
-    unread: false,
-  }
 ];
 
 function getBreadcrumb(pathname) {
@@ -75,9 +54,10 @@ function getInitials(user) {
 export default function PrivateNavbar({ pathname, user, onOpenMobileSidebar, onLogout, taskDetail }) {
   const { section, page, detail: routeDetail } = getBreadcrumb(pathname);
   const detail = pathname.startsWith('/user/tasks') ? taskDetail : routeDetail;
+  const dispatch = useDispatch();
+  const notifications = useSelector(selectNotifications);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  const [notifications, setNotifications] = useState(DUMMY_NOTIFICATIONS);
   const menuRef = useRef(null);
   const notificationRef = useRef(null);
   const notificationRefMobile = useRef(null);
@@ -168,7 +148,8 @@ export default function PrivateNavbar({ pathname, user, onOpenMobileSidebar, onL
                 isOpen={isNotificationOpen}
                 onClose={() => setIsNotificationOpen(false)}
                 notifications={notifications}
-                setNotifications={setNotifications}
+                onMarkAllRead={() => dispatch(markAllNotificationsAsRead())}
+                onMarkOneRead={(id) => dispatch(markNotificationAsRead(id))}
               />
             </div>
             {/* Settings — visible per Figma, non-functional in MVP */}
@@ -202,7 +183,8 @@ export default function PrivateNavbar({ pathname, user, onOpenMobileSidebar, onL
               isOpen={isNotificationOpen}
               onClose={() => setIsNotificationOpen(false)}
               notifications={notifications}
-              setNotifications={setNotifications}
+              onMarkAllRead={() => dispatch(markAllNotificationsAsRead())}
+              onMarkOneRead={(id) => dispatch(markNotificationAsRead(id))}
             />
           </div>
           <Settings size={18} className="text-[#5d5d5d] dark:text-gray-300 cursor-pointer" strokeWidth={1.75} />

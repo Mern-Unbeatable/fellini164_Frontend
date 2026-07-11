@@ -10,6 +10,7 @@ import referralReducer from './users/referralSlice';
 import themeReducer from '../features/theme/themeSlice';
 import aiChatReducer from './aiChat/aiChatSlice';
 import adminActivityLogReducer from './aiChat/adminActivityLog/adminActivityLogSlice';
+import notificationsReducer from './notifications/notificationsSlice';
 
 const store = configureStore({
   reducer: {
@@ -24,6 +25,7 @@ const store = configureStore({
     theme: themeReducer,
     aiChat: aiChatReducer,
     adminActivityLog: adminActivityLogReducer,
+    notifications: notificationsReducer,
   },
 });
 
