@@ -416,12 +416,8 @@ export default function NewHabitsModal({ open, onClose, onSave }) {
   };
 
   return (
-    <div
-      onClick={handleClose}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div
-        onClick={(e) => e.stopPropagation()}
         className={`flex max-h-[90vh] w-full flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] transition-all dark:border-zinc-700 dark:bg-zinc-900 ${modalWidthClass}`}
       >
         <div className="flex shrink-0 items-center justify-between border-b border-[#f2f2f2] px-3 py-2.5 dark:border-zinc-700">
