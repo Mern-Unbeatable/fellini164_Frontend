@@ -77,10 +77,10 @@ export default function NotificationPanel({ isOpen, onClose, notifications, onMa
         )}
       </div>
       <div className="border-t border-[#f2f2f2] pt-2 mt-2 text-center dark:border-zinc-700">
-        <Link 
-          to="/user/notifications" 
+        <Link
+          to="/user/notifications"
           onClick={onClose}
-          className="text-xs text-purple-600 hover:text-purple-700 font-medium block"
+          className="text-xs text-purple-600 hover:text-purple-700 font-medium block no-underline hover:no-underline"
         >
           View all notification
         </Link>
