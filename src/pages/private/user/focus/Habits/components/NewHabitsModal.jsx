@@ -43,7 +43,7 @@ function mockGenerateHabit(prompt) {
   if (lower.includes('water') || lower.includes('hydrat')) {
     return {
       title: 'Drink Water',
-      description: 'Stay hydrated throughout the day Stay hydrated throughout the day',
+      description: 'Stay hydrated throughout the day',
       category: 'Health',
       tags: [
         { label: 'Health' },
@@ -96,7 +96,7 @@ function mockGenerateHabit(prompt) {
   // exact reference row instead of a sparser one.
   return {
     title: 'Drink Water',
-    description: 'Stay hydrated throughout the day Stay hydrated throughout the day',
+    description: 'Stay hydrated throughout the day',
     category: 'Health',
     tags: [
       { label: 'Health' },
