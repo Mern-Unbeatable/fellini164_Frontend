@@ -71,7 +71,7 @@ const ActivityFilters = ({ filters, onFilterChange, onClearFilters }) => {
               </button>
               
               {isOpen && (
-                <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-60 overflow-y-auto rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
+                <div className="scrollbar-white absolute left-0 right-0 top-full z-50 mt-1 max-h-60 overflow-y-auto rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
                   {activityTypes.map((type) => (
                     <button
                       key={type.value}
