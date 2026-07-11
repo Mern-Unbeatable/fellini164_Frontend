@@ -661,7 +661,7 @@ export default function ActiveGoals() {
   const completedThisMonth = FIGMA_BOARD_STATS.completedThisMonth;
 
   return (
-    <div className="relative flex min-h-full flex-col py-7.5 max-lg:py-4 max-lg:sm:py-6">
+    <div className="relative flex min-h-full flex-col py-7.5 max-lg:min-h-0 max-lg:py-4 max-lg:sm:py-6">
       {/* Header */}
       <div className="mb-5 flex w-full items-start justify-between max-lg:mb-4 max-lg:flex-col max-lg:gap-4">
         <div className="flex flex-col items-start gap-2">
@@ -702,7 +702,7 @@ export default function ActiveGoals() {
       </div>
 
       {/* Board panel — Figma 1250:8534: stats bar + scrollable card grid */}
-      <div className="flex w-full flex-col gap-[10px] rounded-2xl border border-[#f2f2f2] bg-white p-3 dark:border-zinc-700 dark:bg-zinc-800">
+      <div className="relative flex min-h-0 w-full flex-1 flex-col gap-[10px] overflow-hidden rounded-2xl border border-[#f2f2f2] bg-white p-3 max-lg:h-auto max-lg:flex-none dark:border-zinc-700 dark:bg-zinc-800">
         <div className="flex shrink-0 items-center gap-2">
           {showGhostCards ? (
             <>
@@ -726,46 +726,48 @@ export default function ActiveGoals() {
           )}
         </div>
 
-        {showGhostCards ? (
-          filteredGhostGoals.length === 0 && isSearching ? (
+        <div className="scrollbar-hidden -mx-3 flex flex-1 flex-col gap-[10px] overflow-y-auto px-3 lg:min-h-0 max-lg:max-h-[min(70vh,560px)]">
+          {showGhostCards ? (
+            filteredGhostGoals.length === 0 && isSearching ? (
+              <p className="py-10 text-center text-sm font-medium text-[#c2c2c2] dark:text-gray-500">
+                No matching goals.
+              </p>
+            ) : (
+              <div className="grid auto-rows-[186px] grid-cols-1 gap-[10px] sm:grid-cols-2 xl:grid-cols-3">
+                  {filteredGhostGoals.map((goal) => (
+                    <div key={goal.id} className="h-[186px] min-h-[186px]">
+                      <GhostGoalCard
+                      goal={goal}
+                      onDismiss={handleDismissGhost}
+                      onRegenerate={handleRegenerateGhost}
+                    />
+                    </div>
+                  ))}
+                </div>
+            )
+          ) : filteredGoals.length === 0 ? (
             <p className="py-10 text-center text-sm font-medium text-[#c2c2c2] dark:text-gray-500">
-              No matching goals.
+              {isSearching ? 'No matching goals.' : 'No goals to show yet.'}
             </p>
           ) : (
             <div className="grid auto-rows-[186px] grid-cols-1 gap-[10px] sm:grid-cols-2 xl:grid-cols-3">
-                {filteredGhostGoals.map((goal) => (
+                {filteredGoals.map((goal) => (
                   <div key={goal.id} className="h-[186px] min-h-[186px]">
-                    <GhostGoalCard
+                    <GoalCard
                     goal={goal}
-                    onDismiss={handleDismissGhost}
-                    onRegenerate={handleRegenerateGhost}
+                    onSelect={handleSelectGoal}
+                    onEdit={handleEditGoal}
+                    onAddTask={handleAddTask}
+                    onAddHabit={handleAddHabit}
+                    onComplete={handleCompleteGoal}
+                    onPause={handlePauseGoal}
+                    onDelete={(g) => handleDeleteGoal(g.id)}
                   />
                   </div>
                 ))}
               </div>
-          )
-        ) : filteredGoals.length === 0 ? (
-          <p className="py-10 text-center text-sm font-medium text-[#c2c2c2] dark:text-gray-500">
-            {isSearching ? 'No matching goals.' : 'No goals to show yet.'}
-          </p>
-        ) : (
-          <div className="grid auto-rows-[186px] grid-cols-1 gap-[10px] sm:grid-cols-2 xl:grid-cols-3">
-              {filteredGoals.map((goal) => (
-                <div key={goal.id} className="h-[186px] min-h-[186px]">
-                  <GoalCard
-                  goal={goal}
-                  onSelect={handleSelectGoal}
-                  onEdit={handleEditGoal}
-                  onAddTask={handleAddTask}
-                  onAddHabit={handleAddHabit}
-                  onComplete={handleCompleteGoal}
-                  onPause={handlePauseGoal}
-                  onDelete={(g) => handleDeleteGoal(g.id)}
-                />
-                </div>
-              ))}
-            </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Detail drawer — sibling of header/action-row/board panel for full-height peek */}
