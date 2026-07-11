@@ -11,19 +11,22 @@ export default function PlannerControls({
   navigateMonth,
   handleOpenModal,
   handleQuickAction,
+  hasAcceptedPlan,
   months,
 }) {
   return (
-    <div className="mb-2 flex flex-col justify-between gap-4 pb-6 lg:flex-row lg:items-center max-lg:items-stretch">
+    <div className="mb-5 flex flex-col justify-between gap-4 lg:flex-row lg:items-center max-lg:items-stretch">
       {/* Action Buttons */}
       <div className="flex items-center gap-2.5 max-lg:w-full max-lg:flex-col">
-        <button
-          onClick={() => handleQuickAction('ai_actions_menu')}
-          className="bg-primary flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-semibold text-white transition-colors max-lg:w-full max-lg:justify-center max-lg:py-2.5 max-lg:text-base"
-        >
-          <Sparkles size={14} className="fill-white/20" />
-          <span>AI Actions</span>
-        </button>
+        {hasAcceptedPlan && (
+          <button
+            onClick={() => handleQuickAction('ai_actions_menu')}
+            className="bg-primary flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-semibold text-white transition-colors max-lg:w-full max-lg:justify-center max-lg:py-2.5 max-lg:text-base"
+          >
+            <Sparkles size={14} className="fill-white/20" />
+            <span>AI Actions</span>
+          </button>
+        )}
         <button
           onClick={handleOpenModal}
           className="flex items-center gap-1.5 rounded-lg border border-[#F2F2F2] bg-[#F2F2F2] px-4 py-2 text-xs font-semibold text-[#5D5D5D] transition-colors dark:border-zinc-700 dark:text-gray-200 max-lg:w-full max-lg:justify-center max-lg:py-2.5 max-lg:text-base"

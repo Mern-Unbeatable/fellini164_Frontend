@@ -4,6 +4,7 @@ export default function MonthlyView({
   calendarDays,
   getFormattedDateString,
   plans,
+  hasAcceptedPlan,
   selectedDate,
   setSelectedDate,
   setViewMode
@@ -64,15 +65,25 @@ export default function MonthlyView({
               
               {/* Plan Items (Desktop) */}
               <div className="w-full hidden sm:flex flex-col gap-1 mt-1 overflow-y-auto">
-                {dayPlans.map((plan) => (
-                  <div 
-                    key={plan.id}
-                    className="w-full text-center text-[10px] py-1.5 px-2 bg-white dark:bg-zinc-800 text-slate-700 dark:text-gray-300 border border-gray-100 dark:border-zinc-800 rounded-lg shadow-sm truncate font-medium hover:border-violet-300 dark:hover:border-violet-700 transition-colors"
-                    title={plan.title}
-                  >
-                    {plan.title}
-                  </div>
-                ))}
+                {dayPlans.map((plan) =>
+                  hasAcceptedPlan ? (
+                    <div
+                      key={plan.id}
+                      className="w-full text-center text-[10px] py-1.5 px-2 bg-white dark:bg-zinc-800 text-slate-700 dark:text-gray-300 border border-gray-100 dark:border-zinc-800 rounded-lg shadow-sm truncate font-medium hover:border-violet-300 dark:hover:border-violet-700 transition-colors"
+                      title={plan.title}
+                    >
+                      {plan.title}
+                    </div>
+                  ) : (
+                    <div
+                      key={plan.id}
+                      className="w-full truncate text-center text-[10px] font-medium text-gray-400 dark:text-zinc-600"
+                      title={plan.title}
+                    >
+                      {plan.title}
+                    </div>
+                  )
+                )}
               </div>
 
               {/* Plan Indicators (Mobile dot representation) */}

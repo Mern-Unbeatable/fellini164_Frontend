@@ -21,6 +21,13 @@ mismatches get caught automatically instead of by eyeballing screenshots back an
    - `--out <dir>` — where to write `local.png` and `diff.png` (default: `visual-diff-out/`).
    - `--threshold <percent>` — max allowed mismatch percentage before the script exits non-zero
      (default: `0.1`).
+   - `--localStorage "key=value,key2=value2"` — seed localStorage before first navigation.
+     **Required for any `/user/...` route** — those are behind `ProtectedRoute`, which checks
+     `isAuthenticated` from `auth_token` in localStorage; without this the page just redirects to
+     `/login` and you silently diff the login screen instead. Example:
+     `--localStorage 'auth_token="dev-fake-token",auth_user={"role":"USER","firstName":"Dev"}'`
+   - `--click "Button Text"` — click an element by text after load (e.g. to switch a view tab)
+     before taking the screenshot.
 
 4. Check the console output for the mismatch percentage, and open `diff.png` — mismatched pixels
    are highlighted in red.

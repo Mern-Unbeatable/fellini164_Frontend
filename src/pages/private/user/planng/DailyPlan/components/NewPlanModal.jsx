@@ -18,15 +18,9 @@ export default function NewPlanModal({ open, onClose, onSave }) {
   const dateOptions = ['Today', 'This Week', 'This Month', 'Custom'];
 
   return (
-    <div
-      onClick={onClose}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       {/* Modal Container */}
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-[500px] rounded-[24px] bg-white p-7 shadow-xl"
-      >
+      <div className="w-full max-w-[500px] rounded-[24px] bg-white p-7 shadow-xl">
         {/* Header */}
         <div className="flex items-center justify-between pb-5">
           <h2 className="text-[17px] font-medium text-zinc-700">New Plan</h2>

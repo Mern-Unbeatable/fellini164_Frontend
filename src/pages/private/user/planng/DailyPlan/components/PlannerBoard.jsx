@@ -10,35 +10,40 @@ export default function PlannerBoard({
   viewMode,
   setViewMode,
   plans,
+  hasAcceptedPlan,
   calendarDays,
   getFormattedDateString,
   isLoading,
-  aiActionState,
   onAccept,
   onDismiss
 }) {
   return (
     <div className="flex-1 flex flex-col">
-      
+
       {viewMode === 'Daily' ? (
-        <DailyView 
-          currentDate={currentDate} 
-          selectedDate={selectedDate} 
-          isLoading={isLoading} 
-          aiActionState={aiActionState} 
+        <DailyView
+          currentDate={currentDate}
+          selectedDate={selectedDate}
+          plans={plans}
+          hasAcceptedPlan={hasAcceptedPlan}
+          isLoading={isLoading}
           onAccept={onAccept}
           onDismiss={onDismiss}
         />
       ) : viewMode === 'Weekly' ? (
-        <WeeklyView 
-          isLoading={isLoading} 
-          aiActionState={aiActionState} 
+        <WeeklyView
+          currentDate={currentDate}
+          selectedDate={selectedDate}
+          plans={plans}
+          hasAcceptedPlan={hasAcceptedPlan}
+          isLoading={isLoading}
         />
       ) : (
         <MonthlyView
           calendarDays={calendarDays}
           getFormattedDateString={getFormattedDateString}
           plans={plans}
+          hasAcceptedPlan={hasAcceptedPlan}
           selectedDate={selectedDate}
           setSelectedDate={setSelectedDate}
           setViewMode={setViewMode}

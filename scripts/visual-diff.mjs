@@ -20,6 +20,10 @@ async function main() {
   const outDir = arg('out', 'visual-diff-out');
   const threshold = Number(arg('threshold', '0.1'));
   const darkMode = process.argv.includes('--dark');
+  // For auth-gated app routes: comma-separated key=value pairs seeded into localStorage
+  // before first navigation, e.g. --localStorage "auth_token=\"x\",auth_user={\"role\":\"USER\"}"
+  const localStorageArg = arg('localStorage');
+  const clickBefore = arg('click'); // optional text selector to click after load (e.g. a tab)
 
   if (!url || !figmaPath) {
     console.error(
@@ -39,7 +43,23 @@ async function main() {
     viewport: { width, height },
     colorScheme: darkMode ? 'dark' : 'light',
   });
+
+  if (localStorageArg) {
+    const pairs = localStorageArg.split(/,(?=[^,]+=)/).map((pair) => {
+      const eq = pair.indexOf('=');
+      return [pair.slice(0, eq), pair.slice(eq + 1)];
+    });
+    await page.addInitScript((entries) => {
+      for (const [k, v] of entries) localStorage.setItem(k, v);
+    }, pairs);
+  }
+
   await page.goto(url, { waitUntil: 'networkidle' });
+
+  if (clickBefore) {
+    await page.click(`text=${clickBefore}`);
+    await page.waitForTimeout(300);
+  }
 
   const localPath = path.join(outDir, 'local.png');
   if (selector) {
