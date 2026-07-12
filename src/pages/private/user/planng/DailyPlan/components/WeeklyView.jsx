@@ -11,14 +11,13 @@ const GRID_LINE_LEFT = 45;
 const HOUR_LINE_EXTEND_LEFT = 11; // Figma 1264:27286 — line starts ~34px, grid at 45px
 const GRID_SCALE = ROW_STEP / 55;
 const DAY_COLS = 7;
-const WEEKLY_CARD_WIDTH = 106; // Figma 1264:27359 / 1264:27396
 
 const WEEKLY_GRID_COLUMNS = `${GRID_LINE_LEFT}px repeat(${DAY_COLS}, minmax(0, 1fr))`;
 
-// Ghost compact fields — 12px (Tasks/Habits/Goals meta), single-line ellipsis.
+// Figma 1264:27359 — ghost compact title: 10px, 15px line, full-width ellipsis.
 const WEEKLY_TYPO = {
   ghostTitle:
-    'h-[18px] w-full overflow-hidden text-ellipsis whitespace-nowrap text-[12px] font-medium leading-[1.5] text-[#181818] opacity-40 transition-opacity group-hover:opacity-100 dark:text-gray-300',
+    'm-0 min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-[10px] font-medium leading-[1.5] text-[#181818] opacity-40 transition-opacity group-hover:opacity-100 dark:text-gray-300',
   title:
     'w-full overflow-hidden text-ellipsis whitespace-nowrap text-[12px] font-medium leading-[1.5] text-[#181818] opacity-40 transition-opacity group-hover:opacity-100 dark:text-gray-300',
   titleMulti:
@@ -58,9 +57,18 @@ function weeklyCardStyle(top) {
   return {
     top,
     left: '50%',
-    width: WEEKLY_CARD_WIDTH,
+    width: 'calc(100% - 4px)',
     transform: 'translateX(-50%)',
   };
+}
+
+/** Symmetric px-8 inset; text fills space between both paddings. */
+function WeekGhostCompactBody({ title, paddingClass = 'py-[6px]', inset = true }) {
+  return (
+    <div className={`box-border flex h-full w-full min-w-0 items-center ${inset ? 'px-[8px]' : ''} ${paddingClass}`}>
+      <p className={WEEKLY_TYPO.ghostTitle}>{title}</p>
+    </div>
+  );
 }
 
 function HourRow({ hour }) {
@@ -111,9 +119,9 @@ function WeekGhostFieldBorder({ rx = 3, ry = 30 }) {
 function WeekGhostCard({ ghost, className = '', style, children, habitBadge, radius = 8, borderRx = 3, borderRy = 30 }) {
   return (
     <div
-      className={`group relative w-full overflow-hidden bg-white transition-all duration-200 hover:bg-[#fcfcfc] dark:bg-zinc-800 ${
+      className={`group relative box-border w-full overflow-hidden bg-white transition-all duration-200 hover:bg-[#fcfcfc] dark:bg-zinc-800 ${
         ghost ? '' : 'border border-solid border-[#f2f2f2]'
-      }`}
+      } ${className}`}
       style={{ borderRadius: radius, ...style }}
     >
       {ghost && <WeekGhostFieldBorder rx={borderRx} ry={borderRy} />}
@@ -130,7 +138,7 @@ function WeekGhostCard({ ghost, className = '', style, children, habitBadge, rad
           <span className="text-[12px] font-medium text-[#5d5d5d] opacity-40">1 Habit</span>
         </div>
       )}
-      <div className={`relative z-[1] flex h-full w-full flex-col ${className}`}>
+      <div className="relative z-[1] box-border h-full w-full">
         {children}
       </div>
     </div>
@@ -139,11 +147,7 @@ function WeekGhostCard({ ghost, className = '', style, children, habitBadge, rad
 
 function WeekGhostFieldTitle({ children, multiline = false, ghost = false, className = '' }) {
   if (ghost) {
-    return (
-      <div className={`w-full min-w-0 ${className}`}>
-        <p className={WEEKLY_TYPO.ghostTitle}>{children}</p>
-      </div>
-    );
+    return <p className={`${WEEKLY_TYPO.ghostTitle} ${className}`}>{children}</p>;
   }
 
   const style = multiline ? WEEKLY_TYPO.titleMulti : WEEKLY_TYPO.title;
@@ -162,10 +166,9 @@ function WeekItemCard({ item, ghost, layout }) {
         radius={6}
         borderRx={2}
         borderRy={20}
-        className="items-start justify-center overflow-hidden px-[8px] py-[2px]"
         style={{ height }}
       >
-        <WeekGhostFieldTitle ghost>{item.title}</WeekGhostFieldTitle>
+        <WeekGhostCompactBody title={item.title} paddingClass="h-full py-[2px]" />
       </WeekGhostCard>
     );
   }
@@ -177,10 +180,9 @@ function WeekItemCard({ item, ghost, layout }) {
         radius={8}
         borderRx={3}
         borderRy={30}
-        className="items-start justify-center overflow-hidden px-[8px] py-[6px]"
         style={{ height }}
       >
-        <WeekGhostFieldTitle ghost>{item.title}</WeekGhostFieldTitle>
+        <WeekGhostCompactBody title={item.title} paddingClass="h-full py-[6px]" />
       </WeekGhostCard>
     );
   }
@@ -191,22 +193,23 @@ function WeekItemCard({ item, ghost, layout }) {
         ghost={ghost}
         borderRx={2.5}
         borderRy={8}
-        className="items-start justify-center gap-[6px] overflow-hidden px-[8px] pb-[6px] pt-[8px]"
         style={{ height }}
       >
-        <div className="flex w-full flex-col items-start gap-[6px] opacity-40 transition-opacity group-hover:opacity-100">
-          <WeekGhostFieldTitle ghost>{item.title}</WeekGhostFieldTitle>
-          <div className="flex flex-wrap items-center gap-1">
-            {item.priority && (
-              <span className={`rounded px-1.5 py-0.5 ${WEEKLY_TYPO.badge} ${PRIORITY_STYLES[item.priority]}`}>
-                {item.priority}
-              </span>
-            )}
-            {item.status && (
-              <span className={`rounded bg-[#f2f2f2] px-1.5 py-0.5 uppercase text-[#a3a3a3] ${WEEKLY_TYPO.badge}`}>
-                {item.status}
-              </span>
-            )}
+        <div className="box-border flex h-full w-full flex-col gap-[6px] px-[8px] pb-[6px] pt-[8px]">
+          <div className="flex w-full min-w-0 flex-col items-stretch gap-[6px] opacity-40 transition-opacity group-hover:opacity-100">
+            <WeekGhostCompactBody title={item.title} paddingClass="py-0" inset={false} />
+            <div className="flex flex-wrap items-center gap-1">
+              {item.priority && (
+                <span className={`rounded px-1.5 py-0.5 ${WEEKLY_TYPO.badge} ${PRIORITY_STYLES[item.priority]}`}>
+                  {item.priority}
+                </span>
+              )}
+              {item.status && (
+                <span className={`rounded bg-[#f2f2f2] px-1.5 py-0.5 uppercase text-[#a3a3a3] ${WEEKLY_TYPO.badge}`}>
+                  {item.status}
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </WeekGhostCard>
@@ -219,11 +222,11 @@ function WeekItemCard({ item, ghost, layout }) {
       habitBadge={layout.showHabitBadge}
       borderRx={2.5}
       borderRy={8}
-      className="items-start gap-[6px] overflow-hidden px-[8px] pb-[6px] pt-[8px]"
       style={{ height }}
     >
-      <div className="flex min-h-0 w-full flex-1 flex-col items-start gap-[6px]">
-        <WeekGhostFieldTitle multiline>{item.title}</WeekGhostFieldTitle>
+      <div className="box-border flex h-full w-full flex-col gap-[6px] px-[8px] pb-[6px] pt-[8px]">
+        <div className="flex min-h-0 w-full flex-1 flex-col items-stretch gap-[6px]">
+          <WeekGhostFieldTitle multiline>{item.title}</WeekGhostFieldTitle>
         {(item.priority || item.status) && (
           <div className="flex flex-wrap items-center justify-center gap-1 opacity-40 transition-opacity group-hover:opacity-100">
             {item.priority && (
@@ -258,6 +261,7 @@ function WeekItemCard({ item, ghost, layout }) {
           )}
         </div>
       )}
+      </div>
     </WeekGhostCard>
   );
 }
