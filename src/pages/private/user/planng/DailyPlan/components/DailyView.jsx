@@ -11,29 +11,27 @@ const TIME_COL_GAP = 10;
 const GRID_LINE_LEFT = TIME_COL_WIDTH + TIME_COL_GAP; // 45px
 const CARD_LEFT = GRID_LINE_LEFT + 11; // 56px
 const CARD_TOP_OFFSET = 6;
-
-// Per-hour horizontal line style from Figma vector assets (1260:23133+).
-const SOLID_HOUR_LINES = new Set(['1 AM']);
+const HOUR_LINE_OVERHANG = 4; // solid hour line extends past vertical for "+" join
 
 function getHourLineTop(index) {
   return index * ROW_STEP + ROW_LABEL_HEIGHT / 2;
 }
 
-function HourLine({ hour }) {
-  const isSolid = SOLID_HOUR_LINES.has(hour);
+function HourRow({ hour }) {
   return (
-    <div className="relative h-0 min-w-0 flex-1">
-      <div
-        className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2"
-        style={
-          isSolid
-            ? { backgroundColor: '#f2f2f2' }
-            : {
-                backgroundImage:
-                  'repeating-linear-gradient(90deg, #f2f2f2 0, #f2f2f2 4px, transparent 4px, transparent 8px)',
-              }
-        }
-      />
+    <div className="relative flex w-full items-center gap-[10px]">
+      <span
+        className="shrink-0 text-right text-[10px] leading-[1.5] font-medium whitespace-nowrap text-[#c2c2c2] dark:text-gray-500"
+        style={{ width: TIME_COL_WIDTH }}
+      >
+        {hour}
+      </span>
+      <div className="relative h-0 min-w-0 flex-1">
+        <div
+          className="absolute top-1/2 h-px -translate-y-1/2 bg-[#f2f2f2] dark:bg-zinc-800/80"
+          style={{ left: -HOUR_LINE_OVERHANG, right: 0 }}
+        />
+      </div>
     </div>
   );
 }
@@ -422,18 +420,10 @@ export default function DailyView({
             style={{ left: GRID_LINE_LEFT }}
           />
 
-          {/* Hour rows — Figma 1260:23132 flex-col gap-[40px] */}
+          {/* Hour rows only — Figma 1260:23132; no extra slot grid lines */}
           <div className="relative z-0 flex flex-col gap-[40px]">
             {PLANNER_HOURS.map((hour) => (
-              <div key={hour} className="relative flex w-full items-center gap-[10px]">
-                <span
-                  className="shrink-0 text-right text-[10px] leading-[1.5] font-medium whitespace-nowrap text-[#c2c2c2] dark:text-gray-500"
-                  style={{ width: TIME_COL_WIDTH }}
-                >
-                  {hour}
-                </span>
-                <HourLine hour={hour} />
-              </div>
+              <HourRow key={hour} hour={hour} />
             ))}
           </div>
 
