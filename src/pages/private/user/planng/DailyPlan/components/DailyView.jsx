@@ -13,14 +13,17 @@ const CARD_LEFT = GRID_LINE_LEFT + 11; // 56px
 const CARD_TOP_OFFSET = 6;
 const HOUR_LINE_OVERHANG = 4; // solid hour line extends past vertical for "+" join
 
-// Figma 1264:24782+ absolute tops (grid-relative, after date header).
+// Figma 1264:24782+ — grid-relative tops (frame top minus ~72px header offset).
 const CARD_TOP_FROM_GRID = {
   '1 AM': 6,
   '2 AM': 74,
-  '4 AM': 147,
+  '4 AM': 147, // 1264:24813 top 219px
   '7 AM': 303,
   '11 AM': 532,
 };
+
+// Figma 1260:23291 — purple line at frame top 252.33px → grid 180px.
+const CURRENT_TIME_TOP = 180;
 
 function getHourLineTop(index) {
   return index * ROW_STEP + ROW_LABEL_HEIGHT / 2;
@@ -178,16 +181,20 @@ function TaskCard({ item, ghost, dimmed, compact }) {
         radius={12}
         borderRx={2.5}
         borderRy={8}
-        className={`flex w-full items-start justify-between rounded-xl p-2.5 ${
+        className={`flex h-[56px] w-full overflow-hidden rounded-xl p-[10px] ${
           dimmed ? 'opacity-50' : ''
         }`}
       >
-        <div className="relative z-[1] min-w-0 flex-1 opacity-50 transition-opacity group-hover:opacity-100">
+        <div className="relative z-[1] flex min-w-0 flex-1 flex-col gap-1 opacity-50 transition-opacity group-hover:opacity-100">
           <div className="flex flex-wrap items-center gap-2.5">
-            <span className="text-xs font-medium text-[#181818] dark:text-gray-300">{item.title}</span>
+            <span className="text-[12px] font-medium leading-[1.5] text-[#181818] dark:text-gray-300">
+              {item.title}
+            </span>
             {ghostTags}
           </div>
-          <p className="mt-1 text-[10px] text-[#a3a3a3] dark:text-gray-500">{item.description}</p>
+          <p className="line-clamp-1 text-[10px] leading-[1.5] text-[#a3a3a3] dark:text-gray-500">
+            {item.description}
+          </p>
         </div>
       </GhostFieldShell>
     );
@@ -479,10 +486,10 @@ export default function DailyView({
             ))}
           </div>
 
-          {/* Current time — Figma 1260:23291 */}
+          {/* Current time — Figma 1260:23291 at grid y=180 (between title & description) */}
           <div
-            className="pointer-events-none absolute right-0 z-[5] flex -translate-y-1/2 items-center"
-            style={{ left: GRID_LINE_LEFT - 1, top: getHourLineTop(3) + 15 }}
+            className="pointer-events-none absolute right-0 z-[15] flex -translate-y-1/2 items-center"
+            style={{ left: GRID_LINE_LEFT - 1, top: CURRENT_TIME_TOP }}
           >
             <div className="h-2 w-2 shrink-0 -translate-x-1/2 rounded-full border border-white bg-[#8022fe] shadow-sm dark:border-zinc-900" />
             <div className="h-[2px] flex-1 bg-[#8022fe]" />
