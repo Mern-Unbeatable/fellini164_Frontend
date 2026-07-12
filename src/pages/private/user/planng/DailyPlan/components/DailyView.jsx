@@ -2,10 +2,45 @@ import React from 'react';
 import { Sparkles, Clock, Target, BarChart2 } from 'lucide-react';
 import { PLANNER_HOURS, dateKeyFromDate } from '../plannerData';
 
-// Fixed px-per-hour spacing for the gridline background layer — matches Figma's row rhythm
-// (confirmed via get_design_context: gap-[40px] + ~12px label line-height ≈ 52px/hour). Cards
-// are positioned relative to this independently, so they can never push a gridline out of place.
-const ROW_HEIGHT = 52;
+// Figma node 1260:23097 — flex-col gap-[40px] rows, 10px labels (leading 1.5 ≈ 15px tall).
+const ROW_GAP = 40;
+const ROW_LABEL_HEIGHT = 15;
+const ROW_STEP = ROW_GAP + ROW_LABEL_HEIGHT;
+const TIME_COL_WIDTH = 35;
+const TIME_COL_GAP = 10;
+const GRID_LINE_LEFT = TIME_COL_WIDTH + TIME_COL_GAP; // 45px
+const CARD_LEFT = GRID_LINE_LEFT + 11; // 56px
+const CARD_TOP_OFFSET = 6;
+
+// Per-hour horizontal line style from Figma vector assets (1260:23133+).
+const SOLID_HOUR_LINES = new Set(['1 AM']);
+
+function getHourLineTop(index) {
+  return index * ROW_STEP + ROW_LABEL_HEIGHT / 2;
+}
+
+function HourLine({ hour }) {
+  const isSolid = SOLID_HOUR_LINES.has(hour);
+  return (
+    <div className="relative h-0 min-w-0 flex-1">
+      <div
+        className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2"
+        style={
+          isSolid
+            ? { backgroundColor: '#f2f2f2' }
+            : {
+                backgroundImage:
+                  'repeating-linear-gradient(90deg, #f2f2f2 0, #f2f2f2 4px, transparent 4px, transparent 8px)',
+              }
+        }
+      />
+    </div>
+  );
+}
+
+function TagDivider() {
+  return <div className="mx-0 h-1.5 w-px shrink-0 bg-[#f2f2f2]" />;
+}
 
 const PRIORITY_STYLES = {
   URGENT: 'bg-[rgba(220,38,38,0.05)] text-[#dc2626]',
@@ -31,11 +66,135 @@ function TaskCard({ item, ghost, dimmed, compact }) {
     );
   }
 
+  const ghostCompact = ghost && !item.description && !item.category && !item.durationLabel;
+  const ghostMedium = ghost && item.description && !item.durationLabel;
+
+  const ghostTags = (
+    <div className="flex shrink-0 items-center gap-2.5">
+      <div className="flex items-center gap-1">
+        {item.priority && (
+          <span
+            className={`rounded px-1 py-0.5 text-[8px] font-medium uppercase ${PRIORITY_STYLES[item.priority]}`}
+          >
+            {item.priority}
+          </span>
+        )}
+        {item.source === 'ai' && (
+          <span className="flex items-center gap-[3px] rounded bg-[#f9f4ff] px-1 py-0.5 text-[8px] font-medium text-[#8022fe]">
+            <Sparkles size={7} /> AI
+          </span>
+        )}
+      </div>
+      {item.status && (
+        <>
+          <TagDivider />
+          <span className="rounded bg-[#f2f2f2] px-1 py-0.5 text-[8px] font-medium text-[#a3a3a3] uppercase">
+            {item.status}
+          </span>
+        </>
+      )}
+    </div>
+  );
+
+  if (ghostCompact) {
+    return (
+      <div
+        className={`group flex w-full min-h-[19px] items-center justify-between overflow-hidden rounded-lg border border-dashed border-[#f2f2f2] bg-white px-2.5 py-0.5 transition-all duration-200 hover:border-solid hover:bg-[#fcfcfc] hover:shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800 ${
+          dimmed ? 'opacity-50' : ''
+        }`}
+      >
+        <div className="flex min-w-0 flex-1 items-center gap-2.5 opacity-40 transition-opacity group-hover:opacity-100">
+          <span className="shrink-0 text-[10px] font-medium text-[#181818] dark:text-gray-300">
+            {item.title}
+          </span>
+          {ghostTags}
+        </div>
+        <div className="ml-2 flex shrink-0 gap-0.5 opacity-40 transition-opacity group-hover:opacity-100">
+          <div className="h-0.5 w-0.5 rounded-full bg-[#c2c2c2]" />
+          <div className="h-0.5 w-0.5 rounded-full bg-[#c2c2c2]" />
+          <div className="h-0.5 w-0.5 rounded-full bg-[#c2c2c2]" />
+        </div>
+      </div>
+    );
+  }
+
+  if (ghostMedium) {
+    return (
+      <div
+        className={`flex w-full items-start justify-between overflow-hidden rounded-xl border border-dashed border-[#f2f2f2] bg-white p-2.5 transition-all duration-200 hover:border-solid hover:bg-[#fcfcfc] hover:shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800 ${
+          dimmed ? 'opacity-50' : ''
+        }`}
+      >
+        <div className="min-w-0 flex-1 opacity-50">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <span className="text-xs font-medium text-[#181818] dark:text-gray-300">{item.title}</span>
+            {ghostTags}
+          </div>
+          <p className="mt-1 text-[10px] text-[#a3a3a3] dark:text-gray-500">{item.description}</p>
+        </div>
+        <div className="ml-2 flex shrink-0 flex-col gap-0.5 opacity-50">
+          <div className="h-0.5 w-0.5 rounded-full bg-[#c2c2c2]" />
+          <div className="h-0.5 w-0.5 rounded-full bg-[#c2c2c2]" />
+          <div className="h-0.5 w-0.5 rounded-full bg-[#c2c2c2]" />
+        </div>
+      </div>
+    );
+  }
+
+  if (ghost && (item.category || item.durationLabel || item.stepsLabel)) {
+    return (
+      <div
+        className={`flex w-full items-start justify-between overflow-hidden rounded-xl border border-dashed border-[#f2f2f2] bg-white p-2.5 transition-all duration-200 hover:border-solid hover:bg-[#fcfcfc] hover:shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800 ${
+          dimmed ? 'opacity-50' : ''
+        }`}
+      >
+        <div className="min-w-0 flex-1 opacity-40">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <span className="text-xs font-medium text-[#181818] dark:text-gray-300">{item.title}</span>
+            {ghostTags}
+          </div>
+          {item.description && (
+            <p className="mt-1 line-clamp-2 text-[10px] text-[#a3a3a3] dark:text-gray-500">
+              {item.description}
+            </p>
+          )}
+          <div className="mt-2 flex flex-wrap items-center gap-1">
+            {item.category && (
+              <span className="rounded-md border border-[#f2f2f2] px-1.5 py-0.5 text-[10px] font-medium text-[#5d5d5d]">
+                {item.category}
+              </span>
+            )}
+            {item.goalLabel && (
+              <span className="flex items-center gap-1 rounded-md border border-[#f2f2f2] px-1.5 py-0.5 text-[10px] font-medium text-[#5d5d5d]">
+                <Target size={10} /> {item.goalLabel}
+              </span>
+            )}
+            {item.durationLabel && (
+              <span className="flex items-center gap-1 rounded-md border border-[#f2f2f2] px-1.5 py-0.5 text-[10px] font-medium text-[#5d5d5d]">
+                <Clock size={10} /> {item.durationLabel}
+              </span>
+            )}
+            {item.stepsLabel && (
+              <span className="flex items-center gap-1 text-[10px] font-medium text-[#5d5d5d]">
+                <BarChart2 size={10} /> {item.stepsLabel}
+              </span>
+            )}
+          </div>
+        </div>
+        <div className="ml-2 flex shrink-0 flex-col gap-0.5 opacity-40">
+          <div className="h-0.5 w-0.5 rounded-full bg-[#c2c2c2]" />
+          <div className="h-0.5 w-0.5 rounded-full bg-[#c2c2c2]" />
+          <div className="h-0.5 w-0.5 rounded-full bg-[#c2c2c2]" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
-      className={`flex w-full flex-col gap-1 rounded-lg p-3 shadow-sm transition-all dark:bg-zinc-800 ${
+      className={`flex w-full flex-col gap-1 rounded-lg p-3 shadow-sm transition-all duration-200 dark:bg-zinc-800 ${
         ghost
-          ? 'border-2 border-dashed border-[#e2e2e2] bg-white opacity-40 hover:border-solid hover:opacity-100 dark:border-zinc-700 dark:bg-zinc-800'
+          ? 'border border-dashed border-[#f2f2f2] bg-white opacity-40 hover:border-solid hover:border-[#f2f2f2] hover:bg-[#fcfcfc] hover:opacity-100 hover:shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800'
           : 'border border-gray-100 bg-white dark:border-zinc-700'
       } ${dimmed ? 'opacity-50' : ''} ${item.optimized ? 'border-purple-200 bg-purple-50/10' : ''}`}
     >
@@ -135,9 +294,9 @@ function TaskCard({ item, ghost, dimmed, compact }) {
 function HabitCard({ item, ghost, dimmed }) {
   return (
     <div
-      className={`flex items-center justify-between rounded-lg p-3.5 shadow-sm transition-all dark:bg-zinc-800 ${
+      className={`flex items-center justify-between rounded-lg p-3.5 shadow-sm transition-all duration-200 dark:bg-zinc-800 ${
         ghost
-          ? 'border-2 border-dashed border-[#e2e2e2] bg-white opacity-40 hover:border-solid hover:opacity-100 dark:border-zinc-700 dark:bg-zinc-800'
+          ? 'border border-dashed border-[#f2f2f2] bg-white opacity-40 hover:border-solid hover:border-[#f2f2f2] hover:bg-[#fcfcfc] hover:opacity-100 hover:shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800'
           : 'border border-gray-100 bg-white dark:border-zinc-700'
       } ${dimmed ? 'opacity-50' : ''}`}
     >
@@ -238,70 +397,79 @@ export default function DailyView({
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm max-lg:h-auto max-lg:flex-none dark:border-zinc-800/80 dark:bg-zinc-900">
-      {/* Daily Date Header */}
-      <div className="flex flex-col items-start gap-0.5 border-b border-gray-100 bg-white p-3 dark:border-zinc-800/80 dark:bg-zinc-900">
-        <span className="text-[12px] font-medium text-gray-400 dark:text-gray-500">
-          {weekdayShort}
-        </span>
-        <span className="flex items-center justify-center rounded-lg bg-purple-100/70 px-1.5 py-0.5 text-sm font-bold text-[#7C3AED] dark:bg-purple-950/40 dark:text-purple-400">
-          {dateNum}
-        </span>
-      </div>
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-white shadow-sm max-lg:h-auto max-lg:flex-none dark:border-zinc-800/80 dark:bg-zinc-900">
+      <div className="scrollbar-white relative flex-1 overflow-y-auto p-3 lg:min-h-0 max-lg:max-h-[min(70vh,560px)]">
+        {/* Date header — centered over time column, Figma 1260:23099 */}
+        <div
+          className="mb-3 flex flex-col items-center gap-0.5"
+          style={{ width: GRID_LINE_LEFT }}
+        >
+          <span className="text-[12px] font-medium text-[#c2c2c2] dark:text-gray-500">
+            {weekdayShort}
+          </span>
+          <span className="flex items-center justify-center rounded-[8px] bg-[#f9f4ff] px-1.5 py-0.5 text-[16px] font-medium text-[#8022fe] dark:bg-purple-950/40 dark:text-purple-400">
+            {dateNum}
+          </span>
+        </div>
 
-      {/* Daily Scrollable Grid — gridlines are a fixed-height, evenly-spaced background layer;
-          cards are a separately absolutely-positioned overlay keyed to their hour's offset, so
-          a tall card can never push a gridline out of alignment with its label (matches Figma's
-          actual mechanism: absolute-positioned cards over a uniform label+line list). */}
-      <div className="scrollbar-white relative flex-1 overflow-y-auto lg:min-h-0 max-lg:max-h-[min(70vh,560px)]">
-        <div className="relative" style={{ height: PLANNER_HOURS.length * ROW_HEIGHT + 100 }}>
-          <div className="pointer-events-none absolute top-4 bottom-0 left-16 border-l border-gray-100 dark:border-zinc-800/80" />
+        <div
+          className="relative"
+          style={{ minHeight: (PLANNER_HOURS.length - 1) * ROW_STEP + ROW_LABEL_HEIGHT + 160 }}
+        >
+          {/* Vertical separator — Figma 1260:23199 at left 45px */}
+          <div
+            className="pointer-events-none absolute top-0 bottom-0 w-px bg-[#f2f2f2] dark:bg-zinc-800/80"
+            style={{ left: GRID_LINE_LEFT }}
+          />
 
-          {PLANNER_HOURS.map((hour, i) => (
-            <div
-              key={hour}
-              className="absolute inset-x-0 flex items-center"
-              style={{ top: i * ROW_HEIGHT }}
-            >
-              <div className="relative z-10 flex h-4 w-16 shrink-0 items-center justify-end bg-white pr-3 text-[10px] font-semibold text-gray-400 dark:bg-zinc-900 dark:text-gray-500">
-                {hour}
+          {/* Hour rows — Figma 1260:23132 flex-col gap-[40px] */}
+          <div className="relative z-0 flex flex-col gap-[40px]">
+            {PLANNER_HOURS.map((hour) => (
+              <div key={hour} className="relative flex w-full items-center gap-[10px]">
+                <span
+                  className="shrink-0 text-right text-[10px] leading-[1.5] font-medium whitespace-nowrap text-[#c2c2c2] dark:text-gray-500"
+                  style={{ width: TIME_COL_WIDTH }}
+                >
+                  {hour}
+                </span>
+                <HourLine hour={hour} />
               </div>
-              <div className="relative h-0 flex-1">
-                {hour === '4 AM' ? (
-                  <>
-                    <div className="absolute top-1/2 left-0 z-20 -mt-1 h-2 w-2 -translate-x-1/2 rounded-full border border-white bg-purple-600 shadow-sm dark:border-zinc-900" />
-                    <div className="absolute inset-x-0 top-1/2 z-20 h-[2px] -translate-y-1/2 bg-purple-500/85" />
-                  </>
-                ) : (
-                  i > 0 && (
-                    <div className="absolute inset-x-0 top-0 border-t border-dashed border-gray-200 dark:border-zinc-700" />
-                  )
-                )}
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
 
+          {/* Current time — Figma 1260:23291 */}
+          <div
+            className="pointer-events-none absolute right-0 z-[5] flex -translate-y-1/2 items-center"
+            style={{ left: GRID_LINE_LEFT - 1, top: getHourLineTop(3) + 15 }}
+          >
+            <div className="h-2 w-2 shrink-0 -translate-x-1/2 rounded-full border border-white bg-[#8022fe] shadow-sm dark:border-zinc-900" />
+            <div className="h-[2px] flex-1 bg-[#8022fe]" />
+          </div>
+
+          {/* Ghost / task cards — Figma 1264:24782+ absolute positioned */}
           {PLANNER_HOURS.map((hour, i) => {
             const hourItems = dayItems.filter((item) => item.time === hour);
             if (hourItems.length === 0) return null;
-            const isHalfLayout = hourItems.length > 1 && hourItems.every((it) => it.layout === 'half');
+            const isHalfLayout =
+              hourItems.length > 1 && hourItems.every((it) => it.layout === 'half');
 
             return (
               <div
-                key={hour}
-                className="absolute right-3 left-16 z-10 pl-3"
-                style={{ top: i * ROW_HEIGHT + 10 }}
+                key={`cards-${hour}`}
+                className="absolute right-0 z-10"
+                style={{ left: CARD_LEFT, top: i * ROW_STEP + CARD_TOP_OFFSET }}
               >
                 {isHalfLayout ? (
-                  <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="flex w-full gap-2">
                     {hourItems.map((item) => (
-                      <ItemCard
-                        key={item.id}
-                        item={item}
-                        ghost={!hasAcceptedPlan}
-                        onAccept={onAccept}
-                        onDismiss={onDismiss}
-                      />
+                      <div key={item.id} className="min-w-0 flex-1">
+                        <ItemCard
+                          item={item}
+                          ghost={!hasAcceptedPlan}
+                          onAccept={onAccept}
+                          onDismiss={onDismiss}
+                        />
+                      </div>
                     ))}
                   </div>
                 ) : (

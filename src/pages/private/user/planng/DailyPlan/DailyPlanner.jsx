@@ -110,6 +110,103 @@ export default function DailyPlanner() {
     const ts = timestamp();
     const userMsgId = Date.now().toString();
 
+    if (actionType === 'adjust_before_accepting') {
+      postMessages(
+        { id: userMsgId, sender: 'user', text: 'Adjust before accepting', timestamp: ts },
+        {
+          id: userMsgId + '_ai',
+          sender: 'ai',
+          text: 'Tell me what you want to change before accepting — for example, move a task earlier, reduce workload, or leave more focus time.',
+          timestamp: ts,
+        }
+      );
+      return;
+    }
+
+    if (actionType === 'show_whats_included') {
+      postMessages(
+        { id: userMsgId, sender: 'user', text: "Show what's included", timestamp: ts },
+        {
+          id: userMsgId + '_ai',
+          sender: 'ai',
+          text: 'Your suggested plan includes your existing tasks, habits, and AI-recommended time slots — nothing new was added without your approval.',
+          timestamp: ts,
+        }
+      );
+      return;
+    }
+
+    if (actionType === 'generate_weekly_plan') {
+      setViewMode('Weekly');
+      postMessages(
+        { id: userMsgId, sender: 'user', text: 'Generate Weekly Plan', timestamp: ts },
+        {
+          id: userMsgId + '_ai',
+          sender: 'ai',
+          text: "I've prepared a weekly overview based on your tasks and habits. Switch to Weekly view to review it, then accept or adjust from chat.",
+          timestamp: ts,
+          actions: [
+            { label: 'Accept plan', actionId: 'accept_initial' },
+            { label: 'Dismiss', actionId: 'dismiss_initial' },
+          ],
+        }
+      );
+      return;
+    }
+
+    if (actionType === 'generate_monthly_plan') {
+      setViewMode('Monthly');
+      postMessages(
+        { id: userMsgId, sender: 'user', text: 'Generate Monthly Plan', timestamp: ts },
+        {
+          id: userMsgId + '_ai',
+          sender: 'ai',
+          text: "I've prepared a monthly overview based on your tasks and habits. Switch to Monthly view to review it, then accept or adjust from chat.",
+          timestamp: ts,
+          actions: [
+            { label: 'Accept plan', actionId: 'accept_initial' },
+            { label: 'Dismiss', actionId: 'dismiss_initial' },
+          ],
+        }
+      );
+      return;
+    }
+
+    if (actionType === 'balance') {
+      postMessages(
+        { id: userMsgId, sender: 'user', text: 'Balance my schedule', timestamp: ts },
+        {
+          id: userMsgId + '_ai',
+          sender: 'ai',
+          text: 'I can rebalance your day by moving lower-priority items and creating more focus spacing. Use AI Actions to choose Recalibrate, Reduce overload, or Optimize schedule.',
+          timestamp: ts,
+          actions: [
+            { label: 'Recalibrate My Day', actionId: 'recalibrate_day' },
+            { label: 'Reduce Overload', actionId: 'reduce_overload' },
+            { label: 'Optimize Schedule', actionId: 'optimize_schedule' },
+          ],
+        }
+      );
+      return;
+    }
+
+    if (actionType === 'free_evening') {
+      postMessages(
+        { id: userMsgId, sender: 'user', text: 'Free up my evening', timestamp: ts },
+        {
+          id: userMsgId + '_ai',
+          sender: 'ai',
+          text: 'I can move non-urgent items out of your evening block to reduce overload. Want me to reduce overload now?',
+          timestamp: ts,
+          actions: [
+            { label: 'Reduce Overload', actionId: 'reduce_overload' },
+            { label: 'Dismiss', actionId: 'dismiss_initial' },
+          ],
+        }
+      );
+      return;
+    }
+
     if (actionType === 'ai_actions_menu') {
       postMessages(
         { id: userMsgId, sender: 'user', text: 'AI Actions', timestamp: ts },
@@ -382,6 +479,8 @@ export default function DailyPlanner() {
           handleActionClick={handleActionClick}
           handleQuickAction={handleQuickAction}
           chatContainerRef={chatContainerRef}
+          hasAcceptedPlan={hasAcceptedPlan}
+          viewMode={viewMode}
         />
       </div>
 
