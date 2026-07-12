@@ -18,12 +18,19 @@ const GRID_BOTTOM_PAD = 24;
 const CARD_TOP_FROM_GRID = {
   '1 AM': 7,
   '2 AM': 89,
-  '4 AM': 176,
   '7 AM': 364,
   '11 AM': 638,
 };
 
-const CURRENT_TIME_TOP = 216;
+// 4 AM geometry from the supplied Figma crop:
+// card begins 26px above the hour rule; purple rule sits a little below the hour line.
+const FOUR_AM_HOUR_INDEX = 3;
+const FOUR_AM_CARD_ABOVE_HOUR_LINE = 26;
+const FOUR_AM_PURPLE_BELOW_HOUR_LINE = 18;
+
+function getFourAmCurrentTimeTop() {
+  return getHourLineTop(FOUR_AM_HOUR_INDEX) + FOUR_AM_PURPLE_BELOW_HOUR_LINE;
+}
 
 // Typography aligned with Tasks / Habits / Goals boards.
 const TYPO = {
@@ -33,13 +40,20 @@ const TYPO = {
   cardTitle:
     'text-sm font-medium leading-normal text-[#181818] sm:text-[12px] lg:text-base dark:text-gray-300',
   cardDesc: 'text-xs font-medium leading-normal text-[#a3a3a3] sm:text-[12px] dark:text-gray-500',
-  badge: 'text-[10px] font-medium uppercase sm:text-xs lg:text-[12px]',
+  badge: 'text-[12px] font-medium uppercase leading-normal',
   chip: 'text-xs font-medium leading-normal text-[#5d5d5d] lg:text-[12px] dark:text-gray-300',
+};
+
+const PRIORITY_STYLES = {
+  URGENT: 'bg-[rgba(220,38,38,0.05)] text-[#dc2626]',
+  HIGH: 'bg-[rgba(249,115,22,0.05)] text-[#f97316]',
+  MEDIUM: 'bg-[rgba(202,138,4,0.05)] text-[#ca8a04]',
+  LOW: 'bg-[rgba(107,114,128,0.05)] text-[#6b7280]',
 };
 
 const CARD_HEIGHT = {
   compact: 32,
-  medium: 60,
+  medium: 68,
   halfTask: 120,
   halfHabit: 58,
   full: 88,
@@ -70,8 +84,42 @@ function getHourLineTop(index) {
 }
 
 function getCardTop(hour, index) {
+  if (hour === '4 AM') return getHourLineTop(index) - FOUR_AM_CARD_ABOVE_HOUR_LINE;
   if (CARD_TOP_FROM_GRID[hour] != null) return CARD_TOP_FROM_GRID[hour];
   return getHourLineTop(index) + CARD_TOP_OFFSET;
+}
+
+function GhostTagsRow({ item, className = '' }) {
+  return (
+    <div className={`flex flex-wrap items-center gap-2 sm:gap-2.5 ${className}`}>
+      <div className="flex flex-wrap items-center gap-1 sm:gap-1.5">
+        {item.priority && (
+          <span
+            className={`rounded-[6px] px-1.5 py-0.5 ${TYPO.badge} ${PRIORITY_STYLES[item.priority]}`}
+          >
+            {item.priority}
+          </span>
+        )}
+        {item.source === 'ai' && (
+          <span
+            className={`flex items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-1.5 py-0.5 text-[#8022fe] ${TYPO.badge}`}
+          >
+            <Sparkles size={10} className="shrink-0" /> AI
+          </span>
+        )}
+      </div>
+      {item.status && (
+        <>
+          <TagDivider tall />
+          <span
+            className={`rounded-[6px] bg-[#f2f2f2] px-1.5 py-0.5 uppercase text-[#a3a3a3] ${TYPO.badge}`}
+          >
+            {item.status}
+          </span>
+        </>
+      )}
+    </div>
+  );
 }
 
 function HourRow({ hour }) {
@@ -211,13 +259,6 @@ function GhostFieldShell({ children, className = '', radius = 8, borderRx = 3, b
   );
 }
 
-const PRIORITY_STYLES = {
-  URGENT: 'bg-[rgba(220,38,38,0.05)] text-[#dc2626]',
-  HIGH: 'bg-[rgba(249,115,22,0.05)] text-[#f97316]',
-  MEDIUM: 'bg-[rgba(202,138,4,0.05)] text-[#ca8a04]',
-  LOW: 'bg-[rgba(107,114,128,0.05)] text-[#6b7280]',
-};
-
 function TaskCard({ item, ghost, dimmed }) {
   const isOverload = item.status === 'Rescheduled';
   if (isOverload) {
@@ -238,33 +279,6 @@ function TaskCard({ item, ghost, dimmed }) {
   const ghostCompact = ghost && !item.description && !item.category && !item.durationLabel;
   const ghostMedium = ghost && item.description && !item.durationLabel;
 
-  const ghostTags = (
-    <div className="flex shrink-0 flex-wrap items-center gap-2 sm:gap-2.5">
-      <div className="flex flex-wrap items-center gap-1 sm:gap-1.5">
-        {item.priority && (
-          <span
-            className={`rounded-[6px] px-1.5 py-0.5 ${TYPO.badge} ${PRIORITY_STYLES[item.priority]}`}
-          >
-            {item.priority}
-          </span>
-        )}
-        {item.source === 'ai' && (
-          <span className={`flex items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-1.5 py-0.5 text-[#8022fe] ${TYPO.badge}`}>
-            <Sparkles size={10} className="shrink-0" /> AI
-          </span>
-        )}
-      </div>
-      {item.status && (
-        <>
-          <TagDivider />
-          <span className={`rounded-[6px] bg-[#f2f2f2] px-1.5 py-0.5 uppercase text-[#a3a3a3] ${TYPO.badge}`}>
-            {item.status}
-          </span>
-        </>
-      )}
-    </div>
-  );
-
   const fullTaskBody = (faded) => (
     <div
       className={`flex min-w-0 flex-1 flex-col gap-2 ${
@@ -274,7 +288,7 @@ function TaskCard({ item, ghost, dimmed }) {
       <div className="flex flex-col gap-1">
         <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
           <span className={`shrink-0 ${TYPO.cardTitle}`}>{item.title}</span>
-          {ghostTags}
+          <GhostTagsRow item={item} className="shrink-0" />
         </div>
         {item.description && (
           <p className={`line-clamp-1 ${TYPO.cardDesc}`}>{item.description}</p>
@@ -296,7 +310,7 @@ function TaskCard({ item, ghost, dimmed }) {
       >
         <div className="relative z-[1] flex min-w-0 flex-1 flex-wrap items-center gap-2 opacity-40 transition-opacity group-hover:opacity-100 sm:gap-2.5">
           <span className={`shrink-0 ${TYPO.compactTitle}`}>{item.title}</span>
-          {ghostTags}
+          <GhostTagsRow item={item} className="shrink-0" />
         </div>
       </GhostFieldShell>
     );
@@ -308,16 +322,20 @@ function TaskCard({ item, ghost, dimmed }) {
         radius={12}
         borderRx={2.5}
         borderRy={8}
-        className={`flex min-h-[60px] w-full overflow-hidden rounded-xl p-2.5 sm:p-[10px] ${
+        className={`flex h-[68px] w-full overflow-hidden rounded-xl p-[10px] ${
           dimmed ? 'opacity-50' : ''
         }`}
       >
-        <div className="relative z-[1] flex min-w-0 flex-1 flex-col gap-1 opacity-50 transition-opacity group-hover:opacity-100 sm:gap-1.5">
-          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
-            <span className={TYPO.cardTitle}>{item.title}</span>
-            {ghostTags}
+        <div className="relative z-[1] flex min-w-0 flex-1 flex-col opacity-50 transition-opacity group-hover:opacity-100">
+          <div className="flex items-center gap-2.5">
+            <span className="shrink-0 text-[14px] font-medium leading-normal text-[#181818] dark:text-gray-300">
+              {item.title}
+            </span>
+            <GhostTagsRow item={item} className="min-w-0 flex-1" />
           </div>
-          <p className={`line-clamp-1 ${TYPO.cardDesc}`}>{item.description}</p>
+          <p className="mt-[13px] line-clamp-1 text-[12px] font-medium leading-normal text-[#a3a3a3] dark:text-gray-500">
+            {item.description}
+          </p>
         </div>
       </GhostFieldShell>
     );
@@ -388,7 +406,9 @@ function TaskCard({ item, ghost, dimmed }) {
     >
       <div className="flex flex-col justify-start gap-2 sm:flex-row sm:items-center">
         <span className={TYPO.cardTitle}>{item.title}</span>
-        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">{ghostTags}</div>
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+          <GhostTagsRow item={item} className="shrink-0" />
+        </div>
       </div>
       {item.description && <p className={TYPO.cardDesc}>{item.description}</p>}
       {(item.category || item.goalLabel || item.durationLabel || item.stepsLabel) && (
@@ -561,14 +581,22 @@ export default function DailyView({
             ))}
           </div>
 
-          {/* Current time — Figma 1260:23291 at grid y=180 (between title & description) */}
-          <div
-            className="pointer-events-none absolute right-0 z-[15] flex -translate-y-1/2 items-center"
-            style={{ left: GRID_LINE_LEFT - 1, top: CURRENT_TIME_TOP }}
-          >
-            <div className="h-2 w-2 shrink-0 -translate-x-1/2 rounded-full border border-white bg-[#8022fe] shadow-sm dark:border-zinc-900" />
-            <div className="h-[2px] flex-1 bg-[#8022fe]" />
-          </div>
+          {/* Figma 1260:23291 — dot centered on vertical separator, line extends right */}
+          {!hasAcceptedPlan && dayItems.some((item) => item.time === '4 AM') && (
+            <div
+              className="pointer-events-none absolute right-0 z-[15] -translate-y-1/2"
+              style={{ left: 0, top: getFourAmCurrentTimeTop() }}
+            >
+              <div
+                className="absolute top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white bg-[#8022fe] shadow-sm dark:border-zinc-900"
+                style={{ left: GRID_LINE_LEFT }}
+              />
+              <div
+                className="absolute top-1/2 h-[1.5px] -translate-y-1/2 bg-[#8022fe]"
+                style={{ left: GRID_LINE_LEFT, right: 0 }}
+              />
+            </div>
+          )}
 
           {/* Ghost / task cards — Figma 1264:24782+ absolute positioned */}
           {PLANNER_HOURS.map((hour, i) => {
