@@ -2,6 +2,11 @@ import React from 'react';
 import { Sparkles, Clock, Target, BarChart2 } from 'lucide-react';
 import { PLANNER_HOURS, dateKeyFromDate } from '../plannerData';
 
+// Fixed px-per-hour spacing for the gridline background layer — matches Figma's row rhythm
+// (confirmed via get_design_context: gap-[40px] + ~12px label line-height ≈ 52px/hour). Cards
+// are positioned relative to this independently, so they can never push a gridline out of place.
+const ROW_HEIGHT = 52;
+
 const PRIORITY_STYLES = {
   URGENT: 'bg-[rgba(220,38,38,0.05)] text-[#dc2626]',
   HIGH: 'bg-[rgba(249,115,22,0.05)] text-[#f97316]',
@@ -29,8 +34,6 @@ function TaskCard({ item, ghost, dimmed, compact }) {
   return (
     <div
       className={`flex w-full flex-col gap-1 rounded-lg p-3 shadow-sm transition-all dark:bg-zinc-800 ${
-        compact ? '' : 'sm:flex-row sm:items-center'
-      } ${
         ghost
           ? 'border-2 border-dashed border-[#e2e2e2] bg-white opacity-40 hover:border-solid hover:opacity-100 dark:border-zinc-700 dark:bg-zinc-800'
           : 'border border-gray-100 bg-white dark:border-zinc-700'
@@ -246,44 +249,52 @@ export default function DailyView({
         </span>
       </div>
 
-      {/* Daily Scrollable Grid */}
-      <div className="scrollbar-white max-h-[580px] flex-1 overflow-y-auto">
-        {PLANNER_HOURS.map((hour) => {
-          const hourItems = dayItems.filter((item) => item.time === hour);
-          const isHalfLayout = hourItems.length > 1 && hourItems.every((i) => i.layout === 'half');
+      {/* Daily Scrollable Grid — gridlines are a fixed-height, evenly-spaced background layer;
+          cards are a separately absolutely-positioned overlay keyed to their hour's offset, so
+          a tall card can never push a gridline out of alignment with its label (matches Figma's
+          actual mechanism: absolute-positioned cards over a uniform label+line list). */}
+      <div className="scrollbar-white relative max-h-[580px] flex-1 overflow-y-auto">
+        <div className="relative" style={{ height: PLANNER_HOURS.length * ROW_HEIGHT + 100 }}>
+          <div className="pointer-events-none absolute top-4 bottom-0 left-16 border-l border-gray-100 dark:border-zinc-800/80" />
 
-          return (
+          {PLANNER_HOURS.map((hour, i) => (
             <div
               key={hour}
-              className="relative grid grid-cols-[64px_minmax(0,1fr)] gap-0 border-b border-gray-100 last:border-b-0 dark:border-zinc-800/80"
+              className="absolute inset-x-0 flex items-center"
+              style={{ top: i * ROW_HEIGHT }}
             >
-              <div className="border-r border-gray-100 bg-white py-4 pr-3 text-right text-[10px] font-semibold text-gray-400 dark:border-zinc-800/80 dark:bg-zinc-900 dark:text-gray-500">
+              <div className="relative z-10 flex h-4 w-16 shrink-0 items-center justify-end bg-white pr-3 text-[10px] font-semibold text-gray-400 dark:bg-zinc-900 dark:text-gray-500">
                 {hour}
               </div>
-
-              <div className="relative flex min-h-13 flex-col justify-center bg-white p-3 dark:bg-zinc-900">
-                {hour === '4 AM' && (
-                  <div className="pointer-events-none absolute top-1/4 right-0 left-0 z-10 flex -translate-y-1/2 items-center">
-                    <div className="ml-[-4px] h-2 w-2 rounded-full border border-white bg-purple-600 shadow-sm dark:border-zinc-900" />
-                    <div className="h-[2px] flex-1 bg-purple-500/85" />
-                  </div>
+              <div className="relative h-0 flex-1">
+                {hour === '4 AM' ? (
+                  <>
+                    <div className="absolute top-1/2 left-0 z-20 -mt-1 h-2 w-2 -translate-x-1/2 rounded-full border border-white bg-purple-600 shadow-sm dark:border-zinc-900" />
+                    <div className="absolute inset-x-0 top-1/2 z-20 h-[2px] -translate-y-1/2 bg-purple-500/85" />
+                  </>
+                ) : (
+                  i > 0 && (
+                    <div className="absolute inset-x-0 top-0 border-t border-dashed border-gray-200 dark:border-zinc-700" />
+                  )
                 )}
+              </div>
+            </div>
+          ))}
 
-                {hourItems.length > 0 &&
-                  (isHalfLayout ? (
-                    <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2">
-                      {hourItems.map((item) => (
-                        <ItemCard
-                          key={item.id}
-                          item={item}
-                          ghost={!hasAcceptedPlan}
-                          onAccept={onAccept}
-                          onDismiss={onDismiss}
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    hourItems.map((item) => (
+          {PLANNER_HOURS.map((hour, i) => {
+            const hourItems = dayItems.filter((item) => item.time === hour);
+            if (hourItems.length === 0) return null;
+            const isHalfLayout = hourItems.length > 1 && hourItems.every((it) => it.layout === 'half');
+
+            return (
+              <div
+                key={hour}
+                className="absolute right-3 left-16 z-10 pl-3"
+                style={{ top: i * ROW_HEIGHT + 10 }}
+              >
+                {isHalfLayout ? (
+                  <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2">
+                    {hourItems.map((item) => (
                       <ItemCard
                         key={item.id}
                         item={item}
@@ -291,12 +302,23 @@ export default function DailyView({
                         onAccept={onAccept}
                         onDismiss={onDismiss}
                       />
-                    ))
-                  ))}
+                    ))}
+                  </div>
+                ) : (
+                  hourItems.map((item) => (
+                    <ItemCard
+                      key={item.id}
+                      item={item}
+                      ghost={!hasAcceptedPlan}
+                      onAccept={onAccept}
+                      onDismiss={onDismiss}
+                    />
+                  ))
+                )}
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </div>
   );
