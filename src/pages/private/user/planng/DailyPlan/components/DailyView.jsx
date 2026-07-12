@@ -13,8 +13,22 @@ const CARD_LEFT = GRID_LINE_LEFT + 11; // 56px
 const CARD_TOP_OFFSET = 6;
 const HOUR_LINE_OVERHANG = 4; // solid hour line extends past vertical for "+" join
 
+// Figma 1264:24782+ absolute tops (grid-relative, after date header).
+const CARD_TOP_FROM_GRID = {
+  '1 AM': 6,
+  '2 AM': 74,
+  '4 AM': 147,
+  '7 AM': 303,
+  '11 AM': 532,
+};
+
 function getHourLineTop(index) {
   return index * ROW_STEP + ROW_LABEL_HEIGHT / 2;
+}
+
+function getCardTop(hour, index) {
+  if (CARD_TOP_FROM_GRID[hour] != null) return CARD_TOP_FROM_GRID[hour];
+  return getHourLineTop(index) + CARD_TOP_OFFSET;
 }
 
 function HourRow({ hour }) {
@@ -485,7 +499,7 @@ export default function DailyView({
               <div
                 key={`cards-${hour}`}
                 className="absolute right-0 z-10"
-                style={{ left: GRID_LINE_LEFT, top: i * ROW_STEP + CARD_TOP_OFFSET }}
+                style={{ left: GRID_LINE_LEFT, top: getCardTop(hour, i) }}
               >
                 {isHalfLayout ? (
                   <div className="flex w-full gap-2">
