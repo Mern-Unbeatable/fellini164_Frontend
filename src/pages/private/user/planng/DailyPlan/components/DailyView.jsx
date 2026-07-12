@@ -2,28 +2,68 @@ import React from 'react';
 import { Sparkles, Clock, Target, BarChart2 } from 'lucide-react';
 import { PLANNER_HOURS, dateKeyFromDate } from '../plannerData';
 
-// Figma node 1260:23097 — flex-col gap-[40px] rows, 10px labels (leading 1.5 ≈ 15px tall).
-const ROW_GAP = 40;
-const ROW_LABEL_HEIGHT = 15;
+// Timeline rhythm — scaled up from Figma for readability (Tasks/Habits/Goals parity).
+const ROW_GAP = 48;
+const ROW_LABEL_HEIGHT = 18;
 const ROW_STEP = ROW_GAP + ROW_LABEL_HEIGHT;
-const TIME_COL_WIDTH = 35;
+const TIME_COL_WIDTH = 40;
 const TIME_COL_GAP = 10;
-const GRID_LINE_LEFT = TIME_COL_WIDTH + TIME_COL_GAP; // 45px
-const CARD_LEFT = GRID_LINE_LEFT + 11; // 56px
-const CARD_TOP_OFFSET = 6;
-const HOUR_LINE_OVERHANG = 4; // solid hour line extends past vertical for "+" join
+const GRID_LINE_LEFT = TIME_COL_WIDTH + TIME_COL_GAP; // 50px
+const CARD_LEFT = GRID_LINE_LEFT + 11; // 61px
+const CARD_TOP_OFFSET = 8;
+const HOUR_LINE_OVERHANG = 4;
+const GRID_BOTTOM_PAD = 24;
 
-// Figma 1264:24782+ — grid-relative tops (frame top minus ~72px header offset).
+// Positions scaled ~1.2× from Figma grid-relative tops (66/55 step ratio).
 const CARD_TOP_FROM_GRID = {
-  '1 AM': 6,
-  '2 AM': 74,
-  '4 AM': 147, // 1264:24813 top 219px
-  '7 AM': 303,
-  '11 AM': 532,
+  '1 AM': 7,
+  '2 AM': 89,
+  '4 AM': 176,
+  '7 AM': 364,
+  '11 AM': 638,
 };
 
-// Figma 1260:23291 — purple line at frame top 252.33px → grid 180px.
-const CURRENT_TIME_TOP = 180;
+const CURRENT_TIME_TOP = 216;
+
+// Typography aligned with Tasks / Habits / Goals boards.
+const TYPO = {
+  hour: 'text-xs font-medium leading-normal text-[#c2c2c2] sm:text-[12px] lg:text-[14px] dark:text-gray-500',
+  compactTitle:
+    'text-xs font-medium leading-normal text-[#181818] sm:text-[12px] dark:text-gray-300',
+  cardTitle:
+    'text-sm font-medium leading-normal text-[#181818] sm:text-[12px] lg:text-base dark:text-gray-300',
+  cardDesc: 'text-xs font-medium leading-normal text-[#a3a3a3] sm:text-[12px] dark:text-gray-500',
+  badge: 'text-[10px] font-medium uppercase sm:text-xs lg:text-[12px]',
+  chip: 'text-xs font-medium leading-normal text-[#5d5d5d] lg:text-[12px] dark:text-gray-300',
+};
+
+const CARD_HEIGHT = {
+  compact: 32,
+  medium: 60,
+  halfTask: 120,
+  halfHabit: 58,
+  full: 88,
+};
+
+function estimateCardHeight(item) {
+  if (item.kind === 'suggestion') return 72;
+  if (item.kind === 'habit') return CARD_HEIGHT.halfHabit;
+  if (item.layout === 'half') return CARD_HEIGHT.halfTask;
+  if (item.description && !item.durationLabel && !item.category) return CARD_HEIGHT.medium;
+  if (!item.description && !item.category && !item.durationLabel) return CARD_HEIGHT.compact;
+  return CARD_HEIGHT.full;
+}
+
+function getGridMinHeight(dayItems) {
+  let bottom = (PLANNER_HOURS.length - 1) * ROW_STEP + ROW_LABEL_HEIGHT;
+  dayItems.forEach((item) => {
+    const hourIndex = PLANNER_HOURS.indexOf(item.time);
+    if (hourIndex < 0) return;
+    const top = getCardTop(item.time, hourIndex);
+    bottom = Math.max(bottom, top + estimateCardHeight(item));
+  });
+  return bottom + GRID_BOTTOM_PAD;
+}
 
 function getHourLineTop(index) {
   return index * ROW_STEP + ROW_LABEL_HEIGHT / 2;
@@ -38,7 +78,7 @@ function HourRow({ hour }) {
   return (
     <div className="relative flex w-full items-center gap-[10px]">
       <span
-        className="shrink-0 text-right text-[10px] leading-[1.5] font-medium whitespace-nowrap text-[#c2c2c2] dark:text-gray-500"
+        className={`shrink-0 text-right whitespace-nowrap ${TYPO.hour}`}
         style={{ width: TIME_COL_WIDTH }}
       >
         {hour}
@@ -59,10 +99,10 @@ function TagDivider({ tall }) {
 
 function StatusTagsRow({ item }) {
   return (
-    <div className="flex h-4 items-center gap-2.5">
+    <div className="flex min-h-4 flex-wrap items-center gap-2 sm:gap-2.5">
       {item.priority && (
         <span
-          className={`rounded px-1 py-0.5 text-[8px] font-medium uppercase ${PRIORITY_STYLES[item.priority]}`}
+          className={`rounded-[6px] px-1.5 py-0.5 ${TYPO.badge} ${PRIORITY_STYLES[item.priority]}`}
         >
           {item.priority}
         </span>
@@ -70,7 +110,7 @@ function StatusTagsRow({ item }) {
       {item.status && (
         <>
           <TagDivider tall />
-          <span className="rounded bg-[#f2f2f2] px-1 py-0.5 text-[8px] font-medium uppercase text-[#a3a3a3]">
+          <span className={`rounded-[6px] bg-[#f2f2f2] px-1.5 py-0.5 uppercase text-[#a3a3a3] ${TYPO.badge}`}>
             {item.status}
           </span>
         </>
@@ -79,17 +119,27 @@ function StatusTagsRow({ item }) {
   );
 }
 
-function MetadataChips({ item }) {
+function MetadataChips({ item, includeGoal = true, includeSteps = true }) {
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex flex-wrap items-center gap-1 sm:gap-1.5">
       {item.category && (
-        <span className="rounded-md border border-[#f2f2f2] px-1.5 py-0.5 text-[10px] font-medium text-[#5d5d5d]">
+        <span className={`rounded-[6px] border border-[#f2f2f2] px-1.5 py-0.5 ${TYPO.chip}`}>
           {item.category}
         </span>
       )}
+      {includeGoal && item.goalLabel && (
+        <span className={`flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-1.5 py-0.5 ${TYPO.chip}`}>
+          <Target size={12} className="shrink-0" /> {item.goalLabel}
+        </span>
+      )}
       {item.durationLabel && (
-        <span className="flex items-center gap-1.5 rounded-md border border-[#f2f2f2] px-1.5 py-0.5 text-[10px] font-medium text-[#5d5d5d]">
-          <Clock size={10} /> {item.durationLabel}
+        <span className={`flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-1.5 py-0.5 ${TYPO.chip}`}>
+          <Clock size={12} className="shrink-0" /> {item.durationLabel}
+        </span>
+      )}
+      {includeSteps && item.stepsLabel && (
+        <span className={`flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-1.5 py-0.5 ${TYPO.chip}`}>
+          <BarChart2 size={12} className="shrink-0" /> {item.stepsLabel}
         </span>
       )}
     </div>
@@ -103,16 +153,12 @@ function HalfTaskCardBody({ item, faded }) {
         faded ? 'opacity-40 transition-opacity group-hover:opacity-100' : ''
       }`}
     >
-      <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-1.5 sm:gap-2">
         <StatusTagsRow item={item} />
         <div className="flex flex-col gap-1">
-          <span className="text-[12px] font-medium leading-[1.5] text-[#181818] dark:text-gray-300">
-            {item.title}
-          </span>
+          <span className={TYPO.cardTitle}>{item.title}</span>
           {item.description && (
-            <p className="line-clamp-1 text-[10px] leading-[1.5] text-[#a3a3a3] dark:text-gray-500">
-              {item.description}
-            </p>
+            <p className={`line-clamp-1 ${TYPO.cardDesc}`}>{item.description}</p>
           )}
         </div>
       </div>
@@ -172,7 +218,7 @@ const PRIORITY_STYLES = {
   LOW: 'bg-[rgba(107,114,128,0.05)] text-[#6b7280]',
 };
 
-function TaskCard({ item, ghost, dimmed, compact }) {
+function TaskCard({ item, ghost, dimmed }) {
   const isOverload = item.status === 'Rescheduled';
   if (isOverload) {
     return (
@@ -193,29 +239,48 @@ function TaskCard({ item, ghost, dimmed, compact }) {
   const ghostMedium = ghost && item.description && !item.durationLabel;
 
   const ghostTags = (
-    <div className="flex shrink-0 items-center gap-2.5">
-      <div className="flex items-center gap-1">
+    <div className="flex shrink-0 flex-wrap items-center gap-2 sm:gap-2.5">
+      <div className="flex flex-wrap items-center gap-1 sm:gap-1.5">
         {item.priority && (
           <span
-            className={`rounded px-1 py-0.5 text-[8px] font-medium uppercase ${PRIORITY_STYLES[item.priority]}`}
+            className={`rounded-[6px] px-1.5 py-0.5 ${TYPO.badge} ${PRIORITY_STYLES[item.priority]}`}
           >
             {item.priority}
           </span>
         )}
         {item.source === 'ai' && (
-          <span className="flex items-center gap-[3px] rounded bg-[#f9f4ff] px-1 py-0.5 text-[8px] font-medium text-[#8022fe]">
-            <Sparkles size={7} /> AI
+          <span className={`flex items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-1.5 py-0.5 text-[#8022fe] ${TYPO.badge}`}>
+            <Sparkles size={10} className="shrink-0" /> AI
           </span>
         )}
       </div>
       {item.status && (
         <>
           <TagDivider />
-          <span className="rounded bg-[#f2f2f2] px-1 py-0.5 text-[8px] font-medium text-[#a3a3a3] uppercase">
+          <span className={`rounded-[6px] bg-[#f2f2f2] px-1.5 py-0.5 uppercase text-[#a3a3a3] ${TYPO.badge}`}>
             {item.status}
           </span>
         </>
       )}
+    </div>
+  );
+
+  const fullTaskBody = (faded) => (
+    <div
+      className={`flex min-w-0 flex-1 flex-col gap-2 ${
+        faded ? 'opacity-40 transition-opacity group-hover:opacity-100' : ''
+      }`}
+    >
+      <div className="flex flex-col gap-1">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+          <span className={`shrink-0 ${TYPO.cardTitle}`}>{item.title}</span>
+          {ghostTags}
+        </div>
+        {item.description && (
+          <p className={`line-clamp-1 ${TYPO.cardDesc}`}>{item.description}</p>
+        )}
+      </div>
+      <MetadataChips item={item} />
     </div>
   );
 
@@ -225,14 +290,12 @@ function TaskCard({ item, ghost, dimmed, compact }) {
         radius={8}
         borderRx={2}
         borderRy={32}
-        className={`flex min-h-[28px] w-full items-center justify-between rounded-lg pl-[11px] pr-2.5 py-1 ${
+        className={`flex min-h-[32px] w-full items-center justify-between rounded-lg px-2.5 py-1.5 sm:pl-[11px] ${
           dimmed ? 'opacity-50' : ''
         }`}
       >
-        <div className="relative z-[1] flex min-w-0 flex-1 items-center gap-2.5 opacity-40 transition-opacity group-hover:opacity-100">
-          <span className="shrink-0 text-[10px] font-medium text-[#181818] dark:text-gray-300">
-            {item.title}
-          </span>
+        <div className="relative z-[1] flex min-w-0 flex-1 flex-wrap items-center gap-2 opacity-40 transition-opacity group-hover:opacity-100 sm:gap-2.5">
+          <span className={`shrink-0 ${TYPO.compactTitle}`}>{item.title}</span>
           {ghostTags}
         </div>
       </GhostFieldShell>
@@ -245,26 +308,21 @@ function TaskCard({ item, ghost, dimmed, compact }) {
         radius={12}
         borderRx={2.5}
         borderRy={8}
-        className={`flex h-[56px] w-full overflow-hidden rounded-xl p-[10px] ${
+        className={`flex min-h-[60px] w-full overflow-hidden rounded-xl p-2.5 sm:p-[10px] ${
           dimmed ? 'opacity-50' : ''
         }`}
       >
-        <div className="relative z-[1] flex min-w-0 flex-1 flex-col gap-1 opacity-50 transition-opacity group-hover:opacity-100">
-          <div className="flex flex-wrap items-center gap-2.5">
-            <span className="text-[12px] font-medium leading-[1.5] text-[#181818] dark:text-gray-300">
-              {item.title}
-            </span>
+        <div className="relative z-[1] flex min-w-0 flex-1 flex-col gap-1 opacity-50 transition-opacity group-hover:opacity-100 sm:gap-1.5">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+            <span className={TYPO.cardTitle}>{item.title}</span>
             {ghostTags}
           </div>
-          <p className="line-clamp-1 text-[10px] leading-[1.5] text-[#a3a3a3] dark:text-gray-500">
-            {item.description}
-          </p>
+          <p className={`line-clamp-1 ${TYPO.cardDesc}`}>{item.description}</p>
         </div>
       </GhostFieldShell>
     );
   }
 
-  // Figma 1264:24905 — 7 AM half-width task (112px, tags above title).
   if (item.layout === 'half') {
     if (ghost) {
       return (
@@ -272,7 +330,7 @@ function TaskCard({ item, ghost, dimmed, compact }) {
           radius={12}
           borderRx={2.5}
           borderRy={8}
-          className={`flex h-[112px] w-full overflow-hidden rounded-xl p-[10px] ${
+          className={`flex min-h-[120px] w-full overflow-hidden rounded-xl p-2.5 sm:p-[10px] ${
             dimmed ? 'opacity-50' : ''
           }`}
         >
@@ -284,7 +342,7 @@ function TaskCard({ item, ghost, dimmed, compact }) {
     }
     return (
       <div
-        className={`flex h-[112px] w-full overflow-hidden rounded-xl border border-solid border-[#f2f2f2] bg-[#fcfcfc] p-[10px] dark:border-zinc-700 dark:bg-zinc-800 ${
+        className={`flex min-h-[120px] w-full overflow-hidden rounded-xl border border-solid border-[#f2f2f2] bg-[#fcfcfc] p-2.5 sm:p-[10px] dark:border-zinc-700 dark:bg-zinc-800 ${
           dimmed ? 'opacity-50' : ''
         }`}
       >
@@ -299,143 +357,42 @@ function TaskCard({ item, ghost, dimmed, compact }) {
         radius={12}
         borderRx={2.5}
         borderRy={8}
-        className={`flex w-full items-start justify-between rounded-xl p-2.5 ${
+        className={`flex min-h-[88px] w-full overflow-hidden rounded-xl p-2.5 sm:p-[10px] ${
           dimmed ? 'opacity-50' : ''
         }`}
       >
-        <div className="relative z-[1] min-w-0 flex-1 opacity-40 transition-opacity group-hover:opacity-100">
-          <div className="flex flex-wrap items-center gap-2.5">
-            <span className="text-xs font-medium text-[#181818] dark:text-gray-300">{item.title}</span>
-            {ghostTags}
-          </div>
-          {item.description && (
-            <p className="mt-1 line-clamp-2 text-[10px] text-[#a3a3a3] dark:text-gray-500">
-              {item.description}
-            </p>
-          )}
-          <div className="mt-2 flex flex-wrap items-center gap-1">
-            {item.category && (
-              <span className="rounded-md border border-[#f2f2f2] px-1.5 py-0.5 text-[10px] font-medium text-[#5d5d5d]">
-                {item.category}
-              </span>
-            )}
-            {item.goalLabel && (
-              <span className="flex items-center gap-1 rounded-md border border-[#f2f2f2] px-1.5 py-0.5 text-[10px] font-medium text-[#5d5d5d]">
-                <Target size={10} /> {item.goalLabel}
-              </span>
-            )}
-            {item.durationLabel && (
-              <span className="flex items-center gap-1 rounded-md border border-[#f2f2f2] px-1.5 py-0.5 text-[10px] font-medium text-[#5d5d5d]">
-                <Clock size={10} /> {item.durationLabel}
-              </span>
-            )}
-            {item.stepsLabel && (
-              <span className="flex items-center gap-1 text-[10px] font-medium text-[#5d5d5d]">
-                <BarChart2 size={10} /> {item.stepsLabel}
-              </span>
-            )}
-          </div>
-        </div>
+        <div className="relative z-[1] min-w-0 flex-1">{fullTaskBody(true)}</div>
       </GhostFieldShell>
+    );
+  }
+
+  if (!ghost && (item.category || item.durationLabel || item.stepsLabel)) {
+    return (
+      <div
+        className={`flex min-h-[88px] w-full overflow-hidden rounded-xl border border-solid border-[#f2f2f2] bg-[#fcfcfc] p-2.5 sm:p-[10px] dark:border-zinc-700 dark:bg-zinc-800 ${
+          dimmed ? 'opacity-50' : ''
+        } ${item.optimized ? 'border-purple-200 bg-purple-50/10' : ''}`}
+      >
+        {fullTaskBody(false)}
+      </div>
     );
   }
 
   return (
     <div
-      className={`flex w-full flex-col gap-1 rounded-lg p-3 shadow-sm transition-all duration-200 dark:bg-zinc-800 ${
+      className={`flex w-full flex-col gap-1.5 rounded-xl p-2.5 shadow-sm transition-all duration-200 sm:p-3 dark:bg-zinc-800 ${
         ghost
           ? 'border border-dashed border-[#f2f2f2] bg-white opacity-40 hover:border-solid hover:border-[#f2f2f2] hover:bg-[#fcfcfc] hover:opacity-100 hover:shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800'
           : 'border border-gray-100 bg-white dark:border-zinc-700'
       } ${dimmed ? 'opacity-50' : ''} ${item.optimized ? 'border-purple-200 bg-purple-50/10' : ''}`}
     >
-      <div
-        className={`flex flex-col justify-start gap-2 ${compact ? '' : 'sm:flex-row sm:items-center'}`}
-      >
-        {compact && (
-          <div className="flex flex-wrap items-center gap-1.5">
-            {item.priority && (
-              <span
-                className={`rounded px-2 py-0.5 text-[8px] font-medium uppercase ${PRIORITY_STYLES[item.priority]}`}
-              >
-                {item.priority}
-              </span>
-            )}
-            {item.status && (
-              <span className="rounded border border-gray-100 bg-gray-50 px-2 py-0.5 text-[8px] font-medium text-gray-400 dark:border-none dark:bg-zinc-700 dark:text-gray-400">
-                {item.status.toUpperCase()}
-              </span>
-            )}
-            {item.source === 'ai' && (
-              <span className="text-primary flex items-center gap-1 rounded bg-[#7C3AED]/10 px-2 py-0.5 text-[8px] font-medium dark:border-none dark:bg-[#F9F4FF] dark:text-purple-400">
-                <Sparkles size={8} /> AI
-              </span>
-            )}
-          </div>
-        )}
-        <span className="text-xs font-medium text-slate-700 dark:text-gray-300">
-          {item.title}
-        </span>
-        {!compact && (
-        <div className="flex flex-wrap items-center gap-1.5">
-          {item.priority && (
-            <span
-              className={`rounded px-2 py-0.5 text-[8px] font-medium uppercase ${PRIORITY_STYLES[item.priority]}`}
-            >
-              {item.priority}
-            </span>
-          )}
-          {item.source === 'ai' && (
-            <span className="text-primary flex items-center gap-1 rounded bg-[#7C3AED]/10 px-2 py-0.5 text-[8px] font-medium dark:border-none dark:bg-[#F9F4FF] dark:text-purple-400">
-              <Sparkles size={8} /> AI
-            </span>
-          )}
-          {item.optimized && (
-            <span className="rounded bg-green-50 px-2 py-0.5 text-[8px] font-semibold text-green-600 dark:bg-green-950/20 dark:text-green-400">
-              Optimized
-            </span>
-          )}
-          {item.balanced && (
-            <span className="rounded bg-green-50 px-2 py-0.5 text-[8px] font-semibold text-green-600 dark:bg-green-950/20 dark:text-green-400">
-              AI Balanced
-            </span>
-          )}
-          {item.status && (
-            <>
-              <div className="mx-0.5 h-3 w-[1px] bg-gray-200 dark:bg-zinc-700" />
-              <span className="rounded border border-gray-100 bg-gray-50 px-2 py-0.5 text-[8px] font-medium text-gray-400 dark:border-none dark:bg-zinc-700 dark:text-gray-400">
-                {item.status.toUpperCase()}
-              </span>
-            </>
-          )}
-        </div>
-        )}
+      <div className="flex flex-col justify-start gap-2 sm:flex-row sm:items-center">
+        <span className={TYPO.cardTitle}>{item.title}</span>
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">{ghostTags}</div>
       </div>
-      {item.description && (
-        <p className="mt-0.5 text-[10px] text-gray-400 dark:text-gray-500">{item.description}</p>
-      )}
+      {item.description && <p className={TYPO.cardDesc}>{item.description}</p>}
       {(item.category || item.goalLabel || item.durationLabel || item.stepsLabel) && (
-        <div className="mt-1 flex flex-wrap items-center gap-2">
-          {item.category && (
-            <span className="rounded-lg border border-gray-200 px-2 py-0.5 text-[8px] font-semibold text-gray-400 dark:border-zinc-700">
-              {item.category}
-            </span>
-          )}
-          {item.goalLabel && (
-            <span className="flex items-center gap-1 rounded-lg border border-gray-200 px-2 py-0.5 text-[8px] font-semibold text-gray-400 dark:border-zinc-700">
-              <Target size={8} /> {item.goalLabel}
-            </span>
-          )}
-          {item.durationLabel && (
-            <span className="flex items-center gap-1 text-[8px] font-semibold text-gray-400 dark:text-gray-500">
-              <Clock size={8} /> {item.durationLabel}
-            </span>
-          )}
-          {item.stepsLabel && (
-            <span className="flex items-center gap-1 text-[8px] font-semibold text-gray-400 dark:text-gray-500">
-              <BarChart2 size={8} /> {item.stepsLabel}
-            </span>
-          )}
-        </div>
+        <MetadataChips item={item} />
       )}
     </div>
   );
@@ -446,25 +403,21 @@ function HabitCard({ item, ghost, dimmed }) {
 
   const body = (
     <>
-      <div className={`flex min-w-0 flex-1 flex-col gap-0.5 p-[10px] ${faded}`}>
-        <span className="truncate text-[12px] font-medium leading-[1.5] text-[#181818] dark:text-gray-300">
-          {item.title}
-        </span>
+      <div className={`flex min-w-0 flex-1 flex-col gap-0.5 p-2.5 sm:p-[10px] ${faded}`}>
+        <span className={`truncate ${TYPO.cardTitle}`}>{item.title}</span>
         {item.description && (
-          <p className="line-clamp-1 text-[10px] leading-[1.5] text-[#a3a3a3] dark:text-gray-500">
-            {item.description}
-          </p>
+          <p className={`line-clamp-1 ${TYPO.cardDesc}`}>{item.description}</p>
         )}
       </div>
       <div
-        className={`flex h-full shrink-0 flex-col items-center justify-between px-3 py-2 ${
+        className={`flex h-full shrink-0 flex-col items-center justify-between px-2.5 py-2 sm:px-3 sm:py-2 ${
           ghost ? 'border-l border-dashed border-[#f2f2f2]' : 'border-l border-solid border-[#f2f2f2]'
         }`}
       >
         <div
           className={`size-5 shrink-0 rounded-md border border-[#e9e9e9] bg-white dark:border-zinc-600 dark:bg-zinc-800 ${faded}`}
         />
-        <span className={`text-[10px] font-medium leading-none text-[#5d5d5d] dark:text-gray-400 ${faded}`}>
+        <span className={`text-xs font-medium leading-none text-[#5d5d5d] sm:text-[12px] dark:text-gray-400 ${faded}`}>
           {item.progress.done}/{item.progress.total}
         </span>
       </div>
@@ -477,7 +430,7 @@ function HabitCard({ item, ghost, dimmed }) {
         radius={12}
         borderRx={2.5}
         borderRy={8}
-        className={`flex h-[54px] w-full items-center overflow-hidden rounded-xl ${
+        className={`flex min-h-[58px] w-full items-center overflow-hidden rounded-xl ${
           dimmed ? 'opacity-50' : ''
         }`}
       >
@@ -488,7 +441,7 @@ function HabitCard({ item, ghost, dimmed }) {
 
   return (
     <div
-      className={`flex h-[54px] w-full items-center overflow-hidden rounded-xl border border-solid border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800 ${
+      className={`flex min-h-[58px] w-full items-center overflow-hidden rounded-xl border border-solid border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800 ${
         dimmed ? 'opacity-50' : ''
       }`}
     >
@@ -536,7 +489,7 @@ function ItemCard({ item, ghost, dimmed, onAccept, onDismiss }) {
   if (item.kind === 'habit') {
     return <HabitCard item={item} ghost={ghost} dimmed={dimmed} />;
   }
-  return <TaskCard item={item} ghost={ghost} dimmed={dimmed} compact={item.layout === 'half'} />;
+  return <TaskCard item={item} ghost={ghost} dimmed={dimmed} />;
 }
 
 export default function DailyView({
@@ -583,17 +536,17 @@ export default function DailyView({
           className="mb-3 flex flex-col items-center gap-0.5"
           style={{ width: GRID_LINE_LEFT }}
         >
-          <span className="text-[12px] font-medium text-[#c2c2c2] dark:text-gray-500">
+          <span className="text-xs font-medium text-[#c2c2c2] sm:text-[12px] dark:text-gray-500">
             {weekdayShort}
           </span>
-          <span className="flex items-center justify-center rounded-[8px] bg-[#f9f4ff] px-1.5 py-0.5 text-[16px] font-medium text-[#8022fe] dark:bg-purple-950/40 dark:text-purple-400">
+          <span className="flex items-center justify-center rounded-[8px] bg-[#f9f4ff] px-1.5 py-0.5 text-sm font-medium text-[#8022fe] sm:text-[16px] dark:bg-purple-950/40 dark:text-purple-400">
             {dateNum}
           </span>
         </div>
 
         <div
           className="relative"
-          style={{ minHeight: (PLANNER_HOURS.length - 1) * ROW_STEP + ROW_LABEL_HEIGHT + 160 }}
+          style={{ minHeight: getGridMinHeight(dayItems) }}
         >
           {/* Vertical separator — Figma 1260:23199 at left 45px */}
           <div
@@ -602,7 +555,7 @@ export default function DailyView({
           />
 
           {/* Hour rows only — Figma 1260:23132; no extra slot grid lines */}
-          <div className="relative z-0 flex flex-col gap-[40px]">
+          <div className="relative z-0 flex flex-col" style={{ gap: ROW_GAP }}>
             {PLANNER_HOURS.map((hour) => (
               <HourRow key={hour} hour={hour} />
             ))}
@@ -631,7 +584,7 @@ export default function DailyView({
                 style={{ left: CARD_LEFT, top: getCardTop(hour, i) }}
               >
                 {isHalfLayout ? (
-                  <div className="flex w-full items-start gap-2">
+                  <div className="flex w-full flex-col items-stretch gap-2 sm:flex-row sm:items-start">
                     {hourItems.map((item) => (
                       <div key={item.id} className="min-w-0 flex-1">
                         <ItemCard
