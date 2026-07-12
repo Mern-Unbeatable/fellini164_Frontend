@@ -40,7 +40,7 @@ function TagDivider() {
   return <div className="mx-0 h-1.5 w-px shrink-0 bg-[#f2f2f2]" />;
 }
 
-/** Figma empty-state ghost cards — visible dashed border (14px dash / 8px gap). */
+/** Figma empty-state ghost cards — light ashy dashes, airy spacing. */
 function GhostFieldBorder({ rx = 3, ry = 30 }) {
   return (
     <svg
@@ -58,10 +58,10 @@ function GhostFieldBorder({ rx = 3, ry = 30 }) {
         rx={rx}
         ry={ry}
         fill="none"
-        stroke="#c9c9c9"
-        strokeWidth="1.2"
+        stroke="#e8e8e8"
+        strokeWidth="1"
         vectorEffect="non-scaling-stroke"
-        strokeDasharray="14 8"
+        strokeDasharray="8 14"
       />
     </svg>
   );
