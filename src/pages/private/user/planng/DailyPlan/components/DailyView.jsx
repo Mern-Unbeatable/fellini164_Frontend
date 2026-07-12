@@ -238,7 +238,7 @@ export default function DailyView({
   }
 
   return (
-    <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-zinc-800/80 dark:bg-zinc-900">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm max-lg:h-auto max-lg:flex-none dark:border-zinc-800/80 dark:bg-zinc-900">
       {/* Daily Date Header */}
       <div className="flex flex-col items-start gap-0.5 border-b border-gray-100 bg-white p-3 dark:border-zinc-800/80 dark:bg-zinc-900">
         <span className="text-[12px] font-medium text-gray-400 dark:text-gray-500">
@@ -253,7 +253,7 @@ export default function DailyView({
           cards are a separately absolutely-positioned overlay keyed to their hour's offset, so
           a tall card can never push a gridline out of alignment with its label (matches Figma's
           actual mechanism: absolute-positioned cards over a uniform label+line list). */}
-      <div className="scrollbar-white relative max-h-[580px] flex-1 overflow-y-auto">
+      <div className="scrollbar-white relative flex-1 overflow-y-auto lg:min-h-0 max-lg:max-h-[min(70vh,560px)]">
         <div className="relative" style={{ height: PLANNER_HOURS.length * ROW_HEIGHT + 100 }}>
           <div className="pointer-events-none absolute top-4 bottom-0 left-16 border-l border-gray-100 dark:border-zinc-800/80" />
 

@@ -71,9 +71,9 @@ export default function WeeklyView({ currentDate, selectedDate, plans, hasAccept
   const selectedKey = dateKeyFromDate(anchorDate);
 
   return (
-    <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-[#F2F2F2] bg-white shadow-sm dark:border-zinc-800/80 dark:bg-zinc-900">
-      <div className="flex w-full flex-1 flex-col overflow-x-auto">
-        <div className="flex w-full min-w-[950px] flex-1 flex-col">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[#F2F2F2] bg-white shadow-sm max-lg:h-auto max-lg:flex-none dark:border-zinc-800/80 dark:bg-zinc-900">
+      <div className="flex min-h-0 w-full flex-1 flex-col overflow-x-auto">
+        <div className="flex min-h-0 w-full min-w-[950px] flex-1 flex-col">
           {/* Weekday Names with Date Numbers */}
           <div className="grid grid-cols-[64px_1fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-0 border-b border-[#F2F2F2] dark:border-zinc-800/80">
             <div className="border-r border-[#F2F2F2] bg-white dark:border-zinc-800/80 dark:bg-zinc-900" />
@@ -102,7 +102,7 @@ export default function WeeklyView({ currentDate, selectedDate, plans, hasAccept
           </div>
 
           {/* Hourly Slots Scrollable Area */}
-          <div className="scrollbar-hidden max-h-[580px] flex-1 overflow-y-auto">
+          <div className="scrollbar-hidden flex-1 overflow-y-auto lg:min-h-0 max-lg:max-h-[min(70vh,560px)]">
             {isLoading
               ? [1, 2, 3, 4, 5].map((val) => (
                   <div key={val} className="grid grid-cols-[64px_1fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-0 border-b border-[#F2F2F2] p-2 dark:border-zinc-800/80">

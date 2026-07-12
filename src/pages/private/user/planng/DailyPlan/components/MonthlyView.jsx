@@ -10,7 +10,7 @@ export default function MonthlyView({
   setViewMode
 }) {
   return (
-    <div className="flex-1 bg-white dark:bg-zinc-900 border border-[#F2F2F2] dark:border-zinc-800/80 rounded-2xl overflow-hidden shadow-sm flex flex-col">
+    <div className="flex min-h-0 flex-1 flex-col bg-white dark:bg-zinc-900 border border-[#F2F2F2] dark:border-zinc-800/80 rounded-2xl overflow-hidden shadow-sm max-lg:h-auto max-lg:flex-none">
       {/* Weekday Names */}
       <div className="grid grid-cols-7 border-b border-gray-100 dark:border-zinc-800/80 gap-0">
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((dayName) => (
