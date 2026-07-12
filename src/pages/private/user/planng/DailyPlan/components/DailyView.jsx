@@ -263,6 +263,30 @@ function HalfTaskCardBody({ item, faded }) {
   );
 }
 
+/** Figma ghost cards — vertical dashed rule (habit progress panel). */
+function GhostVerticalDivider() {
+  return (
+    <svg
+      aria-hidden
+      className="pointer-events-none absolute bottom-0 left-0 top-0 w-px transition-opacity group-hover:opacity-0"
+      preserveAspectRatio="none"
+      viewBox="0 0 1 100"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <line
+        x1="0.5"
+        y1="0"
+        x2="0.5"
+        y2="100"
+        stroke="#e8e8e8"
+        strokeWidth="1"
+        vectorEffect="non-scaling-stroke"
+        strokeDasharray="8 14"
+      />
+    </svg>
+  );
+}
+
 /** Figma empty-state ghost cards — light ashy dashes, airy spacing. */
 function GhostFieldBorder({ rx = 3, ry = 30 }) {
   return (
@@ -483,11 +507,17 @@ function HabitCard({ item, ghost, dimmed }) {
           </p>
         )}
       </div>
-      <div
-        className={`flex w-11 shrink-0 flex-col items-center justify-between px-3 py-2 ${
-          ghost ? 'border-l border-dashed border-[#f2f2f2]' : 'border-l border-solid border-[#f2f2f2]'
-        }`}
-      >
+      <div className="relative flex w-11 shrink-0 flex-col items-center justify-between px-3 py-2">
+        {ghost && (
+          <>
+            <GhostVerticalDivider />
+            <div
+              aria-hidden
+              className="pointer-events-none absolute bottom-0 left-0 top-0 w-px bg-[#f2f2f2] opacity-0 transition-opacity group-hover:opacity-100"
+            />
+          </>
+        )}
+        {!ghost && <div aria-hidden className="absolute bottom-0 left-0 top-0 w-px bg-[#f2f2f2]" />}
         <div
           className={`size-5 shrink-0 rounded-md border border-[#e9e9e9] bg-white dark:border-zinc-600 dark:bg-zinc-800 ${faded}`}
         />
