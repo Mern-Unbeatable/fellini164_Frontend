@@ -54,7 +54,7 @@ export default function PlannerControls({
           >
             <ChevronLeft size={24} />
           </button>
-          <span className="min-w-[100px] text-center text-sm text-[#5D5D5D] dark:text-gray-200 max-lg:text-base max-lg:flex-1">
+          <span className="min-w-[100px] text-center text-[14px] font-medium leading-[1.5] text-[#5D5D5D] dark:text-gray-200 max-lg:flex-1">
             {months[currentDate.getMonth()]} {currentDate.getDate()}, {currentDate.getFullYear()}
           </span>
           <button

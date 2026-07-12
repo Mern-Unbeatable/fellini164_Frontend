@@ -13,7 +13,7 @@ export default function PlannerHeader() {
       <h1 className="text-[20px] font-medium text-[#181818] dark:text-white">Planner Board</h1>
       <TypewriterText
         phrases={PLANNER_SUBTITLE_PHRASES}
-        className="text-[12px] font-medium text-[#c2c2c2] dark:text-gray-400 max-lg:text-sm"
+        className="text-[12px] font-medium text-[#c2c2c2] dark:text-gray-400"
       />
     </div>
   );
