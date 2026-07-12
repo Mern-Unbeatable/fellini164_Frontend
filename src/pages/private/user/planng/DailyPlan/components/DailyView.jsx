@@ -40,6 +40,64 @@ function TagDivider() {
   return <div className="mx-0 h-1.5 w-px shrink-0 bg-[#f2f2f2]" />;
 }
 
+/** Figma empty-state ghost cards — visible dashed border (14px dash / 8px gap). */
+function GhostFieldBorder({ rx = 3, ry = 30 }) {
+  return (
+    <svg
+      aria-hidden
+      className="pointer-events-none absolute inset-0 z-0 h-full w-full transition-opacity group-hover:opacity-0"
+      viewBox="0 0 100 100"
+      preserveAspectRatio="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <rect
+        x="0.5"
+        y="0.5"
+        width="99"
+        height="99"
+        rx={rx}
+        ry={ry}
+        fill="none"
+        stroke="#c9c9c9"
+        strokeWidth="1.2"
+        vectorEffect="non-scaling-stroke"
+        strokeDasharray="14 8"
+      />
+    </svg>
+  );
+}
+
+function GhostFieldShell({ children, className = '', radius = 8, borderRx = 3, borderRy = 30 }) {
+  return (
+    <div
+      className={`group relative bg-white transition-all duration-200 hover:bg-[#fcfcfc] hover:shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:bg-zinc-800 ${className}`}
+      style={{ borderRadius: radius }}
+    >
+      <GhostFieldBorder rx={borderRx} ry={borderRy} />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 z-0 opacity-0 transition-opacity group-hover:opacity-100"
+        style={{ boxShadow: 'inset 0 0 0 1px #f2f2f2', borderRadius: radius }}
+      />
+      {children}
+    </div>
+  );
+}
+
+function GhostResizeHandle({ vertical = false }) {
+  return (
+    <div
+      className={`relative z-[1] ml-2 flex shrink-0 opacity-40 transition-opacity group-hover:opacity-100 ${
+        vertical ? 'flex-col gap-0.5' : 'flex-row gap-0.5'
+      }`}
+    >
+      <div className="h-0.5 w-0.5 rounded-full bg-[#c2c2c2]" />
+      <div className="h-0.5 w-0.5 rounded-full bg-[#c2c2c2]" />
+      <div className="h-0.5 w-0.5 rounded-full bg-[#c2c2c2]" />
+    </div>
+  );
+}
+
 const PRIORITY_STYLES = {
   URGENT: 'bg-[rgba(220,38,38,0.05)] text-[#dc2626]',
   HIGH: 'bg-[rgba(249,115,22,0.05)] text-[#f97316]',
@@ -96,57 +154,58 @@ function TaskCard({ item, ghost, dimmed, compact }) {
 
   if (ghostCompact) {
     return (
-      <div
-        className={`group flex w-full min-h-[19px] items-center justify-between overflow-hidden rounded-lg border border-dashed border-[#f2f2f2] bg-white px-2.5 py-0.5 transition-all duration-200 hover:border-solid hover:bg-[#fcfcfc] hover:shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800 ${
+      <GhostFieldShell
+        radius={8}
+        borderRx={2}
+        borderRy={32}
+        className={`flex min-h-[28px] w-full items-center justify-between rounded-lg pl-[11px] pr-2.5 py-1 ${
           dimmed ? 'opacity-50' : ''
         }`}
       >
-        <div className="flex min-w-0 flex-1 items-center gap-2.5 opacity-40 transition-opacity group-hover:opacity-100">
+        <div className="relative z-[1] flex min-w-0 flex-1 items-center gap-2.5 opacity-40 transition-opacity group-hover:opacity-100">
           <span className="shrink-0 text-[10px] font-medium text-[#181818] dark:text-gray-300">
             {item.title}
           </span>
           {ghostTags}
         </div>
-        <div className="ml-2 flex shrink-0 gap-0.5 opacity-40 transition-opacity group-hover:opacity-100">
-          <div className="h-0.5 w-0.5 rounded-full bg-[#c2c2c2]" />
-          <div className="h-0.5 w-0.5 rounded-full bg-[#c2c2c2]" />
-          <div className="h-0.5 w-0.5 rounded-full bg-[#c2c2c2]" />
-        </div>
-      </div>
+        <GhostResizeHandle />
+      </GhostFieldShell>
     );
   }
 
   if (ghostMedium) {
     return (
-      <div
-        className={`flex w-full items-start justify-between overflow-hidden rounded-xl border border-dashed border-[#f2f2f2] bg-white p-2.5 transition-all duration-200 hover:border-solid hover:bg-[#fcfcfc] hover:shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800 ${
+      <GhostFieldShell
+        radius={12}
+        borderRx={2.5}
+        borderRy={8}
+        className={`flex w-full items-start justify-between rounded-xl p-2.5 ${
           dimmed ? 'opacity-50' : ''
         }`}
       >
-        <div className="min-w-0 flex-1 opacity-50">
+        <div className="relative z-[1] min-w-0 flex-1 opacity-50 transition-opacity group-hover:opacity-100">
           <div className="flex flex-wrap items-center gap-2.5">
             <span className="text-xs font-medium text-[#181818] dark:text-gray-300">{item.title}</span>
             {ghostTags}
           </div>
           <p className="mt-1 text-[10px] text-[#a3a3a3] dark:text-gray-500">{item.description}</p>
         </div>
-        <div className="ml-2 flex shrink-0 flex-col gap-0.5 opacity-50">
-          <div className="h-0.5 w-0.5 rounded-full bg-[#c2c2c2]" />
-          <div className="h-0.5 w-0.5 rounded-full bg-[#c2c2c2]" />
-          <div className="h-0.5 w-0.5 rounded-full bg-[#c2c2c2]" />
-        </div>
-      </div>
+        <GhostResizeHandle vertical />
+      </GhostFieldShell>
     );
   }
 
   if (ghost && (item.category || item.durationLabel || item.stepsLabel)) {
     return (
-      <div
-        className={`flex w-full items-start justify-between overflow-hidden rounded-xl border border-dashed border-[#f2f2f2] bg-white p-2.5 transition-all duration-200 hover:border-solid hover:bg-[#fcfcfc] hover:shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800 ${
+      <GhostFieldShell
+        radius={12}
+        borderRx={2.5}
+        borderRy={8}
+        className={`flex w-full items-start justify-between rounded-xl p-2.5 ${
           dimmed ? 'opacity-50' : ''
         }`}
       >
-        <div className="min-w-0 flex-1 opacity-40">
+        <div className="relative z-[1] min-w-0 flex-1 opacity-40 transition-opacity group-hover:opacity-100">
           <div className="flex flex-wrap items-center gap-2.5">
             <span className="text-xs font-medium text-[#181818] dark:text-gray-300">{item.title}</span>
             {ghostTags}
@@ -179,12 +238,8 @@ function TaskCard({ item, ghost, dimmed, compact }) {
             )}
           </div>
         </div>
-        <div className="ml-2 flex shrink-0 flex-col gap-0.5 opacity-40">
-          <div className="h-0.5 w-0.5 rounded-full bg-[#c2c2c2]" />
-          <div className="h-0.5 w-0.5 rounded-full bg-[#c2c2c2]" />
-          <div className="h-0.5 w-0.5 rounded-full bg-[#c2c2c2]" />
-        </div>
-      </div>
+        <GhostResizeHandle vertical />
+      </GhostFieldShell>
     );
   }
 
@@ -447,7 +502,7 @@ export default function DailyView({
               <div
                 key={`cards-${hour}`}
                 className="absolute right-0 z-10"
-                style={{ left: CARD_LEFT, top: i * ROW_STEP + CARD_TOP_OFFSET }}
+                style={{ left: GRID_LINE_LEFT, top: i * ROW_STEP + CARD_TOP_OFFSET }}
               >
                 {isHalfLayout ? (
                   <div className="flex w-full gap-2">
