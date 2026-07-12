@@ -22,9 +22,15 @@ const CARD_TOP_FROM_GRID = {
   '11 AM': 638,
 };
 
-// 7 AM two-up — Figma 1264:24904: card starts ~33.5px above hour line; heights scale with ROW_STEP.
+// 7 AM two-up — Figma 1264:24904: card aligns with 7 AM row, centered between 7 & 8 AM lines.
 const SEVEN_AM_HOUR_INDEX = 6;
-const SEVEN_AM_CARD_ABOVE_HOUR_LINE = Math.round(33.5 * (ROW_STEP / 55));
+const SEVEN_AM_TASK_HEIGHT = 112;
+const SEVEN_AM_HABIT_HEIGHT = 54;
+
+function getSevenAmCardTop() {
+  // Figma image 1 — card top aligns with the 7 AM label row (not the 6–7 AM gap).
+  return SEVEN_AM_HOUR_INDEX * ROW_STEP;
+}
 // card begins 26px above the hour rule; purple rule sits a little below the hour line.
 const FOUR_AM_HOUR_INDEX = 3;
 const FOUR_AM_CARD_ABOVE_HOUR_LINE = 26;
@@ -91,8 +97,8 @@ const PRIORITY_STYLES = {
 const CARD_HEIGHT = {
   compact: 32,
   medium: 68,
-  halfTask: Math.round(112 * (ROW_STEP / 55)),
-  halfHabit: Math.round(54 * (ROW_STEP / 55)),
+  halfTask: SEVEN_AM_TASK_HEIGHT,
+  halfHabit: SEVEN_AM_HABIT_HEIGHT,
   full: 88,
 };
 
@@ -122,7 +128,7 @@ function getHourLineTop(index) {
 
 function getCardTop(hour, index) {
   if (hour === '4 AM') return getHourLineTop(index) - FOUR_AM_CARD_ABOVE_HOUR_LINE;
-  if (hour === '7 AM') return getHourLineTop(SEVEN_AM_HOUR_INDEX) - SEVEN_AM_CARD_ABOVE_HOUR_LINE;
+  if (hour === '7 AM') return getSevenAmCardTop();
   if (CARD_TOP_FROM_GRID[hour] != null) return CARD_TOP_FROM_GRID[hour];
   return getHourLineTop(index) + CARD_TOP_OFFSET;
 }
