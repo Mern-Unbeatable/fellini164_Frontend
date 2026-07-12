@@ -222,7 +222,7 @@ export default function DailyView({
           <div className="h-3 w-10 animate-pulse rounded bg-gray-200 dark:bg-zinc-800" />
           <div className="mt-1.5 h-7 w-7 animate-pulse rounded-lg bg-gray-200 dark:bg-zinc-800" />
         </div>
-        <div className="max-h-[580px] flex-1 space-y-4 overflow-y-auto p-4">
+        <div className="scrollbar-white max-h-[580px] flex-1 space-y-4 overflow-y-auto p-4">
           {[1, 2, 3, 4, 5].map((val) => (
             <div key={val} className="flex animate-pulse items-center gap-4">
               <div className="bg-gray-150 dark:bg-zinc-850 h-4 w-10 rounded" />
