@@ -75,7 +75,10 @@ export default function PlannerControls({
             className="flex w-30 items-center justify-between rounded-lg border border-[#f2f2f2] bg-white px-3 py-1.75 text-[12px] font-medium text-[#181818] transition-colors hover:bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white max-lg:w-full max-lg:gap-2 max-lg:py-2.5 max-lg:text-base"
           >
             <span className="truncate max-lg:min-w-0 max-lg:flex-1 max-lg:text-center">{viewMode}</span>
-            <ChevronDown size={10} className="shrink-0 text-[#a3a3a3]" />
+            <ChevronDown
+              size={14}
+              className={`shrink-0 text-[#a3a3a3] transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`}
+            />
           </button>
 
           {dropdownOpen && (
