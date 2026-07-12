@@ -84,20 +84,6 @@ function GhostFieldShell({ children, className = '', radius = 8, borderRx = 3, b
   );
 }
 
-function GhostResizeHandle({ vertical = false }) {
-  return (
-    <div
-      className={`relative z-[1] ml-2 flex shrink-0 opacity-40 transition-opacity group-hover:opacity-100 ${
-        vertical ? 'flex-col gap-0.5' : 'flex-row gap-0.5'
-      }`}
-    >
-      <div className="h-0.5 w-0.5 rounded-full bg-[#c2c2c2]" />
-      <div className="h-0.5 w-0.5 rounded-full bg-[#c2c2c2]" />
-      <div className="h-0.5 w-0.5 rounded-full bg-[#c2c2c2]" />
-    </div>
-  );
-}
-
 const PRIORITY_STYLES = {
   URGENT: 'bg-[rgba(220,38,38,0.05)] text-[#dc2626]',
   HIGH: 'bg-[rgba(249,115,22,0.05)] text-[#f97316]',
@@ -168,7 +154,6 @@ function TaskCard({ item, ghost, dimmed, compact }) {
           </span>
           {ghostTags}
         </div>
-        <GhostResizeHandle />
       </GhostFieldShell>
     );
   }
@@ -190,7 +175,6 @@ function TaskCard({ item, ghost, dimmed, compact }) {
           </div>
           <p className="mt-1 text-[10px] text-[#a3a3a3] dark:text-gray-500">{item.description}</p>
         </div>
-        <GhostResizeHandle vertical />
       </GhostFieldShell>
     );
   }
@@ -238,7 +222,6 @@ function TaskCard({ item, ghost, dimmed, compact }) {
             )}
           </div>
         </div>
-        <GhostResizeHandle vertical />
       </GhostFieldShell>
     );
   }
