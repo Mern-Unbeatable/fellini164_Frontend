@@ -99,10 +99,10 @@ function WeekGhostFieldBorder({ rx = 3, ry = 30 }) {
         rx={rx}
         ry={ry}
         fill="none"
-        stroke="#f2f2f2"
+        stroke="#e8e8e8"
         strokeWidth="1"
         vectorEffect="non-scaling-stroke"
-        strokeDasharray="8 6"
+        strokeDasharray="8 14"
       />
     </svg>
   );
