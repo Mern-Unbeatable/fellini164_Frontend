@@ -10,10 +10,10 @@ const PRIORITY_STYLES = {
 };
 
 function WeekItemCard({ item, ghost }) {
-  const base = `flex flex-col gap-1.5 rounded-lg border p-2.5 shadow-sm transition-all dark:bg-zinc-800 ${
+  const base = `flex flex-col gap-1.5 rounded-lg p-2.5 shadow-sm transition-all dark:bg-zinc-800 ${
     ghost
-      ? 'border-dashed border-[#F2F2F2] bg-white opacity-40 hover:border-solid hover:opacity-100 dark:border-zinc-700 dark:bg-zinc-800'
-      : 'border-[#F2F2F2] bg-white dark:border-zinc-700'
+      ? 'border-2 border-dashed border-[#e2e2e2] bg-white opacity-40 hover:border-solid hover:opacity-100 dark:border-zinc-700 dark:bg-zinc-800'
+      : 'border border-[#F2F2F2] bg-white dark:border-zinc-700'
   }`;
 
   if (item.kind === 'habit') {

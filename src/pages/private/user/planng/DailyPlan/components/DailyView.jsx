@@ -13,7 +13,7 @@ function TaskCard({ item, ghost, dimmed, compact }) {
   const isOverload = item.status === 'Rescheduled';
   if (isOverload) {
     return (
-      <div className="flex w-full items-center justify-between gap-2.5 rounded-lg border border-dashed border-gray-200 bg-gray-50/30 p-3.5 opacity-60 dark:border-zinc-700 dark:bg-zinc-800/20">
+      <div className="flex w-full items-center justify-between gap-2.5 rounded-lg border-2 border-dashed border-[#e2e2e2] bg-gray-50/30 p-3.5 opacity-60 dark:border-zinc-700 dark:bg-zinc-800/20">
         <div className="flex flex-col">
           <span className="text-xs font-medium text-slate-400 line-through dark:text-gray-500">
             {item.title}
@@ -28,12 +28,12 @@ function TaskCard({ item, ghost, dimmed, compact }) {
 
   return (
     <div
-      className={`flex w-full flex-col gap-1 rounded-lg border p-3 shadow-sm transition-all dark:bg-zinc-800 ${
+      className={`flex w-full flex-col gap-1 rounded-lg p-3 shadow-sm transition-all dark:bg-zinc-800 ${
         compact ? '' : 'sm:flex-row sm:items-center'
       } ${
         ghost
-          ? 'border-dashed border-[#f2f2f2] bg-white opacity-40 hover:border-solid hover:opacity-100 dark:border-zinc-700 dark:bg-zinc-800'
-          : 'border-gray-100 bg-white dark:border-zinc-700'
+          ? 'border-2 border-dashed border-[#e2e2e2] bg-white opacity-40 hover:border-solid hover:opacity-100 dark:border-zinc-700 dark:bg-zinc-800'
+          : 'border border-gray-100 bg-white dark:border-zinc-700'
       } ${dimmed ? 'opacity-50' : ''} ${item.optimized ? 'border-purple-200 bg-purple-50/10' : ''}`}
     >
       <div
@@ -132,10 +132,10 @@ function TaskCard({ item, ghost, dimmed, compact }) {
 function HabitCard({ item, ghost, dimmed }) {
   return (
     <div
-      className={`flex items-center justify-between rounded-lg border p-3.5 shadow-sm transition-all dark:bg-zinc-800 ${
+      className={`flex items-center justify-between rounded-lg p-3.5 shadow-sm transition-all dark:bg-zinc-800 ${
         ghost
-          ? 'border-dashed border-[#f2f2f2] bg-white opacity-40 hover:border-solid hover:opacity-100 dark:border-zinc-700 dark:bg-zinc-800'
-          : 'border-gray-100 bg-white dark:border-zinc-700'
+          ? 'border-2 border-dashed border-[#e2e2e2] bg-white opacity-40 hover:border-solid hover:opacity-100 dark:border-zinc-700 dark:bg-zinc-800'
+          : 'border border-gray-100 bg-white dark:border-zinc-700'
       } ${dimmed ? 'opacity-50' : ''}`}
     >
       <div className="flex min-w-0 flex-col gap-1 pr-4">
