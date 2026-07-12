@@ -19,11 +19,12 @@ const GRID_BOTTOM_PAD = 24;
 const CARD_TOP_FROM_GRID = {
   '1 AM': 7,
   '2 AM': 89,
-  '7 AM': 364,
   '11 AM': 638,
 };
 
-// 4 AM geometry from the supplied Figma crop:
+// 7 AM two-up — Figma 1264:24904: card starts ~33.5px above hour line; heights scale with ROW_STEP.
+const SEVEN_AM_HOUR_INDEX = 6;
+const SEVEN_AM_CARD_ABOVE_HOUR_LINE = Math.round(33.5 * (ROW_STEP / 55));
 // card begins 26px above the hour rule; purple rule sits a little below the hour line.
 const FOUR_AM_HOUR_INDEX = 3;
 const FOUR_AM_CARD_ABOVE_HOUR_LINE = 26;
@@ -77,7 +78,7 @@ const TYPO = {
     'text-sm font-medium leading-normal text-[#181818] sm:text-[12px] lg:text-base dark:text-gray-300',
   cardDesc: 'text-xs font-medium leading-normal text-[#a3a3a3] sm:text-[12px] dark:text-gray-500',
   badge: 'text-[12px] font-medium uppercase leading-normal',
-  chip: 'text-xs font-medium leading-normal text-[#5d5d5d] lg:text-[12px] dark:text-gray-300',
+  chip: 'text-[12px] font-medium leading-normal text-[#5d5d5d] dark:text-gray-300',
 };
 
 const PRIORITY_STYLES = {
@@ -90,8 +91,8 @@ const PRIORITY_STYLES = {
 const CARD_HEIGHT = {
   compact: 32,
   medium: 68,
-  halfTask: 120,
-  halfHabit: 58,
+  halfTask: Math.round(112 * (ROW_STEP / 55)),
+  halfHabit: Math.round(54 * (ROW_STEP / 55)),
   full: 88,
 };
 
@@ -121,6 +122,7 @@ function getHourLineTop(index) {
 
 function getCardTop(hour, index) {
   if (hour === '4 AM') return getHourLineTop(index) - FOUR_AM_CARD_ABOVE_HOUR_LINE;
+  if (hour === '7 AM') return getHourLineTop(SEVEN_AM_HOUR_INDEX) - SEVEN_AM_CARD_ABOVE_HOUR_LINE;
   if (CARD_TOP_FROM_GRID[hour] != null) return CARD_TOP_FROM_GRID[hour];
   return getHourLineTop(index) + CARD_TOP_OFFSET;
 }
@@ -183,7 +185,7 @@ function TagDivider({ tall }) {
 
 function StatusTagsRow({ item }) {
   return (
-    <div className="flex min-h-4 flex-wrap items-center gap-2 sm:gap-2.5">
+    <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
       {item.priority && (
         <span
           className={`rounded-[6px] px-1.5 py-0.5 ${TYPO.badge} ${PRIORITY_STYLES[item.priority]}`}
@@ -233,16 +235,20 @@ function MetadataChips({ item, includeGoal = true, includeSteps = true }) {
 function HalfTaskCardBody({ item, faded }) {
   return (
     <div
-      className={`flex min-w-0 flex-1 flex-col gap-2 ${
+      className={`flex min-h-0 min-w-0 flex-1 flex-col justify-between gap-2 ${
         faded ? 'opacity-40 transition-opacity group-hover:opacity-100' : ''
       }`}
     >
-        <div className="flex flex-col gap-1.5 sm:gap-2">
+      <div className="flex flex-col gap-1.5">
         <StatusTagsRow item={item} />
         <div className="flex flex-col gap-1">
-          <span className={TYPO.cardTitle}>{item.title}</span>
+          <span className="text-[12px] font-medium leading-normal text-[#181818] dark:text-gray-300">
+            {item.title}
+          </span>
           {item.description && (
-            <p className={`line-clamp-1 ${TYPO.cardDesc}`}>{item.description}</p>
+            <p className="line-clamp-1 text-[12px] font-medium leading-normal text-[#a3a3a3] dark:text-gray-500">
+              {item.description}
+            </p>
           )}
         </div>
       </div>
@@ -278,11 +284,11 @@ function GhostFieldBorder({ rx = 3, ry = 30 }) {
   );
 }
 
-function GhostFieldShell({ children, className = '', radius = 8, borderRx = 3, borderRy = 30 }) {
+function GhostFieldShell({ children, className = '', radius = 8, borderRx = 3, borderRy = 30, style }) {
   return (
     <div
       className={`group relative bg-white transition-all duration-200 hover:bg-[#fcfcfc] hover:shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:bg-zinc-800 ${className}`}
-      style={{ borderRadius: radius }}
+      style={{ borderRadius: radius, ...style }}
     >
       <GhostFieldBorder rx={borderRx} ry={borderRy} />
       <div
@@ -384,11 +390,12 @@ function TaskCard({ item, ghost, dimmed }) {
           radius={12}
           borderRx={2.5}
           borderRy={8}
-          className={`flex min-h-[120px] w-full overflow-hidden rounded-xl p-2.5 sm:p-[10px] ${
+          className={`flex w-full overflow-hidden rounded-xl p-[10px] ${
             dimmed ? 'opacity-50' : ''
           }`}
+          style={{ height: CARD_HEIGHT.halfTask }}
         >
-          <div className="relative z-[1] flex min-w-0 flex-1">
+          <div className="relative z-[1] flex min-h-0 min-w-0 flex-1">
             <HalfTaskCardBody item={item} faded />
           </div>
         </GhostFieldShell>
@@ -396,9 +403,10 @@ function TaskCard({ item, ghost, dimmed }) {
     }
     return (
       <div
-        className={`flex min-h-[120px] w-full overflow-hidden rounded-xl border border-solid border-[#f2f2f2] bg-[#fcfcfc] p-2.5 sm:p-[10px] dark:border-zinc-700 dark:bg-zinc-800 ${
+        className={`flex w-full flex-col overflow-hidden rounded-xl border border-solid border-[#f2f2f2] bg-[#fcfcfc] p-[10px] dark:border-zinc-700 dark:bg-zinc-800 ${
           dimmed ? 'opacity-50' : ''
         }`}
+        style={{ height: CARD_HEIGHT.halfTask }}
       >
         <HalfTaskCardBody item={item} faded={false} />
       </div>
@@ -459,21 +467,25 @@ function HabitCard({ item, ghost, dimmed }) {
 
   const body = (
     <>
-      <div className={`flex min-w-0 flex-1 flex-col gap-0.5 p-2.5 sm:p-[10px] ${faded}`}>
-        <span className={`truncate ${TYPO.cardTitle}`}>{item.title}</span>
+      <div className={`flex min-w-0 flex-1 flex-col justify-center gap-0.5 p-[10px] ${faded}`}>
+        <span className="truncate text-[12px] font-medium leading-normal text-[#181818] dark:text-gray-300">
+          {item.title}
+        </span>
         {item.description && (
-          <p className={`line-clamp-1 ${TYPO.cardDesc}`}>{item.description}</p>
+          <p className="line-clamp-1 text-[12px] font-medium leading-normal text-[#a3a3a3] dark:text-gray-500">
+            {item.description}
+          </p>
         )}
       </div>
       <div
-        className={`flex h-full shrink-0 flex-col items-center justify-between px-2.5 py-2 sm:px-3 sm:py-2 ${
+        className={`flex w-11 shrink-0 flex-col items-center justify-between px-3 py-2 ${
           ghost ? 'border-l border-dashed border-[#f2f2f2]' : 'border-l border-solid border-[#f2f2f2]'
         }`}
       >
         <div
           className={`size-5 shrink-0 rounded-md border border-[#e9e9e9] bg-white dark:border-zinc-600 dark:bg-zinc-800 ${faded}`}
         />
-        <span className={`text-xs font-medium leading-none text-[#5d5d5d] sm:text-[12px] dark:text-gray-400 ${faded}`}>
+        <span className={`text-[12px] font-medium leading-none text-[#5d5d5d] dark:text-gray-400 ${faded}`}>
           {item.progress.done}/{item.progress.total}
         </span>
       </div>
@@ -486,20 +498,22 @@ function HabitCard({ item, ghost, dimmed }) {
         radius={12}
         borderRx={2.5}
         borderRy={8}
-        className={`flex min-h-[58px] w-full items-center overflow-hidden rounded-xl ${
+        className={`flex w-full items-stretch overflow-hidden rounded-xl ${
           dimmed ? 'opacity-50' : ''
         }`}
+        style={{ height: CARD_HEIGHT.halfHabit }}
       >
-        <div className="relative z-[1] flex min-w-0 flex-1 items-center">{body}</div>
+        <div className="relative z-[1] flex min-w-0 flex-1 items-stretch">{body}</div>
       </GhostFieldShell>
     );
   }
 
   return (
     <div
-      className={`flex min-h-[58px] w-full items-center overflow-hidden rounded-xl border border-solid border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800 ${
+      className={`flex w-full items-stretch overflow-hidden rounded-xl border border-solid border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800 ${
         dimmed ? 'opacity-50' : ''
       }`}
+      style={{ height: CARD_HEIGHT.halfHabit }}
     >
       {body}
     </div>
@@ -637,7 +651,7 @@ export default function DailyView({
               >
                 {!hasAcceptedPlan && hour === '4 AM' && <FourAmCurrentTimeLineInCard />}
                 {isHalfLayout ? (
-                  <div className="flex w-full flex-col items-stretch gap-2 sm:flex-row sm:items-start">
+                  <div className="flex w-full items-start gap-2">
                     {hourItems.map((item) => (
                       <div key={item.id} className="min-w-0 flex-1">
                         <ItemCard
