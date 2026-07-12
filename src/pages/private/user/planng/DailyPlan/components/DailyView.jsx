@@ -53,8 +53,72 @@ function HourRow({ hour }) {
   );
 }
 
-function TagDivider() {
-  return <div className="mx-0 h-1.5 w-px shrink-0 bg-[#f2f2f2]" />;
+function TagDivider({ tall }) {
+  return <div className={`mx-0 w-px shrink-0 bg-[#f2f2f2] ${tall ? 'h-2.5' : 'h-1.5'}`} />;
+}
+
+function StatusTagsRow({ item }) {
+  return (
+    <div className="flex h-4 items-center gap-2.5">
+      {item.priority && (
+        <span
+          className={`rounded px-1 py-0.5 text-[8px] font-medium uppercase ${PRIORITY_STYLES[item.priority]}`}
+        >
+          {item.priority}
+        </span>
+      )}
+      {item.status && (
+        <>
+          <TagDivider tall />
+          <span className="rounded bg-[#f2f2f2] px-1 py-0.5 text-[8px] font-medium uppercase text-[#a3a3a3]">
+            {item.status}
+          </span>
+        </>
+      )}
+    </div>
+  );
+}
+
+function MetadataChips({ item }) {
+  return (
+    <div className="flex items-center gap-1">
+      {item.category && (
+        <span className="rounded-md border border-[#f2f2f2] px-1.5 py-0.5 text-[10px] font-medium text-[#5d5d5d]">
+          {item.category}
+        </span>
+      )}
+      {item.durationLabel && (
+        <span className="flex items-center gap-1.5 rounded-md border border-[#f2f2f2] px-1.5 py-0.5 text-[10px] font-medium text-[#5d5d5d]">
+          <Clock size={10} /> {item.durationLabel}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function HalfTaskCardBody({ item, faded }) {
+  return (
+    <div
+      className={`flex min-w-0 flex-1 flex-col gap-2 ${
+        faded ? 'opacity-40 transition-opacity group-hover:opacity-100' : ''
+      }`}
+    >
+      <div className="flex flex-col gap-1.5">
+        <StatusTagsRow item={item} />
+        <div className="flex flex-col gap-1">
+          <span className="text-[12px] font-medium leading-[1.5] text-[#181818] dark:text-gray-300">
+            {item.title}
+          </span>
+          {item.description && (
+            <p className="line-clamp-1 text-[10px] leading-[1.5] text-[#a3a3a3] dark:text-gray-500">
+              {item.description}
+            </p>
+          )}
+        </div>
+      </div>
+      <MetadataChips item={item} />
+    </div>
+  );
 }
 
 /** Figma empty-state ghost cards — light ashy dashes, airy spacing. */
@@ -197,6 +261,35 @@ function TaskCard({ item, ghost, dimmed, compact }) {
           </p>
         </div>
       </GhostFieldShell>
+    );
+  }
+
+  // Figma 1264:24905 — 7 AM half-width task (112px, tags above title).
+  if (item.layout === 'half') {
+    if (ghost) {
+      return (
+        <GhostFieldShell
+          radius={12}
+          borderRx={2.5}
+          borderRy={8}
+          className={`flex h-[112px] w-full overflow-hidden rounded-xl p-[10px] ${
+            dimmed ? 'opacity-50' : ''
+          }`}
+        >
+          <div className="relative z-[1] flex min-w-0 flex-1">
+            <HalfTaskCardBody item={item} faded />
+          </div>
+        </GhostFieldShell>
+      );
+    }
+    return (
+      <div
+        className={`flex h-[112px] w-full overflow-hidden rounded-xl border border-solid border-[#f2f2f2] bg-[#fcfcfc] p-[10px] dark:border-zinc-700 dark:bg-zinc-800 ${
+          dimmed ? 'opacity-50' : ''
+        }`}
+      >
+        <HalfTaskCardBody item={item} faded={false} />
+      </div>
     );
   }
 
@@ -349,28 +442,57 @@ function TaskCard({ item, ghost, dimmed, compact }) {
 }
 
 function HabitCard({ item, ghost, dimmed }) {
-  return (
-    <div
-      className={`flex items-center justify-between rounded-lg p-3.5 shadow-sm transition-all duration-200 dark:bg-zinc-800 ${
-        ghost
-          ? 'border border-dashed border-[#f2f2f2] bg-white opacity-40 hover:border-solid hover:border-[#f2f2f2] hover:bg-[#fcfcfc] hover:opacity-100 hover:shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800'
-          : 'border border-gray-100 bg-white dark:border-zinc-700'
-      } ${dimmed ? 'opacity-50' : ''}`}
-    >
-      <div className="flex min-w-0 flex-col gap-1 pr-4">
-        <span className="text-xs font-medium text-slate-700 dark:text-gray-300">{item.title}</span>
+  const faded = ghost ? 'opacity-40 transition-opacity group-hover:opacity-100' : '';
+
+  const body = (
+    <>
+      <div className={`flex min-w-0 flex-1 flex-col gap-0.5 p-[10px] ${faded}`}>
+        <span className="truncate text-[12px] font-medium leading-[1.5] text-[#181818] dark:text-gray-300">
+          {item.title}
+        </span>
         {item.description && (
-          <p className="truncate text-[10px] leading-relaxed text-gray-400 dark:text-gray-500">
+          <p className="line-clamp-1 text-[10px] leading-[1.5] text-[#a3a3a3] dark:text-gray-500">
             {item.description}
           </p>
         )}
       </div>
-      <div className="flex min-w-[48px] shrink-0 flex-col items-center justify-center rounded-lg border border-gray-100 p-2 dark:border-zinc-700">
-        <div className="mb-1 h-4 w-4 rounded border border-gray-300 dark:border-zinc-600" />
-        <span className="text-[9px] font-bold text-gray-400 dark:text-gray-500">
+      <div
+        className={`flex h-full shrink-0 flex-col items-center justify-between px-3 py-2 ${
+          ghost ? 'border-l border-dashed border-[#f2f2f2]' : 'border-l border-solid border-[#f2f2f2]'
+        }`}
+      >
+        <div
+          className={`size-5 shrink-0 rounded-md border border-[#e9e9e9] bg-white dark:border-zinc-600 dark:bg-zinc-800 ${faded}`}
+        />
+        <span className={`text-[10px] font-medium leading-none text-[#5d5d5d] dark:text-gray-400 ${faded}`}>
           {item.progress.done}/{item.progress.total}
         </span>
       </div>
+    </>
+  );
+
+  if (ghost) {
+    return (
+      <GhostFieldShell
+        radius={12}
+        borderRx={2.5}
+        borderRy={8}
+        className={`flex h-[54px] w-full items-center overflow-hidden rounded-xl ${
+          dimmed ? 'opacity-50' : ''
+        }`}
+      >
+        <div className="relative z-[1] flex min-w-0 flex-1 items-center">{body}</div>
+      </GhostFieldShell>
+    );
+  }
+
+  return (
+    <div
+      className={`flex h-[54px] w-full items-center overflow-hidden rounded-xl border border-solid border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800 ${
+        dimmed ? 'opacity-50' : ''
+      }`}
+    >
+      {body}
     </div>
   );
 }
@@ -506,10 +628,10 @@ export default function DailyView({
               <div
                 key={`cards-${hour}`}
                 className="absolute right-0 z-10"
-                style={{ left: GRID_LINE_LEFT, top: getCardTop(hour, i) }}
+                style={{ left: CARD_LEFT, top: getCardTop(hour, i) }}
               >
                 {isHalfLayout ? (
-                  <div className="flex w-full gap-2">
+                  <div className="flex w-full items-start gap-2">
                     {hourItems.map((item) => (
                       <div key={item.id} className="min-w-0 flex-1">
                         <ItemCard
