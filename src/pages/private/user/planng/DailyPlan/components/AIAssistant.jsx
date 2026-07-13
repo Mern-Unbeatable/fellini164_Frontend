@@ -5,7 +5,7 @@ const CHIP_CLASS =
   'flex w-fit items-center gap-1.5 rounded-lg border border-[#F2F2F2] bg-white px-3 py-1.75 text-xs font-semibold text-[#5D5D5D] transition-colors hover:bg-gray-50 dark:border-zinc-800 dark:bg-zinc-850 dark:text-gray-200 max-lg:text-base';
 
 const ACTION_BTN =
-  'rounded-lg bg-[#F5F3FF] px-3.5 py-1.5 text-[12px] font-semibold text-[#8022fe] transition-colors hover:bg-[#EDE9FE] dark:bg-zinc-800 dark:text-[#a78bfa] dark:hover:bg-zinc-700 max-lg:text-base';
+  'rounded-lg bg-[#f9f4ff] px-3.5 py-1.5 text-[12px] font-semibold text-[#8022fe] transition-colors hover:bg-[#f0e7ff] dark:bg-zinc-800 dark:text-[#a78bfa] dark:hover:bg-zinc-700 max-lg:text-base';
 
 export default function AIAssistant({
   messages,

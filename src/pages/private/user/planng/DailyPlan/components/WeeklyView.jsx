@@ -2,27 +2,30 @@ import React from 'react';
 import { RefreshCw, Clock, Sparkles } from 'lucide-react';
 import { PLANNER_HOURS, SEED_DATE_KEY, dateKeyFromDate, getWeekDays } from '../plannerData';
 
-// Figma 1264:27248 — weekly grid rhythm (native Figma px values).
+// Weekly grid rhythm — time column matches DailyView exactly.
 const ROW_LABEL_HEIGHT = 15;
 const ROW_GAP = 40;
-const ROW_STEP = 55;
-const TIME_COL_WIDTH = 35;
-const TIME_LABEL_GAP = 10; // Figma — gap between label and day column line
-const GRID_LINE_LEFT = 45;
-const HOUR_LINE_EXTEND_LEFT = 11; // Figma 1264:27286 — line starts ~34px, grid at 45px
+const ROW_STEP = ROW_GAP + ROW_LABEL_HEIGHT;
+const TIME_COL_WIDTH = 40; // DailyView parity
+const TIME_COL_GAP = 10; // DailyView parity
+const GRID_LINE_LEFT = TIME_COL_WIDTH + TIME_COL_GAP; // 50px — same as DailyView
+const HOUR_LINE_OVERHANG = 4;
 const GRID_SCALE = 1;
 const DAY_COLS = 7;
 
-const WEEKLY_GRID_COLUMNS = `${GRID_LINE_LEFT}px repeat(${DAY_COLS}, minmax(0, 1fr))`;
+const DAY_GRID_COLUMNS = `repeat(${DAY_COLS}, minmax(0, 1fr))`;
+
+const HOUR_LABEL =
+  'shrink-0 text-right text-[10px] font-medium leading-[1.5] whitespace-nowrap text-[#c2c2c2] dark:text-gray-500';
 
 // Figma 1264:27359+ — compact title 10px; badges/chips 8px.
 const WEEKLY_TYPO = {
   ghostTitle:
-    'm-0 w-full overflow-hidden text-center text-ellipsis whitespace-nowrap text-[10px] font-medium leading-[1.5] text-[#181818] opacity-40 transition-opacity group-hover:opacity-100 dark:text-gray-300',
+    'm-0 h-[15px] w-full min-w-0 truncate text-center text-[10px] font-medium leading-[1.5] text-[#181818] opacity-40 transition-opacity group-hover:opacity-100 dark:text-gray-300',
   title:
-    'w-full overflow-hidden text-center text-ellipsis whitespace-nowrap text-[10px] font-medium leading-[1.5] text-[#181818] opacity-40 transition-opacity group-hover:opacity-100 dark:text-gray-300',
+    'm-0 w-full min-w-0 truncate text-center text-[10px] font-medium leading-[1.5] text-[#181818] opacity-40 transition-opacity group-hover:opacity-100 dark:text-gray-300',
   titleMulti:
-    'm-0 h-[29px] w-full overflow-hidden text-center text-[10px] font-medium leading-[1.5] text-[#181818] line-clamp-2 dark:text-gray-300',
+    'm-0 h-[29px] w-full min-w-0 overflow-hidden text-ellipsis text-center text-[10px] font-medium leading-[1.5] text-[#181818] dark:text-gray-300',
   badge: 'text-[8px] font-medium uppercase leading-[1.5]',
   chip: 'text-[8px] font-medium leading-[1.5] text-[#5d5d5d]',
 };
@@ -43,7 +46,7 @@ const WEEKLY_CARD_LAYOUT = {
   '4': { top: 540, height: 144 },
 };
 
-const FOUR_AM_PURPLE_TOP = 188; // Figma 1264:27407 — 4 AM indicator y in grid
+const FOUR_AM_PURPLE_TOP = 259; // Figma 1264:27407
 
 function scaleY(value) {
   return Math.round(value * GRID_SCALE);
@@ -54,44 +57,53 @@ function getGridMinHeight() {
   return scaleY(last.top + last.height) + 24;
 }
 
+// Card fills the day column (Figma card ≈ column width) with small equal side gaps.
 function WeekCardAnchor({ top, children, className = 'pointer-events-auto' }) {
   return (
-    <div
-      className={`absolute box-border ${className}`}
-      style={{ top, left: 0, right: 0, width: '100%' }}
-    >
+    <div className={`absolute inset-x-[4px] ${className}`} style={{ top }}>
       {children}
     </div>
   );
 }
 
-/** Figma 1264:27359 — px-8 both sides, title spans full inner width. */
-function WeekGhostCompactBody({ title, paddingClass = 'py-[6px]', inset = true }) {
+/** Figma 1264:27359 — centered compact title inside dashed card. */
+function WeekGhostCompactBody({ title, paddingClass = 'py-[6px]' }) {
   return (
     <div
-      className={`box-border flex h-full w-full min-w-0 flex-col items-center justify-center text-center ${inset ? 'px-[8px]' : ''} ${paddingClass}`}
+      className={`box-border flex h-full w-full min-w-0 flex-col items-center justify-center overflow-hidden px-[8px] ${paddingClass}`}
     >
       <p className={WEEKLY_TYPO.ghostTitle}>{title}</p>
     </div>
   );
 }
 
-function HourRow({ hour, rowIndex }) {
+function HourRow({ hour }) {
   return (
-    <>
-      <span
-        className="box-border w-full min-w-0 self-center text-right text-[10px] font-medium leading-[1.5] whitespace-nowrap text-[#c2c2c2] dark:text-gray-500"
-        style={{ gridColumn: 1, gridRow: rowIndex, paddingRight: TIME_LABEL_GAP }}
-      >
+    <div className="relative flex w-full items-center gap-[10px]">
+      <span className={HOUR_LABEL} style={{ width: TIME_COL_WIDTH }}>
         {hour}
       </span>
-      <div className="relative min-w-0 self-center" style={{ gridColumn: '2 / -1', gridRow: rowIndex }}>
+      <div className="relative h-0 min-w-0 flex-1">
         <div
-          className="absolute top-1/2 right-0 h-px -translate-y-1/2 bg-[#f2f2f2] dark:bg-zinc-800/80"
-          style={{ left: -HOUR_LINE_EXTEND_LEFT }}
+          className="absolute top-1/2 h-px -translate-y-1/2 bg-[#f2f2f2] dark:bg-zinc-800/80"
+          style={{ left: -HOUR_LINE_OVERHANG, right: 0 }}
         />
       </div>
-    </>
+    </div>
+  );
+}
+
+function HourRowSkeleton() {
+  return (
+    <div className="relative flex w-full animate-pulse items-center gap-[10px]">
+      <div className="h-3 shrink-0 rounded bg-gray-200 dark:bg-zinc-800" style={{ width: TIME_COL_WIDTH }} />
+      <div className="relative h-0 min-w-0 flex-1">
+        <div
+          className="absolute top-1/2 h-px -translate-y-1/2 bg-gray-100 dark:bg-zinc-800"
+          style={{ left: -HOUR_LINE_OVERHANG, right: 0 }}
+        />
+      </div>
+    </div>
   );
 }
 
@@ -116,19 +128,13 @@ function WeekGhostCard({ ghost, className = '', style, children, habitBadge, rad
           <span className="text-[8px] font-medium leading-[1.5] text-[#5d5d5d] opacity-40">1 Habit</span>
         </div>
       )}
-      <div className="relative z-[1] box-border h-full w-full">
-        {children}
-      </div>
+      <div className="relative z-[1] box-border flex h-full w-full flex-col">{children}</div>
     </div>
   );
 }
 
 function WeekGhostFieldTitle({ children, multiline = false, ghost = false, className = '' }) {
-  if (ghost) {
-    return <p className={`${WEEKLY_TYPO.ghostTitle} ${className}`}>{children}</p>;
-  }
-
-  const style = multiline ? WEEKLY_TYPO.titleMulti : WEEKLY_TYPO.title;
+  const style = ghost || !multiline ? WEEKLY_TYPO.title : WEEKLY_TYPO.titleMulti;
   return <p className={`${style} ${className}`}>{children}</p>;
 }
 
@@ -140,7 +146,7 @@ function WeekItemCard({ item, ghost, layout }) {
   if (isTiny) {
     return (
       <WeekGhostCard ghost={ghost} radius={6} style={{ height }}>
-        <WeekGhostCompactBody title={item.title} paddingClass="h-full justify-center py-0" />
+        <WeekGhostCompactBody title={item.title} paddingClass="py-[6px]" />
       </WeekGhostCard>
     );
   }
@@ -148,7 +154,7 @@ function WeekItemCard({ item, ghost, layout }) {
   if (isCompact) {
     return (
       <WeekGhostCard ghost={ghost} radius={8} style={{ height }}>
-        <WeekGhostCompactBody title={item.title} paddingClass="h-full justify-center py-[6px]" />
+        <WeekGhostCompactBody title={item.title} />
       </WeekGhostCard>
     );
   }
@@ -156,21 +162,23 @@ function WeekItemCard({ item, ghost, layout }) {
   if (item.id === '3') {
     return (
       <WeekGhostCard ghost={ghost} style={{ height }}>
-        <div className="box-border flex h-full w-full flex-col gap-[6px] px-[8px] pb-[6px] pt-[8px]">
-          <div className="flex w-full min-w-0 flex-col items-center gap-[6px] text-center opacity-40 transition-opacity group-hover:opacity-100">
-            <p className="m-0 w-full text-center text-[10px] font-medium leading-[1.5] text-[#181818] dark:text-gray-300">{item.title}</p>
-            <div className="flex flex-wrap items-center justify-center gap-[4px]">
-              {item.priority && (
-                <span className={`rounded-[4px] px-[3px] py-px ${WEEKLY_TYPO.badge} ${PRIORITY_STYLES[item.priority]}`}>
-                  {item.priority}
-                </span>
-              )}
-              {item.status && (
-                <span className={`rounded-[4px] bg-[#f2f2f2] px-[3px] py-px uppercase text-[#a3a3a3] ${WEEKLY_TYPO.badge}`}>
-                  {item.status}
-                </span>
-              )}
-            </div>
+        <div className="box-border flex h-full w-full flex-col items-center justify-center gap-[6px] px-[8px] pb-[6px] pt-[8px] text-center">
+          <div className="flex w-full min-w-0 flex-col items-center opacity-40 transition-opacity group-hover:opacity-100">
+            <p className="m-0 w-full text-center text-[10px] font-medium leading-[1.5] text-[#181818] dark:text-gray-300">
+              {item.title}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-[4px] opacity-40 transition-opacity group-hover:opacity-100">
+            {item.priority && (
+              <span className={`rounded-[4px] px-[3px] py-px ${WEEKLY_TYPO.badge} ${PRIORITY_STYLES[item.priority]}`}>
+                {item.priority}
+              </span>
+            )}
+            {item.status && (
+              <span className={`rounded-[4px] bg-[#f2f2f2] px-[3px] py-px uppercase text-[#a3a3a3] ${WEEKLY_TYPO.badge}`}>
+                {item.status}
+              </span>
+            )}
           </div>
         </div>
       </WeekGhostCard>
@@ -179,9 +187,11 @@ function WeekItemCard({ item, ghost, layout }) {
 
   return (
     <WeekGhostCard ghost={ghost} habitBadge={layout.showHabitBadge} style={{ height }}>
-      <div className="box-border flex h-full w-full flex-col gap-[6px] px-[8px] pb-[6px] pt-[8px]">
-        <div className="flex min-h-0 w-full flex-1 flex-col items-center gap-[6px] text-center opacity-40 transition-opacity group-hover:opacity-100">
-          <WeekGhostFieldTitle multiline>{item.title}</WeekGhostFieldTitle>
+      <div className="box-border flex h-full w-full flex-col items-center gap-[6px] px-[8px] pb-[6px] pt-[8px] text-center">
+        <div className="flex min-h-0 w-full flex-1 flex-col items-center gap-[6px] opacity-40 transition-opacity group-hover:opacity-100">
+          <WeekGhostFieldTitle multiline ghost={ghost}>
+            {item.title}
+          </WeekGhostFieldTitle>
           {(item.priority || item.status) && (
             <div className="flex w-full min-w-0 flex-wrap items-center justify-center gap-[4px]">
               {item.priority && (
@@ -234,119 +244,93 @@ export default function WeeklyView({ currentDate, selectedDate, plans, hasAccept
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-white shadow-sm max-lg:h-auto max-lg:flex-none dark:border-zinc-800/80 dark:bg-zinc-900">
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <div className="flex min-h-0 w-full flex-1 flex-col p-3">
-          {/* Weekday header — Figma 1264:27249 */}
-          <div
-            className="mb-3 grid w-full"
-            style={{ gridTemplateColumns: WEEKLY_GRID_COLUMNS }}
-          >
-            <div aria-hidden className="min-w-0" />
-            {weekDays.map((day) => {
-              const isActive = dateKeyFromDate(day) === selectedKey;
-              return (
-                <div key={day.toISOString()} className="flex min-w-0 flex-col items-center gap-[2px]">
-                  <p className="text-center text-[12px] font-medium leading-[1.5] whitespace-nowrap text-[#c2c2c2] dark:text-gray-500">
-                    {day.toLocaleDateString('en-US', { weekday: 'short' })}
-                  </p>
-                  <div
-                    className={`flex flex-col items-center rounded-[8px] px-[6px] py-[2px] ${
-                      isActive ? 'bg-[#f9f4ff] dark:bg-purple-950/40' : ''
-                    }`}
-                  >
-                    <p
-                      className={`text-center text-[16px] font-medium leading-[1.5] whitespace-nowrap ${
-                        isActive
-                          ? 'text-[#8022fe] dark:text-purple-400'
-                          : 'text-[#5d5d5d] dark:text-gray-200'
-                      }`}
-                    >
-                      {day.getDate()}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Grid + cards — single full-width column template */}
-          <div
-            className="scrollbar-hidden relative min-h-0 flex-1 overflow-y-auto lg:min-h-0 max-lg:max-h-[min(70vh,560px)]"
-            style={{ scrollbarGutter: 'stable' }}
-          >
-            <div
-              className="relative w-full"
-              style={{
-                minHeight: getGridMinHeight(),
-                display: 'grid',
-                gridTemplateColumns: WEEKLY_GRID_COLUMNS,
-                gridTemplateRows: `repeat(${PLANNER_HOURS.length}, ${ROW_STEP}px)`,
-              }}
-            >
-              {isLoading
-                ? PLANNER_HOURS.map((hour, rowIndex) => (
-                    <React.Fragment key={hour}>
+          {/* Header + grid share ONE scroll container; both day-areas are flex-1 after the
+              same 50px time-column spacer, so their 7 columns are always identical width. */}
+          <div className="scrollbar-hidden relative min-h-0 flex-1 overflow-y-auto lg:min-h-0 max-lg:max-h-[min(70vh,560px)]">
+            {/* Weekday header — Figma 1264:27249 */}
+            <div className="sticky top-0 z-30 mb-3 flex w-full bg-white dark:bg-zinc-900">
+              <div aria-hidden className="shrink-0" style={{ width: GRID_LINE_LEFT }} />
+              <div className="grid min-w-0 flex-1" style={{ gridTemplateColumns: DAY_GRID_COLUMNS, columnGap: 0 }}>
+                {weekDays.map((day) => {
+                  const isActive = dateKeyFromDate(day) === selectedKey;
+                  return (
+                    <div key={day.toISOString()} className="flex min-w-0 flex-col items-center gap-[2px]">
+                      <p className="text-center text-[12px] font-medium leading-[1.5] whitespace-nowrap text-[#c2c2c2] dark:text-gray-500">
+                        {day.toLocaleDateString('en-US', { weekday: 'short' })}
+                      </p>
                       <div
-                        className="box-border h-3 animate-pulse justify-self-end rounded bg-gray-200 dark:bg-zinc-800"
-                        style={{
-                          gridColumn: 1,
-                          gridRow: rowIndex + 1,
-                          width: TIME_COL_WIDTH,
-                          marginRight: TIME_LABEL_GAP,
-                        }}
-                      />
-                      <div className="relative min-w-0" style={{ gridColumn: '2 / -1', gridRow: rowIndex + 1 }}>
-                        <div
-                          className="absolute top-1/2 right-0 h-px -translate-y-1/2 bg-gray-100 dark:bg-zinc-800"
-                          style={{ left: -HOUR_LINE_EXTEND_LEFT }}
-                        />
+                        className={`flex flex-col items-center rounded-[8px] px-[6px] py-[2px] ${
+                          isActive ? 'bg-[#f9f4ff] dark:bg-purple-950/40' : ''
+                        }`}
+                      >
+                        <p
+                          className={`text-center text-[16px] font-medium leading-[1.5] whitespace-nowrap ${
+                            isActive
+                              ? 'text-[#8022fe] dark:text-purple-400'
+                              : 'text-[#5d5d5d] dark:text-gray-200'
+                          }`}
+                        >
+                          {day.getDate()}
+                        </p>
                       </div>
-                    </React.Fragment>
-                  ))
-                : PLANNER_HOURS.map((hour, rowIndex) => (
-                    <HourRow key={hour} hour={hour} rowIndex={rowIndex + 1} />
-                  ))}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
 
-              {weekDays.map((day, colIndex) => {
-                const dayKey = dateKeyFromDate(day);
-                const dayItems = isLoading
-                  ? []
-                  : (plans[dayKey] || []).filter((item) => {
-                      if (item.kind === 'habit' && item.layout === 'half') return false;
-                      return WEEKLY_CARD_LAYOUT[item.id];
-                    });
+            <div className="relative w-full" style={{ minHeight: getGridMinHeight() }}>
+              {/* Hour rows — label(40) + gap(10) + line; line starts at the 50px grid line */}
+              <div className="relative z-0 flex flex-col" style={{ gap: ROW_GAP }}>
+                {isLoading
+                  ? PLANNER_HOURS.map((hour) => <HourRowSkeleton key={hour} />)
+                  : PLANNER_HOURS.map((hour) => <HourRow key={hour} hour={hour} />)}
+              </div>
 
-                return (
-                  <div
-                    key={`col-cards-${dayKey}`}
-                    className="relative min-w-0 border-l border-[#f2f2f2] dark:border-zinc-800/80"
-                    style={{
-                      gridColumn: colIndex + 2,
-                      gridRow: `1 / ${PLANNER_HOURS.length + 1}`,
-                      minHeight: getGridMinHeight(),
-                    }}
-                  >
-                    {!isLoading &&
-                      dayItems.map((item) => {
-                        const layout = WEEKLY_CARD_LAYOUT[item.id];
-                        return (
-                          <WeekCardAnchor key={item.id} top={scaleY(layout.top)}>
-                            <WeekItemCard item={item} ghost={!hasAcceptedPlan} layout={layout} />
-                          </WeekCardAnchor>
-                        );
-                      })}
+              {/* Day columns + cards overlay — same flex(50px spacer)+grid-cols-7 as the header */}
+              <div className="pointer-events-none absolute inset-0 z-[2] flex w-full">
+                <div aria-hidden className="shrink-0" style={{ width: GRID_LINE_LEFT }} />
+                <div className="grid min-w-0 flex-1" style={{ gridTemplateColumns: DAY_GRID_COLUMNS, columnGap: 0 }}>
+                  {weekDays.map((day) => {
+                    const dayKey = dateKeyFromDate(day);
+                    const dayItems = isLoading
+                      ? []
+                      : (plans[dayKey] || []).filter((item) => {
+                          if (item.kind === 'habit' && item.layout === 'half') return false;
+                          return WEEKLY_CARD_LAYOUT[item.id];
+                        });
 
-                    {!isLoading &&
-                      !hasAcceptedPlan &&
-                      dayKey === SEED_DATE_KEY &&
-                      dayItems.some((item) => item.id === '3') && (
-                        <WeekCardAnchor top={FOUR_AM_PURPLE_TOP} className="pointer-events-none z-15">
-                          <div className="relative h-px w-full">
-                            <div className="absolute inset-x-0 top-1/2 h-[1.5px] -translate-y-1/2 bg-[#8022fe]" />
-                          </div>
-                        </WeekCardAnchor>
-                      )}
-                  </div>
-                );
-              })}
+                    return (
+                      <div
+                        key={`col-cards-${dayKey}`}
+                        className="relative min-w-0 overflow-visible border-l border-[#f2f2f2] dark:border-zinc-800/80"
+                      >
+                        {!isLoading &&
+                          dayItems.map((item) => {
+                            const layout = WEEKLY_CARD_LAYOUT[item.id];
+                            return (
+                              <WeekCardAnchor key={item.id} top={scaleY(layout.top)}>
+                                <WeekItemCard item={item} ghost={!hasAcceptedPlan} layout={layout} />
+                              </WeekCardAnchor>
+                            );
+                          })}
+
+                        {!isLoading &&
+                          !hasAcceptedPlan &&
+                          dayKey === SEED_DATE_KEY &&
+                          dayItems.some((item) => item.id === '3') && (
+                            <div
+                              className="pointer-events-none absolute inset-x-0 z-15"
+                              style={{ top: FOUR_AM_PURPLE_TOP }}
+                            >
+                              <div className="absolute inset-x-0 top-1/2 h-[1.5px] -translate-y-1/2 bg-[#8022fe]" />
+                            </div>
+                          )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </div>
         </div>
