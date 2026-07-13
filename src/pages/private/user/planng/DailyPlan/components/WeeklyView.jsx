@@ -107,14 +107,43 @@ function HourRowSkeleton() {
   );
 }
 
+/** Airy dashed border matching DailyView ghost fields (Figma empty state, dash 8/14). */
+function WeekGhostFieldBorder({ radius = 8 }) {
+  const rx = radius <= 6 ? 6 : radius <= 8 ? 4 : 3;
+  return (
+    <svg
+      aria-hidden
+      className="pointer-events-none absolute inset-0 z-0 h-full w-full transition-opacity group-hover:opacity-0"
+      viewBox="0 0 100 100"
+      preserveAspectRatio="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <rect
+        x="0.5"
+        y="0.5"
+        width="99"
+        height="99"
+        rx={rx}
+        ry={30}
+        fill="none"
+        stroke="#e8e8e8"
+        strokeWidth="1"
+        vectorEffect="non-scaling-stroke"
+        strokeDasharray="8 14"
+      />
+    </svg>
+  );
+}
+
 function WeekGhostCard({ ghost, className = '', style, children, habitBadge, radius = 8 }) {
   return (
     <div
       className={`group relative box-border w-full overflow-hidden bg-white transition-all duration-200 hover:bg-[#fcfcfc] dark:bg-zinc-800 ${
-        ghost ? 'border border-dashed border-[#f2f2f2]' : 'border border-solid border-[#f2f2f2]'
+        ghost ? '' : 'border border-solid border-[#f2f2f2]'
       } ${className}`}
       style={{ borderRadius: radius, ...style }}
     >
+      {ghost && <WeekGhostFieldBorder radius={radius} />}
       {ghost && (
         <div
           aria-hidden
