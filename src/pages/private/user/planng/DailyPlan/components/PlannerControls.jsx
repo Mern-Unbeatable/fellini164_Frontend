@@ -82,7 +82,7 @@ export default function PlannerControls({
           </button>
 
           {dropdownOpen && (
-            <div className="absolute right-0 z-10 mt-1.5 w-30 overflow-hidden rounded-lg border border-[#f2f2f2] bg-white py-0 shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800 max-lg:left-0 max-lg:w-full max-lg:right-0">
+            <div className="absolute right-0 z-50 mt-1.5 w-30 overflow-hidden rounded-lg border border-[#f2f2f2] bg-white py-0 shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800 max-lg:left-0 max-lg:w-full max-lg:right-0">
               {['Daily', 'Weekly', 'Monthly'].map((mode) => (
                 <button
                   key={mode}

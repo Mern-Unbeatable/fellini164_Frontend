@@ -16,7 +16,7 @@ const DAY_COLS = 7;
 const DAY_GRID_COLUMNS = `repeat(${DAY_COLS}, minmax(0, 1fr))`;
 
 const HOUR_LABEL =
-  'shrink-0 text-right text-[10px] font-medium leading-[1.5] whitespace-nowrap text-[#c2c2c2] dark:text-gray-500';
+  'shrink-0 text-right text-[12px] font-medium leading-[1.5] whitespace-nowrap text-[#c2c2c2] dark:text-gray-500';
 
 // Figma 1264:27359+ — compact title 10px; badges/chips 8px.
 const WEEKLY_TYPO = {
@@ -25,7 +25,7 @@ const WEEKLY_TYPO = {
   title:
     'm-0 w-full min-w-0 truncate text-center text-[10px] font-medium leading-[1.5] text-[#181818] opacity-40 transition-opacity group-hover:opacity-100 dark:text-gray-300',
   titleMulti:
-    'm-0 h-[29px] w-full min-w-0 overflow-hidden text-ellipsis text-center text-[10px] font-medium leading-[1.5] text-[#181818] dark:text-gray-300',
+    'm-0 line-clamp-2 w-full min-w-0 shrink-0 text-center text-[10px] font-medium leading-[1.5] text-[#181818] dark:text-gray-300',
   badge: 'text-[8px] font-medium uppercase leading-[1.5]',
   chip: 'text-[8px] font-medium leading-[1.5] text-[#5d5d5d]',
 };
@@ -152,7 +152,7 @@ function WeekGhostCard({ ghost, className = '', style, children, habitBadge, rad
         />
       )}
       {habitBadge && ghost && (
-        <div className="absolute top-[-8px] left-1/2 z-2 flex -translate-x-1/2 items-center gap-[4px] rounded-[4px] bg-[#fcfcfc] px-[3px] py-px dark:bg-zinc-900">
+        <div className="absolute top-[-8px] left-1/2 z-2 flex w-max -translate-x-1/2 items-center gap-[4px] whitespace-nowrap rounded-[4px] bg-[#fcfcfc] px-[3px] py-px dark:bg-zinc-900">
           <RefreshCw size={8} className="text-[#5d5d5d] opacity-40" />
           <span className="text-[8px] font-medium leading-[1.5] text-[#5d5d5d] opacity-40">1 Habit</span>
         </div>
@@ -163,7 +163,7 @@ function WeekGhostCard({ ghost, className = '', style, children, habitBadge, rad
 }
 
 function WeekGhostFieldTitle({ children, multiline = false, ghost = false, className = '' }) {
-  const style = ghost || !multiline ? WEEKLY_TYPO.title : WEEKLY_TYPO.titleMulti;
+  const style = multiline ? WEEKLY_TYPO.titleMulti : WEEKLY_TYPO.title;
   return <p className={`${style} ${className}`}>{children}</p>;
 }
 
@@ -214,9 +214,55 @@ function WeekItemCard({ item, ghost, layout }) {
     );
   }
 
+  // Figma 1264:27361 — card: white, dashed border, radius 8, px-8 pt-8 pb-6, gap-6,
+  // items-start. Two opacity-40 groups: [title + Low/In Progress] then [wrap chips].
+  if (layout.showHabitBadge) {
+    // minHeight (not height): at narrow column widths the badges/chips wrap, so the
+    // card grows instead of clipping the 115 Min chip (Figma width assumes 104px).
+    return (
+      <WeekGhostCard ghost={ghost} habitBadge style={{ minHeight: height }}>
+        <div className="box-border flex h-full w-full flex-col items-start gap-[6px] px-[8px] pt-[8px] pb-[6px] text-left">
+          <div className="flex w-full min-w-0 flex-col items-start gap-[6px] opacity-40 transition-opacity group-hover:opacity-100">
+            <WeekGhostFieldTitle multiline ghost={ghost} className="text-left">
+              {item.title}
+            </WeekGhostFieldTitle>
+            {(item.priority || item.status) && (
+              <div className="flex flex-wrap items-center gap-[4px]">
+                {item.priority && (
+                  <span className={`rounded-[4px] px-[3px] py-px ${WEEKLY_TYPO.badge} ${PRIORITY_STYLES[item.priority]}`}>
+                    {item.priority}
+                  </span>
+                )}
+                {item.status && (
+                  <span className={`rounded-[4px] bg-[#f2f2f2] px-[3px] py-px uppercase text-[#a3a3a3] ${WEEKLY_TYPO.badge}`}>
+                    {item.status}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+          {(item.category || item.durationLabel) && (
+            <div className="flex w-full min-w-0 flex-wrap content-center items-center gap-[4px] opacity-40 transition-opacity group-hover:opacity-100">
+              {item.category && (
+                <span className={`rounded-[4px] border border-[#f2f2f2] px-[6px] py-[2px] ${WEEKLY_TYPO.chip}`}>
+                  {item.category}
+                </span>
+              )}
+              {item.durationLabel && (
+                <span className={`flex items-center gap-[4px] rounded-[4px] border border-[#f2f2f2] px-[6px] py-[2px] ${WEEKLY_TYPO.chip}`}>
+                  <Clock size={7} /> {item.durationLabel}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+      </WeekGhostCard>
+    );
+  }
+
   return (
-    <WeekGhostCard ghost={ghost} habitBadge={layout.showHabitBadge} style={{ height }}>
-      <div className="box-border flex h-full w-full flex-col items-center gap-[6px] px-[8px] pb-[6px] pt-[8px] text-center">
+    <WeekGhostCard ghost={ghost} style={{ height }}>
+      <div className="box-border flex h-full w-full flex-col items-center gap-[6px] px-[6px] pb-[6px] pt-[8px] text-center">
         <div className="flex min-h-0 w-full flex-1 flex-col items-center gap-[6px] opacity-40 transition-opacity group-hover:opacity-100">
           <WeekGhostFieldTitle multiline ghost={ghost}>
             {item.title}
@@ -242,11 +288,7 @@ function WeekItemCard({ item, ghost, layout }) {
           )}
         </div>
         {(item.category || item.durationLabel) && (
-          <div
-            className={`flex w-full min-w-0 flex-wrap content-center items-center justify-center gap-[4px] ${
-              layout.showHabitBadge ? 'opacity-40 transition-opacity group-hover:opacity-100' : ''
-            }`}
-          >
+          <div className="flex w-full min-w-0 flex-wrap content-center items-center justify-center gap-[4px]">
             {item.category && (
               <span className={`rounded-[4px] border border-[#f2f2f2] px-[6px] py-[2px] ${WEEKLY_TYPO.chip}`}>
                 {item.category}
