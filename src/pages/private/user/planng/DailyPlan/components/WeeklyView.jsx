@@ -41,12 +41,12 @@ const PRIORITY_STYLES = {
 const WEEKLY_CARD_LAYOUT = {
   '1': { top: 7, height: 37 },
   '2': { top: 72, height: 37 },
-  '3': { top: 149, height: 52 },
+  '3': { top: 149, height: 64 },
   '5': { top: 307, height: 108, showHabitBadge: true },
   '4': { top: 540, height: 144 },
 };
 
-const FOUR_AM_PURPLE_TOP = 259; // Figma 1264:27407
+const FOUR_AM_PURPLE_TOP = 199; // sits just below the URGENT/TO DO row of the Exercise Routine card
 
 function scaleY(value) {
   return Math.round(value * GRID_SCALE);
@@ -191,7 +191,7 @@ function WeekItemCard({ item, ghost, layout }) {
   if (item.id === '3') {
     return (
       <WeekGhostCard ghost={ghost} style={{ height }}>
-        <div className="box-border flex h-full w-full flex-col items-center justify-center gap-[6px] px-[8px] pb-[6px] pt-[8px] text-center">
+        <div className="box-border flex h-full w-full flex-col items-center justify-start gap-[6px] px-[8px] pb-[6px] pt-[8px] text-center">
           <div className="flex w-full min-w-0 flex-col items-center opacity-40 transition-opacity group-hover:opacity-100">
             <p className="m-0 w-full text-center text-[12px] font-medium leading-[1.5] text-[#181818] dark:text-gray-300">
               {item.title}
@@ -353,6 +353,7 @@ export default function WeeklyView({ currentDate, selectedDate, plans, hasAccept
                               style={{ top: FOUR_AM_PURPLE_TOP }}
                             >
                               <div className="absolute inset-x-0 top-1/2 h-[1.5px] -translate-y-1/2 bg-[#8022fe]" />
+                              <div className="absolute left-0 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white bg-[#8022fe] shadow-sm dark:border-zinc-900" />
                             </div>
                           )}
                       </div>
