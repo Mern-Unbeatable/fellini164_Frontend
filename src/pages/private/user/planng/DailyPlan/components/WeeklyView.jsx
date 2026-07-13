@@ -204,12 +204,12 @@ function WeekItemCard({ item, ghost, layout }) {
           </div>
           <div className="flex flex-wrap items-center justify-center gap-[4px] opacity-40 transition-opacity group-hover:opacity-100">
             {item.priority && (
-              <span className={`rounded-[4px] px-[3px] py-px ${WEEKLY_TYPO.badge} ${PRIORITY_STYLES[item.priority]}`}>
+              <span className={`rounded-[4px] px-[3px] py-px ${WEEKLY_TYPO.badgeMd} ${PRIORITY_STYLES[item.priority]}`}>
                 {item.priority}
               </span>
             )}
             {item.status && (
-              <span className={`rounded-[4px] bg-[#f2f2f2] px-[3px] py-px uppercase text-[#a3a3a3] ${WEEKLY_TYPO.badge}`}>
+              <span className={`rounded-[4px] bg-[#f2f2f2] px-[3px] py-px uppercase text-[#a3a3a3] ${WEEKLY_TYPO.badgeMd}`}>
                 {item.status}
               </span>
             )}
