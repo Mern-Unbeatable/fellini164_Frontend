@@ -21,7 +21,7 @@ const HOUR_LABEL =
 // Figma 1264:27359+ — compact title 10px; badges/chips 8px.
 const WEEKLY_TYPO = {
   ghostTitle:
-    'm-0 h-[15px] w-full min-w-0 truncate text-center text-[10px] font-medium leading-[1.5] text-[#181818] opacity-40 transition-opacity group-hover:opacity-100 dark:text-gray-300',
+    'm-0 h-[18px] w-full min-w-0 truncate text-center text-[12px] font-medium leading-[1.5] text-[#181818] opacity-40 transition-opacity group-hover:opacity-100 dark:text-gray-300',
   title:
     'm-0 w-full min-w-0 truncate text-center text-[10px] font-medium leading-[1.5] text-[#181818] opacity-40 transition-opacity group-hover:opacity-100 dark:text-gray-300',
   titleMulti:
@@ -193,7 +193,7 @@ function WeekItemCard({ item, ghost, layout }) {
       <WeekGhostCard ghost={ghost} style={{ height }}>
         <div className="box-border flex h-full w-full flex-col items-center justify-center gap-[6px] px-[8px] pb-[6px] pt-[8px] text-center">
           <div className="flex w-full min-w-0 flex-col items-center opacity-40 transition-opacity group-hover:opacity-100">
-            <p className="m-0 w-full text-center text-[10px] font-medium leading-[1.5] text-[#181818] dark:text-gray-300">
+            <p className="m-0 w-full text-center text-[12px] font-medium leading-[1.5] text-[#181818] dark:text-gray-300">
               {item.title}
             </p>
           </div>
