@@ -28,8 +28,8 @@ const SEVEN_AM_TASK_HEIGHT = 112;
 const SEVEN_AM_HABIT_HEIGHT = 54;
 
 function getSevenAmCardTop() {
-  // Figma image 1 — card top aligns with the 7 AM label row (not the 6–7 AM gap).
-  return SEVEN_AM_HOUR_INDEX * ROW_STEP;
+  // Figma image 1 — card top aligns with the 7 AM label row; slight nudge up for dotted fields.
+  return SEVEN_AM_HOUR_INDEX * ROW_STEP - 14;
 }
 // card begins 26px above the hour rule; purple rule sits a little below the hour line.
 const FOUR_AM_HOUR_INDEX = 3;
@@ -77,7 +77,7 @@ function FourAmCurrentTimeLineInCard() {
 
 // Typography aligned with Tasks / Habits / Goals boards.
 const TYPO = {
-  hour: 'text-xs font-medium leading-normal text-[#c2c2c2] sm:text-[12px] lg:text-[14px] dark:text-gray-500',
+  hour: 'text-xs font-medium leading-normal text-[#c2c2c2] sm:text-[12px] lg:text-[12px] dark:text-gray-500',
   compactTitle:
     'text-xs font-medium leading-normal text-[#181818] sm:text-[12px] dark:text-gray-300',
   cardTitle:
@@ -156,7 +156,7 @@ function GhostTagsRow({ item, className = '' }) {
         <>
           <TagDivider tall />
           <span
-            className={`rounded-[6px] bg-[#f2f2f2] px-1.5 py-0.5 uppercase text-[#a3a3a3] ${TYPO.badge}`}
+            className={`rounded-[6px] bg-[#f2f2f2] px-1.5 py-0.5 text-[#a3a3a3] uppercase ${TYPO.badge}`}
           >
             {item.status}
           </span>
@@ -202,7 +202,9 @@ function StatusTagsRow({ item }) {
       {item.status && (
         <>
           <TagDivider tall />
-          <span className={`rounded-[6px] bg-[#f2f2f2] px-1.5 py-0.5 uppercase text-[#a3a3a3] ${TYPO.badge}`}>
+          <span
+            className={`rounded-[6px] bg-[#f2f2f2] px-1.5 py-0.5 text-[#a3a3a3] uppercase ${TYPO.badge}`}
+          >
             {item.status}
           </span>
         </>
@@ -220,17 +222,23 @@ function MetadataChips({ item, includeGoal = true, includeSteps = true }) {
         </span>
       )}
       {includeGoal && item.goalLabel && (
-        <span className={`flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-1.5 py-0.5 ${TYPO.chip}`}>
+        <span
+          className={`flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-1.5 py-0.5 ${TYPO.chip}`}
+        >
           <Target size={12} className="shrink-0" /> {item.goalLabel}
         </span>
       )}
       {item.durationLabel && (
-        <span className={`flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-1.5 py-0.5 ${TYPO.chip}`}>
+        <span
+          className={`flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-1.5 py-0.5 ${TYPO.chip}`}
+        >
           <Clock size={12} className="shrink-0" /> {item.durationLabel}
         </span>
       )}
       {includeSteps && item.stepsLabel && (
-        <span className={`flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-1.5 py-0.5 ${TYPO.chip}`}>
+        <span
+          className={`flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-1.5 py-0.5 ${TYPO.chip}`}
+        >
           <BarChart2 size={12} className="shrink-0" /> {item.stepsLabel}
         </span>
       )}
@@ -248,11 +256,11 @@ function HalfTaskCardBody({ item, faded }) {
       <div className="flex flex-col gap-1.5">
         <StatusTagsRow item={item} />
         <div className="flex flex-col gap-1">
-          <span className="text-[12px] font-medium leading-normal text-[#181818] dark:text-gray-300">
+          <span className="text-[12px] leading-normal font-medium text-[#181818] dark:text-gray-300">
             {item.title}
           </span>
           {item.description && (
-            <p className="line-clamp-1 text-[12px] font-medium leading-normal text-[#a3a3a3] dark:text-gray-500">
+            <p className="line-clamp-1 text-[12px] leading-normal font-medium text-[#a3a3a3] dark:text-gray-500">
               {item.description}
             </p>
           )}
@@ -268,7 +276,7 @@ function GhostVerticalDivider() {
   return (
     <svg
       aria-hidden
-      className="pointer-events-none absolute bottom-0 left-0 top-0 w-px transition-opacity group-hover:opacity-0"
+      className="pointer-events-none absolute top-0 bottom-0 left-0 w-px transition-opacity group-hover:opacity-0"
       preserveAspectRatio="none"
       viewBox="0 0 1 100"
       xmlns="http://www.w3.org/2000/svg"
@@ -314,7 +322,14 @@ function GhostFieldBorder({ rx = 3, ry = 30 }) {
   );
 }
 
-function GhostFieldShell({ children, className = '', radius = 8, borderRx = 3, borderRy = 30, style }) {
+function GhostFieldShell({
+  children,
+  className = '',
+  radius = 8,
+  borderRx = 3,
+  borderRy = 30,
+  style,
+}) {
   return (
     <div
       className={`group relative bg-white transition-all duration-200 hover:bg-[#fcfcfc] hover:shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:bg-zinc-800 ${className}`}
@@ -362,9 +377,7 @@ function TaskCard({ item, ghost, dimmed }) {
           <span className={`shrink-0 ${TYPO.cardTitle}`}>{item.title}</span>
           <GhostTagsRow item={item} className="shrink-0" />
         </div>
-        {item.description && (
-          <p className={`line-clamp-1 ${TYPO.cardDesc}`}>{item.description}</p>
-        )}
+        {item.description && <p className={`line-clamp-1 ${TYPO.cardDesc}`}>{item.description}</p>}
       </div>
       <MetadataChips item={item} />
     </div>
@@ -400,12 +413,12 @@ function TaskCard({ item, ghost, dimmed }) {
       >
         <div className="relative z-[1] flex min-w-0 flex-1 flex-col opacity-50 transition-opacity group-hover:opacity-100">
           <div className="flex items-center gap-2.5">
-            <span className="shrink-0 text-[14px] font-medium leading-normal text-[#181818] dark:text-gray-300">
+            <span className="shrink-0 text-[14px] leading-normal font-medium text-[#181818] dark:text-gray-300">
               {item.title}
             </span>
             <GhostTagsRow item={item} className="min-w-0 flex-1" />
           </div>
-          <p className="mt-[13px] line-clamp-1 text-[12px] font-medium leading-normal text-[#a3a3a3] dark:text-gray-500">
+          <p className="mt-[13px] line-clamp-1 text-[12px] leading-normal font-medium text-[#a3a3a3] dark:text-gray-500">
             {item.description}
           </p>
         </div>
@@ -498,11 +511,11 @@ function HabitCard({ item, ghost, dimmed }) {
   const body = (
     <>
       <div className={`flex min-w-0 flex-1 flex-col justify-center gap-0.5 p-[10px] ${faded}`}>
-        <span className="truncate text-[12px] font-medium leading-normal text-[#181818] dark:text-gray-300">
+        <span className="truncate text-[12px] leading-normal font-medium text-[#181818] dark:text-gray-300">
           {item.title}
         </span>
         {item.description && (
-          <p className="line-clamp-1 text-[12px] font-medium leading-normal text-[#a3a3a3] dark:text-gray-500">
+          <p className="line-clamp-1 text-[12px] leading-normal font-medium text-[#a3a3a3] dark:text-gray-500">
             {item.description}
           </p>
         )}
@@ -513,15 +526,17 @@ function HabitCard({ item, ghost, dimmed }) {
             <GhostVerticalDivider />
             <div
               aria-hidden
-              className="pointer-events-none absolute bottom-0 left-0 top-0 w-px bg-[#f2f2f2] opacity-0 transition-opacity group-hover:opacity-100"
+              className="pointer-events-none absolute top-0 bottom-0 left-0 w-px bg-[#f2f2f2] opacity-0 transition-opacity group-hover:opacity-100"
             />
           </>
         )}
-        {!ghost && <div aria-hidden className="absolute bottom-0 left-0 top-0 w-px bg-[#f2f2f2]" />}
+        {!ghost && <div aria-hidden className="absolute top-0 bottom-0 left-0 w-px bg-[#f2f2f2]" />}
         <div
           className={`size-5 shrink-0 rounded-md border border-[#e9e9e9] bg-white dark:border-zinc-600 dark:bg-zinc-800 ${faded}`}
         />
-        <span className={`text-[12px] font-medium leading-none text-[#5d5d5d] dark:text-gray-400 ${faded}`}>
+        <span
+          className={`text-[12px] leading-none font-medium text-[#5d5d5d] dark:text-gray-400 ${faded}`}
+        >
           {item.progress.done}/{item.progress.total}
         </span>
       </div>
@@ -636,12 +651,9 @@ export default function DailyView({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-white shadow-sm max-lg:h-auto max-lg:flex-none dark:border-zinc-800/80 dark:bg-zinc-900">
-      <div className="scrollbar-white relative flex-1 overflow-y-auto p-3 lg:min-h-0 max-lg:max-h-[min(70vh,560px)]">
+      <div className="scrollbar-white relative flex-1 overflow-y-auto p-3 max-lg:max-h-[min(70vh,560px)] lg:min-h-0">
         {/* Date header — centered over time column, Figma 1260:23099 */}
-        <div
-          className="mb-3 flex flex-col items-center gap-0.5"
-          style={{ width: GRID_LINE_LEFT }}
-        >
+        <div className="mb-3 flex flex-col items-center gap-0.5" style={{ width: GRID_LINE_LEFT }}>
           <span className="text-xs font-medium text-[#c2c2c2] sm:text-[12px] dark:text-gray-500">
             {weekdayShort}
           </span>
@@ -650,10 +662,7 @@ export default function DailyView({
           </span>
         </div>
 
-        <div
-          className="relative"
-          style={{ minHeight: getGridMinHeight(dayItems) }}
-        >
+        <div className="relative" style={{ minHeight: getGridMinHeight(dayItems) }}>
           {/* Vertical separator — Figma 1260:23199 at left 45px */}
           <div
             className="pointer-events-none absolute top-0 bottom-0 w-px bg-[#f2f2f2] dark:bg-zinc-800/80"
