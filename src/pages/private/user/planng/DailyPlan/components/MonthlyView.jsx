@@ -1,5 +1,51 @@
 import React from 'react';
 
+/** Airy dashed border matching Weekly/Daily ghost fields. */
+function MonthGhostFieldBorder() {
+  return (
+    <svg
+      aria-hidden
+      className="pointer-events-none absolute inset-0 z-0 h-full w-full transition-opacity group-hover:opacity-0"
+      viewBox="0 0 100 100"
+      preserveAspectRatio="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <rect
+        x="0.5"
+        y="0.5"
+        width="99"
+        height="99"
+        rx="4"
+        ry="30"
+        fill="none"
+        stroke="#e8e8e8"
+        strokeWidth="1"
+        vectorEffect="non-scaling-stroke"
+        strokeDasharray="8 14"
+      />
+    </svg>
+  );
+}
+
+function MonthGhostPlanItem({ title }) {
+  return (
+    <div className="group relative w-full overflow-hidden rounded-lg bg-white py-1.5 px-2 transition-all duration-200 hover:bg-[#fcfcfc] dark:bg-zinc-800 dark:hover:bg-zinc-800/90">
+      <MonthGhostFieldBorder />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 z-0 rounded-lg opacity-0 transition-opacity group-hover:opacity-100"
+        style={{ boxShadow: 'inset 0 0 0 1px #f2f2f2' }}
+      />
+      <p
+        className="relative z-[1] truncate text-center text-[12px] font-medium leading-[1.5] text-[#181818] opacity-40 transition-opacity group-hover:opacity-100 dark:text-gray-300"
+        title={title}
+      >
+        {title}
+      </p>
+    </div>
+  );
+}
+
 export default function MonthlyView({
   calendarDays,
   getFormattedDateString,
@@ -83,13 +129,7 @@ export default function MonthlyView({
                           {plan.title}
                         </div>
                       ) : (
-                        <div
-                          key={plan.id}
-                          className="w-full truncate text-center text-[10px] font-medium text-gray-400 dark:text-zinc-600"
-                          title={plan.title}
-                        >
-                          {plan.title}
-                        </div>
+                        <MonthGhostPlanItem key={plan.id} title={plan.title} />
                       )
                     )}
                   </div>
