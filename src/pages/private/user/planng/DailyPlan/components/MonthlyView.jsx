@@ -29,7 +29,7 @@ function MonthGhostFieldBorder() {
 
 function MonthGhostPlanItem({ title }) {
   return (
-    <div className="group relative w-full overflow-hidden rounded-lg bg-white py-1.5 px-2 transition-all duration-200 hover:bg-[#fcfcfc] dark:bg-zinc-800 dark:hover:bg-zinc-800/90">
+    <div className="group relative w-full shrink-0 overflow-hidden rounded-lg bg-white py-1.5 px-2 transition-all duration-200 hover:bg-[#fcfcfc] dark:bg-zinc-800 dark:hover:bg-zinc-800/90">
       <MonthGhostFieldBorder />
       <div
         aria-hidden
@@ -84,10 +84,14 @@ export default function MonthlyView({
           list scrolls internally so an unusually tall week never clips the weeks below it. */}
       <div className="scrollbar-white flex min-h-0 flex-1 flex-col gap-1.5 overflow-y-auto bg-gray-50/5 p-1.5 dark:bg-zinc-900/5 sm:gap-2 sm:p-2">
         {weeks.map((week, weekIndex) => (
-          <div key={weekIndex} className="grid grid-cols-7 items-start gap-1.5 sm:gap-2">
+          <div key={weekIndex} className="grid grid-cols-7 gap-1.5 sm:gap-2">
             {week.map((dayObj) => {
               const formattedDate = getFormattedDateString(dayObj);
               const dayPlans = plans[formattedDate] || [];
+              // Monthly is a compact overview — show up to 3 non-habit tasks (Figma May 13).
+              const monthlyDisplayPlans = dayPlans
+                .filter((plan) => plan.kind !== 'habit' && plan.layout !== 'half')
+                .slice(0, 3);
               const isSelected = selectedDate.getDate() === dayObj.day &&
                                  selectedDate.getMonth() === dayObj.month &&
                                  selectedDate.getFullYear() === dayObj.year;
@@ -102,10 +106,10 @@ export default function MonthlyView({
                       setViewMode('Daily');
                     }
                   }}
-                  className="min-h-12.5 sm:min-h-30 p-1 sm:p-3 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800/80 rounded-lg sm:rounded-xl flex flex-col items-center hover:bg-gray-50/50 dark:hover:bg-zinc-800/20 hover:border-violet-200 dark:hover:border-violet-800 cursor-pointer transition-colors"
+                  className="flex min-h-12.5 flex-col items-center overflow-hidden rounded-lg border border-gray-100 bg-white p-1 transition-colors hover:border-violet-200 hover:bg-gray-50/50 dark:border-zinc-800/80 dark:bg-zinc-900 dark:hover:border-violet-800 dark:hover:bg-zinc-800/20 sm:h-30 sm:max-h-30 sm:rounded-xl sm:p-3 cursor-pointer"
                 >
                   {/* Day Number */}
-                  <div className="flex justify-center mb-0.5 sm:mb-1.5 shrink-0">
+                  <div className="mb-0.5 flex shrink-0 justify-center sm:mb-1.5">
                     <span className={`text-xs font-medium w-5 h-5 sm:w-7 sm:h-7 flex items-center justify-center rounded-md sm:rounded-lg transition-all ${
                       isSelected
                         ? 'bg-purple-100/70 text-primary dark:bg-purple-950/40 dark:text-purple-400 font-bold'
@@ -117,9 +121,9 @@ export default function MonthlyView({
                     </span>
                   </div>
 
-                  {/* Plan Items (Desktop) */}
-                  <div className="w-full hidden sm:flex flex-col gap-1 mt-1">
-                    {dayPlans.map((plan) =>
+                  {/* Plan Items (Desktop) — clipped inside fixed cell height */}
+                  <div className="mt-1 hidden w-full min-h-0 flex-1 flex-col gap-1 overflow-hidden sm:flex">
+                    {monthlyDisplayPlans.map((plan) =>
                       hasAcceptedPlan ? (
                         <div
                           key={plan.id}
@@ -136,7 +140,7 @@ export default function MonthlyView({
 
                   {/* Plan Indicators (Mobile dot representation) */}
                   <div className="flex sm:hidden gap-0.5 mt-1 justify-center flex-wrap max-w-full">
-                    {dayPlans.map((plan) => (
+                    {monthlyDisplayPlans.map((plan) => (
                       <span
                         key={plan.id}
                         className="w-1.5 h-1.5 rounded-full bg-primary shrink-0"
