@@ -47,7 +47,8 @@ const WEEKLY_CARD_LAYOUT = {
   '2': { top: 72, height: 37 },
   '3': { top: 149, height: 64 },
   '5': { top: 322, height: 120, showHabitBadge: true },
-  '4': { top: 540, height: 144 },
+  // Centered on the 11 AM line (index 10 → line at 557.5): top = 557.5 - height/2.
+  '4': { top: 552, height: 72 },
 };
 
 const FOUR_AM_PURPLE_TOP = 199; // sits just below the URGENT/TO DO row of the Exercise Routine card
@@ -254,6 +255,33 @@ function WeekItemCard({ item, ghost, layout }) {
               )}
             </div>
           )}
+        </div>
+      </WeekGhostCard>
+    );
+  }
+
+  // Figma Frame 219 — 11 AM: title + HIGH / IN PROGRESS only, 12px text.
+  if (item.id === '4') {
+    return (
+      <WeekGhostCard ghost={ghost} style={{ height }}>
+        <div className="box-border flex w-full flex-col items-start px-[8px] pt-[8px] pb-[6px] text-left">
+          <div className="flex w-full min-w-0 flex-col items-start gap-[2px] opacity-40 transition-opacity group-hover:opacity-100">
+            <p className={WEEKLY_TYPO.habitTitle}>{item.title}</p>
+            {(item.priority || item.status) && (
+              <div className="flex flex-wrap items-center gap-[4px]">
+                {item.priority && (
+                  <span className={`rounded-[4px] px-[3px] py-px ${WEEKLY_TYPO.badgeMd} ${PRIORITY_STYLES[item.priority]}`}>
+                    {item.priority}
+                  </span>
+                )}
+                {item.status && (
+                  <span className={`rounded-[4px] bg-[#f2f2f2] px-[3px] py-px uppercase text-[#a3a3a3] ${WEEKLY_TYPO.badgeMd}`}>
+                    {item.status}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </WeekGhostCard>
     );
