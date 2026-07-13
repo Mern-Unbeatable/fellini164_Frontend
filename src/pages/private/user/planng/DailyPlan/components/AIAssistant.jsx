@@ -1,11 +1,9 @@
 import React from 'react';
 import { Sparkles, ExternalLink, X, Scale, Zap, Send, List } from 'lucide-react';
+import { UserChatBubble, AiChatBubble, ChatActionPill } from '../../../../../../components/ui/ChatBubbles';
 
 const CHIP_CLASS =
   'flex w-fit items-center gap-1.5 rounded-lg border border-[#F2F2F2] bg-white px-3 py-1.75 text-xs font-semibold text-[#5D5D5D] transition-colors hover:bg-gray-50 dark:border-zinc-800 dark:bg-zinc-850 dark:text-gray-200 max-lg:text-base';
-
-const ACTION_BTN =
-  'rounded-lg bg-[#f9f4ff] px-3.5 py-1.5 text-[12px] font-semibold text-[#8022fe] transition-colors hover:bg-[#f0e7ff] dark:bg-zinc-800 dark:text-[#a78bfa] dark:hover:bg-zinc-700 max-lg:text-base';
 
 export default function AIAssistant({
   messages,
@@ -84,60 +82,53 @@ export default function AIAssistant({
 
         <div
           ref={chatContainerRef}
-          className="scrollbar-white relative flex-1 space-y-4 overflow-y-auto bg-white p-5 dark:bg-zinc-900"
+          className="scrollbar-white relative flex-1 overflow-y-auto bg-white py-3 pl-3 pr-4.5 dark:bg-zinc-900"
         >
-          {messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
-            >
-              {msg.timestamp && (
-                <div className="mb-2 w-full text-center text-xs font-medium text-gray-400 dark:text-gray-500">
-                  {msg.timestamp}
-                </div>
-              )}
+          <div className="flex flex-col gap-5">
+            {messages.map((msg) => (
+              <div key={msg.id} className="flex flex-col gap-2.5">
+                {msg.timestamp && (
+                  <div className="w-full text-center text-xs font-medium text-[#c2c2c2] dark:text-gray-500">
+                    {msg.timestamp}
+                  </div>
+                )}
 
-              <div
-                className={`max-w-[85%] rounded-xl p-4 text-sm leading-relaxed font-medium ${
-                  msg.sender === 'user'
-                    ? 'bg-primary rounded-tr-none text-white'
-                    : 'rounded-tl-none border border-[#F2F2F2] bg-white text-[#181818] dark:border-zinc-800 dark:bg-zinc-800 dark:text-gray-100'
-                }`}
-              >
-                <p className="whitespace-pre-line">{msg.text}</p>
+                {msg.sender === 'user' ? (
+                  <UserChatBubble>{msg.text}</UserChatBubble>
+                ) : (
+                  <>
+                    <AiChatBubble>{msg.text}</AiChatBubble>
+
+                    {msg.actions && (
+                      <div className="flex flex-wrap items-center gap-2">
+                        {msg.actions.map((act) => (
+                          <ChatActionPill
+                            key={act.actionId}
+                            onClick={() => handleActionClick(act.actionId)}
+                          >
+                            {act.label}
+                          </ChatActionPill>
+                        ))}
+                      </div>
+                    )}
+
+                    {msg.links && (
+                      <div className="flex flex-wrap items-center gap-2">
+                        {msg.links.map((link) => (
+                          <ChatActionPill
+                            key={link.actionId}
+                            onClick={() => handleActionClick(link.actionId)}
+                          >
+                            {link.label}
+                          </ChatActionPill>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
-
-              {msg.actions && (
-                <div className="mt-2 flex flex-wrap items-center gap-2">
-                  {msg.actions.map((act) => (
-                    <button
-                      key={act.actionId}
-                      type="button"
-                      onClick={() => handleActionClick(act.actionId)}
-                      className={ACTION_BTN}
-                    >
-                      {act.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {msg.links && (
-                <div className="mt-2 flex flex-wrap items-center gap-2">
-                  {msg.links.map((link) => (
-                    <button
-                      key={link.actionId}
-                      type="button"
-                      onClick={() => handleActionClick(link.actionId)}
-                      className={ACTION_BTN}
-                    >
-                      {link.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         <div className="flex flex-col items-start gap-2 bg-white px-5 py-3 dark:bg-zinc-900">
