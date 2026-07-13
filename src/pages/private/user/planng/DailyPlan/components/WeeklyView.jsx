@@ -25,7 +25,7 @@ const WEEKLY_TYPO = {
   title:
     'm-0 w-full min-w-0 truncate text-center text-[10px] font-medium leading-[1.5] text-[#181818] opacity-40 transition-opacity group-hover:opacity-100 dark:text-gray-300',
   titleMulti:
-    'm-0 line-clamp-2 w-full min-w-0 shrink-0 text-center text-[10px] font-medium leading-[1.5] text-[#181818] dark:text-gray-300',
+    'm-0 line-clamp-2 h-[29px] w-full min-w-0 shrink-0 break-words text-left text-[10px] font-medium leading-[1.5] text-[#181818] dark:text-gray-300',
   badge: 'text-[8px] font-medium uppercase leading-[1.5]',
   chip: 'text-[8px] font-medium leading-[1.5] text-[#5d5d5d]',
 };
@@ -138,9 +138,9 @@ function WeekGhostFieldBorder({ radius = 8 }) {
 function WeekGhostCard({ ghost, className = '', style, children, habitBadge, radius = 8 }) {
   return (
     <div
-      className={`group relative box-border w-full overflow-hidden bg-white transition-all duration-200 hover:bg-[#fcfcfc] dark:bg-zinc-800 ${
-        ghost ? '' : 'border border-solid border-[#f2f2f2]'
-      } ${className}`}
+      className={`group relative box-border w-full bg-white transition-all duration-200 hover:bg-[#fcfcfc] dark:bg-zinc-800 ${
+        habitBadge ? 'overflow-visible' : 'overflow-hidden'
+      } ${ghost ? '' : 'border border-solid border-[#f2f2f2]'} ${className}`}
       style={{ borderRadius: radius, ...style }}
     >
       {ghost && <WeekGhostFieldBorder radius={radius} />}
@@ -214,13 +214,10 @@ function WeekItemCard({ item, ghost, layout }) {
     );
   }
 
-  // Figma 1264:27361 — card: white, dashed border, radius 8, px-8 pt-8 pb-6, gap-6,
-  // items-start. Two opacity-40 groups: [title + Low/In Progress] then [wrap chips].
+  // Figma 1264:27361 — 106×108, radius 8, px-8 pt-8 pb-6, gap-6, left-aligned stack.
   if (layout.showHabitBadge) {
-    // minHeight (not height): at narrow column widths the badges/chips wrap, so the
-    // card grows instead of clipping the 115 Min chip (Figma width assumes 104px).
     return (
-      <WeekGhostCard ghost={ghost} habitBadge style={{ minHeight: height }}>
+      <WeekGhostCard ghost={ghost} habitBadge style={{ height }}>
         <div className="box-border flex h-full w-full flex-col items-start gap-[6px] px-[8px] pt-[8px] pb-[6px] text-left">
           <div className="flex w-full min-w-0 flex-col items-start gap-[6px] opacity-40 transition-opacity group-hover:opacity-100">
             <WeekGhostFieldTitle multiline ghost={ghost} className="text-left">
@@ -242,7 +239,7 @@ function WeekItemCard({ item, ghost, layout }) {
             )}
           </div>
           {(item.category || item.durationLabel) && (
-            <div className="flex w-full min-w-0 flex-wrap content-center items-center gap-[4px] opacity-40 transition-opacity group-hover:opacity-100">
+            <div className="flex w-full min-w-0 shrink-0 flex-col items-start gap-[4px] opacity-40 transition-opacity group-hover:opacity-100">
               {item.category && (
                 <span className={`rounded-[4px] border border-[#f2f2f2] px-[6px] py-[2px] ${WEEKLY_TYPO.chip}`}>
                   {item.category}
