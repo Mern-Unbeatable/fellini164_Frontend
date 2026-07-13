@@ -157,7 +157,7 @@ function WeekGhostCard({ ghost, className = '', style, children, habitBadge, rad
       )}
       {habitBadge && ghost && (
         <div className="absolute top-[-8px] left-1/2 z-2 flex w-max -translate-x-1/2 items-center gap-[4px] whitespace-nowrap rounded-[4px] bg-[#fcfcfc] px-[3px] py-px dark:bg-zinc-900">
-          <RefreshCw size={10} className="text-[#5d5d5d] opacity-40" />
+          <RefreshCw size={12} className="text-[#5d5d5d] opacity-40" />
           <span className="text-[12px] font-medium leading-[1.5] text-[#5d5d5d] opacity-40">1 Habit</span>
         </div>
       )}
