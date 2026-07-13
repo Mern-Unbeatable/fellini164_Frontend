@@ -11,11 +11,20 @@ import {
   INITIAL_MESSAGE,
   dateKeyFromDate,
 } from './plannerData';
+import { getStorage, setStorage } from '../../../../../utils/storage';
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December',
 ];
+
+const VIEW_MODE_STORAGE_KEY = 'planner_view_mode';
+const VIEW_MODES = ['Daily', 'Weekly', 'Monthly'];
+
+function getInitialViewMode() {
+  const saved = getStorage(VIEW_MODE_STORAGE_KEY);
+  return VIEW_MODES.includes(saved) ? saved : 'Daily';
+}
 
 export default function DailyPlanner() {
   const [modle, setModle] = useState(false);
@@ -25,8 +34,12 @@ export default function DailyPlanner() {
   // Selected date (May 13, 2026)
   const [currentDate, setCurrentDate] = useState(new Date(2026, 4, 13));
   const [selectedDate, setSelectedDate] = useState(new Date(2026, 4, 13));
-  const [viewMode, setViewMode] = useState('Daily');
+  const [viewMode, setViewMode] = useState(getInitialViewMode);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  useEffect(() => {
+    setStorage(VIEW_MODE_STORAGE_KEY, viewMode);
+  }, [viewMode]);
 
   // loading state for shimmer skeleton
   const [isLoading, setIsLoading] = useState(false);

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight, Plus, Sparkles, ChevronDown } from 'lucide-react';
 
 export default function PlannerControls({
@@ -14,6 +14,21 @@ export default function PlannerControls({
   hasAcceptedPlan,
   months,
 }) {
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    if (!dropdownOpen) return;
+
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [dropdownOpen, setDropdownOpen]);
+
   return (
     <div className="mb-5 flex flex-col justify-between gap-4 lg:flex-row lg:items-center max-lg:items-stretch">
       {/* Action Buttons */}
@@ -69,7 +84,7 @@ export default function PlannerControls({
         <div className="h-4 w-[1px] bg-[#F2F2F2] dark:bg-zinc-800 max-lg:hidden" />
 
         {/* View Dropdown */}
-        <div className="relative max-lg:w-full">
+        <div ref={dropdownRef} className="relative max-lg:w-full">
           <button
             onClick={() => setDropdownOpen(!dropdownOpen)}
             className="flex w-30 items-center justify-between rounded-lg border border-[#f2f2f2] bg-white px-3 py-1.75 text-[12px] font-medium text-[#181818] transition-colors hover:bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white max-lg:w-full max-lg:gap-2 max-lg:py-2.5 max-lg:text-base"
