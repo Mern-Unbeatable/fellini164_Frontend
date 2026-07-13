@@ -40,7 +40,7 @@ const PRIORITY_STYLES = {
 // Figma 1264:27350+ absolute card tops/heights on Wed column.
 const WEEKLY_CARD_LAYOUT = {
   '1': { top: 7, height: 37 },
-  '2': { top: 72, height: 20 },
+  '2': { top: 72, height: 37 },
   '3': { top: 149, height: 52 },
   '5': { top: 307, height: 108, showHabitBadge: true },
   '4': { top: 540, height: 144 },
