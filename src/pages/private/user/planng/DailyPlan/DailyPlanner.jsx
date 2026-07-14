@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Sparkles } from 'lucide-react';
 import NewPlanModal from './components/NewPlanModal';
 import PlannerBoard from './components/PlannerBoard';
 import AIAssistant from './components/AIAssistant';
@@ -46,6 +47,8 @@ export default function DailyPlanner() {
   // Whether the user has accepted the AI-suggested plan yet — false renders the
   // dashed/ghost preview (Figma "Empty States"), true renders the solid board (Figma "2").
   const [hasAcceptedPlan, setHasAcceptedPlan] = useState(false);
+  const [isAssistantOpen, setIsAssistantOpen] = useState(true);
+  const [isAssistantExpanded, setIsAssistantExpanded] = useState(false);
 
   // Backup of plans for undo functionality
   const [plansBackup, setPlansBackup] = useState(null);
@@ -446,11 +449,45 @@ export default function DailyPlanner() {
     });
   };
 
+  const closeAssistant = () => {
+    setIsAssistantOpen(false);
+    setIsAssistantExpanded(false);
+  };
+
+  const toggleExpandAssistant = () => {
+    setIsAssistantExpanded((prev) => !prev);
+  };
+
+  const assistantProps = {
+    messages,
+    chatInput,
+    setChatInput,
+    handleSendMessage,
+    handleActionClick,
+    handleQuickAction,
+    chatContainerRef,
+    hasAcceptedPlan,
+    viewMode,
+    onClose: closeAssistant,
+    onToggleExpand: toggleExpandAssistant,
+  };
+
   return (
     <div className="relative flex min-h-full flex-col py-7.5 max-lg:min-h-0 max-lg:py-4 max-lg:sm:py-6">
       <div className="mx-auto flex min-h-0 w-full min-w-0 flex-1 flex-col gap-6 xl:flex-row">
         {/* Left Side: Header, Controls, and Board */}
-        <div className="flex min-w-0 flex-col max-xl:flex-none xl:min-h-0 xl:flex-1">
+        <div className="relative flex min-w-0 flex-col max-xl:flex-none xl:min-h-0 xl:flex-1">
+          {!isAssistantOpen && (
+            <button
+              type="button"
+              onClick={() => setIsAssistantOpen(true)}
+              aria-label="Open AI Assistant"
+              className="absolute top-0 right-0 z-10 flex items-center gap-1.5 rounded-lg bg-[#f9f4ff] px-2.5 py-1.5 text-[12px] font-medium text-[#8022fe] transition-colors hover:bg-[#f0e7ff] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8022fe]/40 active:bg-[#e9d9ff]"
+            >
+              <Sparkles size={14} />
+              AI Assistant
+            </button>
+          )}
           <PlannerHeader />
           <PlannerControls
             currentDate={currentDate}
@@ -480,18 +517,24 @@ export default function DailyPlanner() {
         </div>
 
         {/* AI Assistant Sidebar */}
-        <AIAssistant
-          messages={messages}
-          chatInput={chatInput}
-          setChatInput={setChatInput}
-          handleSendMessage={handleSendMessage}
-          handleActionClick={handleActionClick}
-          handleQuickAction={handleQuickAction}
-          chatContainerRef={chatContainerRef}
-          hasAcceptedPlan={hasAcceptedPlan}
-          viewMode={viewMode}
-        />
+        {isAssistantOpen && !isAssistantExpanded && <AIAssistant {...assistantProps} isExpanded={false} />}
       </div>
+
+      {isAssistantOpen && isAssistantExpanded && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label="AI Assistant expanded"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) toggleExpandAssistant();
+          }}
+        >
+          <div className="h-[85vh] w-full max-w-2xl">
+            <AIAssistant {...assistantProps} isExpanded />
+          </div>
+        </div>
+      )}
 
       <NewPlanModal open={modle} onClose={handleCloseModal} onSave={handleSavePlan} />
     </div>

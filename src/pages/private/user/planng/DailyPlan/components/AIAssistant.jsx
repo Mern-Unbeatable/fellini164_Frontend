@@ -1,9 +1,12 @@
-import React from 'react';
-import { Sparkles, ExternalLink, X, Scale, Zap, Send, List } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { Sparkles, ExternalLink, Minimize2, X, Scale, Zap, Send, List } from 'lucide-react';
 import { UserChatBubble, AiChatBubble, ChatActionPill } from '../../../../../../components/ui/ChatBubbles';
 
 const CHIP_CLASS =
   'flex w-fit items-center gap-1.5 rounded-lg border border-[#F2F2F2] bg-white px-3 py-1.75 text-xs font-semibold text-[#5D5D5D] transition-colors hover:bg-gray-50 dark:border-zinc-800 dark:bg-zinc-850 dark:text-gray-200 max-lg:text-base';
+
+const HEADER_ICON_BTN =
+  'rounded p-1 text-[#5D5D5D] transition-colors hover:bg-gray-50 hover:text-[#181818] active:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8022fe]/40 disabled:pointer-events-none disabled:opacity-40 dark:text-gray-400 dark:hover:bg-zinc-800 dark:hover:text-gray-200 dark:active:bg-zinc-700';
 
 export default function AIAssistant({
   messages,
@@ -15,6 +18,9 @@ export default function AIAssistant({
   chatContainerRef,
   hasAcceptedPlan,
   viewMode,
+  onClose,
+  onToggleExpand,
+  isExpanded = false,
 }) {
   const emptyStateChips = [
     { label: 'Adjust before accepting', icon: Sparkles, actionId: 'adjust_before_accepting' },
@@ -56,24 +62,46 @@ export default function AIAssistant({
 
   const quickChips = hasAcceptedPlan ? acceptedChips : emptyStateChips;
 
+  useEffect(() => {
+    const onKeyDown = (event) => {
+      if (event.key !== 'Escape') return;
+      if (isExpanded && onToggleExpand) {
+        onToggleExpand();
+        return;
+      }
+      if (onClose) onClose();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isExpanded, onClose, onToggleExpand]);
+
+  const panelClass = isExpanded
+    ? 'flex h-full w-full flex-col items-center overflow-hidden'
+    : 'flex h-auto max-h-[min(70vh,560px)] w-full shrink-0 flex-col items-center overflow-hidden xl:h-195 xl:max-h-none xl:w-96';
+
   return (
-    <div className="flex h-auto max-h-[min(70vh,560px)] w-full shrink-0 flex-col items-center overflow-hidden xl:h-195 xl:max-h-none xl:w-96">
+    <div className={panelClass}>
       <div className="flex h-full w-full flex-col overflow-hidden rounded-xl border border-[#F2F2F2] bg-white shadow-[0_2px_8px_rgba(0,0,0,0.02)] dark:border-zinc-800 dark:bg-zinc-900">
         <div className="flex items-center justify-between border-b border-[#F2F2F2] px-5 py-4 dark:border-zinc-800">
           <div className="flex items-center gap-2">
             <Sparkles size={16} className="text-[#A3A3A3] dark:text-zinc-500" />
             <span className="text-sm font-semibold text-[#181818] dark:text-white">AI Assistant</span>
           </div>
-          <div className="flex items-center gap-3 text-[#5D5D5D] dark:text-gray-400">
+          <div className="flex items-center gap-3">
             <button
               type="button"
-              className="rounded p-1 transition-colors hover:bg-gray-50 dark:hover:bg-zinc-800"
+              onClick={onToggleExpand}
+              aria-label={isExpanded ? 'Collapse AI Assistant' : 'Expand AI Assistant'}
+              aria-pressed={isExpanded}
+              className={HEADER_ICON_BTN}
             >
-              <ExternalLink size={16} />
+              {isExpanded ? <Minimize2 size={16} /> : <ExternalLink size={16} />}
             </button>
             <button
               type="button"
-              className="rounded p-1 transition-colors hover:bg-gray-50 dark:hover:bg-zinc-800"
+              onClick={onClose}
+              aria-label="Close AI Assistant"
+              className={HEADER_ICON_BTN}
             >
               <X size={16} />
             </button>
@@ -159,7 +187,8 @@ export default function AIAssistant({
             />
             <button
               type="submit"
-              className="bg-primary absolute right-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-full p-2 text-white transition-opacity hover:opacity-90"
+              aria-label="Send message"
+              className="bg-primary absolute right-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-full p-2 text-white transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8022fe]/40 active:opacity-80"
             >
               <Send size={14} className="fill-white/10" />
             </button>
