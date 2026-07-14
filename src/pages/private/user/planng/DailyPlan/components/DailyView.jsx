@@ -650,8 +650,8 @@ export default function DailyView({
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-white shadow-sm max-lg:h-auto max-lg:flex-none dark:border-zinc-800/80 dark:bg-zinc-900">
-      <div className="scrollbar-white relative flex-1 overflow-y-auto p-3 max-lg:max-h-[min(70vh,560px)] lg:min-h-0">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-white shadow-sm max-xl:h-auto max-xl:flex-none dark:border-zinc-800/80 dark:bg-zinc-900">
+      <div className="scrollbar-white relative flex-1 overflow-y-auto p-3 max-xl:max-h-[min(70vh,560px)] xl:min-h-0">
         {/* Date header — centered over time column, Figma 1260:23099 */}
         <div className="mb-3 flex flex-col items-center gap-0.5" style={{ width: GRID_LINE_LEFT }}>
           <span className="text-xs font-medium text-[#c2c2c2] sm:text-[12px] dark:text-gray-500">

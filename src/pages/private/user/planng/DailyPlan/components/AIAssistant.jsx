@@ -57,7 +57,7 @@ export default function AIAssistant({
   const quickChips = hasAcceptedPlan ? acceptedChips : emptyStateChips;
 
   return (
-    <div className="flex h-[600px] w-full shrink-0 flex-col items-center overflow-hidden md:h-[500px] lg:h-[780px] lg:w-96">
+    <div className="flex h-auto max-h-[min(70vh,560px)] w-full shrink-0 flex-col items-center overflow-hidden xl:h-195 xl:max-h-none xl:w-96">
       <div className="flex h-full w-full flex-col overflow-hidden rounded-xl border border-[#F2F2F2] bg-white shadow-[0_2px_8px_rgba(0,0,0,0.02)] dark:border-zinc-800 dark:bg-zinc-900">
         <div className="flex items-center justify-between border-b border-[#F2F2F2] px-5 py-4 dark:border-zinc-800">
           <div className="flex items-center gap-2">

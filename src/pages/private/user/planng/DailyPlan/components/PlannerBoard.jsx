@@ -18,7 +18,7 @@ export default function PlannerBoard({
   onDismiss
 }) {
   return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+    <div className="flex min-w-0 flex-col max-xl:flex-none xl:min-h-0 xl:flex-1">
 
       {viewMode === 'Daily' ? (
         <DailyView

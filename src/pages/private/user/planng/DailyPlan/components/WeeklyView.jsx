@@ -339,12 +339,12 @@ export default function WeeklyView({ currentDate, selectedDate, plans, hasAccept
   const selectedKey = dateKeyFromDate(anchorDate);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-white shadow-sm max-lg:h-auto max-lg:flex-none dark:border-zinc-800/80 dark:bg-zinc-900">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-white shadow-sm max-xl:h-auto max-xl:flex-none dark:border-zinc-800/80 dark:bg-zinc-900">
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <div className="flex min-h-0 w-full flex-1 flex-col p-3">
           {/* Header + grid share ONE scroll container; both day-areas are flex-1 after the
               same 50px time-column spacer, so their 7 columns are always identical width. */}
-          <div className="scrollbar-hidden relative min-h-0 flex-1 overflow-y-auto lg:min-h-0 max-lg:max-h-[min(70vh,560px)]">
+          <div className="scrollbar-hidden relative min-h-0 flex-1 overflow-y-auto xl:min-h-0 max-xl:max-h-[min(70vh,560px)]">
             {/* Weekday header — Figma 1264:27249 */}
             <div className="sticky top-0 z-30 mb-3 flex w-full bg-white dark:bg-zinc-900">
               <div aria-hidden className="shrink-0" style={{ width: GRID_LINE_LEFT }} />

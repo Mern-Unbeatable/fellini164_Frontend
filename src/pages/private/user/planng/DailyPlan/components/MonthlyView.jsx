@@ -65,7 +65,7 @@ export default function MonthlyView({
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-white dark:bg-zinc-900 border border-[#F2F2F2] dark:border-zinc-800/80 rounded-2xl overflow-hidden shadow-sm max-lg:h-auto max-lg:flex-none">
+    <div className="flex min-h-0 flex-1 flex-col bg-white dark:bg-zinc-900 border border-[#F2F2F2] dark:border-zinc-800/80 rounded-2xl overflow-hidden shadow-sm max-xl:h-auto max-xl:flex-none">
       {/* Weekday Names */}
       <div className="grid grid-cols-7 border-b border-gray-100 dark:border-zinc-800/80 gap-0 shrink-0">
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((dayName) => (
@@ -82,7 +82,7 @@ export default function MonthlyView({
           grows only its own week; a full border per cell (card look) replaces shared
           grid-lines since those only look right when every row is the same height. The whole
           list scrolls internally so an unusually tall week never clips the weeks below it. */}
-      <div className="scrollbar-white flex min-h-0 flex-1 flex-col gap-1.5 overflow-y-auto bg-gray-50/5 p-1.5 dark:bg-zinc-900/5 sm:gap-2 sm:p-2">
+      <div className="scrollbar-white flex min-h-0 flex-1 flex-col gap-1.5 overflow-y-auto bg-gray-50/5 p-1.5 dark:bg-zinc-900/5 sm:gap-2 sm:p-2 max-xl:max-h-[min(70vh,560px)] xl:min-h-0">
         {weeks.map((week, weekIndex) => (
           <div key={weekIndex} className="grid grid-cols-7 gap-1.5 sm:gap-2">
             {week.map((dayObj) => {
