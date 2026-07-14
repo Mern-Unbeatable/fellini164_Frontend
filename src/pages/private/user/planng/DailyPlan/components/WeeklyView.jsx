@@ -143,9 +143,9 @@ function WeekGhostFieldBorder({ radius = 8 }) {
 function WeekGhostCard({ ghost, className = '', style, children, habitBadge, radius = 8 }) {
   return (
     <div
-      className={`group relative box-border w-full bg-white transition-all duration-200 hover:bg-[#fcfcfc] dark:bg-zinc-800 ${
-        habitBadge ? 'overflow-visible' : 'overflow-hidden'
-      } ${ghost ? '' : 'border border-solid border-[#f2f2f2]'} ${className}`}
+      className={`group relative box-border w-full overflow-visible bg-white transition-all duration-200 hover:bg-[#fcfcfc] dark:bg-zinc-800 ${
+        ghost ? '' : 'border border-solid border-[#f2f2f2]'
+      } ${className}`}
       style={{ borderRadius: radius, ...style }}
     >
       {ghost && <WeekGhostFieldBorder radius={radius} />}
@@ -162,7 +162,15 @@ function WeekGhostCard({ ghost, className = '', style, children, habitBadge, rad
           <span className="text-[12px] font-medium leading-[1.5] text-[#5d5d5d] opacity-40">1 Habit</span>
         </div>
       )}
-      <div className="relative z-[1] box-border flex h-full w-full flex-col">{children}</div>
+      {/* Content is clipped in its own layer so it can never visually escape the card's
+          dashed/solid boundary, while the floating "1 Habit" pill above (a sibling, not a
+          descendant of this clip) is unaffected. */}
+      <div
+        className="relative z-[1] box-border flex h-full w-full flex-col overflow-hidden"
+        style={{ borderRadius: radius }}
+      >
+        {children}
+      </div>
     </div>
   );
 }
@@ -198,18 +206,18 @@ function WeekItemCard({ item, ghost, layout }) {
       <WeekGhostCard ghost={ghost} style={{ height }}>
         <div className="box-border flex h-full w-full flex-col items-center justify-start gap-[6px] px-[8px] pb-[6px] pt-[8px] text-center">
           <div className="flex w-full min-w-0 flex-col items-center opacity-40 transition-opacity group-hover:opacity-100">
-            <p className="m-0 w-full text-center text-[12px] font-medium leading-[1.5] text-[#181818] dark:text-gray-300">
+            <p className="m-0 w-full truncate text-center text-[12px] font-medium leading-[1.5] text-[#181818] dark:text-gray-300">
               {item.title}
             </p>
           </div>
-          <div className="flex flex-wrap items-center justify-center gap-[4px] opacity-40 transition-opacity group-hover:opacity-100">
+          <div className="flex w-full min-w-0 flex-nowrap items-center justify-center gap-[4px] overflow-hidden opacity-40 transition-opacity group-hover:opacity-100">
             {item.priority && (
-              <span className={`rounded-[4px] px-[3px] py-px ${WEEKLY_TYPO.badgeMd} ${PRIORITY_STYLES[item.priority]}`}>
+              <span className={`shrink-0 rounded-[4px] px-[3px] py-px ${WEEKLY_TYPO.badgeMd} ${PRIORITY_STYLES[item.priority]}`}>
                 {item.priority}
               </span>
             )}
             {item.status && (
-              <span className={`rounded-[4px] bg-[#f2f2f2] px-[3px] py-px uppercase text-[#a3a3a3] ${WEEKLY_TYPO.badgeMd}`}>
+              <span className={`min-w-0 truncate rounded-[4px] bg-[#f2f2f2] px-[3px] py-px uppercase text-[#a3a3a3] ${WEEKLY_TYPO.badgeMd}`}>
                 {item.status}
               </span>
             )}
@@ -227,14 +235,14 @@ function WeekItemCard({ item, ghost, layout }) {
           <div className="flex w-full min-w-0 flex-col items-start gap-[6px] opacity-40 transition-opacity group-hover:opacity-100">
             <p className={WEEKLY_TYPO.habitTitle}>{item.title}</p>
             {(item.priority || item.status) && (
-              <div className="flex flex-wrap items-center gap-[4px]">
+              <div className="flex w-full min-w-0 flex-nowrap items-center gap-[4px] overflow-hidden">
                 {item.priority && (
-                  <span className={`rounded-[4px] px-[3px] py-px ${WEEKLY_TYPO.badgeMd} ${PRIORITY_STYLES[item.priority]}`}>
+                  <span className={`shrink-0 rounded-[4px] px-[3px] py-px ${WEEKLY_TYPO.badgeMd} ${PRIORITY_STYLES[item.priority]}`}>
                     {item.priority}
                   </span>
                 )}
                 {item.status && (
-                  <span className={`rounded-[4px] bg-[#f2f2f2] px-[3px] py-px uppercase text-[#a3a3a3] ${WEEKLY_TYPO.badgeMd}`}>
+                  <span className={`min-w-0 truncate rounded-[4px] bg-[#f2f2f2] px-[3px] py-px uppercase text-[#a3a3a3] ${WEEKLY_TYPO.badgeMd}`}>
                     {item.status}
                   </span>
                 )}
@@ -242,15 +250,15 @@ function WeekItemCard({ item, ghost, layout }) {
             )}
           </div>
           {(item.category || item.durationLabel) && (
-            <div className="flex w-full min-w-0 shrink-0 flex-wrap items-center gap-[4px] opacity-40 transition-opacity group-hover:opacity-100">
+            <div className="flex w-full min-w-0 shrink-0 flex-nowrap items-center gap-[4px] overflow-hidden opacity-40 transition-opacity group-hover:opacity-100">
               {item.category && (
-                <span className={`rounded-[4px] border border-[#f2f2f2] px-[6px] py-[2px] ${WEEKLY_TYPO.chipMd}`}>
+                <span className={`shrink-0 truncate rounded-[4px] border border-[#f2f2f2] px-[6px] py-[2px] ${WEEKLY_TYPO.chipMd}`}>
                   {item.category}
                 </span>
               )}
               {item.durationLabel && (
-                <span className={`flex items-center gap-[4px] rounded-[4px] border border-[#f2f2f2] px-[6px] py-[2px] ${WEEKLY_TYPO.chipMd}`}>
-                  <Clock size={10} /> {item.durationLabel}
+                <span className={`flex min-w-0 items-center gap-[4px] truncate rounded-[4px] border border-[#f2f2f2] px-[6px] py-[2px] ${WEEKLY_TYPO.chipMd}`}>
+                  <Clock size={10} className="shrink-0" /> {item.durationLabel}
                 </span>
               )}
             </div>
@@ -268,14 +276,14 @@ function WeekItemCard({ item, ghost, layout }) {
           <div className="flex w-full min-w-0 flex-col items-start gap-[2px] opacity-40 transition-opacity group-hover:opacity-100">
             <p className={WEEKLY_TYPO.habitTitle}>{item.title}</p>
             {(item.priority || item.status) && (
-              <div className="flex flex-wrap items-center gap-[4px]">
+              <div className="flex w-full min-w-0 flex-nowrap items-center gap-[4px] overflow-hidden">
                 {item.priority && (
-                  <span className={`rounded-[4px] px-[3px] py-px ${WEEKLY_TYPO.badgeMd} ${PRIORITY_STYLES[item.priority]}`}>
+                  <span className={`shrink-0 rounded-[4px] px-[3px] py-px ${WEEKLY_TYPO.badgeMd} ${PRIORITY_STYLES[item.priority]}`}>
                     {item.priority}
                   </span>
                 )}
                 {item.status && (
-                  <span className={`rounded-[4px] bg-[#f2f2f2] px-[3px] py-px uppercase text-[#a3a3a3] ${WEEKLY_TYPO.badgeMd}`}>
+                  <span className={`min-w-0 truncate rounded-[4px] bg-[#f2f2f2] px-[3px] py-px uppercase text-[#a3a3a3] ${WEEKLY_TYPO.badgeMd}`}>
                     {item.status}
                   </span>
                 )}
@@ -295,19 +303,19 @@ function WeekItemCard({ item, ghost, layout }) {
             {item.title}
           </WeekGhostFieldTitle>
           {(item.priority || item.status) && (
-            <div className="flex w-full min-w-0 flex-wrap items-center justify-center gap-[4px]">
+            <div className="flex w-full min-w-0 flex-nowrap items-center justify-center gap-[4px] overflow-hidden">
               {item.priority && (
-                <span className={`rounded-[4px] px-[3px] py-px ${WEEKLY_TYPO.badge} ${PRIORITY_STYLES[item.priority]}`}>
+                <span className={`shrink-0 rounded-[4px] px-[3px] py-px ${WEEKLY_TYPO.badge} ${PRIORITY_STYLES[item.priority]}`}>
                   {item.priority}
                 </span>
               )}
               {item.status && (
-                <span className={`rounded-[4px] bg-[#f2f2f2] px-[3px] py-px uppercase text-[#a3a3a3] ${WEEKLY_TYPO.badge}`}>
+                <span className={`min-w-0 truncate rounded-[4px] bg-[#f2f2f2] px-[3px] py-px uppercase text-[#a3a3a3] ${WEEKLY_TYPO.badge}`}>
                   {item.status}
                 </span>
               )}
               {item.source === 'ai' && (
-                <span className={`flex items-center gap-[4px] rounded-[4px] bg-[#f9f4ff] px-[3px] py-px text-[#8022fe] ${WEEKLY_TYPO.badge}`}>
+                <span className={`flex shrink-0 items-center gap-[4px] rounded-[4px] bg-[#f9f4ff] px-[3px] py-px text-[#8022fe] ${WEEKLY_TYPO.badge}`}>
                   <Sparkles size={8} /> AI
                 </span>
               )}
@@ -315,15 +323,15 @@ function WeekItemCard({ item, ghost, layout }) {
           )}
         </div>
         {(item.category || item.durationLabel) && (
-          <div className="flex w-full min-w-0 flex-wrap content-center items-center justify-center gap-[4px]">
+          <div className="flex w-full min-w-0 flex-nowrap content-center items-center justify-center gap-[4px] overflow-hidden">
             {item.category && (
-              <span className={`rounded-[4px] border border-[#f2f2f2] px-[6px] py-[2px] ${WEEKLY_TYPO.chip}`}>
+              <span className={`shrink-0 truncate rounded-[4px] border border-[#f2f2f2] px-[6px] py-[2px] ${WEEKLY_TYPO.chip}`}>
                 {item.category}
               </span>
             )}
             {item.durationLabel && (
-              <span className={`flex items-center gap-[4px] rounded-[4px] border border-[#f2f2f2] px-[6px] py-[2px] ${WEEKLY_TYPO.chip}`}>
-                <Clock size={7} /> {item.durationLabel}
+              <span className={`flex min-w-0 items-center gap-[4px] truncate rounded-[4px] border border-[#f2f2f2] px-[6px] py-[2px] ${WEEKLY_TYPO.chip}`}>
+                <Clock size={7} className="shrink-0" /> {item.durationLabel}
               </span>
             )}
           </div>

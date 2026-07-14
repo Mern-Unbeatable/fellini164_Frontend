@@ -256,7 +256,7 @@ function HalfTaskCardBody({ item, faded }) {
       <div className="flex flex-col gap-1.5">
         <StatusTagsRow item={item} />
         <div className="flex flex-col gap-1">
-          <span className="text-[12px] leading-normal font-medium text-[#181818] dark:text-gray-300">
+          <span className="truncate text-[12px] leading-normal font-medium text-[#181818] dark:text-gray-300">
             {item.title}
           </span>
           {item.description && (
@@ -276,7 +276,7 @@ function GhostVerticalDivider() {
   return (
     <svg
       aria-hidden
-      className="pointer-events-none absolute top-0 bottom-0 left-0 w-px transition-opacity group-hover:opacity-0"
+      className="pointer-events-none absolute top-0 left-0 h-full w-px transition-opacity group-hover:opacity-0"
       preserveAspectRatio="none"
       viewBox="0 0 1 100"
       xmlns="http://www.w3.org/2000/svg"
@@ -374,7 +374,7 @@ function TaskCard({ item, ghost, dimmed }) {
     >
       <div className="flex flex-col gap-1">
         <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
-          <span className={`shrink-0 ${TYPO.cardTitle}`}>{item.title}</span>
+          <span className={`min-w-0 flex-1 truncate ${TYPO.cardTitle}`}>{item.title}</span>
           <GhostTagsRow item={item} className="shrink-0" />
         </div>
         {item.description && <p className={`line-clamp-1 ${TYPO.cardDesc}`}>{item.description}</p>}
@@ -394,7 +394,7 @@ function TaskCard({ item, ghost, dimmed }) {
         }`}
       >
         <div className="relative z-[1] flex min-w-0 flex-1 flex-wrap items-center gap-2 opacity-40 transition-opacity group-hover:opacity-100 sm:gap-2.5">
-          <span className={`shrink-0 ${TYPO.compactTitle}`}>{item.title}</span>
+          <span className={`min-w-0 flex-1 truncate ${TYPO.compactTitle}`}>{item.title}</span>
           <GhostTagsRow item={item} className="shrink-0" />
         </div>
       </GhostFieldShell>
@@ -413,10 +413,10 @@ function TaskCard({ item, ghost, dimmed }) {
       >
         <div className="relative z-[1] flex min-w-0 flex-1 flex-col opacity-50 transition-opacity group-hover:opacity-100">
           <div className="flex items-center gap-2.5">
-            <span className="shrink-0 text-[14px] leading-normal font-medium text-[#181818] dark:text-gray-300">
+            <span className="min-w-0 flex-1 truncate text-[14px] leading-normal font-medium text-[#181818] dark:text-gray-300">
               {item.title}
             </span>
-            <GhostTagsRow item={item} className="min-w-0 flex-1" />
+            <GhostTagsRow item={item} className="shrink-0" />
           </div>
           <p className="mt-[13px] line-clamp-1 text-[12px] leading-normal font-medium text-[#a3a3a3] dark:text-gray-500">
             {item.description}
@@ -492,7 +492,7 @@ function TaskCard({ item, ghost, dimmed }) {
       } ${dimmed ? 'opacity-50' : ''} ${item.optimized ? 'border-purple-200 bg-purple-50/10' : ''}`}
     >
       <div className="flex flex-col justify-start gap-2 sm:flex-row sm:items-center">
-        <span className={TYPO.cardTitle}>{item.title}</span>
+        <span className={`min-w-0 truncate ${TYPO.cardTitle}`}>{item.title}</span>
         <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
           <GhostTagsRow item={item} className="shrink-0" />
         </div>
