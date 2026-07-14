@@ -27,17 +27,27 @@ function MonthGhostFieldBorder() {
   );
 }
 
-function MonthGhostPlanItem({ title }) {
+function MonthGhostPlanItem({ title, active = false }) {
   return (
-    <div className="group relative w-full shrink-0 overflow-hidden rounded-lg bg-white py-1.5 px-2 transition-all duration-200 hover:bg-[#fcfcfc] dark:bg-zinc-800 dark:hover:bg-zinc-800/90">
-      <MonthGhostFieldBorder />
+    <div
+      className={`group relative w-full shrink-0 overflow-hidden rounded-lg py-1.5 px-2 transition-all duration-200 dark:bg-zinc-800 ${
+        active
+          ? 'bg-[#fcfcfc] shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)]'
+          : 'bg-white hover:bg-[#fcfcfc] dark:hover:bg-zinc-800/90'
+      }`}
+    >
+      {!active && <MonthGhostFieldBorder />}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 z-0 rounded-lg opacity-0 transition-opacity group-hover:opacity-100"
+        className={`pointer-events-none absolute inset-0 z-0 rounded-lg transition-opacity ${
+          active ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+        }`}
         style={{ boxShadow: 'inset 0 0 0 1px #f2f2f2' }}
       />
       <p
-        className="relative z-[1] truncate text-center text-[12px] font-medium leading-[1.5] text-[#181818] opacity-40 transition-opacity group-hover:opacity-100 dark:text-gray-300"
+        className={`relative z-[1] truncate text-center text-[12px] font-medium leading-[1.5] text-[#181818] dark:text-gray-300 ${
+          active ? '' : 'opacity-40 transition-opacity group-hover:opacity-100'
+        }`}
         title={title}
       >
         {title}
@@ -123,19 +133,13 @@ export default function MonthlyView({
 
                   {/* Plan Items (Desktop) — clipped inside fixed cell height */}
                   <div className="mt-1 hidden w-full min-h-0 flex-1 flex-col gap-1 overflow-hidden sm:flex">
-                    {monthlyDisplayPlans.map((plan) =>
-                      hasAcceptedPlan ? (
-                        <div
-                          key={plan.id}
-                          className="w-full text-center text-[10px] py-1.5 px-2 bg-white dark:bg-zinc-800 text-slate-700 dark:text-gray-300 border border-gray-100 dark:border-zinc-800 rounded-lg shadow-sm truncate font-medium hover:border-violet-300 dark:hover:border-violet-700 transition-colors"
-                          title={plan.title}
-                        >
-                          {plan.title}
-                        </div>
-                      ) : (
-                        <MonthGhostPlanItem key={plan.id} title={plan.title} />
-                      )
-                    )}
+                    {monthlyDisplayPlans.map((plan) => (
+                      <MonthGhostPlanItem
+                        key={plan.id}
+                        title={plan.title}
+                        active={hasAcceptedPlan}
+                      />
+                    ))}
                   </div>
 
                   {/* Plan Indicators (Mobile dot representation) */}

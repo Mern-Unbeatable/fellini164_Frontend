@@ -322,6 +322,7 @@ function GhostFieldBorder({ rx = 3, ry = 30 }) {
   );
 }
 
+/** Ghost = dashed preview; active = permanent hover look after Accept Plan (same size/layout). */
 function GhostFieldShell({
   children,
   className = '',
@@ -329,21 +330,32 @@ function GhostFieldShell({
   borderRx = 3,
   borderRy = 30,
   style,
+  active = false,
 }) {
   return (
     <div
-      className={`group relative bg-white transition-all duration-200 hover:bg-[#fcfcfc] hover:shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:bg-zinc-800 ${className}`}
+      className={`group relative transition-all duration-200 dark:bg-zinc-800 ${
+        active
+          ? 'bg-[#fcfcfc] shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)]'
+          : 'bg-white hover:bg-[#fcfcfc] hover:shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)]'
+      } ${className}`}
       style={{ borderRadius: radius, ...style }}
     >
-      <GhostFieldBorder rx={borderRx} ry={borderRy} />
+      {!active && <GhostFieldBorder rx={borderRx} ry={borderRy} />}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 z-0 opacity-0 transition-opacity group-hover:opacity-100"
+        className={`pointer-events-none absolute inset-0 z-0 transition-opacity ${
+          active ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+        }`}
         style={{ boxShadow: 'inset 0 0 0 1px #f2f2f2', borderRadius: radius }}
       />
       {children}
     </div>
   );
+}
+
+function contentFade(ghost) {
+  return ghost ? 'opacity-40 transition-opacity group-hover:opacity-100' : '';
 }
 
 function TaskCard({ item, ghost, dimmed }) {
@@ -363,15 +375,14 @@ function TaskCard({ item, ghost, dimmed }) {
     );
   }
 
-  const ghostCompact = ghost && !item.description && !item.category && !item.durationLabel;
-  const ghostMedium = ghost && item.description && !item.durationLabel;
+  const active = !ghost;
+  const fade = contentFade(ghost);
+  const isCompact = !item.description && !item.category && !item.durationLabel;
+  const isMedium = Boolean(item.description && !item.durationLabel && !item.category);
+  const isFullMeta = Boolean(item.category || item.durationLabel || item.stepsLabel);
 
-  const fullTaskBody = (faded) => (
-    <div
-      className={`flex min-w-0 flex-1 flex-col gap-2 ${
-        faded ? 'opacity-40 transition-opacity group-hover:opacity-100' : ''
-      }`}
-    >
+  const fullTaskBody = (
+    <div className={`flex min-w-0 flex-1 flex-col gap-2 ${fade}`}>
       <div className="flex flex-col gap-1">
         <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
           <span className={`min-w-0 truncate ${TYPO.cardTitle}`}>{item.title}</span>
@@ -383,17 +394,18 @@ function TaskCard({ item, ghost, dimmed }) {
     </div>
   );
 
-  if (ghostCompact) {
+  if (isCompact) {
     return (
       <GhostFieldShell
+        active={active}
         radius={8}
         borderRx={2}
         borderRy={32}
         className={`flex min-h-[32px] w-full items-center justify-between rounded-lg px-2.5 py-1.5 sm:pl-[11px] ${
           dimmed ? 'opacity-50' : ''
-        }`}
+        } ${item.optimized ? 'border-purple-200 bg-purple-50/10' : ''}`}
       >
-        <div className="relative z-[1] flex min-w-0 flex-1 flex-wrap items-center gap-2 opacity-40 transition-opacity group-hover:opacity-100 sm:gap-2.5">
+        <div className={`relative z-[1] flex min-w-0 flex-1 flex-wrap items-center gap-2 sm:gap-2.5 ${fade}`}>
           <span className={`min-w-0 truncate ${TYPO.compactTitle}`}>{item.title}</span>
           <GhostTagsRow item={item} className="shrink-0" />
         </div>
@@ -401,17 +413,18 @@ function TaskCard({ item, ghost, dimmed }) {
     );
   }
 
-  if (ghostMedium) {
+  if (isMedium) {
     return (
       <GhostFieldShell
+        active={active}
         radius={12}
         borderRx={2.5}
         borderRy={8}
         className={`flex h-[68px] w-full overflow-hidden rounded-xl p-[10px] ${
           dimmed ? 'opacity-50' : ''
-        }`}
+        } ${item.optimized ? 'border-purple-200 bg-purple-50/10' : ''}`}
       >
-        <div className="relative z-[1] flex min-w-0 flex-1 flex-col opacity-50 transition-opacity group-hover:opacity-100">
+        <div className={`relative z-[1] flex min-w-0 flex-1 flex-col ${fade}`}>
           <div className="flex items-center gap-2.5">
             <span className="min-w-0 truncate text-[14px] leading-normal font-medium text-[#181818] dark:text-gray-300">
               {item.title}
@@ -427,88 +440,72 @@ function TaskCard({ item, ghost, dimmed }) {
   }
 
   if (item.layout === 'half') {
-    if (ghost) {
-      return (
-        <GhostFieldShell
-          radius={12}
-          borderRx={2.5}
-          borderRy={8}
-          className={`flex w-full overflow-hidden rounded-xl p-[10px] ${
-            dimmed ? 'opacity-50' : ''
-          }`}
-          style={{ height: CARD_HEIGHT.halfTask }}
-        >
-          <div className="relative z-[1] flex min-h-0 min-w-0 flex-1">
-            <HalfTaskCardBody item={item} faded />
-          </div>
-        </GhostFieldShell>
-      );
-    }
     return (
-      <div
-        className={`flex w-full flex-col overflow-hidden rounded-xl border border-solid border-[#f2f2f2] bg-[#fcfcfc] p-[10px] dark:border-zinc-700 dark:bg-zinc-800 ${
+      <GhostFieldShell
+        active={active}
+        radius={12}
+        borderRx={2.5}
+        borderRy={8}
+        className={`flex w-full overflow-hidden rounded-xl p-[10px] ${
           dimmed ? 'opacity-50' : ''
         }`}
         style={{ height: CARD_HEIGHT.halfTask }}
       >
-        <HalfTaskCardBody item={item} faded={false} />
-      </div>
+        <div className="relative z-[1] flex min-h-0 min-w-0 flex-1">
+          <HalfTaskCardBody item={item} faded={ghost} />
+        </div>
+      </GhostFieldShell>
     );
   }
 
-  if (ghost && (item.category || item.durationLabel || item.stepsLabel)) {
+  if (isFullMeta) {
     return (
       <GhostFieldShell
+        active={active}
         radius={12}
         borderRx={2.5}
         borderRy={8}
         className={`flex min-h-[88px] w-full overflow-hidden rounded-xl p-2.5 sm:p-[10px] ${
           dimmed ? 'opacity-50' : ''
-        }`}
+        } ${item.optimized ? 'border-purple-200 bg-purple-50/10' : ''}`}
       >
-        <div className="relative z-[1] min-w-0 flex-1">{fullTaskBody(true)}</div>
+        <div className="relative z-[1] min-w-0 flex-1">{fullTaskBody}</div>
       </GhostFieldShell>
     );
   }
 
-  if (!ghost && (item.category || item.durationLabel || item.stepsLabel)) {
-    return (
-      <div
-        className={`flex min-h-[88px] w-full overflow-hidden rounded-xl border border-solid border-[#f2f2f2] bg-[#fcfcfc] p-2.5 sm:p-[10px] dark:border-zinc-700 dark:bg-zinc-800 ${
-          dimmed ? 'opacity-50' : ''
-        } ${item.optimized ? 'border-purple-200 bg-purple-50/10' : ''}`}
-      >
-        {fullTaskBody(false)}
-      </div>
-    );
-  }
-
   return (
-    <div
-      className={`flex w-full flex-col gap-1.5 rounded-xl p-2.5 shadow-sm transition-all duration-200 sm:p-3 dark:bg-zinc-800 ${
-        ghost
-          ? 'border border-dashed border-[#f2f2f2] bg-white opacity-40 hover:border-solid hover:border-[#f2f2f2] hover:bg-[#fcfcfc] hover:opacity-100 hover:shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800'
-          : 'border border-gray-100 bg-white dark:border-zinc-700'
-      } ${dimmed ? 'opacity-50' : ''} ${item.optimized ? 'border-purple-200 bg-purple-50/10' : ''}`}
+    <GhostFieldShell
+      active={active}
+      radius={12}
+      borderRx={2.5}
+      borderRy={8}
+      className={`flex w-full flex-col gap-1.5 rounded-xl p-2.5 sm:p-3 ${
+        dimmed ? 'opacity-50' : ''
+      } ${item.optimized ? 'border-purple-200 bg-purple-50/10' : ''}`}
     >
-      <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+      <div className={`relative z-[1] flex flex-wrap items-center gap-2 sm:gap-2.5 ${fade}`}>
         <span className={`min-w-0 truncate ${TYPO.cardTitle}`}>{item.title}</span>
         <GhostTagsRow item={item} className="shrink-0" />
       </div>
-      {item.description && <p className={TYPO.cardDesc}>{item.description}</p>}
-      {(item.category || item.goalLabel || item.durationLabel || item.stepsLabel) && (
-        <MetadataChips item={item} />
+      {item.description && (
+        <p className={`relative z-[1] ${TYPO.cardDesc} ${fade}`}>{item.description}</p>
       )}
-    </div>
+      {(item.category || item.goalLabel || item.durationLabel || item.stepsLabel) && (
+        <div className={`relative z-[1] ${fade}`}>
+          <MetadataChips item={item} />
+        </div>
+      )}
+    </GhostFieldShell>
   );
 }
 
 function HabitCard({ item, ghost, dimmed }) {
-  const faded = ghost ? 'opacity-40 transition-opacity group-hover:opacity-100' : '';
+  const fade = contentFade(ghost);
 
   const body = (
     <>
-      <div className={`flex min-w-0 flex-1 flex-col justify-center gap-0.5 p-[10px] ${faded}`}>
+      <div className={`flex min-w-0 flex-1 flex-col justify-center gap-0.5 p-[10px] ${fade}`}>
         <span className="truncate text-[12px] leading-normal font-medium text-[#181818] dark:text-gray-300">
           {item.title}
         </span>
@@ -519,7 +516,7 @@ function HabitCard({ item, ghost, dimmed }) {
         )}
       </div>
       <div className="relative flex w-11 shrink-0 flex-col items-center justify-between px-3 py-2">
-        {ghost && (
+        {ghost ? (
           <>
             <GhostVerticalDivider />
             <div
@@ -527,13 +524,14 @@ function HabitCard({ item, ghost, dimmed }) {
               className="pointer-events-none absolute top-0 bottom-0 left-0 w-px bg-[#f2f2f2] opacity-0 transition-opacity group-hover:opacity-100"
             />
           </>
+        ) : (
+          <div aria-hidden className="absolute top-0 bottom-0 left-0 w-px bg-[#f2f2f2]" />
         )}
-        {!ghost && <div aria-hidden className="absolute top-0 bottom-0 left-0 w-px bg-[#f2f2f2]" />}
         <div
-          className={`size-5 shrink-0 rounded-md border border-[#e9e9e9] bg-white dark:border-zinc-600 dark:bg-zinc-800 ${faded}`}
+          className={`size-5 shrink-0 rounded-md border border-[#e9e9e9] bg-white dark:border-zinc-600 dark:bg-zinc-800 ${fade}`}
         />
         <span
-          className={`text-[12px] leading-none font-medium text-[#5d5d5d] dark:text-gray-400 ${faded}`}
+          className={`text-[12px] leading-none font-medium text-[#5d5d5d] dark:text-gray-400 ${fade}`}
         >
           {item.progress.done}/{item.progress.total}
         </span>
@@ -541,31 +539,19 @@ function HabitCard({ item, ghost, dimmed }) {
     </>
   );
 
-  if (ghost) {
-    return (
-      <GhostFieldShell
-        radius={12}
-        borderRx={2.5}
-        borderRy={8}
-        className={`flex w-full items-stretch overflow-hidden rounded-xl ${
-          dimmed ? 'opacity-50' : ''
-        }`}
-        style={{ height: CARD_HEIGHT.halfHabit }}
-      >
-        <div className="relative z-[1] flex min-w-0 flex-1 items-stretch">{body}</div>
-      </GhostFieldShell>
-    );
-  }
-
   return (
-    <div
-      className={`flex w-full items-stretch overflow-hidden rounded-xl border border-solid border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800 ${
+    <GhostFieldShell
+      active={!ghost}
+      radius={12}
+      borderRx={2.5}
+      borderRy={8}
+      className={`flex w-full items-stretch overflow-hidden rounded-xl ${
         dimmed ? 'opacity-50' : ''
       }`}
       style={{ height: CARD_HEIGHT.halfHabit }}
     >
-      {body}
-    </div>
+      <div className="relative z-[1] flex min-w-0 flex-1 items-stretch">{body}</div>
+    </GhostFieldShell>
   );
 }
 
