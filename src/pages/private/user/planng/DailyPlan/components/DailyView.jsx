@@ -660,10 +660,8 @@ export default function DailyView({
             ))}
           </div>
 
-          {/* Dot on vertical timeline; line lives inside 4 AM card (clipped to dashed border) */}
-          {!hasAcceptedPlan && dayItems.some((item) => item.time === '4 AM') && (
-            <FourAmCurrentTimeDot />
-          )}
+          {/* Dot on vertical timeline; line lives inside 4 AM card (ghost + accepted) */}
+          {dayItems.some((item) => item.time === '4 AM') && <FourAmCurrentTimeDot />}
 
           {/* Ghost / task cards — Figma 1264:24782+ absolute positioned */}
           {PLANNER_HOURS.map((hour, i) => {
@@ -678,7 +676,7 @@ export default function DailyView({
                 className="absolute right-0 z-10"
                 style={{ left: CARD_LEFT, top: getCardTop(hour, i) }}
               >
-                {!hasAcceptedPlan && hour === '4 AM' && <FourAmCurrentTimeLineInCard />}
+                {hour === '4 AM' && <FourAmCurrentTimeLineInCard />}
                 {isHalfLayout ? (
                   <div className="flex w-full items-start gap-2">
                     {hourItems.map((item) => (

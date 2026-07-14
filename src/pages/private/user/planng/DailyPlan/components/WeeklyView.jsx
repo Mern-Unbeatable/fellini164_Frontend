@@ -434,7 +434,6 @@ export default function WeeklyView({ currentDate, selectedDate, plans, hasAccept
                           })}
 
                         {!isLoading &&
-                          !hasAcceptedPlan &&
                           dayKey === SEED_DATE_KEY &&
                           dayItems.some((item) => item.id === '3') && (
                             <div
