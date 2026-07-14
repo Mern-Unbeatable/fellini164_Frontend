@@ -374,7 +374,7 @@ function TaskCard({ item, ghost, dimmed }) {
     >
       <div className="flex flex-col gap-1">
         <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
-          <span className={`min-w-0 flex-1 truncate ${TYPO.cardTitle}`}>{item.title}</span>
+          <span className={`min-w-0 truncate ${TYPO.cardTitle}`}>{item.title}</span>
           <GhostTagsRow item={item} className="shrink-0" />
         </div>
         {item.description && <p className={`line-clamp-1 ${TYPO.cardDesc}`}>{item.description}</p>}
@@ -394,7 +394,7 @@ function TaskCard({ item, ghost, dimmed }) {
         }`}
       >
         <div className="relative z-[1] flex min-w-0 flex-1 flex-wrap items-center gap-2 opacity-40 transition-opacity group-hover:opacity-100 sm:gap-2.5">
-          <span className={`min-w-0 flex-1 truncate ${TYPO.compactTitle}`}>{item.title}</span>
+          <span className={`min-w-0 truncate ${TYPO.compactTitle}`}>{item.title}</span>
           <GhostTagsRow item={item} className="shrink-0" />
         </div>
       </GhostFieldShell>
@@ -413,7 +413,7 @@ function TaskCard({ item, ghost, dimmed }) {
       >
         <div className="relative z-[1] flex min-w-0 flex-1 flex-col opacity-50 transition-opacity group-hover:opacity-100">
           <div className="flex items-center gap-2.5">
-            <span className="min-w-0 flex-1 truncate text-[14px] leading-normal font-medium text-[#181818] dark:text-gray-300">
+            <span className="min-w-0 truncate text-[14px] leading-normal font-medium text-[#181818] dark:text-gray-300">
               {item.title}
             </span>
             <GhostTagsRow item={item} className="shrink-0" />
@@ -491,11 +491,9 @@ function TaskCard({ item, ghost, dimmed }) {
           : 'border border-gray-100 bg-white dark:border-zinc-700'
       } ${dimmed ? 'opacity-50' : ''} ${item.optimized ? 'border-purple-200 bg-purple-50/10' : ''}`}
     >
-      <div className="flex flex-col justify-start gap-2 sm:flex-row sm:items-center">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
         <span className={`min-w-0 truncate ${TYPO.cardTitle}`}>{item.title}</span>
-        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-          <GhostTagsRow item={item} className="shrink-0" />
-        </div>
+        <GhostTagsRow item={item} className="shrink-0" />
       </div>
       {item.description && <p className={TYPO.cardDesc}>{item.description}</p>}
       {(item.category || item.goalLabel || item.durationLabel || item.stepsLabel) && (
