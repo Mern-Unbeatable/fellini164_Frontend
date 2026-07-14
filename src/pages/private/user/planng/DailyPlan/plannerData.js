@@ -93,16 +93,6 @@ export const INITIAL_DAILY_PLAN = [
   },
 ];
 
-// AI-recalibrated result: adds an AI-suggested "Read Book & Meditate" slot at 8 AM, pending
-// accept/dismiss (matches DailyPlanner's existing recalibrate flow).
-export const RECALIBRATED_SUGGESTION = {
-  id: '6',
-  time: '8 AM',
-  kind: 'suggestion',
-  title: 'Read Book & Meditate',
-  description: '30 mins of reading followed by mindfulness meditation.',
-};
-
 export const INITIAL_MESSAGE = {
   id: 'm1',
   sender: 'ai',

@@ -14,8 +14,6 @@ export default function PlannerBoard({
   calendarDays,
   getFormattedDateString,
   isLoading,
-  onAccept,
-  onDismiss
 }) {
   return (
     <div className="flex min-w-0 flex-col max-xl:flex-none xl:min-h-0 xl:flex-1">
@@ -27,8 +25,6 @@ export default function PlannerBoard({
           plans={plans}
           hasAcceptedPlan={hasAcceptedPlan}
           isLoading={isLoading}
-          onAccept={onAccept}
-          onDismiss={onDismiss}
         />
       ) : viewMode === 'Weekly' ? (
         <WeeklyView

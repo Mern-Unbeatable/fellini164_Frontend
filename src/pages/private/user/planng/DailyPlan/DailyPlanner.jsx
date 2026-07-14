@@ -7,7 +7,6 @@ import PlannerControls from './components/PlannerControls';
 import {
   SEED_DATE_KEY,
   INITIAL_DAILY_PLAN,
-  RECALIBRATED_SUGGESTION,
   INITIAL_MESSAGE,
   dateKeyFromDate,
 } from './plannerData';
@@ -327,15 +326,14 @@ export default function DailyPlanner() {
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
+      // MVP: recalibrate only reorders/rebalances existing items — never invents new task content.
       setPlans((prev) => {
         const items = prev[SEED_DATE_KEY] || [];
-        const alreadySuggested = items.some((item) => item.id === RECALIBRATED_SUGGESTION.id);
         return {
           ...prev,
-          [SEED_DATE_KEY]: [
-            ...items.map((item) => (item.id === '4' ? { ...item, balanced: true } : item)),
-            ...(alreadySuggested ? [] : [RECALIBRATED_SUGGESTION]),
-          ],
+          [SEED_DATE_KEY]: items.map((item) =>
+            item.id === '4' ? { ...item, balanced: true } : item
+          ),
         };
       });
       postMessages({
@@ -478,8 +476,6 @@ export default function DailyPlanner() {
             calendarDays={calendarDays}
             getFormattedDateString={getFormattedDateString}
             isLoading={isLoading}
-            onAccept={() => handleActionClick('accept_initial')}
-            onDismiss={() => handleActionClick('dismiss_initial')}
           />
         </div>
 

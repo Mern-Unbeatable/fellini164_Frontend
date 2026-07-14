@@ -103,7 +103,6 @@ const CARD_HEIGHT = {
 };
 
 function estimateCardHeight(item) {
-  if (item.kind === 'suggestion') return 72;
   if (item.kind === 'habit') return CARD_HEIGHT.halfHabit;
   if (item.layout === 'half') return CARD_HEIGHT.halfTask;
   if (item.description && !item.durationLabel && !item.category) return CARD_HEIGHT.medium;
@@ -555,42 +554,7 @@ function HabitCard({ item, ghost, dimmed }) {
   );
 }
 
-function SuggestionCard({ item, onAccept, onDismiss }) {
-  return (
-    <div className="animate-fade-in flex w-full flex-col justify-between gap-3 rounded-lg border border-purple-200 bg-purple-50/20 p-3.5 shadow-sm md:flex-row md:items-center dark:border-purple-900/40 dark:bg-purple-950/10">
-      <div className="flex min-w-0 flex-col gap-1 pr-4">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-purple-700 dark:text-purple-400">
-            {item.title}
-          </span>
-          <span className="text-primary flex items-center gap-1 rounded bg-[#7C3AED]/10 px-2 py-0.5 text-[8px] font-medium dark:border-none dark:bg-[#F9F4FF] dark:text-purple-400">
-            <Sparkles size={8} /> AI Suggested
-          </span>
-        </div>
-        <p className="text-[10px] text-gray-400 dark:text-gray-500">{item.description}</p>
-      </div>
-      <div className="flex shrink-0 items-center gap-2">
-        <button
-          onClick={onAccept}
-          className="rounded-lg bg-purple-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-purple-700"
-        >
-          Accept
-        </button>
-        <button
-          onClick={onDismiss}
-          className="rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-gray-200 dark:bg-zinc-800 dark:text-gray-300"
-        >
-          Dismiss
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function ItemCard({ item, ghost, dimmed, onAccept, onDismiss }) {
-  if (item.kind === 'suggestion') {
-    return <SuggestionCard item={item} onAccept={onAccept} onDismiss={onDismiss} />;
-  }
+function ItemCard({ item, ghost, dimmed }) {
   if (item.kind === 'habit') {
     return <HabitCard item={item} ghost={ghost} dimmed={dimmed} />;
   }
@@ -603,8 +567,6 @@ export default function DailyView({
   plans,
   hasAcceptedPlan,
   isLoading,
-  onAccept,
-  onDismiss,
 }) {
   const dateToUse = selectedDate || currentDate || new Date(2026, 4, 13);
   const weekdayShort = dateToUse.toLocaleDateString('en-US', { weekday: 'short' });
@@ -681,24 +643,13 @@ export default function DailyView({
                   <div className="flex w-full items-start gap-2">
                     {hourItems.map((item) => (
                       <div key={item.id} className="min-w-0 flex-1">
-                        <ItemCard
-                          item={item}
-                          ghost={!hasAcceptedPlan}
-                          onAccept={onAccept}
-                          onDismiss={onDismiss}
-                        />
+                        <ItemCard item={item} ghost={!hasAcceptedPlan} />
                       </div>
                     ))}
                   </div>
                 ) : (
                   hourItems.map((item) => (
-                    <ItemCard
-                      key={item.id}
-                      item={item}
-                      ghost={!hasAcceptedPlan}
-                      onAccept={onAccept}
-                      onDismiss={onDismiss}
-                    />
+                    <ItemCard key={item.id} item={item} ghost={!hasAcceptedPlan} />
                   ))
                 )}
               </div>
