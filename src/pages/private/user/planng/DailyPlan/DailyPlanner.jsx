@@ -11,6 +11,7 @@ import {
   INITIAL_MESSAGE,
   dateKeyFromDate,
 } from './plannerData';
+import { clonePlans, generatePlan } from './plannerEngine';
 import { getStorage, setStorage } from '../../../../../utils/storage';
 
 const MONTHS = [
@@ -27,9 +28,7 @@ function getInitialViewMode() {
 }
 
 export default function DailyPlanner() {
-  const [modle, setModle] = useState(false);
-  const handleOpenModal = () => setModle(true);
-  const handleCloseModal = () => setModle(false);
+  const [isNewPlanModalOpen, setIsNewPlanModalOpen] = useState(false);
 
   // Selected date (May 13, 2026)
   const [currentDate, setCurrentDate] = useState(new Date(2026, 4, 13));
@@ -50,8 +49,9 @@ export default function DailyPlanner() {
   const [isAssistantOpen, setIsAssistantOpen] = useState(true);
   const [isAssistantExpanded, setIsAssistantExpanded] = useState(false);
 
-  // Backup of plans for undo functionality
-  const [plansBackup, setPlansBackup] = useState(null);
+  // AI schedule changes are previewed before commit and stored as action-scoped history.
+  const [pendingProposal, setPendingProposal] = useState(null);
+  const [planHistory, setPlanHistory] = useState([]);
 
   // Plans/tasks data mapping, keyed by date string
   const [plans, setPlans] = useState({
@@ -119,9 +119,138 @@ export default function DailyPlanner() {
 
   // --- AI Actions flow -----------------------------------------------------
 
+  const selectedDateKey = dateKeyFromDate(selectedDate);
   const postMessages = (...msgs) => setMessages((prev) => [...prev, ...msgs]);
 
+  const resolveMessageActions = (actionId) => {
+    setMessages((prev) =>
+      prev.map((message) => {
+        const containsAction = [...(message.actions || []), ...(message.links || [])].some(
+          (action) => action.actionId === actionId
+        );
+        return containsAction ? { ...message, resolved: true } : message;
+      })
+    );
+  };
+
+  const disablePreviousUndoLinks = () => {
+    setMessages((prev) =>
+      prev.map((message) => ({
+        ...message,
+        links: message.links?.map((link) =>
+          link.actionId?.startsWith('undo:')
+            ? { ...link, disabled: true }
+            : link
+        ),
+      }))
+    );
+  };
+
+  const recordCommittedChange = (entry) => {
+    disablePreviousUndoLinks();
+    setPlanHistory((prev) => [...prev, entry]);
+  };
+
+  const pendingNotice = (userText) => {
+    const now = Date.now();
+    postMessages(
+      { id: `user_pending_${now}`, sender: 'user', text: userText, timestamp: timestamp() },
+      {
+        id: `ai_pending_${now}`,
+        sender: 'ai',
+        text: 'Please accept or dismiss the current schedule preview before starting another change.',
+        timestamp: timestamp(),
+      }
+    );
+  };
+
+  const completeScheduleIntentWithoutMockMutation = ({
+    userText,
+    loadingText,
+    resultText,
+  }) => {
+    if (isLoading || pendingProposal) {
+      pendingNotice(userText);
+      return;
+    }
+
+    const now = Date.now();
+
+    postMessages(
+      { id: `user_${now}`, sender: 'user', text: userText, timestamp: timestamp() },
+      {
+        id: `ai_loading_${now}`,
+        sender: 'ai',
+        text: loadingText,
+        timestamp: timestamp(),
+      }
+    );
+
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+      postMessages({
+        id: `ai_intent_${now}`,
+        sender: 'ai',
+        text: resultText,
+        timestamp: timestamp(),
+      });
+    }, 900);
+  };
+
+  const startPlanGeneration = (mode) => {
+    const userText = `Generate ${mode} Plan`;
+    if (isLoading || pendingProposal) {
+      pendingNotice(userText);
+      return;
+    }
+
+    const now = Date.now();
+    const transactionId = `generate_${mode.toLowerCase()}_${now}`;
+    const beforePlans = clonePlans(plans);
+    const beforeAccepted = hasAcceptedPlan;
+    const nextPlans = generatePlan(plans, selectedDateKey);
+
+    setViewMode(mode);
+    setIsLoading(true);
+    postMessages(
+      { id: `user_generate_${now}`, sender: 'user', text: userText, timestamp: timestamp() },
+      {
+        id: `ai_generate_loading_${now}`,
+        sender: 'ai',
+        text: `Building a ${mode.toLowerCase()} schedule from your existing tasks and habits...`,
+        timestamp: timestamp(),
+      }
+    );
+
+    setTimeout(() => {
+      setPlans(nextPlans);
+      setHasAcceptedPlan(false);
+      setPendingProposal({
+        id: transactionId,
+        label: `Generate ${mode} Plan`,
+        beforePlans,
+        beforeAccepted,
+        afterPlans: clonePlans(nextPlans),
+        afterAccepted: true,
+        type: 'generation',
+      });
+      setIsLoading(false);
+      postMessages({
+        id: `ai_generate_preview_${now}`,
+        sender: 'ai',
+        text: `I've prepared a ${mode.toLowerCase()} schedule using only your existing task and habit content. Do you want to keep it?`,
+        timestamp: timestamp(),
+        actions: [
+          { label: 'Accept plan', actionId: `accept_initial:${transactionId}` },
+          { label: 'Dismiss', actionId: `dismiss_initial:${transactionId}` },
+        ],
+      });
+    }, 900);
+  };
+
   const handleQuickAction = (actionType) => {
+    setIsAssistantOpen(true);
     const ts = timestamp();
     const userMsgId = Date.now().toString();
 
@@ -129,9 +258,9 @@ export default function DailyPlanner() {
       postMessages(
         { id: userMsgId, sender: 'user', text: 'Adjust before accepting', timestamp: ts },
         {
-          id: userMsgId + '_ai',
+          id: `${userMsgId}_ai`,
           sender: 'ai',
-          text: 'Tell me what you want to change before accepting — for example, move a task earlier, reduce workload, or leave more focus time.',
+          text: 'Tell me how to adjust the schedule — for example, move a task earlier, reduce overload, optimize timing, or create focus spacing.',
           timestamp: ts,
         }
       );
@@ -142,48 +271,25 @@ export default function DailyPlanner() {
       postMessages(
         { id: userMsgId, sender: 'user', text: "Show what's included", timestamp: ts },
         {
-          id: userMsgId + '_ai',
+          id: `${userMsgId}_ai`,
           sender: 'ai',
-          text: 'Your suggested plan includes your existing tasks, habits, and AI-recommended time slots — nothing new was added without your approval.',
+          text: 'This plan schedules your existing tasks and habits. Planner AI only changes dates, times, order, and spacing — never their content.',
           timestamp: ts,
         }
       );
       return;
     }
 
+    if (actionType === 'generate_daily_plan') {
+      startPlanGeneration('Daily');
+      return;
+    }
     if (actionType === 'generate_weekly_plan') {
-      setViewMode('Weekly');
-      postMessages(
-        { id: userMsgId, sender: 'user', text: 'Generate Weekly Plan', timestamp: ts },
-        {
-          id: userMsgId + '_ai',
-          sender: 'ai',
-          text: "I've prepared a weekly overview based on your tasks and habits. Switch to Weekly view to review it, then accept or adjust from chat.",
-          timestamp: ts,
-          actions: [
-            { label: 'Accept plan', actionId: 'accept_initial' },
-            { label: 'Dismiss', actionId: 'dismiss_initial' },
-          ],
-        }
-      );
+      startPlanGeneration('Weekly');
       return;
     }
-
-    if (actionType === 'generate_monthly_plan') {
-      setViewMode('Monthly');
-      postMessages(
-        { id: userMsgId, sender: 'user', text: 'Generate Monthly Plan', timestamp: ts },
-        {
-          id: userMsgId + '_ai',
-          sender: 'ai',
-          text: "I've prepared a monthly overview based on your tasks and habits. Switch to Monthly view to review it, then accept or adjust from chat.",
-          timestamp: ts,
-          actions: [
-            { label: 'Accept plan', actionId: 'accept_initial' },
-            { label: 'Dismiss', actionId: 'dismiss_initial' },
-          ],
-        }
-      );
+    if (actionType === 'generate_monthly_plan' || actionType === 'monthly_plan') {
+      startPlanGeneration('Monthly');
       return;
     }
 
@@ -191,9 +297,9 @@ export default function DailyPlanner() {
       postMessages(
         { id: userMsgId, sender: 'user', text: 'Balance my schedule', timestamp: ts },
         {
-          id: userMsgId + '_ai',
+          id: `${userMsgId}_ai`,
           sender: 'ai',
-          text: 'I can rebalance your day by moving lower-priority items and creating more focus spacing. Use AI Actions to choose Recalibrate, Reduce overload, or Optimize schedule.',
+          text: 'I can rebalance your day by moving existing items and creating focus spacing. What would you like me to do?',
           timestamp: ts,
           actions: [
             { label: 'Recalibrate My Day', actionId: 'recalibrate_day' },
@@ -209,13 +315,13 @@ export default function DailyPlanner() {
       postMessages(
         { id: userMsgId, sender: 'user', text: 'Free up my evening', timestamp: ts },
         {
-          id: userMsgId + '_ai',
+          id: `${userMsgId}_ai`,
           sender: 'ai',
-          text: 'I can move non-urgent items out of your evening block to reduce overload. Want me to reduce overload now?',
+          text: 'I can move a lower-priority item to tomorrow morning. Do you want me to preview that change?',
           timestamp: ts,
           actions: [
             { label: 'Reduce Overload', actionId: 'reduce_overload' },
-            { label: 'Dismiss', actionId: 'dismiss_initial' },
+            { label: 'Dismiss', actionId: 'dismiss_prompt' },
           ],
         }
       );
@@ -226,7 +332,7 @@ export default function DailyPlanner() {
       postMessages(
         { id: userMsgId, sender: 'user', text: 'AI Actions', timestamp: ts },
         {
-          id: userMsgId + '_ai',
+          id: `${userMsgId}_ai`,
           sender: 'ai',
           text: 'I analyzed your current schedule and found a few ways to improve your day balance.\n\nWhat would you like me to do?',
           timestamp: ts,
@@ -241,11 +347,10 @@ export default function DailyPlanner() {
     }
 
     if (actionType === 'recalibrate_day') {
-      // Per Figma state 4: this action asks a clarifying question before running.
       postMessages(
         { id: userMsgId, sender: 'user', text: 'Recalibrate My Day', timestamp: ts },
         {
-          id: userMsgId + '_ai_energy',
+          id: `${userMsgId}_ai_energy`,
           sender: 'ai',
           text: 'How is your energy today?',
           timestamp: ts,
@@ -260,193 +365,228 @@ export default function DailyPlanner() {
     }
 
     if (actionType === 'reduce_overload') {
-      setPlansBackup(JSON.parse(JSON.stringify(plans)));
-      setIsLoading(true);
-      postMessages(
-        { id: userMsgId, sender: 'user', text: 'Reduce Overload', timestamp: ts },
-        { id: userMsgId + '_ai_loading', sender: 'ai', text: 'Rebalancing tasks to reduce cognitive overload... Please wait.', timestamp: ts }
-      );
-      setTimeout(() => {
-        setIsLoading(false);
-        setPlans((prev) => {
-          const items = prev[SEED_DATE_KEY] || [];
-          return {
-            ...prev,
-            [SEED_DATE_KEY]: items.map((item) =>
-              item.id === '2' ? { ...item, status: 'Rescheduled' } : item
-            ),
-          };
-        });
-        postMessages({
-          id: userMsgId + '_ai_done',
-          sender: 'ai',
-          text: "Reduced overload. I've rescheduled 'Complete Work Task' to tomorrow and left only urgent items for today to reduce cognitive pressure. Do you want to keep this?",
-          timestamp: ts,
-          actions: [
-            { label: 'Accept changes', actionId: 'accept_recalibrate' },
-            { label: 'Undo changes', actionId: 'dismiss_recalibrate' },
-          ],
-        });
-      }, 1500);
+      completeScheduleIntentWithoutMockMutation({
+        userText: 'Reduce Overload',
+        loadingText: 'Reviewing the schedule for overload...',
+        resultText: 'No mock schedule placement was changed. A confirmed planner-data response is required before moving an item.',
+      });
       return;
     }
 
     if (actionType === 'optimize_schedule') {
-      setPlansBackup(JSON.parse(JSON.stringify(plans)));
-      setIsLoading(true);
-      postMessages(
-        { id: userMsgId, sender: 'user', text: 'Optimize Schedule', timestamp: ts },
-        { id: userMsgId + '_ai_loading', sender: 'ai', text: 'Optimizing your daily planner layout... Please wait.', timestamp: ts }
-      );
-      setTimeout(() => {
-        setIsLoading(false);
-        setPlans((prev) => {
-          const items = prev[SEED_DATE_KEY] || [];
-          return {
-            ...prev,
-            [SEED_DATE_KEY]: items.map((item) =>
-              item.id === '1' || item.id === '3' ? { ...item, optimized: true } : item
-            ),
-          };
-        });
-        postMessages({
-          id: userMsgId + '_ai_done',
-          sender: 'ai',
-          text: "Schedule optimized. I've re-arranged your Workout and Exercise blocks to align with your peak focus hours. Do you want to keep this?",
-          timestamp: ts,
-          actions: [
-            { label: 'Accept changes', actionId: 'accept_recalibrate' },
-            { label: 'Undo changes', actionId: 'dismiss_recalibrate' },
-          ],
-        });
-      }, 1500);
-      return;
+      completeScheduleIntentWithoutMockMutation({
+        userText: 'Optimize Schedule',
+        loadingText: 'Reviewing schedule timing...',
+        resultText: 'No mock schedule placement was changed. A confirmed planner-data response is required before changing timing.',
+      });
     }
-  };
-
-  const runRecalibration = () => {
-    setPlansBackup(JSON.parse(JSON.stringify(plans)));
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      // MVP: recalibrate only reorders/rebalances existing items — never invents new task content.
-      setPlans((prev) => {
-        const items = prev[SEED_DATE_KEY] || [];
-        return {
-          ...prev,
-          [SEED_DATE_KEY]: items.map((item) =>
-            item.id === '4' ? { ...item, balanced: true } : item
-          ),
-        };
-      });
-      postMessages({
-        id: 'ai_recalibrate_done_' + Date.now(),
-        sender: 'ai',
-        text: 'Done! The day was recalibrated successfully!',
-        timestamp: timestamp(),
-        links: [{ label: 'Undo changes', actionId: 'dismiss_recalibrate' }],
-      });
-    }, 1500);
   };
 
   const handleActionClick = (actionId) => {
     const ts = timestamp();
+    resolveMessageActions(actionId);
 
-    // The AI Actions menu posts its 3 options as in-chat message actions, which route
-    // through this handler (not handleQuickAction) — delegate to the shared logic.
-    if (actionId === 'recalibrate_day' || actionId === 'reduce_overload' || actionId === 'optimize_schedule') {
+    if (
+      [
+        'recalibrate_day',
+        'reduce_overload',
+        'optimize_schedule',
+        'generate_daily_plan',
+        'generate_weekly_plan',
+        'generate_monthly_plan',
+      ].includes(actionId)
+    ) {
       handleQuickAction(actionId);
       return;
     }
 
-    if (actionId === 'energy_low' || actionId === 'energy_medium' || actionId === 'energy_high') {
-      const label = { energy_low: 'Low', energy_medium: 'Medium', energy_high: 'High' }[actionId];
-      postMessages({ id: 'user_energy_' + Date.now(), sender: 'user', text: label, timestamp: ts });
-      runRecalibration();
+    if (actionId === 'dismiss_prompt') {
+      postMessages({
+        id: `ai_prompt_dismissed_${Date.now()}`,
+        sender: 'ai',
+        text: 'No schedule changes were made.',
+        timestamp: ts,
+      });
       return;
     }
 
-    if (actionId === 'accept_initial') {
-      setHasAcceptedPlan(true);
-      postMessages(
-        { id: 'user_accept_' + Date.now(), sender: 'user', text: 'Accept plan', timestamp: ts },
-        {
-          id: 'ai_accept_reply_' + Date.now(),
-          sender: 'ai',
-          text: 'Great. Your day is set. You can adjust anything by typing here or using the actions above.',
-          timestamp: ts,
-          links: [{ label: 'Undo changes', actionId: 'dismiss_recalibrate' }],
-        }
-      );
-      return;
-    }
-
-    if (actionId === 'accept_recalibrate') {
-      postMessages(
-        { id: 'user_accept_' + Date.now(), sender: 'user', text: 'Accept changes', timestamp: ts },
-        {
-          id: 'ai_accept_reply_' + Date.now(),
-          sender: 'ai',
-          text: 'Great! The changes have been successfully applied to your planner layout.',
-          timestamp: ts,
-          links: [{ label: 'Undo changes', actionId: 'dismiss_recalibrate' }],
-        }
-      );
-      return;
-    }
-
-    if (actionId === 'dismiss_initial') {
-      setHasAcceptedPlan(false);
-      postMessages(
-        { id: 'user_dismiss_' + Date.now(), sender: 'user', text: 'Dismiss', timestamp: ts },
-        {
-          id: 'ai_dismiss_reply_' + Date.now(),
-          sender: 'ai',
-          text: 'No problem — the suggested plan was dismissed. Ask me to build a new one whenever you\'re ready.',
-          timestamp: ts,
-        }
-      );
-      return;
-    }
-
-    if (actionId === 'dismiss_recalibrate') {
-      if (plansBackup) {
-        setPlans(plansBackup);
+    if (actionId.startsWith('energy_')) {
+      const energy = actionId.replace('energy_', '');
+      const label = energy.charAt(0).toUpperCase() + energy.slice(1);
+      if (isLoading || pendingProposal) {
+        pendingNotice(label);
+        return;
       }
+      const now = Date.now();
       postMessages(
-        { id: 'user_undo_' + Date.now(), sender: 'user', text: 'Undo changes', timestamp: ts },
-        { id: 'ai_undo_reply_' + Date.now(), sender: 'ai', text: 'Restored your previous schedule settings.', timestamp: ts }
+        {
+          id: `user_energy_${now}`,
+          sender: 'user',
+          text: label,
+          timestamp: ts,
+        },
+        {
+          id: `ai_energy_${now}`,
+          sender: 'ai',
+          text: 'Done! The day was recalibrated successfully!',
+          timestamp: ts,
+        }
+      );
+      return;
+    }
+
+    if (actionId === 'accept_initial' || actionId.startsWith('accept_initial:')) {
+      const proposalId = actionId.split(':')[1];
+      const proposal =
+        pendingProposal?.type === 'generation' &&
+        (!proposalId || pendingProposal.id === proposalId)
+          ? pendingProposal
+          : null;
+      const transactionId = proposal?.id || `accept_initial_${Date.now()}`;
+
+      recordCommittedChange({
+        id: transactionId,
+        label: proposal?.label || 'Accept initial plan',
+        beforePlans: proposal?.beforePlans || clonePlans(plans),
+        beforeAccepted: proposal?.beforeAccepted ?? false,
+        afterPlans: proposal?.afterPlans || clonePlans(plans),
+        afterAccepted: true,
+      });
+      setHasAcceptedPlan(true);
+      setPendingProposal(null);
+      postMessages(
+        { id: `user_accept_${Date.now()}`, sender: 'user', text: 'Accept plan', timestamp: ts },
+        {
+          id: `ai_accept_reply_${Date.now()}`,
+          sender: 'ai',
+          text: 'Great. Your schedule is set. You can continue adjusting dates, times, order, and focus spacing through chat.',
+          timestamp: ts,
+          links: [{ label: 'Undo changes', actionId: `undo:${transactionId}` }],
+        }
+      );
+      return;
+    }
+
+    if (actionId === 'dismiss_initial' || actionId.startsWith('dismiss_initial:')) {
+      const proposalId = actionId.split(':')[1];
+      const proposal =
+        pendingProposal?.type === 'generation' &&
+        (!proposalId || pendingProposal.id === proposalId)
+          ? pendingProposal
+          : null;
+
+      if (proposal) {
+        setPlans(proposal.beforePlans);
+        setHasAcceptedPlan(proposal.beforeAccepted);
+        setPendingProposal(null);
+      } else {
+        setPlans((prev) => ({ ...prev, [selectedDateKey]: [] }));
+        setHasAcceptedPlan(false);
+      }
+
+      postMessages(
+        { id: `user_dismiss_${Date.now()}`, sender: 'user', text: 'Dismiss', timestamp: ts },
+        {
+          id: `ai_dismiss_reply_${Date.now()}`,
+          sender: 'ai',
+          text: 'The suggested schedule was dismissed. No task or habit content was changed.',
+          timestamp: ts,
+        }
+      );
+      return;
+    }
+
+    if (actionId.startsWith('accept_change:')) {
+      const proposalId = actionId.split(':')[1];
+      if (!pendingProposal || pendingProposal.id !== proposalId) {
+        postMessages({
+          id: `ai_expired_${Date.now()}`,
+          sender: 'ai',
+          text: 'That schedule preview is no longer active.',
+          timestamp: ts,
+        });
+        return;
+      }
+
+      recordCommittedChange(pendingProposal);
+      setHasAcceptedPlan(pendingProposal.afterAccepted);
+      setPendingProposal(null);
+      postMessages(
+        { id: `user_accept_${Date.now()}`, sender: 'user', text: 'Accept changes', timestamp: ts },
+        {
+          id: `ai_accept_reply_${Date.now()}`,
+          sender: 'ai',
+          text: 'The previewed schedule changes have been applied.',
+          timestamp: ts,
+          links: [{ label: 'Undo changes', actionId: `undo:${proposalId}` }],
+        }
+      );
+      return;
+    }
+
+    if (actionId.startsWith('dismiss_change:')) {
+      const proposalId = actionId.split(':')[1];
+      if (pendingProposal?.id === proposalId) {
+        setPlans(pendingProposal.beforePlans);
+        setHasAcceptedPlan(pendingProposal.beforeAccepted);
+        setPendingProposal(null);
+      }
+      postMessages({
+        id: `ai_dismiss_change_${Date.now()}`,
+        sender: 'ai',
+        text: 'The schedule preview was dismissed. Your previous schedule is unchanged.',
+        timestamp: ts,
+      });
+      return;
+    }
+
+    if (actionId.startsWith('undo:')) {
+      const transactionId = actionId.split(':')[1];
+      const latest = planHistory[planHistory.length - 1];
+
+      if (!latest || latest.id !== transactionId) {
+        postMessages({
+          id: `ai_undo_unavailable_${Date.now()}`,
+          sender: 'ai',
+          text: 'That Undo action is no longer available because a newer schedule transaction exists.',
+          timestamp: ts,
+        });
+        return;
+      }
+
+      setPlans(latest.beforePlans);
+      setHasAcceptedPlan(latest.beforeAccepted);
+      setPlanHistory((prev) => prev.slice(0, -1));
+      postMessages(
+        { id: `user_undo_${Date.now()}`, sender: 'user', text: 'Undo changes', timestamp: ts },
+        {
+          id: `ai_undo_reply_${Date.now()}`,
+          sender: 'ai',
+          text: 'Restored the schedule from before that AI change.',
+          timestamp: ts,
+        }
       );
     }
   };
 
-  const handleSendMessage = (e) => {
-    e.preventDefault();
-    if (!chatInput.trim()) return;
+  const handleSendMessage = (event) => {
+    event.preventDefault();
+    const userText = chatInput.trim();
+    if (!userText) return;
 
-    const userText = chatInput;
     setChatInput('');
-    const ts = timestamp();
-    const msgId = Date.now().toString();
-
-    postMessages({ id: msgId, sender: 'user', text: userText, timestamp: ts });
-
-    setTimeout(() => {
-      postMessages({
-        id: msgId + '_ai',
-        sender: 'ai',
-        text: `I've updated your schedule preferences based on: "${userText}".`,
-        timestamp: ts,
-      });
-    }, 1000);
+    completeScheduleIntentWithoutMockMutation({
+      userText,
+      loadingText: 'Reviewing your schedule request...',
+      resultText: 'No mock schedule placement was changed. A confirmed planner-data response is required before updating the board.',
+    });
   };
 
   const navigateMonth = (direction) => {
-    setCurrentDate((prev) => {
-      const newDate = new Date(prev);
-      newDate.setMonth(prev.getMonth() + direction);
-      return newDate;
-    });
+    const nextDate = new Date(currentDate);
+    nextDate.setMonth(currentDate.getMonth() + direction);
+    setCurrentDate(nextDate);
+    setSelectedDate(nextDate);
   };
 
   const closeAssistant = () => {
@@ -497,7 +637,7 @@ export default function DailyPlanner() {
             dropdownOpen={dropdownOpen}
             setDropdownOpen={setDropdownOpen}
             navigateMonth={navigateMonth}
-            handleOpenModal={handleOpenModal}
+            handleOpenModal={() => setIsNewPlanModalOpen(true)}
             handleQuickAction={handleQuickAction}
             hasAcceptedPlan={hasAcceptedPlan}
             months={MONTHS}
@@ -536,7 +676,11 @@ export default function DailyPlanner() {
         </div>
       )}
 
-      <NewPlanModal open={modle} onClose={handleCloseModal} onSave={handleSavePlan} />
+      <NewPlanModal
+        open={isNewPlanModalOpen}
+        onClose={() => setIsNewPlanModalOpen(false)}
+        onSave={handleSavePlan}
+      />
     </div>
   );
 }

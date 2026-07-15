@@ -27,14 +27,14 @@ function MonthGhostFieldBorder() {
   );
 }
 
-function MonthGhostPlanItem({ title, active = false }) {
+function MonthGhostPlanItem({ title, active = false, animated = false }) {
   return (
     <div
       className={`group relative w-full shrink-0 overflow-hidden rounded-lg py-1.5 px-2 transition-all duration-200 dark:bg-zinc-800 ${
         active
           ? 'bg-[#fcfcfc] shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)]'
           : 'bg-white hover:bg-[#fcfcfc] dark:hover:bg-zinc-800/90'
-      }`}
+      } ${animated ? 'animate-fade-in' : ''}`}
     >
       {!active && <MonthGhostFieldBorder />}
       <div
@@ -63,7 +63,8 @@ export default function MonthlyView({
   hasAcceptedPlan,
   selectedDate,
   setSelectedDate,
-  setViewMode
+  setViewMode,
+  isLoading,
 }) {
   // Chunked into weeks and rendered as separate row grids — a single grid spanning every cell
   // computes one shared implicit row height across the whole calendar (so a busy day can't grow
@@ -133,21 +134,31 @@ export default function MonthlyView({
 
                   {/* Plan Items (Desktop) — clipped inside fixed cell height */}
                   <div className="mt-1 hidden w-full min-h-0 flex-1 flex-col gap-1 overflow-hidden sm:flex">
-                    {monthlyDisplayPlans.map((plan) => (
-                      <MonthGhostPlanItem
-                        key={plan.id}
-                        title={plan.title}
-                        active={hasAcceptedPlan}
-                      />
-                    ))}
+                    {isLoading && isSelected
+                      ? [0, 1, 2].map((value) => (
+                          <div
+                            key={value}
+                            className="h-7 w-full shrink-0 animate-pulse rounded-lg bg-gray-100 dark:bg-zinc-800"
+                          />
+                        ))
+                      : monthlyDisplayPlans.map((plan) => (
+                          <MonthGhostPlanItem
+                            key={plan.id}
+                            title={plan.title}
+                            active={hasAcceptedPlan}
+                            animated={Boolean(plan.aiScheduleState)}
+                          />
+                        ))}
                   </div>
 
                   {/* Plan Indicators (Mobile dot representation) */}
                   <div className="flex sm:hidden gap-0.5 mt-1 justify-center flex-wrap max-w-full">
-                    {monthlyDisplayPlans.map((plan) => (
+                    {(isLoading && isSelected ? [0, 1, 2] : monthlyDisplayPlans).map((plan, index) => (
                       <span
-                        key={plan.id}
-                        className="w-1.5 h-1.5 rounded-full bg-primary shrink-0"
+                        key={plan.id || index}
+                        className={`w-1.5 h-1.5 rounded-full bg-primary shrink-0 ${
+                          isLoading && isSelected ? 'animate-pulse opacity-40' : ''
+                        }`}
                       />
                     ))}
                   </div>

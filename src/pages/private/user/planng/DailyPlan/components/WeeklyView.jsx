@@ -51,6 +51,14 @@ const WEEKLY_CARD_LAYOUT = {
   '4': { top: 552, height: 72 },
 };
 
+const ORIGINAL_TIME_BY_ID = {
+  '1': '1 AM',
+  '2': '2 AM',
+  '3': '4 AM',
+  '5': '7 AM',
+  '4': '11 AM',
+};
+
 const FOUR_AM_PURPLE_TOP = 199; // sits just below the URGENT/TO DO row of the Exercise Routine card
 
 function scaleY(value) {
@@ -64,6 +72,19 @@ function weekContentFade(ghost) {
 function getGridMinHeight() {
   const last = WEEKLY_CARD_LAYOUT['4'];
   return scaleY(last.top + last.height) + 24;
+}
+
+function getWeeklyCardLayout(item) {
+  const baseLayout = WEEKLY_CARD_LAYOUT[item.id];
+  if (!baseLayout) return null;
+  if (item.time === ORIGINAL_TIME_BY_ID[item.id]) return baseLayout;
+
+  const hourIndex = PLANNER_HOURS.indexOf(item.time);
+  if (hourIndex < 0) return baseLayout;
+  return {
+    ...baseLayout,
+    top: hourIndex * ROW_STEP + 7,
+  };
 }
 
 // Card fills the day column (Figma card ≈ column width) with small equal side gaps.
@@ -186,7 +207,7 @@ function WeekGhostCard({ ghost, className = '', style, children, habitBadge, rad
   );
 }
 
-function WeekGhostFieldTitle({ children, multiline = false, ghost = false, className = '' }) {
+function WeekGhostFieldTitle({ children, multiline = false, className = '' }) {
   const style = multiline ? WEEKLY_TYPO.titleMulti : WEEKLY_TYPO.title;
   return <p className={`${style} ${className}`}>{children}</p>;
 }
@@ -311,7 +332,7 @@ function WeekItemCard({ item, ghost, layout }) {
     <WeekGhostCard ghost={ghost} style={{ height }}>
       <div className="box-border flex h-full w-full flex-col items-center gap-[6px] px-[6px] pb-[6px] pt-[8px] text-center">
         <div className={`flex min-h-0 w-full flex-1 flex-col items-center gap-[6px] ${fade}`}>
-          <WeekGhostFieldTitle multiline ghost={ghost}>
+          <WeekGhostFieldTitle multiline>
             {item.title}
           </WeekGhostFieldTitle>
           {(item.priority || item.status) && (
@@ -326,7 +347,7 @@ function WeekItemCard({ item, ghost, layout }) {
                   {item.status}
                 </span>
               )}
-              {item.source === 'ai' && (
+              {(item.source === 'ai' || item.aiScheduleState) && (
                 <span className={`flex shrink-0 items-center gap-[4px] rounded-[4px] bg-[#f9f4ff] px-[3px] py-px text-[#8022fe] ${WEEKLY_TYPO.badge}`}>
                   <Sparkles size={8} /> AI
                 </span>
@@ -414,9 +435,9 @@ export default function WeeklyView({ currentDate, selectedDate, plans, hasAccept
                     const dayItems = isLoading
                       ? []
                       : (plans[dayKey] || []).filter((item) => {
-                          if (item.kind === 'habit' && item.layout === 'half') return false;
-                          return WEEKLY_CARD_LAYOUT[item.id];
-                        });
+                      if (item.kind === 'habit' && item.layout === 'half') return false;
+                      return getWeeklyCardLayout(item);
+                    });
 
                     return (
                       <div
@@ -425,9 +446,15 @@ export default function WeeklyView({ currentDate, selectedDate, plans, hasAccept
                       >
                         {!isLoading &&
                           dayItems.map((item) => {
-                            const layout = WEEKLY_CARD_LAYOUT[item.id];
+                            const layout = getWeeklyCardLayout(item);
                             return (
-                              <WeekCardAnchor key={item.id} top={scaleY(layout.top)}>
+                              <WeekCardAnchor
+                                key={item.id}
+                                top={scaleY(layout.top)}
+                                className={`pointer-events-auto ${
+                                  item.aiScheduleState ? 'animate-fade-in' : ''
+                                }`}
+                              >
                                 <WeekItemCard item={item} ghost={!hasAcceptedPlan} layout={layout} />
                               </WeekCardAnchor>
                             );
@@ -435,7 +462,7 @@ export default function WeeklyView({ currentDate, selectedDate, plans, hasAccept
 
                         {!isLoading &&
                           dayKey === SEED_DATE_KEY &&
-                          dayItems.some((item) => item.id === '3') && (
+                          (
                             <div
                               className="pointer-events-none absolute inset-x-0 z-15"
                               style={{ top: FOUR_AM_PURPLE_TOP }}

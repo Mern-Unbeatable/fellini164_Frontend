@@ -50,12 +50,13 @@ export function AiChatBubble({ children }) {
   );
 }
 
-export function ChatActionPill({ children, onClick, type = 'button' }) {
+export function ChatActionPill({ children, onClick, type = 'button', disabled = false }) {
   return (
     <button
       type={type}
       onClick={onClick}
-      className="w-fit rounded-md bg-[#f9f4ff] px-2 pt-0.5 pb-0.75 text-[14px] font-medium text-[#8022fe] transition-colors hover:bg-[#f0e7ff] dark:bg-zinc-800 dark:text-[#a78bfa] dark:hover:bg-zinc-700"
+      disabled={disabled}
+      className="w-fit rounded-md bg-[#f9f4ff] px-2 pt-0.5 pb-0.75 text-[14px] font-medium text-[#8022fe] transition-colors hover:bg-[#f0e7ff] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8022fe]/30 active:bg-[#e9d9ff] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[#f9f4ff] dark:bg-zinc-800 dark:text-[#a78bfa] dark:hover:bg-zinc-700 dark:disabled:hover:bg-zinc-800"
     >
       {children}
     </button>

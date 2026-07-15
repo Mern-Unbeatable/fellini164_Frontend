@@ -10,7 +10,6 @@ const TIME_COL_WIDTH = 40;
 const TIME_COL_GAP = 10;
 const GRID_LINE_LEFT = TIME_COL_WIDTH + TIME_COL_GAP; // 50px
 const CARD_LEFT = GRID_LINE_LEFT + 11; // 61px
-const CARD_INSET_FROM_GRID = CARD_LEFT - GRID_LINE_LEFT; // 11px
 const CARD_TOP_OFFSET = 8;
 const HOUR_LINE_OVERHANG = 4;
 const GRID_BOTTOM_PAD = 24;
@@ -40,38 +39,22 @@ function getFourAmCurrentTimeTop() {
   return getHourLineTop(FOUR_AM_HOUR_INDEX) + FOUR_AM_PURPLE_BELOW_HOUR_LINE;
 }
 
-function getFourAmPurpleLineTopInCard() {
-  return getFourAmCurrentTimeTop() - getCardTop('4 AM', FOUR_AM_HOUR_INDEX);
-}
-
-function FourAmCurrentTimeDot() {
+function FourAmCurrentTimeIndicator() {
   return (
-    <div
-      className="pointer-events-none absolute z-[15] h-0 w-0"
-      style={{ left: GRID_LINE_LEFT, top: getFourAmCurrentTimeTop() }}
-    >
-      <div className="h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white bg-[#8022fe] shadow-sm dark:border-zinc-900" />
-    </div>
-  );
-}
-
-function FourAmCurrentTimeLineInCard() {
-  return (
-    <div
-      className="pointer-events-none absolute z-20 overflow-hidden rounded-xl"
-      style={{ top: 0, bottom: 0, left: -CARD_INSET_FROM_GRID, right: 0 }}
-    >
+    <>
       <div
-        className="absolute -translate-y-1/2"
-        style={{
-          top: getFourAmPurpleLineTopInCard(),
-          left: 0,
-          right: 1,
-        }}
+        className="pointer-events-none absolute right-0 z-[15]"
+        style={{ left: GRID_LINE_LEFT, top: getFourAmCurrentTimeTop() }}
       >
         <div className="absolute inset-x-0 top-1/2 h-[1.5px] -translate-y-1/2 bg-[#8022fe]" />
       </div>
-    </div>
+      <div
+        className="pointer-events-none absolute z-[16] h-0 w-0"
+        style={{ left: GRID_LINE_LEFT, top: getFourAmCurrentTimeTop() }}
+      >
+        <div className="h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white bg-[#8022fe] shadow-sm dark:border-zinc-900" />
+      </div>
+    </>
   );
 }
 
@@ -143,7 +126,7 @@ function GhostTagsRow({ item, className = '' }) {
             {item.priority}
           </span>
         )}
-        {item.source === 'ai' && (
+        {(item.source === 'ai' || item.aiScheduleState) && (
           <span
             className={`flex items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-1.5 py-0.5 text-[#8022fe] ${TYPO.badge}`}
           >
@@ -555,10 +538,19 @@ function HabitCard({ item, ghost, dimmed }) {
 }
 
 function ItemCard({ item, ghost, dimmed }) {
+  const animationClass = item.aiScheduleState ? 'animate-fade-in' : '';
   if (item.kind === 'habit') {
-    return <HabitCard item={item} ghost={ghost} dimmed={dimmed} />;
+    return (
+      <div className={`w-full ${animationClass}`}>
+        <HabitCard item={item} ghost={ghost} dimmed={dimmed} />
+      </div>
+    );
   }
-  return <TaskCard item={item} ghost={ghost} dimmed={dimmed} />;
+  return (
+    <div className={`w-full ${animationClass}`}>
+      <TaskCard item={item} ghost={ghost} dimmed={dimmed} />
+    </div>
+  );
 }
 
 export default function DailyView({
@@ -622,8 +614,8 @@ export default function DailyView({
             ))}
           </div>
 
-          {/* Dot on vertical timeline; line lives inside 4 AM card (ghost + accepted) */}
-          {dayItems.some((item) => item.time === '4 AM') && <FourAmCurrentTimeDot />}
+          {/* Current-time indicator remains stable when AI moves cards between slots. */}
+          <FourAmCurrentTimeIndicator />
 
           {/* Ghost / task cards — Figma 1264:24782+ absolute positioned */}
           {PLANNER_HOURS.map((hour, i) => {
@@ -638,7 +630,6 @@ export default function DailyView({
                 className="absolute right-0 z-10"
                 style={{ left: CARD_LEFT, top: getCardTop(hour, i) }}
               >
-                {hour === '4 AM' && <FourAmCurrentTimeLineInCard />}
                 {isHalfLayout ? (
                   <div className="flex w-full items-start gap-2">
                     {hourItems.map((item) => (

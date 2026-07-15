@@ -56,7 +56,7 @@ export default function AIAssistant({
     acceptedChips.push({
       label: 'Generate Monthly Plan',
       icon: Sparkles,
-      actionId: 'monthly_plan',
+      actionId: 'generate_monthly_plan',
     });
   }
 
@@ -132,7 +132,10 @@ export default function AIAssistant({
                         {msg.actions.map((act) => (
                           <ChatActionPill
                             key={act.actionId}
-                            onClick={() => handleActionClick(act.actionId)}
+                            disabled={msg.resolved || act.disabled}
+                            onClick={() => {
+                              if (!msg.resolved && !act.disabled) handleActionClick(act.actionId);
+                            }}
                           >
                             {act.label}
                           </ChatActionPill>
@@ -145,7 +148,10 @@ export default function AIAssistant({
                         {msg.links.map((link) => (
                           <ChatActionPill
                             key={link.actionId}
-                            onClick={() => handleActionClick(link.actionId)}
+                            disabled={msg.resolved || link.disabled}
+                            onClick={() => {
+                              if (!msg.resolved && !link.disabled) handleActionClick(link.actionId);
+                            }}
                           >
                             {link.label}
                           </ChatActionPill>
@@ -160,15 +166,18 @@ export default function AIAssistant({
         </div>
 
         <div className="flex flex-col items-start gap-2 bg-white px-5 py-3 dark:bg-zinc-900">
-          {quickChips.map(({ label, icon: Icon, actionId }) => (
+          {quickChips.map((action) => (
             <button
-              key={actionId}
+              key={action.actionId}
               type="button"
-              onClick={() => handleQuickAction(actionId)}
+              onClick={() => handleQuickAction(action.actionId)}
               className={CHIP_CLASS}
             >
-              <Icon size={14} className="text-[#A3A3A3]" />
-              <span>{label}</span>
+              {React.createElement(action.icon, {
+                size: 14,
+                className: 'text-[#A3A3A3]',
+              })}
+              <span>{action.label}</span>
             </button>
           ))}
         </div>
