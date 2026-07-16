@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Sparkles,
   ChevronDown,
@@ -19,6 +19,7 @@ import {
   Minimize2,
 } from 'lucide-react';
 import SkeletonBar from '../../../../../../components/ui/SkeletonBar';
+import { UserChatBubble, AiChatBubble, ChatActionPill } from '../../../../../../components/ui/ChatBubbles';
 import { generateSubtasksFromTitle } from '../utils/subtasks';
 
 const PRIORITY_STYLES = {
@@ -256,59 +257,52 @@ function formatChatTimestamp(date) {
   return `${datePart} • ${timePart}`;
 }
 
-function ChatMessage({ message, onApply, onCancel, onUndo }) {
+function formatAssistantProposal(text, plan) {
+  if (!plan?.length) return text;
+  return `${text}\n\nThis will:\n${plan.map((line) => `• ${line}`).join('\n')}`;
+}
+
+function isConfirmReply(text) {
+  const normalized = text.trim().toLowerCase().replace(/\s+/g, ' ');
+  return normalized === 'yes, apply' || normalized === 'yes apply' || normalized === 'no, cancel' || normalized === 'no cancel';
+}
+
+function ChatMessage({ message, onUndo }) {
   if (message.role === 'user') {
-    return (
-      <div className="flex justify-end">
-        <p className="max-w-[85%] rounded-2xl bg-[#8022fe] px-3 py-2 text-[12px] font-medium text-white">
-          {message.text}
-        </p>
-      </div>
-    );
+    return <UserChatBubble>{message.text}</UserChatBubble>;
   }
 
+  const proposalText = message.plan
+    ? formatAssistantProposal(message.text, message.plan)
+    : message.text;
+
   return (
-    <div className="flex flex-col items-start gap-1.5">
-      <p className="text-[12px] text-[#5d5d5d] dark:text-gray-300">{message.text}</p>
-      {message.plan && (
-        <ul className="list-disc pl-4 text-[12px] text-[#5d5d5d] dark:text-gray-300">
-          {message.plan.map((line) => (
-            <li key={line}>{line}</li>
-          ))}
-        </ul>
+    <div className="flex w-full flex-col gap-2.5">
+      {message.confirm ? (
+        <AiChatBubble>{proposalText}</AiChatBubble>
+      ) : (
+        <AiChatBubble>{message.text}</AiChatBubble>
       )}
-      {message.confirm && !message.resolved && (
-        <>
-          <p className="text-[12px] text-[#5d5d5d] dark:text-gray-300">
-            Do you want me to apply these changes?
-          </p>
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => onApply(message)}
-              className="text-[12px] font-medium text-[#8022fe]"
-            >
-              Yes, apply
-            </button>
-            <button
-              type="button"
-              onClick={() => onCancel(message)}
-              className="text-[12px] font-medium text-[#5d5d5d] dark:text-gray-300"
-            >
-              No, cancel
-            </button>
-          </div>
-        </>
-      )}
+
       {message.undo && !message.undone && (
-        <button
-          type="button"
-          onClick={() => onUndo(message)}
-          className="text-[12px] font-medium text-[#8022fe]"
-        >
-          Undo changes
-        </button>
+        <ChatActionPill onClick={() => onUndo(message)}>Undo changes</ChatActionPill>
       )}
+    </div>
+  );
+}
+
+function ChatConfirmActions({ disabled, onApply, onCancel }) {
+  return (
+    <div className="relative z-10 flex w-full flex-col gap-2.5">
+      <AiChatBubble>Do you want me to apply these changes?</AiChatBubble>
+      <div className="flex items-center gap-2">
+        <ChatActionPill disabled={disabled} onClick={onApply}>
+          Yes, apply
+        </ChatActionPill>
+        <ChatActionPill disabled={disabled} onClick={onCancel}>
+          No, cancel
+        </ChatActionPill>
+      </div>
     </div>
   );
 }
@@ -331,8 +325,15 @@ function AiAssistantChat({
   const [messages, setMessages] = useState([]);
   const [prompt, setPrompt] = useState('');
   const [isThinking, setIsThinking] = useState(false);
+  const [isApplyingConfirm, setIsApplyingConfirm] = useState(false);
   const textareaRef = useRef(null);
   const threadRef = useRef(null);
+  const messagesRef = useRef(messages);
+  const applyTimeoutRef = useRef(null);
+  const taskRef = useRef(task);
+
+  messagesRef.current = messages;
+  taskRef.current = task;
 
   useEffect(() => {
     const el = textareaRef.current;
@@ -345,16 +346,37 @@ function AiAssistantChat({
     const el = threadRef.current;
     if (!el) return;
     el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
-  }, [messages, isThinking]);
+  }, [messages, isThinking, isApplyingConfirm]);
 
-  const pushMessage = (msg) => {
+  useEffect(
+    () => () => {
+      if (applyTimeoutRef.current) window.clearTimeout(applyTimeoutRef.current);
+    },
+    []
+  );
+
+  const pushMessage = useCallback((msg) => {
     const message = { id: nextMessageId(), ...msg };
     setMessages((prev) => [...prev, message]);
     return message;
+  }, []);
+
+  const getPendingConfirm = useCallback(
+    () =>
+      messagesRef.current.find(
+        (m) => m.role === 'assistant' && m.confirm && !m.resolved
+      ),
+    []
+  );
+
+  const getDoneMessage = (intent) => {
+    if (intent === 'description') return 'Done. The description was successfully improved.';
+    if (intent === 'subtasks') return 'Done. The subtasks were successfully added.';
+    return 'Done. The task was successfully updated.';
   };
 
   const runPrompt = (text, intent) => {
-    if (!text.trim() || isThinking) return;
+    if (!text.trim() || isThinking || isApplyingConfirm) return;
     pushMessage({ role: 'user', text });
     setPrompt('');
     setIsThinking(true);
@@ -376,38 +398,63 @@ function AiAssistantChat({
     }, 700);
   };
 
-  const handleApply = (msg) => {
-    if (!msg || msg.resolved) return;
-    setMessages((prev) => prev.map((m) => (m.id === msg.id ? { ...m, resolved: true } : m)));
-    onApplyingChange(true);
-    window.setTimeout(() => {
-      const changes = [];
-      if (msg.intent === 'subtasks' || msg.intent === 'both') {
-        changes.push({ type: 'subtasks', previous: task.subtasks });
-        onUpdateSubtasks(generateSubtasksFromTitle(task.title));
-      }
-      if (msg.intent === 'description' || msg.intent === 'both') {
-        changes.push({ type: 'description', previous: task.description });
-        onUpdateTaskFields({ description: buildImprovedDescription(task.description) });
-      }
-      onApplyingChange(false);
-      pushMessage({
-        role: 'assistant',
-        text:
-          msg.intent === 'description'
-            ? 'Done. The description was successfully improved.'
-            : 'Done. The subtasks were successfully added.',
-        undo: true,
-        changes,
-      });
-    }, 900);
-  };
+  const handleApplyById = useCallback(
+    (messageId) => {
+      if (isApplyingConfirm) return;
 
-  const handleCancel = (msg) => {
-    if (!msg || msg.resolved) return;
-    setMessages((prev) => prev.map((m) => (m.id === msg.id ? { ...m, resolved: true } : m)));
-    pushMessage({ role: 'assistant', text: 'Okay, no changes made.' });
-  };
+      const pending = messagesRef.current.find((m) => m.id === messageId);
+      if (!pending || pending.resolved || !pending.confirm) return;
+
+      setPrompt('');
+      pushMessage({ role: 'user', text: 'Yes, apply' });
+      setIsApplyingConfirm(true);
+      setMessages((prev) =>
+        prev.map((m) => (m.id === messageId ? { ...m, resolved: true } : m))
+      );
+      onApplyingChange(true);
+
+      if (applyTimeoutRef.current) window.clearTimeout(applyTimeoutRef.current);
+      applyTimeoutRef.current = window.setTimeout(() => {
+        const currentTask = taskRef.current;
+        const changes = [];
+        if (pending.intent === 'subtasks' || pending.intent === 'both') {
+          changes.push({ type: 'subtasks', previous: currentTask.subtasks });
+          onUpdateSubtasks(generateSubtasksFromTitle(currentTask.title));
+        }
+        if (pending.intent === 'description' || pending.intent === 'both') {
+          changes.push({ type: 'description', previous: currentTask.description });
+          onUpdateTaskFields({ description: buildImprovedDescription(currentTask.description) });
+        }
+        onApplyingChange(false);
+        setIsApplyingConfirm(false);
+        pushMessage({
+          role: 'assistant',
+          text: getDoneMessage(pending.intent),
+          undo: true,
+          changes,
+        });
+        applyTimeoutRef.current = null;
+      }, 900);
+    },
+    [isApplyingConfirm, onApplyingChange, onUpdateSubtasks, onUpdateTaskFields, pushMessage]
+  );
+
+  const handleCancelById = useCallback(
+    (messageId) => {
+      if (isApplyingConfirm) return;
+
+      const pending = messagesRef.current.find((m) => m.id === messageId);
+      if (!pending || pending.resolved || !pending.confirm) return;
+
+      setPrompt('');
+      pushMessage({ role: 'user', text: 'No, cancel' });
+      setMessages((prev) =>
+        prev.map((m) => (m.id === messageId ? { ...m, resolved: true } : m))
+      );
+      pushMessage({ role: 'assistant', text: 'Okay, no changes made.' });
+    },
+    [isApplyingConfirm, pushMessage]
+  );
 
   const handleUndo = (msg) => {
     if (!msg?.changes || msg.undone) return;
@@ -419,7 +466,28 @@ function AiAssistantChat({
     pushMessage({ role: 'assistant', text: 'Changes undone.' });
   };
 
-  const handleSend = () => runPrompt(prompt, 'both');
+  const handleSend = () => {
+    const trimmed = prompt.trim();
+    if (!trimmed || isThinking || isApplyingConfirm) return;
+
+    const pending = getPendingConfirm();
+    if (pending && isConfirmReply(trimmed)) {
+      setPrompt('');
+      const normalized = trimmed.toLowerCase().replace(/\s+/g, ' ');
+      if (normalized.startsWith('yes')) {
+        handleApplyById(pending.id);
+      } else {
+        handleCancelById(pending.id);
+      }
+      return;
+    }
+
+    runPrompt(trimmed, 'both');
+  };
+
+  const pendingConfirm = messages.find(
+    (m) => m.role === 'assistant' && m.confirm && !m.resolved
+  );
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-white dark:border-zinc-700 dark:bg-zinc-900">
@@ -448,7 +516,7 @@ function AiAssistantChat({
         </div>
       </div>
 
-      <div ref={threadRef} className="scrollbar-hidden flex flex-1 flex-col gap-3 overflow-y-auto py-3 pl-3 pr-[18px]">
+      <div ref={threadRef} className="scrollbar-hidden flex flex-1 flex-col gap-5 overflow-y-auto py-3 pl-3 pr-4.5">
         {messages.length === 0 && !isThinking ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-1.5 text-center">
             <Sparkles size={16} className="text-[#e9d9ff]" />
@@ -456,19 +524,20 @@ function AiAssistantChat({
           </div>
         ) : (
           <>
-            <p className="text-center text-[10px] text-[#c2c2c2]">
+            <p className="text-center text-[12px] font-medium text-[#c2c2c2]">
               {formatChatTimestamp(new Date())}
             </p>
             {messages.map((m) => (
-              <ChatMessage
-                key={m.id}
-                message={m}
-                onApply={handleApply}
-                onCancel={handleCancel}
-                onUndo={handleUndo}
-              />
+              <ChatMessage key={m.id} message={m} onUndo={handleUndo} />
             ))}
-            {isThinking && (
+            {pendingConfirm && (
+              <ChatConfirmActions
+                disabled={isApplyingConfirm}
+                onApply={() => handleApplyById(pendingConfirm.id)}
+                onCancel={() => handleCancelById(pendingConfirm.id)}
+              />
+            )}
+            {(isThinking || isApplyingConfirm) && (
               <div className="flex flex-col gap-1.5">
                 <SkeletonBar className="h-3 w-3/4" />
                 <SkeletonBar className="h-3 w-1/2" />
@@ -483,7 +552,8 @@ function AiAssistantChat({
           <button
             type="button"
             onClick={() => runPrompt('Break this task into subtasks.', 'subtasks')}
-            className="flex items-center gap-1.5 rounded-lg border border-[#f2f2f2] px-2.5 py-1.5 text-[12px] font-medium text-[#5d5d5d] dark:border-zinc-700"
+            disabled={isThinking || isApplyingConfirm}
+            className="flex items-center gap-1.5 rounded-lg border border-[#f2f2f2] px-2.5 py-1.5 text-[12px] font-medium text-[#5d5d5d] disabled:opacity-50 dark:border-zinc-700"
           >
             <ListTree size={14} className="shrink-0 text-[#8022fe]" />
             Break into subtasks
@@ -491,7 +561,8 @@ function AiAssistantChat({
           <button
             type="button"
             onClick={() => runPrompt('Improve this task description.', 'description')}
-            className="flex items-center gap-1.5 rounded-lg border border-[#f2f2f2] px-2.5 py-1.5 text-[12px] font-medium text-[#5d5d5d] dark:border-zinc-700"
+            disabled={isThinking || isApplyingConfirm}
+            className="flex items-center gap-1.5 rounded-lg border border-[#f2f2f2] px-2.5 py-1.5 text-[12px] font-medium text-[#5d5d5d] disabled:opacity-50 dark:border-zinc-700"
           >
             <Wand2 size={14} className="shrink-0 text-[#8022fe]" />
             Improve description
@@ -515,7 +586,7 @@ function AiAssistantChat({
           <button
             type="button"
             aria-label="Send"
-            disabled={!prompt.trim() || isThinking}
+            disabled={!prompt.trim() || isThinking || isApplyingConfirm}
             onClick={handleSend}
             className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#8022fe] text-white disabled:opacity-50"
           >

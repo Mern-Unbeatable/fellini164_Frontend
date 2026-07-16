@@ -166,6 +166,7 @@ const INITIAL_COLUMNS = {
         'Communicate the expectations regarding maintaining a calm environment to the relevant individuals in a direct and respectful manner.',
       tags: [{ label: 'Health' }, { label: '10 Min', icon: Clock }],
       due: 'May 13',
+      overdueDays: 1,
       source: 'manual',
       category: 'Health',
       status: 'To Do',
@@ -256,9 +257,22 @@ function taskMatchesSearch(task, query) {
 
 // DEFAULT_FILTERS and taskMatchesFilters imported from TaskFilters
 
+const EMPTY_COLUMNS = { todo: [], inProgress: [], done: [] };
+
+function resolveInitialColumns() {
+  if (import.meta.env.DEV && new URLSearchParams(window.location.search).get('empty') === '1') {
+    return EMPTY_COLUMNS;
+  }
+  return INITIAL_COLUMNS;
+}
+
+function isPixelPassMode() {
+  return import.meta.env.DEV && new URLSearchParams(window.location.search).get('pixelPass') === '1';
+}
+
 export default function TasksBoard() {
   const { setTaskDetail } = useOutletContext();
-  const [columns, setColumns] = useState(INITIAL_COLUMNS);
+  const [columns, setColumns] = useState(resolveInitialColumns);
   const [ghostTasks, setGhostTasks] = useState(GHOST_TASKS);
   const [taskModal, setTaskModal] = useState({ open: false, mode: 'create', task: null });
   const [enteringTaskIds, setEnteringTaskIds] = useState(() => new Set());
@@ -512,10 +526,16 @@ export default function TasksBoard() {
           <div className="mb-5 flex w-full items-start justify-between max-lg:mb-4 max-lg:flex-col max-lg:gap-4">
             <div className="flex flex-col items-start gap-2">
               <p className="text-[20px] font-medium text-[#181818] dark:text-white">Tasks Board</p>
-              <TypewriterText
-                phrases={TASKS_SUBTITLE_PHRASES}
-                className="text-[12px] font-medium text-[#c2c2c2] dark:text-gray-400 max-lg:text-sm"
-              />
+              {isPixelPassMode() ? (
+                <span className="text-[12px] font-medium text-[#c2c2c2] dark:text-gray-400 max-lg:text-sm">
+                  {TASKS_SUBTITLE_PHRASES[0]}
+                </span>
+              ) : (
+                <TypewriterText
+                  phrases={TASKS_SUBTITLE_PHRASES}
+                  className="text-[12px] font-medium text-[#c2c2c2] dark:text-gray-400 max-lg:text-sm"
+                />
+              )}
             </div>
             <label className="flex w-62.5 items-center gap-2 rounded-lg border border-[#f2f2f2] bg-white px-3 py-1.75 focus-within:border-[#e9e9e9] dark:border-zinc-700 dark:bg-zinc-800 dark:focus-within:border-zinc-600 max-lg:w-full max-lg:py-2">
               <Search size={14} className="shrink-0 text-[#c2c2c2]" aria-hidden />
