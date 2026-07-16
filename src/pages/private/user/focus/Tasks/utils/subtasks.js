@@ -5,6 +5,18 @@ export const EXERCISE_ROUTINE_SUBTASKS = [
   { id: 'st-4', label: 'Stretching', minutes: 10, completed: false },
 ];
 
+// Figma frame 7.1 — Deliver message drawer (4/8 checked subtasks).
+export const DELIVER_MESSAGE_SUBTASKS = [
+  { id: 'dm-1', label: 'Warm Up', minutes: 10, completed: false },
+  { id: 'dm-2', label: 'Cardio', minutes: 5, completed: false },
+  { id: 'dm-3', label: 'Strength Training', minutes: 15, completed: true },
+  { id: 'dm-4', label: 'Stretching', minutes: 10, completed: false },
+  { id: 'dm-5', label: 'Strength Training', minutes: 5, completed: true },
+  { id: 'dm-6', label: 'Cardio Workout', minutes: 5, completed: true },
+  { id: 'dm-7', label: 'Cool Down', minutes: 5, completed: true },
+  { id: 'dm-8', label: 'Meditation', minutes: 5, completed: false },
+];
+
 export function generateSubtasksFromTitle(title) {
   const lower = (title || '').toLowerCase();
   if (lower.includes('exercise') || lower.includes('workout') || lower.includes('routine')) {

@@ -221,16 +221,27 @@ function SubtasksSection({ task, onUpdateSubtasks, autoTriggerAi, onAutoTriggerC
         <div className="overflow-hidden rounded-xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800">
           <div className="flex flex-col gap-2.5 px-3 py-2">
             {subtasks.map((sub) => (
-              <label key={sub.id} className="flex cursor-pointer items-center gap-2">
+              <label
+                key={sub.id}
+                className={`flex cursor-pointer items-center gap-2 ${sub.completed ? 'opacity-50' : ''}`}
+              >
                 <input
                   type="checkbox"
                   checked={sub.completed}
                   onChange={() => toggleSubtask(sub.id)}
-                  className="size-3.5 rounded border-[#c2c2c2] accent-[#8022fe]"
+                  className="size-3.5 rounded border-[#e9e9e9] accent-[#8022fe]"
                 />
-                <span className="text-[14px] font-medium text-[#5d5d5d] dark:text-gray-300">
+                <span
+                  className={`text-[14px] font-medium text-[#5d5d5d] dark:text-gray-300 ${
+                    sub.completed ? 'line-through' : ''
+                  }`}
+                >
                   {sub.label}{' '}
-                  <span className="text-[12px] text-[#c2c2c2]">({sub.minutes} Min)</span>
+                  <span
+                    className={`text-[12px] text-[#c2c2c2] ${sub.completed ? 'line-through' : ''}`}
+                  >
+                    ({sub.minutes} Min)
+                  </span>
                 </span>
               </label>
             ))}
@@ -627,8 +638,10 @@ function TaskDetailCard({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const estMinutes =
-    task.tags?.find((t) => t.label?.includes('Min'))?.label?.replace(/\D/g, '') || '60';
+  const estMinutesTag = task.tags?.find((t) => t.label?.includes('Min'));
+  const estMinutesLabel = estMinutesTag
+    ? `${estMinutesTag.label.replace(/\D/g, '')} Min`
+    : 'None';
   const linkedGoal = getLinkedGoalLabel(task);
 
   const handleImproveDescription = () => {
@@ -744,12 +757,20 @@ function TaskDetailCard({
 
         <div className="flex flex-col gap-1.5">
           <p className="text-[12px] font-medium text-[#c2c2c2]">Due Date</p>
-          <span
-            className={`inline-flex w-fit items-center gap-1.5 rounded-md border border-[#f2f2f2] font-medium text-[#5d5d5d] dark:border-zinc-700 ${isDrawer || isPage ? 'px-2 pt-0.5 pb-[3px] text-[14px]' : 'px-2 py-0.5 text-[14px]'}`}
-          >
-            <Flag size={12} className="text-[#dc2626]" />
-            {task.due}
-          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span
+              className={`inline-flex w-fit items-center gap-1.5 rounded-md border border-[#f2f2f2] font-medium text-[#5d5d5d] dark:border-zinc-700 ${isDrawer || isPage ? 'px-2 pt-0.5 pb-[3px] text-[14px]' : 'px-2 py-0.5 text-[14px]'}`}
+            >
+              <Flag size={12} className="text-[#dc2626]" />
+              {task.due}
+            </span>
+            {task.overdueDays != null && (
+              <span className="inline-flex items-center gap-1.5 rounded-md bg-[rgba(220,38,38,0.05)] px-2 pt-0.5 pb-[3px] text-[14px] font-medium text-[#dc2626]">
+                <Flag size={12} />
+                Overdue {task.overdueDays}d
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="flex flex-col gap-1.5">
@@ -758,7 +779,7 @@ function TaskDetailCard({
             className={`inline-flex w-fit items-center gap-1.5 rounded-md border border-[#f2f2f2] font-medium text-[#5d5d5d] dark:border-zinc-700 ${isDrawer || isPage ? 'px-2 pt-0.5 pb-[3px] text-[14px]' : 'px-2 py-0.5 text-[14px]'}`}
           >
             <Clock size={12} />
-            {estMinutes} Min
+            {estMinutesLabel}
           </span>
         </div>
 

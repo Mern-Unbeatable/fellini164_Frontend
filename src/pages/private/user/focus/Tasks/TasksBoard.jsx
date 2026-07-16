@@ -21,7 +21,7 @@ import {
   PRIORITY_LABELS,
 } from './components/TaskFilters';
 import TypewriterText from '../../../../../components/ui/TypewriterText';
-import { EXERCISE_ROUTINE_SUBTASKS, formatStepsProgress } from './utils/subtasks';
+import { EXERCISE_ROUTINE_SUBTASKS, DELIVER_MESSAGE_SUBTASKS, formatStepsProgress } from './utils/subtasks';
 
 const TASKS_SUBTITLE_PHRASES = [
   'Plan, prioritize, and complete your tasks in one place...',
@@ -146,6 +146,7 @@ const INITIAL_COLUMNS = {
       source: 'manual',
       category: 'Health',
       status: 'To Do',
+      subtasks: DELIVER_MESSAGE_SUBTASKS.map((s) => ({ ...s })),
     },
     {
       id: 'task-3',
