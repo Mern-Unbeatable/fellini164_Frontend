@@ -23,6 +23,11 @@ export const FILTER_CONFIG = [
     options: ['All Schedule', 'Daily', 'Weekly', 'Monthly', 'Custom'],
   },
   {
+    key: 'Streak',
+    defaultLabel: 'All Streak',
+    options: ['All Streak', 'Active streak', 'No streak', 'Best streak'],
+  },
+  {
     key: 'Days Left',
     defaultLabel: 'All Days Left',
     options: ['All Days Left', '1-7 days', '8-30 days', '30+ days'],
@@ -109,12 +114,36 @@ function getHabitDaysLeftBucket(habit) {
   return '30+ days';
 }
 
+function getHabitStreakBucket(habit) {
+  const streak = habit.streak ?? 0;
+  if (habit.status === 'active' && streak > 0) {
+    if (streak >= 7) return 'Best streak';
+    return 'Active streak';
+  }
+  if (streak === 0) return 'No streak';
+  // paused/completed with streak still count as Active for filter purposes if > 0,
+  // but "Best streak" is reserved for active high streaks above.
+  if (streak >= 7) return 'Best streak';
+  if (streak > 0) return 'Active streak';
+  return 'No streak';
+}
+
 export function habitMatchesFilters(habit, filters) {
   if (filters.Category !== 'All Category' && getHabitCategory(habit) !== filters.Category) {
     return false;
   }
   if (filters.Schedule !== 'All Schedule' && getHabitScheduleType(habit) !== filters.Schedule) {
     return false;
+  }
+  if (filters.Streak && filters.Streak !== 'All Streak') {
+    const bucket = getHabitStreakBucket(habit);
+    if (filters.Streak === 'Best streak') {
+      if (bucket !== 'Best streak') return false;
+    } else if (filters.Streak === 'Active streak') {
+      if (bucket !== 'Active streak' && bucket !== 'Best streak') return false;
+    } else if (filters.Streak === 'No streak') {
+      if (bucket !== 'No streak') return false;
+    }
   }
   if (filters['Days Left'] !== 'All Days Left' && getHabitDaysLeftBucket(habit) !== filters['Days Left']) {
     return false;

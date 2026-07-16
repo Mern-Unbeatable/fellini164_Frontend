@@ -1,48 +1,44 @@
 import { Flame, MoreHorizontal, Pencil, Sparkles, Check, Pause, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import HabitTagList from './HabitTagList';
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-const TODAY_INDEX = (new Date().getDay() + 6) % 7; // Mon=0 ... Sun=6
+// Figma Habits Board (1440) — today is Wed (same lock as Habits.jsx). Mon=0.
+const TODAY_INDEX = 2;
 
-// Day cell states: 'unscheduled' (invisible spacer), 'empty' (not done yet),
-// 'checked' (completed), 'today' (partial-fill bar + "{done}/{total}" label).
-function DayCell({ state, todayProgress, dimmed }) {
+// MVP: one check-in per day (single click on the habit box). No fractional 2/3 UI.
+// Day states: 'unscheduled' | 'empty' | 'checked' | 'today' (today maps to empty box).
+function DayCell({ state, dimmed, interactive, onToggle }) {
   if (state === 'unscheduled') {
-    // opacity-0 only — must stay in the layout flow (not display:none) so it still
-    // occupies its grid/flex slot, keeping the visible cells aligned under the
-    // correct weekday at every breakpoint.
     return <div className="size-10 shrink-0 rounded-[10px] opacity-0 max-lg:size-9" />;
   }
 
-  if (state === 'today' && todayProgress) {
-    const pct = Math.min(100, Math.round((todayProgress.done / todayProgress.total) * 100));
-    return (
-      <div className="flex shrink-0 flex-col items-center gap-1">
-        <div
-          className={`relative size-10 overflow-hidden rounded-[10px] border border-[#e9e9e9] bg-white max-lg:size-9 ${dimmed ? 'opacity-40' : ''}`}
-        >
-          <div className="absolute inset-y-0 left-0 bg-[#f9f4ff]" style={{ width: `${pct}%` }} />
-        </div>
-        <p className="text-[10px] font-medium text-[#5d5d5d] dark:text-gray-400">
-          {todayProgress.done}/{todayProgress.total}
-        </p>
-      </div>
-    );
-  }
+  const baseClass = `size-10 shrink-0 rounded-[10px] max-lg:size-9 ${dimmed ? 'opacity-40' : ''} ${
+    interactive && !dimmed ? 'cursor-pointer' : ''
+  }`;
 
   if (state === 'checked') {
     return (
-      <div
-        className={`flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-[#f9f4ff] max-lg:size-9 ${dimmed ? 'opacity-40' : ''}`}
+      <button
+        type="button"
+        disabled={!interactive || dimmed}
+        onClick={onToggle}
+        aria-label="Mark habit incomplete for this day"
+        className={`flex items-center justify-center bg-[#f9f4ff] ${baseClass} disabled:cursor-default`}
       >
         <Check size={16} strokeWidth={3} className="text-[#8022fe]" />
-      </div>
+      </button>
     );
   }
 
+  // 'empty' and 'today' — plain box (single daily check-in; no partial fill)
   return (
-    <div
-      className={`size-10 shrink-0 rounded-[10px] border border-[#e9e9e9] bg-white dark:border-zinc-600 dark:bg-zinc-700 max-lg:size-9 ${dimmed ? 'opacity-40' : ''}`}
+    <button
+      type="button"
+      disabled={!interactive || dimmed}
+      onClick={onToggle}
+      aria-label="Mark habit complete for this day"
+      className={`border border-[#e9e9e9] bg-white dark:border-zinc-600 dark:bg-zinc-700 ${baseClass} disabled:cursor-default`}
     />
   );
 }
@@ -101,6 +97,7 @@ export default function HabitRow({
   habit,
   showMenu = true,
   compact = false,
+  onToggleDay,
   onEdit,
   onImprove,
   onComplete,
@@ -155,17 +152,7 @@ export default function HabitRow({
             {habit.description}
           </p>
         </div>
-        <div className={`flex flex-wrap items-center gap-1 ${isPaused ? 'opacity-50' : ''}`}>
-          {habit.tags.map((tag) => (
-            <span
-              key={tag.label}
-              className="flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-xs font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300"
-            >
-              {tag.icon && <tag.icon size={11} className="shrink-0" />}
-              {tag.label}
-            </span>
-          ))}
-        </div>
+        <HabitTagList tags={habit.tags} className={isPaused ? 'opacity-50' : ''} />
       </div>
 
       {!compact && (
@@ -224,8 +211,9 @@ export default function HabitRow({
             <DayCell
               key={day}
               state={habit.days[i]}
-              todayProgress={habit.days[i] === 'today' ? habit.todayProgress : null}
               dimmed={isPaused}
+              interactive={Boolean(onToggleDay) && !isCompleted}
+              onToggle={() => onToggleDay?.(habit.id, i)}
             />
           ))}
         </div>

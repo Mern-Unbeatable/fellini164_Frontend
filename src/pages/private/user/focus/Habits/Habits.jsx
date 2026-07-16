@@ -2,15 +2,11 @@ import {
   Plus,
   Search,
   Sparkles,
-  MoreHorizontal,
-  ChevronDown,
   RotateCw,
   Flame,
   Bell,
   Flag,
   Hourglass,
-  Check,
-  X,
 } from 'lucide-react';
 import { useState, useRef, useEffect, useMemo } from 'react';
 import NewHabitsModal from './components/NewHabitsModal';
@@ -31,40 +27,41 @@ const HABITS_SUBTITLE_PHRASES = [
 ];
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-const TODAY_INDEX = (new Date().getDay() + 6) % 7; // Mon=0 ... Sun=6
+// Figma Habits Board (1440) frames are locked to Wed (May 13, 2026) — not the live calendar.
+// Sample day cells also use index 2 as `today`. Mon=0 ... Sun=6.
+const TODAY_INDEX = 2;
 
 // AI-suggested ghost habits — shown only when the board has no real habits yet.
 // scheduledDays follows DAYS order (Mon..Sun); unscheduled days render as invisible
+// spacers (opacity-0) so Mon–Sun columns stay aligned. Figma empty frame 1243:7175:
+// Drink Water hides Thu/Sat; Take Breaks shows all 7; Meditate hides Tue/Thu/Sun.
 const GHOST_HABITS = [
   {
     id: 'ghost-1',
     title: 'Drink Water',
     description: 'Stay hydrated throughout the day',
-    tags: [
-      { label: 'Health' },
-      { label: '7:00 AM • 8:00 PM', icon: Bell },
-      { label: '+3' },
-    ],
-    scheduledDays: [true, true, true, true, true, true, true],
+    // Figma empty 1243:7175 — only category + single reminder time (no overflow +N on ghosts)
+    tags: [{ label: 'Health' }, { label: '7:00 AM', icon: Bell }],
+    scheduledDays: [true, true, true, false, true, false, true],
   },
   {
     id: 'ghost-2',
     title: 'Take Breaks',
     description: 'Step away from your screen regularly',
     tags: [{ label: 'Productivity' }, { label: '6:30 PM', icon: Bell }, { label: 'New Job', icon: Flag }],
-    scheduledDays: [true, true, true, true, true, false, false],
+    scheduledDays: [true, true, true, true, true, true, true],
   },
   {
     id: 'ghost-3',
     title: 'Meditate',
     description: 'Practice mindfulness for mental clarity',
     tags: [{ label: 'Wellness' }, { label: '12 days left', icon: Hourglass }],
-    scheduledDays: [true, true, true, false, true, true, false],
+    scheduledDays: [true, false, true, false, true, true, false],
   },
 ];
 
-// Step 2 — populated board sample data (Figma node 1234-11897). Day-state per habit
-// follows DAYS order (Mon..Sun): 'empty' | 'checked' | 'today' | 'unscheduled'.
+// Step 2 — populated board sample data (Figma node 1234-11897).
+// MVP: one reminder time per day; one check-in per day (no 2/3 / 3x/Day).
 const REAL_HABITS = [
   {
     id: 'habit-1',
@@ -72,13 +69,14 @@ const REAL_HABITS = [
     description: 'Stay hydrated throughout the day',
     tags: [
       { label: 'Health' },
-      { label: '7:00 AM • 8:00 PM', icon: Bell },
-      { label: '+3' },
+      { label: '7:00 AM', icon: Bell },
+      { label: 'New Job', icon: Flag },
+      { label: 'Improve Rate', icon: Flag },
+      { label: '12 days left', icon: Hourglass },
     ],
     status: 'active',
     streak: 4,
     days: ['empty', 'checked', 'today', 'empty', 'empty', 'empty', 'empty'],
-    todayProgress: { done: 1, total: 2 },
   },
   {
     id: 'habit-2',
@@ -102,15 +100,10 @@ const REAL_HABITS = [
     id: 'habit-4',
     title: 'Exercise',
     description: 'Engage in physical activity',
-    tags: [
-      { label: 'Fitness' },
-      { label: '7:00 AM • 8:00 PM • +1', icon: Bell },
-      { label: '3x/Day' },
-    ],
+    tags: [{ label: 'Fitness' }, { label: '7:00 AM', icon: Bell }],
     status: 'active',
     streak: 0,
     days: ['empty', 'empty', 'today', 'empty', 'empty', 'empty', 'empty'],
-    todayProgress: { done: 2, total: 3 },
   },
   {
     id: 'habit-5',
@@ -125,13 +118,26 @@ const REAL_HABITS = [
     id: 'habit-6',
     title: 'Drink Water',
     description: 'Stay hydrated throughout the day',
-    tags: [{ label: 'Health' }, { label: '7:00 AM • 8:00 PM', icon: Bell }, { label: '+3' }],
+    tags: [
+      { label: 'Health' },
+      { label: '7:00 AM', icon: Bell },
+      { label: 'New Job', icon: Flag },
+      { label: 'Improve Rate', icon: Flag },
+      { label: '12 days left', icon: Hourglass },
+    ],
     status: 'active',
     streak: 4,
     days: ['empty', 'checked', 'today', 'empty', 'empty', 'empty', 'empty'],
-    todayProgress: { done: 1, total: 2 },
   },
 ];
+
+// Dev: `/user/habits?empty=1` forces Step 1 empty/ghost board (same pattern as Tasks).
+function resolveInitialHabits() {
+  if (import.meta.env.DEV && new URLSearchParams(window.location.search).get('empty') === '1') {
+    return [];
+  }
+  return REAL_HABITS;
+}
 
 // FILTER_CONFIG and DEFAULT_FILTERS imported from HabitFilters
 
@@ -149,7 +155,7 @@ function habitMatchesSearch(habit, query) {
 export default function Habits() {
   const [modal, setModal] = useState(false);
   const [ghostHabits, setGhostHabits] = useState(GHOST_HABITS);
-  const [habits, setHabits] = useState(REAL_HABITS);
+  const [habits, setHabits] = useState(resolveInitialHabits);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilters, setActiveFilters] = useState(DEFAULT_FILTERS);
 
@@ -158,6 +164,13 @@ export default function Habits() {
   const handleOpenModal = () => setModal(true);
   const handleCloseModal = () => setModal(false);
   const handleSaveHabit = (data) => {
+    const days = Array(7).fill('empty');
+    // Manual target days (if provided) mark unscheduled slots; default all empty/scheduled.
+    if (Array.isArray(data.targetDays) && data.targetDays.length > 0) {
+      for (let i = 0; i < 7; i++) {
+        if (!data.targetDays.includes(DAYS[i])) days[i] = 'unscheduled';
+      }
+    }
     setHabits((prev) => [
       {
         id: `habit-${Date.now()}`,
@@ -166,10 +179,47 @@ export default function Habits() {
         tags: data.tags,
         status: 'active',
         streak: 0,
-        days: Array(7).fill('empty'),
+        days,
       },
       ...prev,
     ]);
+  };
+
+  const handleAcceptGhost = (ghost) => {
+    const days = ghost.scheduledDays.map((scheduled) => (scheduled ? 'empty' : 'unscheduled'));
+    setGhostHabits((prev) => prev.filter((h) => h.id !== ghost.id));
+    setHabits((prev) => [
+      {
+        id: `habit-${Date.now()}`,
+        title: ghost.title,
+        description: ghost.description,
+        tags: ghost.tags,
+        status: 'active',
+        streak: 0,
+        days,
+        source: 'ai',
+      },
+      ...prev,
+    ]);
+  };
+
+  const handleToggleDay = (habitId, dayIndex) => {
+    // MVP: one check-in per day — toggle empty ↔ checked on the clicked box only.
+    setHabits((prev) =>
+      prev.map((h) => {
+        if (h.id !== habitId || h.status === 'completed' || h.status === 'paused') return h;
+        const current = h.days[dayIndex];
+        if (current === 'unscheduled') return h;
+        const next = [...h.days];
+        if (current === 'checked') {
+          next[dayIndex] = dayIndex === TODAY_INDEX ? 'today' : 'empty';
+        } else {
+          // 'empty' | 'today' → checked
+          next[dayIndex] = 'checked';
+        }
+        return { ...h, days: next };
+      })
+    );
   };
 
   const boardIsEmpty = habits.length === 0;
@@ -322,6 +372,7 @@ export default function Habits() {
                 <GhostHabitRow
                   key={habit.id}
                   habit={habit}
+                  onAccept={handleAcceptGhost}
                   onDismiss={handleDismissGhost}
                   onRegenerate={handleRegenerateGhost}
                 />
@@ -336,6 +387,7 @@ export default function Habits() {
               <HabitRow
                 key={habit.id}
                 habit={habit}
+                onToggleDay={handleToggleDay}
                 onEdit={handleEditHabit}
                 onImprove={handleImproveHabit}
                 onComplete={handleCompleteHabit}

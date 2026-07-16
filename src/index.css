@@ -825,6 +825,18 @@
     scrollbar-width: none;
   }
 
+  /* Ghost habit rows — Planner-style airy dash color (#e8e8e8) + spacing (8/14) */
+  .ghost-habit-dashed {
+    border: 1px solid transparent;
+    background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='16' ry='16' stroke='%23e8e8e8' stroke-width='1' stroke-dasharray='8%2c14' stroke-linecap='butt'/%3e%3c/svg%3e");
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+  }
+
+  .dark .ghost-habit-dashed {
+    background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='16' ry='16' stroke='%233f3f46' stroke-width='1' stroke-dasharray='8%2c14' stroke-linecap='butt'/%3e%3c/svg%3e");
+  }
+
   .scrollbar-hidden::-webkit-scrollbar {
     display: none;
   }
