@@ -17,6 +17,55 @@ export const PRIORITY_STYLES = {
   LOW: 'bg-[rgba(107,114,128,0.05)] text-[#6b7280]',
 };
 
+function GhostTaskDashedBorder() {
+  return (
+    <svg
+      aria-hidden
+      className="pointer-events-none absolute inset-0 z-0 h-full w-full"
+      viewBox="0 0 359 174"
+      preserveAspectRatio="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <rect
+        x="0.5"
+        y="0.5"
+        width="358"
+        height="173"
+        rx="16"
+        ry="16"
+        fill="none"
+        stroke="#e9e9e9"
+        strokeWidth="1"
+        vectorEffect="non-scaling-stroke"
+        strokeDasharray="5 5"
+      />
+    </svg>
+  );
+}
+
+function GhostTaskDashedDivider() {
+  return (
+    <svg
+      aria-hidden
+      className="pointer-events-none absolute top-0 right-0 left-0 h-px w-full"
+      viewBox="0 0 359 1"
+      preserveAspectRatio="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <line
+        x1="0"
+        y1="0.5"
+        x2="359"
+        y2="0.5"
+        stroke="#e9e9e9"
+        strokeWidth="1"
+        vectorEffect="non-scaling-stroke"
+        strokeDasharray="5 5"
+      />
+    </svg>
+  );
+}
+
 function GhostTaskMenu({ onRegenerate, onDismiss }) {
   return (
     <div className="absolute right-0 top-full z-30 mt-1 flex w-max flex-col overflow-hidden rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
@@ -54,49 +103,133 @@ export function GhostTaskCard({ task, onDismiss, onRegenerate, onAccept }) {
   }, []);
 
   const isActive = menuOpen || isHovered;
-  const faded = isActive ? 'opacity-100' : 'opacity-40';
+
+  if (isActive) {
+    return (
+      <div
+        ref={cardRef}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        className={`ghost-task-card group relative flex w-full shrink-0 flex-col rounded-2xl border border-solid border-[#f2f2f2] bg-[#fcfcfc] shadow-[0px_2px_2px_0px_rgba(0,0,0,0.03)] ${
+          menuOpen ? 'overflow-visible' : 'overflow-hidden'
+        }`}
+      >
+        <div className="flex w-full flex-col gap-2.5 p-3">
+          <div className="flex w-full flex-col gap-2">
+            <div className="flex w-full items-center gap-1">
+              <span
+                className={`rounded-[6px] px-[6px] py-[2px] text-[12px] font-medium uppercase leading-normal ${PRIORITY_STYLES[task.priority]}`}
+              >
+                {PRIORITY_LABELS[task.priority]}
+              </span>
+              <span className="flex items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-[12px] font-medium leading-normal text-[#8022fe]">
+                <Sparkles size={10} />
+                AI
+              </span>
+            </div>
+            <div className="flex w-full flex-col gap-1">
+              <p className="w-full text-[16px] font-medium leading-normal text-[#181818]">
+                {task.title}
+              </p>
+              <p className="w-full overflow-hidden text-ellipsis whitespace-nowrap text-[12px] leading-normal text-[#a3a3a3]">
+                {task.description}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1 overflow-hidden">
+            {task.tags.map((tag) => (
+              <span
+                key={tag.label}
+                className="flex shrink-0 items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] font-medium leading-normal text-[#5d5d5d]"
+              >
+                {tag.icon && <tag.icon size={12} className="shrink-0" />}
+                {tag.label}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setMenuOpen((o) => !o)}
+          aria-label="Ghost task menu"
+          aria-expanded={menuOpen}
+          className={`absolute right-[11px] top-[12px] z-20 rounded-[6px] p-1 text-[#a3a3a3] outline-none ${
+            menuOpen || isHovered ? 'bg-[#f2f2f2]' : ''
+          }`}
+        >
+          <MoreHorizontal size={16} />
+        </button>
+
+        {menuOpen && (
+          <div className="absolute right-[11px] top-[37px] z-50">
+            <GhostTaskMenu
+              onRegenerate={() => {
+                setMenuOpen(false);
+                onRegenerate(task.id);
+              }}
+              onDismiss={() => {
+                setMenuOpen(false);
+                onDismiss(task.id);
+              }}
+            />
+          </div>
+        )}
+
+        <div className="flex h-[42px] w-full shrink-0 items-center justify-between border-t border-solid border-[#f2f2f2] px-3 py-[10px]">
+          <p className="shrink-0 text-[12px] font-medium leading-normal text-[#c2c2c2]">
+            AI suggested based on your profile
+          </p>
+          <button
+            type="button"
+            onClick={onAccept}
+            className="flex shrink-0 items-center gap-1.5 rounded-[6px] bg-[#f9f4ff] px-[8px] py-[2px] text-[12px] font-medium leading-normal text-[#8022fe]"
+          >
+            Accept Task
+            <Check size={10} strokeWidth={2.5} />
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
       ref={cardRef}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`group relative flex w-full shrink-0 flex-col justify-between overflow-hidden rounded-2xl border transition-all ${
-        menuOpen ? 'overflow-visible' : ''
-      } ${
-        isActive
-          ? 'h-auto border-solid border-[#f2f2f2] bg-[#fcfcfc] shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)]'
-          : 'h-[174px] border-dashed border-[#e9e9e9]'
-      }`}
+      className="ghost-task-card relative flex h-[174px] w-full shrink-0 flex-col items-start justify-between overflow-hidden rounded-2xl"
     >
-      <div className="flex flex-col gap-2.5 p-3">
-        <div className={`flex flex-col gap-2 transition-opacity duration-200 ${faded}`}>
-          <div className="flex items-center gap-1">
+      <GhostTaskDashedBorder />
+      <div className="relative z-1 flex w-full flex-col gap-2.5 p-3">
+        <div className="flex w-full flex-col gap-2 opacity-40">
+          <div className="flex w-full items-center gap-1">
             <span
-              className={`rounded-[6px] px-[6px] py-[2px] text-xs font-medium uppercase lg:text-[12px] ${PRIORITY_STYLES[task.priority]}`}
+              className={`rounded-[6px] px-[6px] py-[2px] text-[12px] font-medium uppercase leading-normal ${PRIORITY_STYLES[task.priority]}`}
             >
               {PRIORITY_LABELS[task.priority]}
             </span>
-            <span className="flex items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-xs font-medium text-[#8022fe] sm:text-sm">
+            <span className="flex items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-[12px] font-medium leading-normal text-[#8022fe]">
               <Sparkles size={10} />
               AI
             </span>
           </div>
           <div className="flex w-full flex-col gap-1">
-            <p className="w-full text-base font-medium leading-normal text-[#181818] dark:text-white">
+            <p className="w-full text-[16px] font-medium leading-normal text-[#181818]">
               {task.title}
             </p>
-            <p className="w-full overflow-hidden text-ellipsis whitespace-nowrap text-sm leading-normal text-[#a3a3a3] md:text-base">
+            <p className="w-full overflow-hidden text-ellipsis whitespace-nowrap text-[12px] leading-normal text-[#a3a3a3]">
               {task.description}
             </p>
           </div>
         </div>
 
-        <div className={`flex flex-wrap items-center gap-1 transition-opacity duration-200 ${faded}`}>
+        <div className="flex items-center gap-1 overflow-hidden opacity-40">
           {task.tags.map((tag) => (
             <span
               key={tag.label}
-              className="flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-xs font-medium text-[#5d5d5d] sm:text-sm dark:border-zinc-700 dark:text-gray-300"
+              className="flex shrink-0 items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] font-medium leading-normal text-[#5d5d5d]"
             >
               {tag.icon && <tag.icon size={12} className="shrink-0" />}
               {tag.label}
@@ -105,67 +238,12 @@ export function GhostTaskCard({ task, onDismiss, onRegenerate, onAccept }) {
         </div>
       </div>
 
-      {isActive && (
-        <button
-          type="button"
-          onClick={() => setMenuOpen((o) => !o)}
-          aria-label="Ghost task menu"
-          aria-expanded={menuOpen}
-          className={`animate-fade-in absolute right-[11px] top-[12px] z-20 rounded-[6px] p-1 text-[#a3a3a3] ${
-            menuOpen ? 'bg-[#f2f2f2]' : 'hover:bg-[#f2f2f2]'
-          }`}
-        >
-          <MoreHorizontal size={16} />
-        </button>
-      )}
-
-      {menuOpen && (
-        <div className="absolute right-[11px] top-[37px] z-50">
-          <GhostTaskMenu
-            onRegenerate={() => {
-              setMenuOpen(false);
-              onRegenerate(task.id);
-            }}
-            onDismiss={() => {
-              setMenuOpen(false);
-              onDismiss(task.id);
-            }}
-          />
-        </div>
-      )}
-
-      <div
-        className={`relative h-[42px] w-full shrink-0 border-t px-3 py-2.5 ${
-          isActive ? 'border-solid border-[#f2f2f2]' : 'border-dashed border-[#e9e9e9]'
-        }`}
-      >
-        <div
-          className={`absolute inset-0 flex items-center px-3 py-2.5 transition-opacity duration-200 ${
-            isActive ? 'pointer-events-none opacity-0' : 'opacity-40'
-          }`}
-        >
-          <p className="text-xs font-medium leading-normal sm:text-sm">
-            <span className="text-[#c2c2c2]">Due:</span>{' '}
-            <span className="text-[#5d5d5d]">{task.due}</span>
-          </p>
-        </div>
-        <div
-          className={`absolute inset-0 flex flex-col items-stretch justify-center gap-2 px-3 py-2.5 transition-opacity duration-200 sm:flex-row sm:items-center sm:justify-between ${
-            isActive ? 'opacity-100' : 'pointer-events-none opacity-0'
-          }`}
-        >
-          <p className="shrink-0 text-xs font-medium text-[#c2c2c2] sm:text-sm">
-            AI suggested based on your profile
-          </p>
-          <button
-            type="button"
-            onClick={onAccept}
-            className="flex shrink-0 items-center gap-1.5 self-start rounded-[6px] bg-[#f9f4ff] px-[8px] py-[2px] text-xs font-medium text-[#8022fe] sm:self-auto sm:text-sm"
-          >
-            Accept Task
-            <Check size={10} strokeWidth={2.5} />
-          </button>
-        </div>
+      <div className="relative z-1 flex h-[42px] w-full shrink-0 items-center px-3 py-[10px]">
+        <GhostTaskDashedDivider />
+        <p className="min-w-0 flex-1 text-[12px] font-medium leading-normal opacity-40">
+          <span className="text-[#c2c2c2]">Due:</span>{' '}
+          <span className="text-[#5d5d5d]">{task.due}</span>
+        </p>
       </div>
     </div>
   );
