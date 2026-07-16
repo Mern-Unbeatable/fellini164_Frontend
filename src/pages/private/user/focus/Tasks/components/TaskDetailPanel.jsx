@@ -735,11 +735,11 @@ function TaskDetailCard({
             )
           )}
         </div>
-        <div className="flex w-30 items-center justify-between rounded-lg border border-[#f2f2f2] bg-[#fcfcfc] px-3 py-2 dark:border-zinc-700 dark:bg-zinc-800">
+        <div className="flex w-[120px] items-center justify-between rounded-lg border border-[#f2f2f2] bg-[#fcfcfc] px-3 py-2 dark:border-zinc-700 dark:bg-zinc-800">
           <p className="text-[14px] font-medium text-[#181818] dark:text-white">
             {task.status || 'To Do'}
           </p>
-          <ChevronDown size={10} className="text-[#a3a3a3]" />
+          <ChevronDown size={12} className="shrink-0 text-[#a3a3a3]" aria-hidden="true" />
         </div>
       </div>
 
