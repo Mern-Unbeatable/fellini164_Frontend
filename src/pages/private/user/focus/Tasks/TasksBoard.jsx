@@ -2,21 +2,13 @@ import {
   Plus,
   Search,
   Sparkles,
-  MoreHorizontal,
-  ChevronDown,
   ListTodo,
-  Loader2,
   CheckCircle2,
   Clock,
   TrendingUp,
-  Check,
-  X,
-  Pencil,
-  Trash2,
-  AlertCircle,
   Target,
 } from 'lucide-react';
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import TaskFormModal from './components/TaskFormModal';
 import TaskDetailPanel, { TaskDetailDrawer } from './components/TaskDetailPanel';
@@ -88,6 +80,36 @@ const GHOST_TASKS = [
   },
 ];
 
+// Alternate ghost content for Regenerate suggestion (Rules #2) — same ids, new placement copy.
+const GHOST_REGENERATIONS = {
+  'ghost-1': {
+    priority: 'HIGH',
+    title: 'Morning Mobility Session',
+    description: 'Start with light stretches and a short cardio warm-up to build consistency.',
+    tags: [
+      { label: 'Health' },
+      { label: 'Improve Rate', icon: Target },
+      { label: '30 Min', icon: Clock },
+      { label: '0/3 Steps' },
+    ],
+    due: 'Today',
+  },
+  'ghost-2': {
+    priority: 'MEDIUM',
+    title: 'Send weekly status update',
+    description: 'Share progress, blockers, and next steps with your team in a clear message.',
+    tags: [{ label: 'Career' }, { label: '0/4 Steps' }],
+    due: 'Today',
+  },
+  'ghost-3': {
+    priority: 'HIGH',
+    title: 'Prep tomorrow priorities',
+    description: 'List the top three outcomes for tomorrow and block focus time for each.',
+    tags: [{ label: 'Personal' }, { label: '20 Min', icon: Clock }],
+    due: 'Tomorrow',
+  },
+};
+
 // FILTER_CONFIG imported from TaskFilters
 
 // Step 3 populated board — Figma frame 3 sample data.
@@ -100,13 +122,14 @@ const INITIAL_COLUMNS = {
       description: 'Follow your fitness routine or do a workout session.',
       tags: [
         { label: 'Career' },
-        { label: 'Improve Rate', icon: Target },
+        { label: 'Improve Rate', icon: Target, linkedGoal: true },
         { label: '60 Min', icon: Clock },
       ],
       steps: '0/4 Steps',
       due: 'Today',
       source: 'ai',
       category: 'Career',
+      linkedGoal: 'Improve Rate',
       status: 'To Do',
       subtasks: EXERCISE_ROUTINE_SUBTASKS.map((s) => ({ ...s })),
     },
@@ -181,10 +204,11 @@ const INITIAL_COLUMNS = {
       title: 'Implement stress-relief strategies',
       description:
         'Communicate the expectations regarding maintaining a calm environment to the relevant individuals in a direct and respectful manner.',
-      tags: [{ label: 'Career' }, { label: 'New Job', icon: Target }],
+      tags: [{ label: 'Career' }, { label: 'New Job', icon: Target, linkedGoal: true }],
       completed: 'May 8, 2026',
       source: 'ai',
       category: 'Career',
+      linkedGoal: 'New Job',
       status: 'Done',
     },
   ],
@@ -202,7 +226,7 @@ function EmptyColumnPlaceholder({ text }) {
 
 const COLUMNS = [
   { key: 'todo', label: 'To Do', icon: ListTodo },
-  { key: 'inProgress', label: 'In Progress', icon: Loader2 },
+  { key: 'inProgress', label: 'In Progress', icon: TrendingUp },
   { key: 'done', label: 'Done', icon: CheckCircle2 },
 ];
 
@@ -312,7 +336,7 @@ export default function TasksBoard() {
   // AI Assistant edit boundary: only title, description, category, linked tasks/habits
   // may be changed this way — never due date, status, priority, or reminder/calendar fields.
   const handleUpdateTaskFields = (taskId, fields) => {
-    const ALLOWED_KEYS = new Set(['title', 'description', 'category']);
+    const ALLOWED_KEYS = new Set(['title', 'description', 'category', 'linkedGoal', 'tags']);
     const safeFields = Object.fromEntries(
       Object.entries(fields).filter(([key]) => ALLOWED_KEYS.has(key))
     );
@@ -323,7 +347,20 @@ export default function TasksBoard() {
         done: [...prev.done],
       };
       for (const key of Object.keys(next)) {
-        next[key] = next[key].map((t) => (t.id === taskId ? { ...t, ...safeFields } : t));
+        next[key] = next[key].map((t) => {
+          if (t.id !== taskId) return t;
+          const updated = { ...t, ...safeFields };
+          if (safeFields.linkedGoal != null && safeFields.tags == null) {
+            const withoutGoal = (t.tags ?? []).filter(
+              (tag) => tag.icon !== Target && tag.icon !== TrendingUp && !tag.linkedGoal
+            );
+            updated.tags = [
+              ...withoutGoal,
+              { label: safeFields.linkedGoal, icon: TrendingUp, linkedGoal: true },
+            ];
+          }
+          return updated;
+        });
       }
       return next;
     });
@@ -337,8 +374,67 @@ export default function TasksBoard() {
     setGhostTasks((prev) => prev.filter((t) => t.id !== id));
   };
 
-  const handleRegenerateGhost = () => {
-    // Visual-only for Step 2 — AI regeneration wired in a later step.
+  const handleRegenerateGhost = (id) => {
+    setGhostTasks((prev) =>
+      prev.map((ghost) => {
+        if (ghost.id !== id) return ghost;
+        const alternate = GHOST_REGENERATIONS[id];
+        if (!alternate) return ghost;
+        return { ...ghost, ...alternate, id: ghost.id };
+      })
+    );
+  };
+
+  const handleAcceptGhost = (ghost) => {
+    const taskId = `task-${crypto.randomUUID()}`;
+    const category =
+      ghost.category ||
+      ghost.tags?.find((tag) => typeof tag.label === 'string' && !tag.label.includes('/'))?.label ||
+      'Career';
+    const acceptedTask = {
+      id: taskId,
+      priority: ghost.priority,
+      title: ghost.title,
+      description: ghost.description,
+      tags: ghost.tags || [{ label: category }],
+      steps: ghost.tags?.find((tag) => tag.label?.includes('Steps'))?.label,
+      due: ghost.due || 'Today',
+      source: 'ai',
+      category,
+      status: 'To Do',
+    };
+
+    setGhostTasks((prev) => prev.filter((t) => t.id !== ghost.id));
+    setColumns((prev) => ({
+      ...prev,
+      todo: [...prev.todo, acceptedTask],
+    }));
+    setEnteringTaskIds((prev) => new Set(prev).add(taskId));
+    window.setTimeout(() => {
+      setEnteringTaskIds((prev) => {
+        const next = new Set(prev);
+        next.delete(taskId);
+        return next;
+      });
+    }, 300);
+  };
+
+  const handleImproveDescription = (task) => {
+    const improved =
+      `${task.description ?? ''} This task directly supports your linked goal — tackle it with focused effort today.`.trim();
+    setColumns((prev) => {
+      const next = {
+        todo: [...prev.todo],
+        inProgress: [...prev.inProgress],
+        done: [...prev.done],
+      };
+      for (const key of Object.keys(next)) {
+        next[key] = next[key].map((t) =>
+          t.id === task.id ? { ...t, description: improved } : t
+        );
+      }
+      return next;
+    });
   };
 
   const boardIsEmpty =
@@ -365,7 +461,7 @@ export default function TasksBoard() {
       tags.push({ label: `${form.estMinutes} Min`, icon: Clock });
     }
     if (form.linkedGoal && form.linkedGoal !== '__create_new__') {
-      tags.push({ label: form.linkedGoal, icon: TrendingUp });
+      tags.push({ label: form.linkedGoal, icon: TrendingUp, linkedGoal: true });
     }
 
     const taskId = isCreate ? Date.now() : taskModal.task.id;
@@ -380,6 +476,8 @@ export default function TasksBoard() {
       due: form.dueLabel || (form.dueDate ? formatDate(form.dueDate) : 'No date'),
       source: isAi ? 'ai' : isCreate ? 'manual' : taskModal.task.source ?? 'manual',
       category: form.category,
+      linkedGoal:
+        form.linkedGoal && form.linkedGoal !== '__create_new__' ? form.linkedGoal : undefined,
       status: form.status || 'To Do',
     };
 
@@ -444,8 +542,8 @@ export default function TasksBoard() {
 
             <div className="flex items-center gap-2 max-lg:w-full max-lg:flex-col max-lg:gap-3 lg:flex-1 2xl:flex-none 2xl:gap-5">
               {/* Board/List — visible per Figma, non-functional in MVP */}
-              <div className="flex shrink-0 items-center gap-1 rounded-lg border border-[#f2f2f2] p-1 dark:border-zinc-700 max-lg:w-full">
-                <span className="rounded-md bg-[#f2f2f2] px-2 py-0.75 text-[12px] font-medium text-[#181818] dark:bg-zinc-700 dark:text-white max-lg:flex-1 max-lg:py-2 max-lg:text-center max-lg:text-base">
+              <div className="flex shrink-0 items-center gap-1 rounded-lg border border-[#f2f2f2] bg-white p-1 dark:border-zinc-700 max-lg:w-full">
+                <span className="rounded px-2 py-0.75 text-[12px] font-medium text-[#181818] bg-[#f2f2f2] dark:bg-zinc-700 dark:text-white max-lg:flex-1 max-lg:py-2 max-lg:text-center max-lg:text-base">
                   Board
                 </span>
                 <span className="flex w-12.5 items-center justify-center px-2 py-0.75 text-[12px] font-medium text-[#c2c2c2] max-lg:flex-1 max-lg:py-2 max-lg:text-base">
@@ -533,6 +631,7 @@ export default function TasksBoard() {
                       task={task}
                       onDismiss={handleDismissGhost}
                       onRegenerate={handleRegenerateGhost}
+                      onAccept={() => handleAcceptGhost(task)}
                     />
                   ))
                 : !hasSearchResults && isSearching
@@ -554,6 +653,7 @@ export default function TasksBoard() {
                         onDelete={handleDeleteTask}
                         onSelect={(t) => openTaskDetail(t)}
                         onBreakIntoSubtasks={(t) => openTaskDetail(t, true)}
+                        onImproveDescription={handleImproveDescription}
                         isDoneColumn={isDone}
                         isEntering={enteringTaskIds.has(task.id)}
                       />

@@ -138,7 +138,6 @@ function TabToggle({ activeTab, onChange, showTabs, disabled }) {
 function AIGeneratedPreviewCard({ task, revealStep = 3 }) {
   const showTitle = revealStep >= 1;
   const showDescription = revealStep >= 2;
-  const showTags = revealStep >= 3;
 
   return (
     <div className="flex w-full flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-white dark:border-zinc-700 dark:bg-zinc-800">
@@ -168,19 +167,18 @@ function AIGeneratedPreviewCard({ task, revealStep = 3 }) {
             <SkeletonBar className="h-3 w-full" />
           )}
         </div>
-        {showTags && (
-          <div className="flex items-center gap-1">
-            <span className="rounded-md border border-[#f2f2f2] px-1.5 py-0.5 text-[12px] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
-              {task.category}
+        {/* Rule 6: category + time stay visible (not skeletonized) during generate */}
+        <div className="flex items-center gap-1">
+          <span className="rounded-md border border-[#f2f2f2] px-1.5 py-0.5 text-[12px] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+            {task.category}
+          </span>
+          {task.estMinutes != null && (
+            <span className="flex items-center gap-1.5 rounded-md border border-[#f2f2f2] px-1.5 py-0.5 text-[12px] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+              <Clock size={12} />
+              {task.estMinutes} Min
             </span>
-            {task.estMinutes != null && (
-              <span className="flex items-center gap-1.5 rounded-md border border-[#f2f2f2] px-1.5 py-0.5 text-[12px] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
-                <Clock size={12} />
-                {task.estMinutes} Min
-              </span>
-            )}
-          </div>
-        )}
+          )}
+        </div>
       </div>
       <div className="flex items-center border-t border-[#f2f2f2] px-3 py-2.5 dark:border-zinc-700">
         <p className="text-[12px]">
@@ -251,7 +249,7 @@ function TimePickerField({ hour, minute, period, onChangeHour, onChangeMinute, o
         className={`${inputClasses} flex items-center justify-between gap-1.5 text-left`}
       >
         <span>
-          {hour}:{minute} {period}
+          {minute === '00' ? `${hour} ${period}` : `${hour}:${minute} ${period}`}
         </span>
         <Watch size={16} className="shrink-0 text-[#a3a3a3]" />
       </button>
@@ -636,7 +634,7 @@ export default function TaskFormModal({ mode = 'create', initialTask, onClose, o
                         : 'cursor-not-allowed bg-[#f1f1f1] text-[#dedede]'
                     }`}
                   >
-                    Add to Board
+                    Create
                   </button>
                 )}
               </>

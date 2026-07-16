@@ -5,6 +5,7 @@ import {
   Clock,
   Flag,
   TrendingUp,
+  Target,
   Plus,
   X,
   ExternalLink,
@@ -33,6 +34,20 @@ const PRIORITY_LABELS = {
   MEDIUM: 'Medium',
   LOW: 'Low',
 };
+
+/** User goals for Linked Goal picker (Rule 9 / Rule 12). First = AI recommended. */
+const LINKED_GOALS = ['Improve Rate', 'Save $10,000', 'Run 500km'];
+
+function isGoalTag(tag) {
+  return Boolean(
+    tag?.linkedGoal || tag?.icon === Target || tag?.icon === TrendingUp
+  );
+}
+
+function getLinkedGoalLabel(task) {
+  if (task.linkedGoal) return task.linkedGoal;
+  return task.tags?.find(isGoalTag)?.label ?? null;
+}
 
 function buildImprovedDescription(description) {
   return `${description ?? ''} This task directly supports your linked goal — tackle it with focused effort today.`.trim();
@@ -140,11 +155,9 @@ function SubtasksSection({ task, onUpdateSubtasks, autoTriggerAi, onAutoTriggerC
       <div className="flex w-full items-center justify-between">
         <div className="flex items-center gap-1.5">
           <p className="text-[12px] font-medium text-[#c2c2c2]">Subtasks</p>
-          {subtasks.length > 0 && (
-            <span className="flex w-5 items-center justify-center rounded-[5px] bg-[#fcfcfc] px-1 py-px text-[12px] font-medium text-[#c2c2c2]">
-              {subtasks.length}
-            </span>
-          )}
+          <span className="flex w-5 items-center justify-center rounded-[5px] bg-[#fcfcfc] px-1 py-px text-[12px] font-medium text-[#c2c2c2]">
+            {subtasks.length}
+          </span>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -190,19 +203,21 @@ function SubtasksSection({ task, onUpdateSubtasks, autoTriggerAi, onAutoTriggerC
         </div>
       )}
 
-      <div className="overflow-hidden rounded-[10px] border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800">
-        {isGenerating ? (
+      {isGenerating ? (
+        <div className="overflow-hidden rounded-xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800">
           <div className="flex flex-col gap-2.5 px-3 py-2">
             <SkeletonBar className="h-4 w-full" />
             <SkeletonBar className="h-4 w-[85%]" />
             <SkeletonBar className="h-4 w-[70%]" />
             <SkeletonBar className="h-4 w-[90%]" />
           </div>
-        ) : subtasks.length === 0 ? (
-          <div className="flex min-h-16 items-center justify-center border border-dashed border-[#e9e9e9] px-3 py-4">
-            <p className="text-[12px] font-medium text-[#c2c2c2]">No Subtasks yet</p>
-          </div>
-        ) : (
+        </div>
+      ) : subtasks.length === 0 ? (
+        <div className="flex h-10 items-center justify-center rounded-xl border border-dashed border-[#f2f2f2]">
+          <p className="text-[12px] font-medium text-[#c2c2c2]">No Subtasks yet</p>
+        </div>
+      ) : (
+        <div className="overflow-hidden rounded-xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800">
           <div className="flex flex-col gap-2.5 px-3 py-2">
             {subtasks.map((sub) => (
               <label key={sub.id} className="flex cursor-pointer items-center gap-2">
@@ -219,17 +234,14 @@ function SubtasksSection({ task, onUpdateSubtasks, autoTriggerAi, onAutoTriggerC
               </label>
             ))}
           </div>
-        )}
-
-        {subtasks.length > 0 && !isGenerating && (
           <div className="border-t border-[#f2f2f2] px-3 py-2 dark:border-zinc-700">
             <p className="text-[12px] font-medium text-[#5d5d5d]">
               <span className="text-[#c2c2c2]">Progress:</span> {completedCount}/{subtasks.length}{' '}
               Steps
             </p>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -531,11 +543,14 @@ function TaskDetailCard({
   variant = 'page',
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [goalMenuOpen, setGoalMenuOpen] = useState(false);
   const menuRef = useRef(null);
+  const goalMenuRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
+      if (goalMenuRef.current && !goalMenuRef.current.contains(e.target)) setGoalMenuOpen(false);
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -543,10 +558,20 @@ function TaskDetailCard({
 
   const estMinutes =
     task.tags?.find((t) => t.label?.includes('Min'))?.label?.replace(/\D/g, '') || '60';
-  const linkedGoal = task.tags?.find((t) => t.icon === TrendingUp)?.label;
+  const linkedGoal = getLinkedGoalLabel(task);
 
   const handleImproveDescription = () => {
     onUpdateTaskFields({ description: buildImprovedDescription(task.description) });
+  };
+
+  const handleSelectLinkedGoal = (goalLabel) => {
+    setGoalMenuOpen(false);
+    if (goalLabel === '__create_new__') return;
+    const withoutGoal = (task.tags ?? []).filter((tag) => !isGoalTag(tag));
+    onUpdateTaskFields({
+      linkedGoal: goalLabel,
+      tags: [...withoutGoal, { label: goalLabel, icon: TrendingUp, linkedGoal: true }],
+    });
   };
 
   const isDrawer = variant === 'drawer';
@@ -670,9 +695,43 @@ function TaskDetailCard({
           <div className="flex w-full items-center justify-between">
             <p className="text-[12px] font-medium text-[#c2c2c2]">Linked Goal</p>
             {!linkedGoal && (
-              <button type="button" aria-label="Add linked goal" className="text-[#a3a3a3]">
-                <Plus size={16} />
-              </button>
+              <div ref={goalMenuRef} className="relative">
+                <button
+                  type="button"
+                  aria-label="Add linked goal"
+                  aria-expanded={goalMenuOpen}
+                  onClick={() => setGoalMenuOpen((o) => !o)}
+                  className="text-[#a3a3a3] hover:text-[#5d5d5d]"
+                >
+                  <Plus size={16} />
+                </button>
+                {goalMenuOpen && (
+                  <div className="absolute right-0 top-full z-30 mt-1 flex w-max min-w-44 flex-col overflow-hidden rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
+                    {LINKED_GOALS.map((goal, i) => (
+                      <button
+                        key={goal}
+                        type="button"
+                        onClick={() => handleSelectLinkedGoal(goal)}
+                        className={`flex w-full items-center gap-1.5 px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap hover:bg-[#fcfcfc] lg:text-[12px] dark:hover:bg-zinc-700 ${
+                          i === 0
+                            ? 'border-b border-[#f2f2f2] text-[#8022fe] dark:border-zinc-700'
+                            : 'text-[#5d5d5d] dark:text-gray-300'
+                        }`}
+                      >
+                        {i === 0 && <Sparkles size={10} className="shrink-0" />}
+                        {i === 0 ? `${goal} (AI recommended)` : goal}
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => handleSelectLinkedGoal('__create_new__')}
+                      className="flex w-full items-center gap-1.5 border-t border-[#f2f2f2] px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#5d5d5d] hover:bg-[#fcfcfc] lg:text-[12px] dark:border-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-700"
+                    >
+                      + Create new goal
+                    </button>
+                  </div>
+                )}
+              </div>
             )}
           </div>
           {linkedGoal ? (
@@ -699,7 +758,7 @@ function TaskDetailCard({
               </div>
             </div>
           ) : (
-            <div className="flex min-h-16 items-center justify-center rounded-[10px] border border-dashed border-[#e9e9e9] bg-[#fcfcfc] px-3 py-4 dark:border-zinc-700 dark:bg-zinc-800">
+            <div className="flex h-10 items-center justify-center rounded-xl border border-dashed border-[#f2f2f2] dark:border-zinc-700">
               <p className="text-[12px] font-medium text-[#c2c2c2]">No Goal yet</p>
             </div>
           )}

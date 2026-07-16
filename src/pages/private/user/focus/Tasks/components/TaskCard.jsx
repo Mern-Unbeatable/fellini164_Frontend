@@ -171,7 +171,7 @@ export function GhostTaskCard({ task, onDismiss, onRegenerate, onAccept }) {
   );
 }
 
-function TaskCardMenu({ onClose, onEdit, onDelete, onBreakIntoSubtasks }) {
+function TaskCardMenu({ onClose, onEdit, onDelete, onBreakIntoSubtasks, onImproveDescription }) {
   return (
     <div
       className="flex w-max flex-col overflow-hidden rounded-[8px] border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800"
@@ -198,7 +198,10 @@ function TaskCardMenu({ onClose, onEdit, onDelete, onBreakIntoSubtasks }) {
       </button>
       <button
         type="button"
-        onClick={onClose}
+        onClick={() => {
+          onClose();
+          onImproveDescription?.();
+        }}
         className="flex w-full items-center gap-[6px] border-b border-[#f2f2f2] px-[10px] py-[6px] text-left text-sm font-medium leading-normal whitespace-nowrap text-[#8022fe] hover:bg-[#fcfcfc] lg:text-[12px] dark:border-zinc-700 dark:hover:bg-zinc-700"
       >
         <Sparkles size={10} className="shrink-0" />
@@ -216,7 +219,16 @@ function TaskCardMenu({ onClose, onEdit, onDelete, onBreakIntoSubtasks }) {
   );
 }
 
-export function TaskCard({ task, onEdit, onDelete, onSelect, onBreakIntoSubtasks, isDoneColumn = false, isEntering = false }) {
+export function TaskCard({
+  task,
+  onEdit,
+  onDelete,
+  onSelect,
+  onBreakIntoSubtasks,
+  onImproveDescription,
+  isDoneColumn = false,
+  isEntering = false,
+}) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const cardRef = useRef(null);
@@ -343,6 +355,10 @@ export function TaskCard({ task, onEdit, onDelete, onSelect, onBreakIntoSubtasks
             onBreakIntoSubtasks={() => {
               setMenuOpen(false);
               onBreakIntoSubtasks?.(task);
+            }}
+            onImproveDescription={() => {
+              setMenuOpen(false);
+              onImproveDescription?.(task);
             }}
           />
         </div>
