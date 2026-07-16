@@ -157,14 +157,14 @@ function AIGeneratedPreviewCard({ task, revealStep = 3 }) {
           {showTitle ? (
             <p className="text-[16px] font-medium text-[#181818] dark:text-white">{task.title}</p>
           ) : (
-            <SkeletonBar className="h-5 w-[75%]" />
+            <SkeletonBar variant="ai" className="h-5 w-[75%] rounded-[8px]" />
           )}
           {showDescription ? (
             <p className="overflow-hidden text-ellipsis text-[12px] whitespace-nowrap text-[#a3a3a3]">
               {task.description}
             </p>
           ) : (
-            <SkeletonBar className="h-3 w-full" />
+            <SkeletonBar variant="ai" className="h-3 w-full rounded-[5px]" />
           )}
         </div>
         {/* Rule 6: category + time stay visible (not skeletonized) during generate */}

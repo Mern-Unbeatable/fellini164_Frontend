@@ -108,10 +108,17 @@ function TaskDetailMenu({ onClose, onEdit, onBreakIntoSubtasks, onImproveDescrip
   );
 }
 
-function SubtasksSection({ task, onUpdateSubtasks, autoTriggerAi, onAutoTriggerConsumed }) {
+function SubtasksSection({
+  task,
+  onUpdateSubtasks,
+  autoTriggerAi,
+  onAutoTriggerConsumed,
+  isApplyingAiEdit = false,
+}) {
   const subtasks = task.subtasks ?? [];
   const [showRegenerateConfirm, setShowRegenerateConfirm] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const showAiSkeleton = isGenerating || isApplyingAiEdit;
 
   const runGeneration = async () => {
     setShowRegenerateConfirm(false);
@@ -123,7 +130,7 @@ function SubtasksSection({ task, onUpdateSubtasks, autoTriggerAi, onAutoTriggerC
   };
 
   const handleAiClick = () => {
-    if (isGenerating) return;
+    if (isGenerating || isApplyingAiEdit) return;
     if (subtasks.length === 0) {
       runGeneration();
     } else {
@@ -171,7 +178,7 @@ function SubtasksSection({ task, onUpdateSubtasks, autoTriggerAi, onAutoTriggerC
           <button
             type="button"
             onClick={handleAiClick}
-            disabled={isGenerating}
+            disabled={isGenerating || isApplyingAiEdit}
             aria-label="Generate subtasks with AI"
             className="rounded-md p-0.5 text-[#8022fe] disabled:opacity-50"
           >
@@ -204,15 +211,9 @@ function SubtasksSection({ task, onUpdateSubtasks, autoTriggerAi, onAutoTriggerC
         </div>
       )}
 
-      {isGenerating ? (
-        <div className="overflow-hidden rounded-xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800">
-          <div className="flex flex-col gap-2.5 px-3 py-2">
-            <SkeletonBar className="h-4 w-full" />
-            <SkeletonBar className="h-4 w-[85%]" />
-            <SkeletonBar className="h-4 w-[70%]" />
-            <SkeletonBar className="h-4 w-[90%]" />
-          </div>
-        </div>
+      {showAiSkeleton ? (
+        /* Figma 1230:9627 — purple AI overlay block over subtasks */
+        <SkeletonBar variant="ai" className="h-[164px] w-full rounded-[10px]" />
       ) : subtasks.length === 0 ? (
         <div className="flex h-10 items-center justify-center rounded-xl border border-dashed border-[#f2f2f2]">
           <p className="text-[12px] font-medium text-[#c2c2c2]">No Subtasks yet</p>
@@ -701,38 +702,40 @@ function TaskDetailCard({
             )}
           </div>
         </div>
-        <div className={`flex flex-col ${isDrawer ? 'gap-1' : 'gap-2'}`}>
+        <div className={`relative flex flex-col ${isDrawer ? 'gap-1' : 'gap-2'}`}>
           {isApplyingAiEdit ? (
-            <SkeletonBar className="h-7 w-3/4" />
+            <div className="flex flex-col gap-2">
+              {/* Figma 1231:9977 / 1231:9981 — purple AI title + description shimmer */}
+              <SkeletonBar variant="ai" className="h-[31px] w-[241px] max-w-full rounded-[8px]" />
+              <SkeletonBar variant="ai" className="h-4 w-[295px] max-w-full rounded-[5px]" />
+            </div>
           ) : (
-            <p
-              className={
-                isDrawer
-                  ? 'text-2xl font-semibold leading-[1.3] text-[#181818] dark:text-white'
-                  : isPage
-                    ? 'text-[20px] font-medium leading-normal text-[#181818] dark:text-white'
-                    : 'text-xl font-medium text-[#181818] dark:text-white md:text-2xl'
-              }
-            >
-              {task.title}
-            </p>
-          )}
-          {isApplyingAiEdit ? (
-            <SkeletonBar className="h-4 w-full" />
-          ) : (
-            task.description && (
+            <>
               <p
                 className={
                   isDrawer
-                    ? 'text-sm font-medium text-[#a3a3a3]'
+                    ? 'text-2xl font-semibold leading-[1.3] text-[#181818] dark:text-white'
                     : isPage
-                      ? 'text-[12px] font-medium text-[#c2c2c2]'
-                      : 'text-base text-[#c2c2c2]'
+                      ? 'text-[20px] font-medium leading-normal text-[#181818] dark:text-white'
+                      : 'text-xl font-medium text-[#181818] dark:text-white md:text-2xl'
                 }
               >
-                {task.description}
+                {task.title}
               </p>
-            )
+              {task.description && (
+                <p
+                  className={
+                    isDrawer
+                      ? 'text-sm font-medium text-[#a3a3a3]'
+                      : isPage
+                        ? 'text-[12px] font-medium text-[#c2c2c2]'
+                        : 'text-base text-[#c2c2c2]'
+                  }
+                >
+                  {task.description}
+                </p>
+              )}
+            </>
           )}
         </div>
         <div className="flex w-[120px] items-center justify-between rounded-lg border border-[#f2f2f2] bg-[#fcfcfc] px-3 py-2 dark:border-zinc-700 dark:bg-zinc-800">
@@ -861,6 +864,7 @@ function TaskDetailCard({
           onUpdateSubtasks={onUpdateSubtasks}
           autoTriggerAi={autoTriggerSubtasksAi}
           onAutoTriggerConsumed={onAutoTriggerConsumed}
+          isApplyingAiEdit={isApplyingAiEdit}
         />
       </div>
     </div>
