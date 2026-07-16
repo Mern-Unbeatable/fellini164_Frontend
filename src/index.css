@@ -853,6 +853,35 @@
     background-color: #18181b;
   }
 
+  /* Task/Habit/Goal detail drawer — Figma frame 7 (10px light scrollbar) */
+  .scrollbar-drawer {
+    scrollbar-width: thin;
+    scrollbar-color: #e9e9e9 transparent;
+  }
+
+  .scrollbar-drawer::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  .scrollbar-drawer::-webkit-scrollbar-thumb {
+    background-color: #e9e9e9;
+    border: 2px solid transparent;
+    border-radius: var(--radius-full);
+    background-clip: padding-box;
+  }
+
+  .scrollbar-drawer::-webkit-scrollbar-track {
+    background-color: transparent;
+  }
+
+  .dark .scrollbar-drawer {
+    scrollbar-color: #3f3f46 transparent;
+  }
+
+  .dark .scrollbar-drawer::-webkit-scrollbar-thumb {
+    background-color: #3f3f46;
+  }
+
   .scroll-smooth {
     scroll-behavior: smooth;
   }

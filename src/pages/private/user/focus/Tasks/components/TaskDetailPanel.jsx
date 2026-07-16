@@ -974,7 +974,7 @@ export function TaskDetailDrawer({
           </button>
         </div>
 
-        <div className="scrollbar-hidden flex min-h-0 flex-1 flex-col overflow-y-auto pl-5 pr-7.5 py-5">
+        <div className="scrollbar-drawer flex min-h-0 flex-1 flex-col overflow-y-auto py-5 pl-5 pr-5">
           <TaskDetailCard
             variant="drawer"
             task={task}
