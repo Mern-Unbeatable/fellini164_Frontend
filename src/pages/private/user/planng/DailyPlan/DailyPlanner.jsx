@@ -418,6 +418,18 @@ export default function DailyPlanner() {
         return;
       }
       const now = Date.now();
+      const transactionId = `recalibrate_${energy}_${now}`;
+      const snapshot = clonePlans(plans);
+
+      recordCommittedChange({
+        id: transactionId,
+        label: `recalibrate_${energy}`,
+        beforePlans: snapshot,
+        beforeAccepted: hasAcceptedPlan,
+        afterPlans: snapshot,
+        afterAccepted: hasAcceptedPlan,
+      });
+
       postMessages(
         {
           id: `user_energy_${now}`,
@@ -430,6 +442,7 @@ export default function DailyPlanner() {
           sender: 'ai',
           text: 'Done! The day was recalibrated successfully!',
           timestamp: ts,
+          links: [{ label: 'Undo changes', actionId: `undo:${transactionId}` }],
         }
       );
       return;
