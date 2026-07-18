@@ -6,40 +6,71 @@ const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 // Figma Habits Board (1440) — today is Wed (same lock as Habits.jsx). Mon=0.
 const TODAY_INDEX = 2;
 
-// MVP: one check-in per day (single click on the habit box). No fractional 2/3 UI.
-// Day states: 'unscheduled' | 'empty' | 'checked' | 'today' (today maps to empty box).
-function DayCell({ state, dimmed, interactive, onToggle }) {
+// Day states: 'unscheduled' | 'empty' | 'checked' | 'today'
+// Optional todayProgress [done, total] → Figma partial fill + "1/2" / "2/3" under Wed (node 1234:11963).
+function DayCell({ state, progress, dimmed, interactive, onToggle }) {
   if (state === 'unscheduled') {
-    return <div className="size-10 shrink-0 rounded-[10px] opacity-0 max-lg:size-9" />;
+    return <div className="w-10 shrink-0 max-lg:w-9" aria-hidden>
+      <div className="size-10 rounded-[10px] opacity-0 max-lg:size-9" />
+    </div>;
   }
 
-  const baseClass = `size-10 shrink-0 rounded-[10px] max-lg:size-9 ${dimmed ? 'opacity-40' : ''} ${
+  const wrapClass = `flex w-10 shrink-0 flex-col items-center max-lg:w-9 ${dimmed ? 'opacity-40' : ''}`;
+  const boxClass = `box-border size-10 shrink-0 rounded-[10px] p-0 max-lg:size-9 ${
     interactive && !dimmed ? 'cursor-pointer' : ''
   }`;
 
+  if (progress && (state === 'today' || state === 'empty')) {
+    const [done, total] = progress;
+    const fillPct = Math.min(100, Math.max(0, (done / total) * 100));
+    return (
+      <div className={`${wrapClass} gap-2`}>
+        <button
+          type="button"
+          disabled={!interactive || dimmed}
+          onClick={onToggle}
+          aria-label={`${done} of ${total} completed today`}
+          className={`relative flex items-center overflow-hidden border border-solid border-[#e9e9e9] bg-white disabled:cursor-default dark:border-zinc-600 dark:bg-zinc-700 ${boxClass}`}
+        >
+          <span
+            aria-hidden
+            className="absolute top-0 left-0 h-full rounded-tr-[6px] rounded-br-[6px] bg-[#f9f4ff]"
+            style={{ width: `${fillPct}%` }}
+          />
+        </button>
+        <p className="text-[10px] font-medium whitespace-nowrap text-[#181818] dark:text-white">
+          {done}/{total}
+        </p>
+      </div>
+    );
+  }
+
   if (state === 'checked') {
     return (
+      <div className={wrapClass}>
+        <button
+          type="button"
+          disabled={!interactive || dimmed}
+          onClick={onToggle}
+          aria-label="Mark habit incomplete for this day"
+          className={`flex items-center justify-center border-0 bg-[#f9f4ff] disabled:cursor-default ${boxClass}`}
+        >
+          <Check size={16} strokeWidth={3} className="text-[#8022fe]" />
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className={wrapClass}>
       <button
         type="button"
         disabled={!interactive || dimmed}
         onClick={onToggle}
-        aria-label="Mark habit incomplete for this day"
-        className={`flex items-center justify-center bg-[#f9f4ff] ${baseClass} disabled:cursor-default`}
-      >
-        <Check size={16} strokeWidth={3} className="text-[#8022fe]" />
-      </button>
-    );
-  }
-
-  // 'empty' and 'today' — plain box (single daily check-in; no partial fill)
-  return (
-    <button
-      type="button"
-      disabled={!interactive || dimmed}
-      onClick={onToggle}
-      aria-label="Mark habit complete for this day"
-      className={`border border-[#e9e9e9] bg-white dark:border-zinc-600 dark:bg-zinc-700 ${baseClass} disabled:cursor-default`}
-    />
+        aria-label="Mark habit complete for this day"
+        className={`border border-solid border-[#e9e9e9] bg-white disabled:cursor-default dark:border-zinc-600 dark:bg-zinc-700 ${boxClass}`}
+      />
+    </div>
   );
 }
 
@@ -90,9 +121,21 @@ function HabitRowMenu({ onEdit, onImprove, onComplete, onPause, onDelete }) {
   );
 }
 
-// Real (non-ghost) habit row — used on the populated board (Step 2) and reused as the
-// AI-generation result preview inside the New Habit modal (Step 3), per the confirmed
-// "reuse the real row component" decision.
+function streakPresentation(habit) {
+  const isPaused = habit.status === 'paused';
+  const isCompleted = habit.status === 'completed';
+  // Figma Frame 1: only high active streak (Take Breaks / 7 days) gets flame + orange
+  const showFlame = habit.status === 'active' && habit.streak >= 7;
+  if (showFlame) {
+    return { flame: true, className: 'text-[#f97316]' };
+  }
+  if (isPaused || isCompleted) {
+    return { flame: false, className: 'text-[#c2c2c2]' };
+  }
+  // Active with 0–6 days: black streak text, no flame (Drink Water "4 days")
+  return { flame: false, className: 'text-[#181818] dark:text-white' };
+}
+
 export default function HabitRow({
   habit,
   showMenu = true,
@@ -119,6 +162,7 @@ export default function HabitRow({
   const isPaused = habit.status === 'paused';
   const isCompleted = habit.status === 'completed';
   const showMenuTrigger = showMenu && (isHovered || menuOpen);
+  const streak = streakPresentation(habit);
 
   return (
     <div
@@ -152,24 +196,19 @@ export default function HabitRow({
             {habit.description}
           </p>
         </div>
-        <HabitTagList tags={habit.tags} className={isPaused ? 'opacity-50' : ''} />
+        <HabitTagList
+          tags={habit.tags}
+          // Frame 3 AI preview (compact): all tags visible — Health | New Job | 12 days left | 6:30 PM
+          maxVisible={compact ? habit.tags.length : 2}
+          wrap={compact}
+          className={isPaused ? 'opacity-50' : ''}
+        />
       </div>
 
       {!compact && (
         <div className="flex w-24 shrink-0 items-center gap-1.5 max-lg:w-auto 2xl:w-43.75">
-          <Flame
-            size={12}
-            className={`shrink-0 ${
-              habit.status === 'active' && habit.streak > 0 ? 'text-[#f97316]' : 'text-transparent'
-            }`}
-          />
-          <p
-            className={`text-sm font-medium ${
-              habit.status === 'active' && habit.streak > 0 ? 'text-[#f97316]' : 'text-[#c2c2c2]'
-            }`}
-          >
-            {habit.streak} days
-          </p>
+          <Flame size={12} className={`shrink-0 ${streak.flame ? 'text-[#f97316]' : 'text-transparent'}`} />
+          <p className={`text-sm font-medium ${streak.className}`}>{habit.streak} days</p>
         </div>
       )}
 
@@ -204,13 +243,20 @@ export default function HabitRow({
       ) : (
         <div
           className={`flex items-start max-lg:grid max-lg:w-full max-lg:grid-cols-7 max-lg:place-items-center max-lg:gap-1 max-lg:pr-0 ${
-            compact ? 'w-[460px] shrink-0 justify-center gap-5' : `flex-1 justify-between ${showMenu ? 'pr-8 2xl:pr-41' : ''}`
+            compact
+              ? 'w-[460px] shrink-0 justify-center gap-5'
+              : `flex-1 justify-between ${showMenu ? 'pr-8 2xl:pr-41' : ''}`
           }`}
         >
           {DAYS.map((day, i) => (
             <DayCell
               key={day}
               state={habit.days[i]}
+              progress={
+                (habit.days[i] === 'today' || i === TODAY_INDEX) && habit.todayProgress
+                  ? habit.todayProgress
+                  : null
+              }
               dimmed={isPaused}
               interactive={Boolean(onToggleDay) && !isCompleted}
               onToggle={() => onToggleDay?.(habit.id, i)}

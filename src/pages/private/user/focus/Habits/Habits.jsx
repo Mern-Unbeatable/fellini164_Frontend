@@ -61,7 +61,7 @@ const GHOST_HABITS = [
 ];
 
 // Step 2 — populated board sample data (Figma node 1234-11897).
-// MVP: one reminder time per day; one check-in per day (no 2/3 / 3x/Day).
+// Unscheduled days = opacity-0 spacers. todayProgress = Figma partial Wed cell (1/2, 2/3).
 const REAL_HABITS = [
   {
     id: 'habit-1',
@@ -76,7 +76,9 @@ const REAL_HABITS = [
     ],
     status: 'active',
     streak: 4,
-    days: ['empty', 'checked', 'today', 'empty', 'empty', 'empty', 'empty'],
+    todayProgress: [1, 2],
+    // Mon empty, Tue checked, Wed 1/2, Thu/Sat hidden, Fri/Sun empty
+    days: ['empty', 'checked', 'today', 'unscheduled', 'empty', 'unscheduled', 'empty'],
   },
   {
     id: 'habit-2',
@@ -94,16 +96,19 @@ const REAL_HABITS = [
     tags: [{ label: 'Wellness' }, { label: '12 days left', icon: Hourglass }],
     status: 'paused',
     streak: 3,
-    days: ['checked', 'checked', 'checked', 'unscheduled', 'empty', 'empty', 'unscheduled'],
+    // Figma: Tue/Thu/Sun hidden; Mon+Wed checked (dimmed); Fri/Sat empty dimmed
+    days: ['checked', 'unscheduled', 'checked', 'unscheduled', 'empty', 'empty', 'unscheduled'],
   },
   {
     id: 'habit-4',
     title: 'Exercise',
     description: 'Engage in physical activity',
-    tags: [{ label: 'Fitness' }, { label: '7:00 AM', icon: Bell }],
+    tags: [{ label: 'Fitness' }, { label: '7:00 AM', icon: Bell }, { label: 'New Job', icon: Flag }],
     status: 'active',
     streak: 0,
-    days: ['empty', 'empty', 'today', 'empty', 'empty', 'empty', 'empty'],
+    todayProgress: [2, 3],
+    // Mon empty, Tue/Thu/Sat hidden, Wed 2/3, Fri/Sun empty
+    days: ['empty', 'unscheduled', 'today', 'unscheduled', 'empty', 'unscheduled', 'empty'],
   },
   {
     id: 'habit-5',
@@ -127,7 +132,8 @@ const REAL_HABITS = [
     ],
     status: 'active',
     streak: 4,
-    days: ['empty', 'checked', 'today', 'empty', 'empty', 'empty', 'empty'],
+    todayProgress: [1, 2],
+    days: ['empty', 'checked', 'today', 'unscheduled', 'empty', 'unscheduled', 'empty'],
   },
 ];
 

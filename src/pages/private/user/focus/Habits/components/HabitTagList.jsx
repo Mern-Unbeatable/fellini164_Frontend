@@ -3,8 +3,9 @@ import { useState } from 'react';
 /**
  * Habit card tags with overflow (+N). Extra tags hide behind +N;
  * hover reveals them in a dropdown (product hover pattern).
+ * Pass maxVisible >= tags.length (e.g. Frame 3 AI preview) to show all tags.
  */
-export default function HabitTagList({ tags = [], maxVisible = 2, className = '' }) {
+export default function HabitTagList({ tags = [], maxVisible = 2, wrap = false, className = '' }) {
   const [overflowOpen, setOverflowOpen] = useState(false);
   const visible = tags.slice(0, maxVisible);
   const hidden = tags.slice(maxVisible);
@@ -12,7 +13,9 @@ export default function HabitTagList({ tags = [], maxVisible = 2, className = ''
   if (tags.length === 0) return null;
 
   return (
-    <div className={`flex flex-nowrap items-center gap-1 overflow-visible ${className}`}>
+    <div
+      className={`flex items-center gap-1 overflow-visible ${wrap ? 'flex-wrap' : 'flex-nowrap'} ${className}`}
+    >
       {visible.map((tag) => (
         <span
           key={tag.label}
