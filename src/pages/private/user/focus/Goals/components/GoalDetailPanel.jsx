@@ -122,20 +122,20 @@ function GoalDetailMenu({ onClose, onEdit, onImprove, onPause, onDelete }) {
   return (
     <div className="absolute right-0 top-full z-50 mt-1 flex w-max flex-col overflow-hidden rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
       <button type="button" onClick={onEdit} className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}>
-        <Pencil size={10} className="shrink-0" />
+        <Pencil size={12} className="shrink-0" />
         Edit goal
       </button>
       <button type="button" onClick={onImprove} className={`${itemBase} text-[#8022fe]`}>
-        <Sparkles size={10} className="shrink-0" />
+        <Sparkles size={12} className="shrink-0" />
         Improve goal
       </button>
       <div className="h-px w-full bg-[#f2f2f2] dark:bg-zinc-700" />
       <button type="button" onClick={onPause} className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}>
-        <Pause size={10} className="shrink-0" />
+        <Pause size={12} className="shrink-0" />
         Pause goal
       </button>
       <button type="button" onClick={onDelete} className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}>
-        <Trash2 size={10} className="shrink-0" />
+        <Trash2 size={12} className="shrink-0" />
         Delete
       </button>
       <button type="button" onClick={onClose} className="sr-only">
@@ -163,7 +163,7 @@ function LinkedTaskCard({ task, compact = false }) {
               </span>
               {task.source === 'ai' && (
                 <span className="flex items-center gap-1 rounded bg-[#f9f4ff] px-1 py-0.5 text-[10px] font-medium text-[#8022fe]">
-                  {task.aiIcon !== false && <Sparkles size={8} />}
+                  {task.aiIcon !== false && <Sparkles size={12} className="shrink-0" />}
                   AI
                 </span>
               )}
@@ -194,7 +194,7 @@ function LinkedTaskCard({ task, compact = false }) {
         </p>
         {task.overdueDays != null && (
           <span className="flex items-center gap-1 rounded bg-[rgba(220,38,38,0.05)] px-1.5 py-0.5 text-[10px] font-medium text-[#dc2626]">
-            <CircleX size={10} className="shrink-0" />
+            <CircleX size={12} className="shrink-0" />
             Overdue {task.overdueDays}d
           </span>
         )}
@@ -227,7 +227,7 @@ function LinkedHabitCard({ habit, compact = false }) {
               >
                 {Icon && (
                   <Icon
-                    size={10}
+                    size={12}
                     className={`shrink-0 ${stat.accent ? 'text-[#f97316]' : 'text-[#5d5d5d]'}`}
                   />
                 )}
@@ -439,7 +439,7 @@ export default function GoalDetailPanel({
                   </span>
                   {goal.source === 'ai' && (
                     <span className="flex items-center gap-1.5 rounded-md bg-[#f9f4ff] px-2 pt-0.5 pb-[3px] text-[14px] font-medium text-[#8022fe]">
-                      <Sparkles size={12} />
+                      <Sparkles size={14} className="shrink-0" />
                       AI
                     </span>
                   )}
@@ -516,7 +516,7 @@ export default function GoalDetailPanel({
               <div className="flex w-full flex-col gap-1.5">
                 <p className="text-[12px] font-medium text-[#c2c2c2]">Due Date</p>
                 <PillBadge className="gap-1.5">
-                  <Flag size={12} className="shrink-0 text-[#5d5d5d]" />
+                  <Flag size={14} className="shrink-0 text-[#5d5d5d]" />
                   <DueDetailPill goal={goal} />
                 </PillBadge>
               </div>

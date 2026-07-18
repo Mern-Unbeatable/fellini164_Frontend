@@ -71,20 +71,20 @@ function GoalDetailMenu({ onClose, onEdit, onImprove, onPause, onDelete }) {
   return (
     <div className="absolute right-0 top-full z-50 mt-1 flex w-max flex-col overflow-hidden rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
       <button type="button" onClick={onEdit} className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}>
-        <Pencil size={10} className="shrink-0" />
+        <Pencil size={12} className="shrink-0" />
         Edit goal
       </button>
       <button type="button" onClick={onImprove} className={`${itemBase} text-[#8022fe]`}>
-        <Sparkles size={10} className="shrink-0" />
+        <Sparkles size={12} className="shrink-0" />
         Improve goal
       </button>
       <div className="h-px w-full bg-[#f2f2f2] dark:bg-zinc-700" />
       <button type="button" onClick={onPause} className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}>
-        <Pause size={10} className="shrink-0" />
+        <Pause size={12} className="shrink-0" />
         Pause goal
       </button>
       <button type="button" onClick={onDelete} className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}>
-        <Trash2 size={10} className="shrink-0" />
+        <Trash2 size={12} className="shrink-0" />
         Delete
       </button>
       <button type="button" onClick={onClose} className="sr-only">
@@ -100,16 +100,16 @@ function TaskCardMenu({ onClose }) {
   return (
     <div className="absolute right-0 top-full z-50 mt-1 flex w-max flex-col overflow-hidden rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
       <button type="button" onClick={onClose} className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}>
-        <Pencil size={10} className="shrink-0" />
+        <Pencil size={12} className="shrink-0" />
         Edit task
       </button>
       <button type="button" onClick={onClose} className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}>
-        <Check size={10} className="shrink-0" />
+        <Check size={12} className="shrink-0" />
         Complete
       </button>
       <div className="h-px w-full bg-[#f2f2f2] dark:bg-zinc-700" />
       <button type="button" onClick={onClose} className={`${itemBase} text-[#dc2626]`}>
-        <Trash2 size={10} className="shrink-0" />
+        <Trash2 size={12} className="shrink-0" />
         Delete
       </button>
     </div>
@@ -153,7 +153,7 @@ function PageTaskCard({ task }) {
                 </span>
                 {task.source === 'ai' && (
                   <span className="flex items-center gap-1 rounded-md bg-[#f9f4ff] px-1.5 py-0.5 text-[12px] font-medium text-[#8022fe]">
-                    <Sparkles size={10} />
+                    <Sparkles size={12} className="shrink-0" />
                     AI
                   </span>
                 )}
@@ -241,6 +241,10 @@ function PageTaskCard({ task }) {
 }
 
 function HabitDayCell({ state, todayProgress }) {
+  // Off-schedule days (e.g. Thu/Sat for Drink Water) — keep slot for grid align, hide the box
+  if (state === 'unscheduled') {
+    return <div className="size-[30px] shrink-0" aria-hidden />;
+  }
   if (state === 'checked') {
     return (
       <div className="flex size-[30px] shrink-0 items-center justify-center rounded-lg bg-[#f9f4ff]">
@@ -271,16 +275,16 @@ function HabitRowMenu({ onClose }) {
   return (
     <div className="absolute right-0 top-full z-50 mt-1 flex w-max flex-col overflow-hidden rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
       <button type="button" onClick={onClose} className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}>
-        <Pencil size={10} className="shrink-0" />
+        <Pencil size={12} className="shrink-0" />
         Edit habit
       </button>
       <button type="button" onClick={onClose} className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}>
-        <Pause size={10} className="shrink-0" />
+        <Pause size={12} className="shrink-0" />
         Skip today
       </button>
       <div className="h-px w-full bg-[#f2f2f2] dark:bg-zinc-700" />
       <button type="button" onClick={onClose} className={`${itemBase} text-[#dc2626]`}>
-        <Trash2 size={10} className="shrink-0" />
+        <Trash2 size={12} className="shrink-0" />
         Delete
       </button>
     </div>
@@ -325,7 +329,7 @@ function PageHabitRow({ habit }) {
                 >
                   {Icon && (
                     <Icon
-                      size={11}
+                      size={12}
                       className={`shrink-0 ${tag.accent ? 'text-[#f97316]' : 'text-[#5d5d5d]'}`}
                     />
                   )}

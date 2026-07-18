@@ -324,7 +324,8 @@ export const FIGMA_PAGE_HABITS = [
       { label: '12 days left', icon: 'hourglass' },
       { label: '+4' },
     ],
-    days: ['empty', 'checked', 'today', 'empty', 'empty', 'empty', 'empty'],
+    // Frame 5.1 / Habits Drink Water: Mon empty, Tue checked, Wed 1/2, Thu+Sat hidden, Fri+Sun empty
+    days: ['empty', 'checked', 'today', 'unscheduled', 'empty', 'unscheduled', 'empty'],
     todayProgress: { done: 1, total: 2 },
   },
   {
