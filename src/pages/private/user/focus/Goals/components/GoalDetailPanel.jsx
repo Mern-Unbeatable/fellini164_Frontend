@@ -288,6 +288,7 @@ function LinkedSectionHeader({ label, count, onAdd, onAi }) {
   );
 }
 
+// Rule 6 + Figma Frame 4 — simple empty copy; Plus / AI stay on LinkedSectionHeader.
 function EmptyLinkedState({ message }) {
   return (
     <div className="flex min-h-[81px] w-full items-center justify-center rounded-xl border border-dashed border-[#e9e9e9] bg-[#fcfcfc] px-3 py-4 dark:border-zinc-700 dark:bg-zinc-800">

@@ -26,7 +26,7 @@ const TASK_OPTIONS = [
   { id: 'task-1', label: 'Exercise Routine', aiSuggested: true },
   { id: 'task-2', label: 'Deliver message' },
   { id: 'task-3', label: 'Work 3' },
-  { id: 'task-4', label: 'Work 3' },
+  { id: 'task-4', label: 'Work 4' },
 ];
 
 const HABIT_OPTIONS = [
@@ -36,6 +36,11 @@ const HABIT_OPTIONS = [
   { id: 'habit-4', label: 'Exercise' },
   { id: 'habit-5', label: 'Drink Water 2', status: 'completed' },
 ];
+
+/** Rule 4 — AI Suggested first based on goal title/category (static mock order). */
+function orderedLinkOptions(options) {
+  return [...options].sort((a, b) => Number(Boolean(b.aiSuggested)) - Number(Boolean(a.aiSuggested)));
+}
 
 const PRIORITY_STYLES = {
   URGENT: 'bg-[rgba(220,38,38,0.05)] text-[#dc2626]',
@@ -149,10 +154,10 @@ function TabToggle({ activeTab, onChange, disabled }) {
 
 function OptionBadge({ type }) {
   if (type === 'aiSuggested') {
+    // Rule 4 — first item marked as '✦ AI Suggested'
     return (
-      <span className="flex items-center gap-[4px] rounded-[4px] bg-[#f9f4ff] px-[4px] py-px text-[10px] font-medium leading-[1.5] text-[#8022fe]">
-        <Sparkles size={8} />
-        AI Suggested
+      <span className="rounded-[4px] bg-[#f9f4ff] px-[4px] py-px text-[10px] font-medium leading-[1.5] text-[#8022fe]">
+        ✦ AI Suggested
       </span>
     );
   }
@@ -212,7 +217,7 @@ function LinkedMultiSelect({ label, placeholder, options, selectedIds, onChange,
           <>
             <span className="text-[12px] font-medium leading-normal text-[#c2c2c2]">{placeholder}</span>
             <ChevronDown
-              size={8}
+              size={12}
               className={`shrink-0 text-[#a3a3a3] transition-transform ${open ? 'rotate-180' : ''}`}
             />
           </>
@@ -231,7 +236,7 @@ function LinkedMultiSelect({ label, placeholder, options, selectedIds, onChange,
                     className="text-[#5d5d5d] hover:text-[#181818] dark:hover:text-white"
                     aria-label={`Remove ${item.label}`}
                   >
-                    <X size={6} strokeWidth={2.5} />
+                    <X size={10} strokeWidth={2.5} />
                   </button>
                 </span>
               ))}
@@ -245,7 +250,7 @@ function LinkedMultiSelect({ label, placeholder, options, selectedIds, onChange,
               }}
               className="flex shrink-0 items-center gap-[6px] rounded-[4px] bg-[#f9f4ff] px-[6px] py-[2px] text-[12px] font-medium leading-normal text-[#8022fe]"
             >
-              <Plus size={8} strokeWidth={2.5} />
+              <Plus size={12} strokeWidth={2.5} />
               Add
             </button>
           </>
@@ -306,7 +311,7 @@ function AIGeneratedGoalPreviewCard({ goal, revealStep = 3 }) {
                     {PRIORITY_LABELS[goal.priority]}
                   </span>
                   <span className="flex items-center gap-[4px] rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-[12px] font-medium leading-[1.5] text-[#8022fe]">
-                    <Sparkles size={10} />
+                    <Sparkles size={12} className="shrink-0" />
                     AI
                   </span>
                 </>
@@ -336,7 +341,7 @@ function AIGeneratedGoalPreviewCard({ goal, revealStep = 3 }) {
               {goal.category}
             </span>
             <span className="flex items-center gap-[6px] rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
-              <Flag size={12} className="h-3 w-2 shrink-0" />
+              <Flag size={12} className="shrink-0" />
               {goal.due}
             </span>
           </div>
@@ -450,7 +455,7 @@ function ManualFormFields({ form, update, tasksOpen, habitsOpen, setTasksOpen, s
               ))}
             </select>
             <ChevronDown
-              size={8}
+              size={12}
               className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-[#a3a3a3]"
             />
           </div>
@@ -467,7 +472,7 @@ function ManualFormFields({ form, update, tasksOpen, habitsOpen, setTasksOpen, s
               ))}
             </select>
             <ChevronDown
-              size={8}
+              size={12}
               className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-[#a3a3a3]"
             />
           </div>
@@ -481,7 +486,7 @@ function ManualFormFields({ form, update, tasksOpen, habitsOpen, setTasksOpen, s
       <LinkedMultiSelect
         label="Linked Tasks"
         placeholder="Select Tasks"
-        options={TASK_OPTIONS}
+        options={orderedLinkOptions(TASK_OPTIONS)}
         selectedIds={form.linkedTasks}
         onChange={(ids) => update('linkedTasks', ids)}
         open={tasksOpen}
@@ -491,7 +496,7 @@ function ManualFormFields({ form, update, tasksOpen, habitsOpen, setTasksOpen, s
       <LinkedMultiSelect
         label="Linked Habits"
         placeholder="Select Habits"
-        options={HABIT_OPTIONS}
+        options={orderedLinkOptions(HABIT_OPTIONS)}
         selectedIds={form.linkedHabits}
         onChange={(ids) => update('linkedHabits', ids)}
         open={habitsOpen}
@@ -750,18 +755,17 @@ export default function NewGoalModal({ open, onClose, onSave }) {
     }
 
     return (
-      <div className="flex flex-col gap-[6px]">
-        <p className="text-[12px] font-medium leading-[1.5] text-[#c2c2c2] dark:text-zinc-500">
+      <div className="flex flex-col gap-2">
+        <p className="text-[12px] font-medium text-[#5d5d5d] dark:text-gray-300">
           Describe the goal you want to generate
         </p>
         <div className="relative">
           <textarea
             value={aiPrompt}
             onChange={(e) => setAiPrompt(e.target.value)}
-            placeholder="Type here..."
-            className="relative z-10 h-[140px] w-full resize-none rounded-[12px] border border-[#f2f2f2] bg-white p-[12px] text-[12px] font-medium leading-normal text-[#181818] outline-none placeholder:font-medium placeholder:leading-normal placeholder:text-[#c2c2c2] focus:border-[#8022fe] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
+            className={`${textareaClasses} relative z-10 h-[140px] resize-none rounded-xl bg-transparent!`}
           />
-          <TypewriterPlaceholder phrases={AI_PROMPT_PHRASES} visible={!aiPrompt.trim()} className="p-[12px]" />
+          <TypewriterPlaceholder phrases={AI_PROMPT_PHRASES} visible={!aiPrompt.trim()} />
         </div>
       </div>
     );
@@ -793,18 +797,14 @@ export default function NewGoalModal({ open, onClose, onSave }) {
   );
 
   return (
-    <div
-      onClick={handleClose}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div
-        onClick={(e) => e.stopPropagation()}
         className={`flex w-full flex-col overflow-visible rounded-[16px] border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-900 max-w-[450px] sm:w-[450px] ${modalHeightClass}`}
       >
         <div className="flex shrink-0 items-center justify-between border-b border-[#f2f2f2] px-[12px] py-[10px] dark:border-zinc-700">
           <p className="text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:text-gray-300">New Goal</p>
           <button type="button" onClick={handleClose} className="text-[#5d5d5d] dark:text-gray-300">
-            <X size={10} strokeWidth={2} />
+            <X size={14} />
           </button>
         </div>
 

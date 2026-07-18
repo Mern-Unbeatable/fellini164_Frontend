@@ -108,10 +108,10 @@ Build must flow from **Figma + Rules** (MVP = none). Verify full flow before don
 
 | Step | URL / action | Matches |
 |------|----------------|---------|
-| Empty ghosts | Board empty (or clear goals) | Frame 1 — Empty States (opacity 50%, dashed, ✦ 3) |
-| Ghost hover | Hover ghost | Frame 1 — Empty States - Hover (AI footer + Accept) |
+| Empty ghosts | `/user/goals?empty=1` | Frame 1 — Empty States (opacity 50%, dashed, ✦ 3) |
+| Ghost hover | Same → hover ghost | Frame 1 — Empty States - Hover (AI footer + Accept) |
 | Populated | `/user/goals` | Frame 1 |
-| Card ⋯ | Hover → ⋯ | Frame 1.1 — Edit / ✦ Improve / Pause / Delete |
+| Card ⋯ | Hover → ⋯ | Frame 1.1 — Edit / ✦ Add Task / ✦ Add Habit / Complete / Pause / Delete |
 | New Goal | **+ New Goal** | Frame 2 |
 | New Goal fields | Linked Tasks / Habits multi-select | Frame 2.1 / 2.1 Selected |
 | Preview | AI generate → preview | Frame 3 — goal fields only, no links |
@@ -152,6 +152,7 @@ Dev URLs:
 | URL | Purpose |
 |-----|---------|
 | `/user/goals` | Populated board (Frame 1+) |
+| `/user/goals?empty=1` | Empty board + ghost cards (Frames 1 / Hover) — DEV |
 | `/user/goals/:goalId` | Detail (Frames 4 / 4.1 / 5 / 5.1) |
 
 ---
