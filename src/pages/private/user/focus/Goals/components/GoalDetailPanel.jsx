@@ -427,7 +427,7 @@ export default function GoalDetailPanel({
           </button>
         </div>
 
-        <div className="scrollbar-hidden flex min-h-0 w-full flex-1 flex-col gap-6 overflow-y-auto py-5 pl-5 pr-[30px]">
+        <div className="scrollbar-white flex min-h-0 w-full flex-1 flex-col gap-6 overflow-y-auto py-5 pl-5 pr-[30px]">
           <div className="flex w-full flex-col gap-3">
             <div className="flex w-full flex-col gap-3">
               <div className="flex w-full items-center justify-between">

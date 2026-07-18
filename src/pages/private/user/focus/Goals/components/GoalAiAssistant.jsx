@@ -81,7 +81,7 @@ export default function GoalAiAssistant({ onClose, onToggleExpand, isExpanded = 
         </div>
       </div>
 
-      <div className="scrollbar-hidden flex min-h-0 flex-1 flex-col overflow-y-auto py-3 pl-3 pr-4.5">
+      <div className="scrollbar-white flex min-h-0 flex-1 flex-col overflow-y-auto py-3 pl-3 pr-4.5">
         <p className="mb-2.5 text-center text-[12px] font-medium text-[#c2c2c2]">
           Tuesday, May 5 • 7:39 PM
         </p>
