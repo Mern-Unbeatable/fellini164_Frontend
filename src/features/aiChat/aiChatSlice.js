@@ -21,10 +21,29 @@ export const fetchConversationById = createAsyncThunk(
   async (conversationId, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.get(`/api/v1/ai/conversations/${conversationId}`);
-      return { conversationId, data: response?.data?.data };
+      // API: { success, data: { id, title, userId, type, pinned, createdAt, updatedAt, messages? } }
+      const data = response?.data?.data ?? null;
+      return { conversationId, data };
     } catch (error) {
       toast.error('Failed to load conversation details');
       return rejectWithValue(error.response?.data?.message || 'Failed to load conversation');
+    }
+  }
+);
+
+/** PATCH /api/v1/ai/conversations/:id — update title (and other meta). Response matches GET data shape. */
+export const updateConversation = createAsyncThunk(
+  'aiChat/updateConversation',
+  async ({ conversationId, title }, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.patch(`/api/v1/ai/conversations/${conversationId}`, {
+        title,
+      });
+      const data = response?.data?.data ?? null;
+      return { conversationId, data };
+    } catch (error) {
+      toast.error(error?.response?.data?.message || 'Failed to update conversation');
+      return rejectWithValue(error.response?.data?.message || 'Failed to update conversation');
     }
   }
 );
@@ -102,6 +121,32 @@ export const togglePinConversation = createAsyncThunk(
   }
 );
 
+const applyConversationMeta = (chat, data) => {
+  if (!chat || !data) return chat;
+  if (data.title) chat.name = data.title;
+  if (typeof data.pinned === 'boolean') chat.pinned = data.pinned;
+  if (data.updatedAt) {
+    chat.time = new Date(data.updatedAt).toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
+  if (data.id) chat.id = data.id;
+  return chat;
+};
+
+const formatMessages = (messages, fallbackDate) =>
+  (messages || []).map((msg, idx) => ({
+    id: msg.id || idx + 1,
+    text: msg.content,
+    sent: msg.role === 'user',
+    time: new Date(msg.timestamp || msg.createdAt || fallbackDate).toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+    }),
+    sender: msg.role === 'user' ? 'You' : 'AI Coach',
+  }));
+
 // Helper functions
 const formatConversation = (conv) => {
   const lastMessage =
@@ -115,17 +160,8 @@ const formatConversation = (conv) => {
     avatar: 'bg-gradient-to-br from-violet-500 to-purple-600',
     initial: 'AI',
     pinned: conv.pinned || false,
-    messages:
-      conv.messages?.map((msg, idx) => ({
-        id: idx + 1,
-        text: msg.content,
-        sent: msg.role === 'user',
-        time: new Date(msg.createdAt || conv.createdAt).toLocaleTimeString([], {
-          hour: '2-digit',
-          minute: '2-digit',
-        }),
-        sender: msg.role === 'user' ? 'You' : 'AI Coach',
-      })) || [],
+    type: conv.type || 'chat',
+    messages: formatMessages(conv.messages, conv.createdAt),
     senderInitial: 'AI',
   };
 };
@@ -206,6 +242,31 @@ const aiChatSlice = createSlice({
         state.chats[index].time = time;
       }
     },
+    /** Edit a user message and drop all messages after it (ChatGPT-style regenerate). */
+    editUserMessage: (state, action) => {
+      const { messageId, newText } = action.payload;
+      if (state.selectedChatIndex === null) return;
+      const chat = state.chats[state.selectedChatIndex];
+      if (!chat?.messages?.length) return;
+
+      const msgIndex = chat.messages.findIndex((m) => String(m.id) === String(messageId));
+      if (msgIndex === -1 || !chat.messages[msgIndex].sent) return;
+
+      const trimmed = newText.trim();
+      if (!trimmed) return;
+
+      const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      chat.messages = [
+        ...chat.messages.slice(0, msgIndex),
+        {
+          ...chat.messages[msgIndex],
+          text: trimmed,
+          time: timeStr,
+        },
+      ];
+      chat.preview = trimmed.substring(0, 50);
+      chat.time = timeStr;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -226,34 +287,45 @@ const aiChatSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Fetch Conversation By ID
-      .addCase(fetchConversationById.pending, (state) => {
-        state.isLoading = true;
-      })
+      // Fetch Conversation By ID — data: { id, title, pinned, type, createdAt, updatedAt, messages? }
       .addCase(fetchConversationById.fulfilled, (state, action) => {
         const { conversationId, data } = action.payload;
-        const index = state.chats.findIndex((c) => String(c.id) === String(conversationId));
+        if (!data) return;
 
-        if (index !== -1 && data && data.messages) {
-          const formattedMessages = data.messages.map((msg, idx) => ({
-            id: idx + 1,
-            text: msg.content,
-            sent: msg.role === 'user',
-            time: new Date(msg.timestamp || msg.createdAt).toLocaleTimeString([], {
-              hour: '2-digit',
-              minute: '2-digit',
-            }),
-            sender: msg.role === 'user' ? 'You' : 'AI Coach',
-          }));
-
-          state.chats[index].messages = formattedMessages;
-          state.chats[index].name = data.title || state.chats[index].name;
+        let index = state.chats.findIndex((c) => String(c.id) === String(conversationId));
+        if (index === -1 && data.id) {
+          index = state.chats.findIndex((c) => String(c.id) === String(data.id));
         }
-        state.isLoading = false;
+
+        if (index === -1) {
+          state.chats = sortChatsByPinned([formatConversation(data), ...state.chats]);
+          return;
+        }
+
+        applyConversationMeta(state.chats[index], data);
+        if (Array.isArray(data.messages)) {
+          state.chats[index].messages = formatMessages(data.messages, data.createdAt);
+          const last = data.messages[data.messages.length - 1];
+          if (last?.content) {
+            state.chats[index].preview = last.content.substring(0, 50);
+          }
+        }
+        state.chats = sortChatsByPinned(state.chats);
       })
       .addCase(fetchConversationById.rejected, (state, action) => {
-        state.isLoading = false;
         state.error = action.payload;
+      })
+
+      // Update Conversation (title, etc.)
+      .addCase(updateConversation.fulfilled, (state, action) => {
+        const { conversationId, data } = action.payload;
+        if (!data) return;
+        const index = state.chats.findIndex(
+          (c) => String(c.id) === String(conversationId) || String(c.id) === String(data.id)
+        );
+        if (index === -1) return;
+        applyConversationMeta(state.chats[index], data);
+        state.chats = sortChatsByPinned(state.chats);
       })
 
       // Send Message
@@ -345,7 +417,12 @@ const aiChatSlice = createSlice({
   },
 });
 
-export const { setSelectedChatIndex, clearSelectedChat, addUserMessage, updateChatPreview } =
-  aiChatSlice.actions;
+export const {
+  setSelectedChatIndex,
+  clearSelectedChat,
+  addUserMessage,
+  updateChatPreview,
+  editUserMessage,
+} = aiChatSlice.actions;
 
 export default aiChatSlice.reducer;

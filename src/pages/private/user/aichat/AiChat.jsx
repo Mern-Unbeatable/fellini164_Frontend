@@ -13,6 +13,7 @@ import {
   setSelectedChatIndex,
   clearSelectedChat,
   addUserMessage,
+  editUserMessage,
 } from '../../../../features/aiChat/aiChatSlice';
 
 export default function MessagePage() {
@@ -66,14 +67,21 @@ export default function MessagePage() {
 
     setInputValue('');
 
-    // Send message and get AI response
-    await dispatch(
+    // Send message and get AI response, then refresh conversation meta (title, pinned, …)
+    const result = await dispatch(
       sendMessage({
         message: userMessage,
         conversationId,
         tempChatId,
       })
     );
+
+    if (sendMessage.fulfilled.match(result)) {
+      const id = result.payload.apiConversationId || conversationId;
+      if (id && typeof id === 'string') {
+        dispatch(fetchConversationById(id));
+      }
+    }
   };
 
   const handleSelectChat = async (chatId) => {
@@ -96,6 +104,25 @@ export default function MessagePage() {
 
     // Fetch individual conversation from API using Redux
     dispatch(fetchConversationById(selectedChat.id));
+  };
+
+  const handleEditMessage = async (messageId, newText) => {
+    if (!newText.trim() || isLoading || selectedChatIndex === null) return;
+
+    const chat = chats[selectedChatIndex];
+    if (!chat) return;
+
+    dispatch(editUserMessage({ messageId, newText }));
+
+    const conversationId = typeof chat.id === 'string' ? chat.id : null;
+
+    await dispatch(
+      sendMessage({
+        message: newText.trim(),
+        conversationId,
+        tempChatId: chat.id,
+      })
+    );
   };
 
   const handleBack = () => {
@@ -241,6 +268,7 @@ export default function MessagePage() {
             isLoading={isLoading}
             justSentMessage={justSentMessage}
             setJustSentMessage={setJustSentMessage}
+            onEditMessage={handleEditMessage}
           />
 
           <MessageInput

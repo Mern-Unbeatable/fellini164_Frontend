@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { GoCopy, GoCheck } from 'react-icons/go';
 import { PiPencilSimpleLight } from 'react-icons/pi';
-import { toast } from 'react-toastify';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -221,70 +220,69 @@ const MessageItem = memo(
 
     return (
       <React.Fragment>
-        <div className={`group flex ${isUser ? 'justify-end' : 'justify-start'} gap-2 sm:gap-3`}>
-          <div
-            className={`flex flex-col ${isUser ? 'items-end' : 'items-start'} ${isUser ? 'max-w-[70%] sm:max-w-sm' : 'max-w-[85%] sm:max-w-xl'}`}
-          >
-            {/* Message Bubble */}
-            <div className={bubbleClass}>
-              {msg.image ? (
-                <img
-                  src={msg.image}
-                  alt="AI generated"
-                  className="h-auto max-w-full rounded-md object-contain"
-                />
-              ) : isUser ? (
-                <p className="text-base wrap-break-word sm:text-sm">{msg.text}</p>
-              ) : (
-                <AIMessageContent text={msg.text} isNewMessage={isNewAIMessage} />
-              )}
-            </div>
-
-            {/* Action Buttons (Copy / Edit) — same row under the bubble */}
-            {!msg.image && (
-              <div
-                className={`mt-1.5 flex items-center gap-2 opacity-0 transition-opacity select-none group-hover:opacity-100 ${
-                  isUser ? 'justify-end' : 'justify-start'
-                }`}
-              >
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onCopy(msg.id, msg.text);
-                  }}
-                  className="flex size-7 items-center justify-center rounded-md text-[#5d5d5d] transition-colors hover:bg-[#f2f2f2] hover:text-[#181818] dark:text-gray-300 dark:hover:bg-zinc-700 dark:hover:text-white"
-                  title="Copy message"
-                  aria-label="Copy message"
-                >
-                  {isCopied ? <GoCheck size={18} /> : <GoCopy size={18} />}
-                </button>
-                {isUser && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onEditStart(msg);
-                    }}
-                    className="flex size-7 items-center justify-center rounded-md text-[#5d5d5d] transition-colors hover:bg-[#f2f2f2] hover:text-[#181818] dark:text-gray-300 dark:hover:bg-zinc-700 dark:hover:text-white"
-                    title="Edit message"
-                    aria-label="Edit message"
-                  >
-                    <PiPencilSimpleLight size={18} />
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Inline Editor */}
-        {isEditing && (
+        {isEditing ? (
           <EditComposer
             initialText={msg.text}
             onCancel={onEditCancel}
             onSave={(newText) => onEditSave(msg.id, newText)}
           />
+        ) : (
+          <div className={`group flex ${isUser ? 'justify-end' : 'justify-start'} gap-2 sm:gap-3`}>
+            <div
+              className={`flex flex-col ${isUser ? 'items-end' : 'items-start'} ${isUser ? 'max-w-[70%] sm:max-w-sm' : 'max-w-[85%] sm:max-w-xl'}`}
+            >
+              {/* Message Bubble */}
+              <div className={bubbleClass}>
+                {msg.image ? (
+                  <img
+                    src={msg.image}
+                    alt="AI generated"
+                    className="h-auto max-w-full rounded-md object-contain"
+                  />
+                ) : isUser ? (
+                  <p className="text-base wrap-break-word sm:text-sm">{msg.text}</p>
+                ) : (
+                  <AIMessageContent text={msg.text} isNewMessage={isNewAIMessage} />
+                )}
+              </div>
+
+              {/* Action Buttons (Copy / Edit) — same row under the bubble */}
+              {!msg.image && (
+                <div
+                  className={`mt-1.5 flex items-center gap-2 opacity-0 transition-opacity select-none group-hover:opacity-100 ${
+                    isUser ? 'justify-end' : 'justify-start'
+                  }`}
+                >
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onCopy(msg.id, msg.text);
+                    }}
+                    className="flex size-7 items-center justify-center rounded-md text-[#5d5d5d] transition-colors hover:bg-[#f2f2f2] hover:text-[#181818] dark:text-gray-300 dark:hover:bg-zinc-700 dark:hover:text-white"
+                    title="Copy message"
+                    aria-label="Copy message"
+                  >
+                    {isCopied ? <GoCheck size={18} /> : <GoCopy size={18} />}
+                  </button>
+                  {isUser && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEditStart(msg);
+                      }}
+                      className="flex size-7 items-center justify-center rounded-md text-[#5d5d5d] transition-colors hover:bg-[#f2f2f2] hover:text-[#181818] dark:text-gray-300 dark:hover:bg-zinc-700 dark:hover:text-white"
+                      title="Edit message"
+                      aria-label="Edit message"
+                    >
+                      <PiPencilSimpleLight size={18} />
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
         )}
       </React.Fragment>
     );
@@ -299,6 +297,7 @@ export default function ChatWindow({
   isLoading,
   justSentMessage,
   setJustSentMessage,
+  onEditMessage,
 }) {
   const [copiedId, setCopiedId] = useState(null);
   const [editingId, setEditingId] = useState(null);
@@ -372,11 +371,15 @@ export default function ChatWindow({
     setEditingId(null);
   }, []);
 
-  const handleEditSave = useCallback((id, newText) => {
-    toast.info('Message edit feature coming soon');
-    // Logic to update message in parent state/redux would go here
-    setEditingId(null);
-  }, []);
+  const handleEditSave = useCallback(
+    async (id, newText) => {
+      if (!newText.trim() || isLoading) return;
+      setEditingId(null);
+      setJustSentMessage?.(true);
+      await onEditMessage?.(id, newText.trim());
+    },
+    [isLoading, onEditMessage, setJustSentMessage]
+  );
 
   return (
     <div className="flex-1 overflow-y-auto bg-[#F8FBFE] p-3 sm:p-4 md:px-10 lg:px-12 xl:px-30 dark:bg-zinc-800">
