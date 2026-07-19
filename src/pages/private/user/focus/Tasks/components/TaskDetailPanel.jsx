@@ -1045,7 +1045,6 @@ export default function TaskDetailPanel({
           onDelete={onDelete}
           onTriggerSubtasksAi={onTriggerSubtasksAi}
         />
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-15 rounded-b-2xl bg-gradient-to-b from-transparent to-white dark:to-zinc-900" />
       </div>
 
       {isAssistantOpen && !isAssistantExpanded && (
