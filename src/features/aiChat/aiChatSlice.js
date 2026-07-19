@@ -96,23 +96,61 @@ export const deleteConversation = createAsyncThunk(
 export const togglePinConversation = createAsyncThunk(
   'aiChat/togglePinConversation',
   async ({ chatId, isPinned }, { rejectWithValue }) => {
-    try {
-      let response;
-      if (isPinned) {
-        response = await axiosInstance.delete(`/api/v1/ai/conversations/${chatId}/pin`);
-      } else {
-        response = await axiosInstance.post(`/api/v1/ai/conversations/${chatId}/pin`);
-      }
+    const pinUrl = `/api/v1/ai/conversations/${chatId}/pin`;
+    const conversationUrl = `/api/v1/ai/conversations/${chatId}`;
 
-      const apiMessage =
-        response?.data?.message || (isPinned ? 'Conversation unpinned' : 'Conversation pinned');
+    const isRouteMissing = (error) => {
+      const status = error?.response?.status;
+      const message = String(error?.response?.data?.message || error?.message || '');
+      return (
+        status === 404 ||
+        /route not found/i.test(message) ||
+        /cannot (get|post|put|patch|delete)/i.test(message)
+      );
+    };
+
+    /** Unpin: backend has no DELETE /pin — try same /pin route + conversation update. */
+    const unpinConversation = async () => {
+      const attempts = [
+        // 1) Same pin route with explicit body (most likely if only /pin is documented)
+        () => axiosInstance.post(pinUrl, { pinned: false }),
+        // 2) Conversation update APIs
+        () => axiosInstance.patch(conversationUrl, { pinned: false }),
+        () => axiosInstance.put(conversationUrl, { pinned: false }),
+        // 3) Legacy DELETE (kept last)
+        () => axiosInstance.delete(pinUrl),
+      ];
+
+      let lastError;
+      for (const attempt of attempts) {
+        try {
+          return await attempt();
+        } catch (error) {
+          lastError = error;
+          if (isRouteMissing(error)) continue;
+          throw error;
+        }
+      }
+      throw lastError;
+    };
+
+    try {
+      // Pin works with POST /pin. Unpin must not use DELETE /pin (Route not found).
+      const response = isPinned
+        ? await unpinConversation()
+        : await axiosInstance.post(pinUrl, { pinned: true });
+
       const updatedData = response?.data?.data;
+      const apiMessage =
+        response?.data?.message ||
+        (isPinned ? 'Conversation unpinned successfully' : 'Conversation pinned successfully');
 
       toast.success(apiMessage);
 
       return {
-        chatId,
+        chatId: updatedData?.id || chatId,
         pinned: typeof updatedData?.pinned === 'boolean' ? updatedData.pinned : !isPinned,
+        data: updatedData || null,
       };
     } catch (error) {
       toast.error(error?.response?.data?.message || 'Failed to update pin status');
@@ -406,12 +444,19 @@ const aiChatSlice = createSlice({
 
       // Toggle Pin
       .addCase(togglePinConversation.fulfilled, (state, action) => {
-        const { chatId, pinned } = action.payload;
-        const chatIndex = state.chats.findIndex((c) => c.id === chatId);
+        const { chatId, pinned, data } = action.payload;
+        const selectedId =
+          state.selectedChatIndex !== null ? state.chats[state.selectedChatIndex]?.id : null;
+        const chatIndex = state.chats.findIndex((c) => String(c.id) === String(chatId));
 
         if (chatIndex !== -1) {
           state.chats[chatIndex].pinned = pinned;
+          if (data) applyConversationMeta(state.chats[chatIndex], data);
           state.chats = sortChatsByPinned(state.chats);
+          if (selectedId != null) {
+            const nextIndex = state.chats.findIndex((c) => String(c.id) === String(selectedId));
+            if (nextIndex !== -1) state.selectedChatIndex = nextIndex;
+          }
         }
       });
   },
