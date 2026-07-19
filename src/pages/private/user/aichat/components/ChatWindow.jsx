@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { GoCopy, GoCheck } from 'react-icons/go';
-import { PiPencilSimpleLight } from 'react-icons/pi';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -144,39 +143,7 @@ const DateHeader = ({ date }) => (
   </div>
 );
 
-// 2. Inline Edit Composer Component
-const EditComposer = ({ initialText, onCancel, onSave }) => {
-  const [text, setText] = useState(initialText);
-
-  return (
-    <div className="flex w-full justify-end px-3">
-      <div className="w-full max-w-sm rounded-lg border border-gray-200 bg-gray-100 p-3 dark:border-zinc-700 dark:bg-zinc-800">
-        <textarea
-          className="min-h-[60px] w-full resize-none rounded border border-transparent bg-white p-2 text-sm text-black focus:border-purple-500 focus:outline-none dark:bg-zinc-900 dark:text-white"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          autoFocus
-        />
-        <div className="mt-2 flex justify-end gap-2">
-          <button
-            onClick={onCancel}
-            className="rounded-md px-3 py-1 text-xs font-medium text-gray-600 transition hover:bg-gray-200 dark:text-gray-300 dark:hover:bg-zinc-700"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={() => onSave(text)}
-            className="rounded-md bg-[#7C3AED] px-3 py-1 text-xs font-medium text-white transition hover:bg-[#6D28D9]"
-          >
-            Send
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// 3. AI Message Content with Typing Effect
+// 2. AI Message Content with Typing Effect
 const AIMessageContent = ({ text, isNewMessage }) => {
   const { displayedText, isTyping } = useTypingEffect(text, isNewMessage, 12);
 
@@ -192,102 +159,67 @@ const AIMessageContent = ({ text, isNewMessage }) => {
   );
 };
 
-// 4. Message Item Component (Memoized for Performance)
-const MessageItem = memo(
-  ({
-    msg,
-    onCopy,
-    copiedId,
-    onEditStart,
-    isEditing,
-    onEditCancel,
-    onEditSave,
-    isLastAIMessage,
-  }) => {
-    const isUser = msg.sent;
-    const isCopied = copiedId === msg.id;
+// 3. Message Item Component (Memoized for Performance)
+const MessageItem = memo(({ msg, onCopy, copiedId, isLastAIMessage }) => {
+  const isUser = msg.sent;
+  const isCopied = copiedId === msg.id;
 
-    // Determine Bubble Styles - wider for AI messages to show formatted content
-    const bubbleClass = `relative w-full rounded-xl px-3 py-2 shadow-sm sm:rounded-br-xl sm:px-4 sm:py-2.5 
+  // Determine Bubble Styles - wider for AI messages to show formatted content
+  const bubbleClass = `relative w-full rounded-xl px-3 py-2 shadow-sm sm:rounded-br-xl sm:px-4 sm:py-2.5 
         ${
           isUser
             ? 'rounded-tr-none bg-[#7C3AED] text-white'
             : 'rounded-tl-none bg-[#EDEDED] dark:bg-zinc-700 text-[#000000] dark:text-white'
         }`;
 
-    // Check if this message is newly added (for typing effect)
-    const isNewAIMessage = !isUser && isLastAIMessage && msg.isNew;
+  // Check if this message is newly added (for typing effect)
+  const isNewAIMessage = !isUser && isLastAIMessage && msg.isNew;
 
-    return (
-      <React.Fragment>
-        {isEditing ? (
-          <EditComposer
-            initialText={msg.text}
-            onCancel={onEditCancel}
-            onSave={(newText) => onEditSave(msg.id, newText)}
-          />
-        ) : (
-          <div className={`group flex ${isUser ? 'justify-end' : 'justify-start'} gap-2 sm:gap-3`}>
-            <div
-              className={`flex flex-col ${isUser ? 'items-end' : 'items-start'} ${isUser ? 'max-w-[70%] sm:max-w-sm' : 'max-w-[85%] sm:max-w-xl'}`}
+  return (
+    <div className={`group flex ${isUser ? 'justify-end' : 'justify-start'} gap-2 sm:gap-3`}>
+      <div
+        className={`flex flex-col ${isUser ? 'items-end' : 'items-start'} ${isUser ? 'max-w-[70%] sm:max-w-sm' : 'max-w-[85%] sm:max-w-xl'}`}
+      >
+        {/* Message Bubble */}
+        <div className={bubbleClass}>
+          {msg.image ? (
+            <img
+              src={msg.image}
+              alt="AI generated"
+              className="h-auto max-w-full rounded-md object-contain"
+            />
+          ) : isUser ? (
+            <p className="text-base wrap-break-word sm:text-sm">{msg.text}</p>
+          ) : (
+            <AIMessageContent text={msg.text} isNewMessage={isNewAIMessage} />
+          )}
+        </div>
+
+        {/* Copy only */}
+        {!msg.image && (
+          <div
+            className={`mt-1.5 flex items-center gap-2 opacity-0 transition-opacity select-none group-hover:opacity-100 ${
+              isUser ? 'justify-end' : 'justify-start'
+            }`}
+          >
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onCopy(msg.id, msg.text);
+              }}
+              className="flex size-7 items-center justify-center rounded-md text-[#5d5d5d] transition-colors hover:bg-[#f2f2f2] hover:text-[#181818] dark:text-gray-300 dark:hover:bg-zinc-700 dark:hover:text-white"
+              title="Copy message"
+              aria-label="Copy message"
             >
-              {/* Message Bubble */}
-              <div className={bubbleClass}>
-                {msg.image ? (
-                  <img
-                    src={msg.image}
-                    alt="AI generated"
-                    className="h-auto max-w-full rounded-md object-contain"
-                  />
-                ) : isUser ? (
-                  <p className="text-base wrap-break-word sm:text-sm">{msg.text}</p>
-                ) : (
-                  <AIMessageContent text={msg.text} isNewMessage={isNewAIMessage} />
-                )}
-              </div>
-
-              {/* Action Buttons (Copy / Edit) — same row under the bubble */}
-              {!msg.image && (
-                <div
-                  className={`mt-1.5 flex items-center gap-2 opacity-0 transition-opacity select-none group-hover:opacity-100 ${
-                    isUser ? 'justify-end' : 'justify-start'
-                  }`}
-                >
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onCopy(msg.id, msg.text);
-                    }}
-                    className="flex size-7 items-center justify-center rounded-md text-[#5d5d5d] transition-colors hover:bg-[#f2f2f2] hover:text-[#181818] dark:text-gray-300 dark:hover:bg-zinc-700 dark:hover:text-white"
-                    title="Copy message"
-                    aria-label="Copy message"
-                  >
-                    {isCopied ? <GoCheck size={18} /> : <GoCopy size={18} />}
-                  </button>
-                  {isUser && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onEditStart(msg);
-                      }}
-                      className="flex size-7 items-center justify-center rounded-md text-[#5d5d5d] transition-colors hover:bg-[#f2f2f2] hover:text-[#181818] dark:text-gray-300 dark:hover:bg-zinc-700 dark:hover:text-white"
-                      title="Edit message"
-                      aria-label="Edit message"
-                    >
-                      <PiPencilSimpleLight size={18} />
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
+              {isCopied ? <GoCheck size={18} /> : <GoCopy size={18} />}
+            </button>
           </div>
         )}
-      </React.Fragment>
-    );
-  }
-);
+      </div>
+    </div>
+  );
+});
 
 // --- Main Component ---
 export default function ChatWindow({
@@ -297,10 +229,8 @@ export default function ChatWindow({
   isLoading,
   justSentMessage,
   setJustSentMessage,
-  onEditMessage,
 }) {
   const [copiedId, setCopiedId] = useState(null);
-  const [editingId, setEditingId] = useState(null);
   const [shouldTypeMessage, setShouldTypeMessage] = useState(false);
   const [typingMessageId, setTypingMessageId] = useState(null);
   const wasLoadingRef = useRef(false);
@@ -352,7 +282,7 @@ export default function ChatWindow({
   // Auto-scroll hook
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [currentMessages, editingId]);
+  }, [currentMessages]);
 
   // Handlers
   const handleCopy = useCallback(async (id, text) => {
@@ -362,24 +292,6 @@ export default function ChatWindow({
       setTimeout(() => setCopiedId(null), 3000);
     }
   }, []);
-
-  const handleEditStart = useCallback((msg) => {
-    setEditingId(msg.id);
-  }, []);
-
-  const handleEditCancel = useCallback(() => {
-    setEditingId(null);
-  }, []);
-
-  const handleEditSave = useCallback(
-    async (id, newText) => {
-      if (!newText.trim() || isLoading) return;
-      setEditingId(null);
-      setJustSentMessage?.(true);
-      await onEditMessage?.(id, newText.trim());
-    },
-    [isLoading, onEditMessage, setJustSentMessage]
-  );
 
   return (
     <div className="flex-1 overflow-y-auto bg-[#F8FBFE] p-3 sm:p-4 md:px-10 lg:px-12 xl:px-30 dark:bg-zinc-800">
@@ -401,10 +313,6 @@ export default function ChatWindow({
               msg={{ ...msg, isNew: shouldType }}
               onCopy={handleCopy}
               copiedId={copiedId}
-              onEditStart={handleEditStart}
-              isEditing={editingId === msg.id}
-              onEditCancel={handleEditCancel}
-              onEditSave={handleEditSave}
               isLastAIMessage={isLastAI}
             />
           );

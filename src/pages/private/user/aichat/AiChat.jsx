@@ -10,10 +10,10 @@ import {
   sendMessage,
   deleteConversation,
   togglePinConversation,
+  updateConversation,
   setSelectedChatIndex,
   clearSelectedChat,
   addUserMessage,
-  editUserMessage,
 } from '../../../../features/aiChat/aiChatSlice';
 
 export default function MessagePage() {
@@ -106,25 +106,6 @@ export default function MessagePage() {
     dispatch(fetchConversationById(selectedChat.id));
   };
 
-  const handleEditMessage = async (messageId, newText) => {
-    if (!newText.trim() || isLoading || selectedChatIndex === null) return;
-
-    const chat = chats[selectedChatIndex];
-    if (!chat) return;
-
-    dispatch(editUserMessage({ messageId, newText }));
-
-    const conversationId = typeof chat.id === 'string' ? chat.id : null;
-
-    await dispatch(
-      sendMessage({
-        message: newText.trim(),
-        conversationId,
-        tempChatId: chat.id,
-      })
-    );
-  };
-
   const handleBack = () => {
     setShowChat(false);
   };
@@ -143,6 +124,12 @@ export default function MessagePage() {
     setOpenDropdown(null);
   };
 
+  const handleRenameChat = async (chatId, title) => {
+    if (!title?.trim() || chatId == null) return;
+    await dispatch(updateConversation({ conversationId: chatId, title: title.trim() }));
+    setOpenDropdown(null);
+  };
+
   const handlePinChat = async (chatId) => {
     const existing = chats.find((c) => c.id === chatId);
     if (!existing) {
@@ -154,8 +141,8 @@ export default function MessagePage() {
   };
 
   const toggleDropdown = (chatId, e) => {
-    e.stopPropagation();
-    setOpenDropdown(openDropdown === chatId ? null : chatId);
+    e?.stopPropagation?.();
+    setOpenDropdown(chatId == null ? null : openDropdown === chatId ? null : chatId);
   };
 
   // Update current date and time every minute
@@ -217,6 +204,7 @@ export default function MessagePage() {
             onToggleDropdown={toggleDropdown}
             openDropdown={openDropdown}
             onPin={handlePinChat}
+            onRename={handleRenameChat}
             onDelete={handleDeleteChat}
           />
 
@@ -268,7 +256,6 @@ export default function MessagePage() {
             isLoading={isLoading}
             justSentMessage={justSentMessage}
             setJustSentMessage={setJustSentMessage}
-            onEditMessage={handleEditMessage}
           />
 
           <MessageInput

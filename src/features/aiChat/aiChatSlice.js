@@ -32,17 +32,37 @@ export const fetchConversationById = createAsyncThunk(
 );
 
 /** PATCH /api/v1/ai/conversations/:id — update title (and other meta). Response matches GET data shape. */
+/** Update conversation title — PATCH /api/v1/ai/conversations/:id */
 export const updateConversation = createAsyncThunk(
   'aiChat/updateConversation',
   async ({ conversationId, title }, { rejectWithValue }) => {
+    const url = `/api/v1/ai/conversations/${conversationId}`;
+    const body = { title };
+
     try {
-      const response = await axiosInstance.patch(`/api/v1/ai/conversations/${conversationId}`, {
-        title,
-      });
+      let response;
+      try {
+        response = await axiosInstance.patch(url, body);
+      } catch (patchError) {
+        const status = patchError?.response?.status;
+        const message = String(patchError?.response?.data?.message || '');
+        const routeMissing =
+          status === 404 || /route not found/i.test(message) || /cannot patch/i.test(message);
+        if (!routeMissing) throw patchError;
+        response = await axiosInstance.put(url, body);
+      }
+
       const data = response?.data?.data ?? null;
-      return { conversationId, data };
+      return {
+        conversationId,
+        data: {
+          ...(data || {}),
+          id: data?.id || conversationId,
+          title: data?.title || title,
+        },
+      };
     } catch (error) {
-      toast.error(error?.response?.data?.message || 'Failed to update conversation');
+      toast.error(error?.response?.data?.message || 'Failed to rename conversation');
       return rejectWithValue(error.response?.data?.message || 'Failed to update conversation');
     }
   }

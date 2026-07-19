@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { MoreVertical, Pin, Trash2 } from 'lucide-react';
+import { PiPencilSimpleLight } from 'react-icons/pi';
 
 export default function ChatList({
   chats,
@@ -8,9 +9,43 @@ export default function ChatList({
   onToggleDropdown,
   openDropdown,
   onPin,
+  onRename,
   onDelete,
   searchQuery,
 }) {
+  const [renamingId, setRenamingId] = useState(null);
+  const [renameValue, setRenameValue] = useState('');
+  const renameInputRef = useRef(null);
+
+  useEffect(() => {
+    if (renamingId != null) {
+      renameInputRef.current?.focus();
+      renameInputRef.current?.select();
+    }
+  }, [renamingId]);
+
+  const startRename = (chat) => {
+    setRenamingId(chat.id);
+    setRenameValue(chat.name || '');
+  };
+
+  const cancelRename = () => {
+    setRenamingId(null);
+    setRenameValue('');
+  };
+
+  const commitRename = async (chatId) => {
+    const next = renameValue.trim();
+    const current = chats.find((c) => String(c.id) === String(chatId));
+    setRenamingId(null);
+    if (!next || !current || next === current.name) {
+      setRenameValue('');
+      return;
+    }
+    await onRename?.(chatId, next);
+    setRenameValue('');
+  };
+
   // Show empty state when there are no chats to display
   if (!chats || chats.length === 0) {
     const q = (searchQuery || '').toString().trim();
@@ -32,67 +67,115 @@ export default function ChatList({
 
   return (
     <div className="flex-1 overflow-y-auto bg-[#FFFFFF] dark:bg-zinc-800">
-      {chats.map((chat, index) => (
-        <div
-          key={chat.id}
-          onClick={() => onSelectChat(chat.id)}
-          className={`group relative cursor-pointer px-3 py-3 transition-all duration-200 sm:px-4 ${
-            selectedChatId === chat.id
-              ? ' border-l-4 border-[#7C3AED] bg-[#FAF5FF] pl-3 dark:border-[#A78BFA] dark:bg-[#1F1433]'
-              : 'hover:bg-gray-100 dark:hover:bg-zinc-700'
-          }`}
-        >
-          {chat.pinned && (
-            <div className="absolute top-3 right-3 group-hover:hidden">
-              <Pin className="h-4 w-4 text-violet-600 dark:text-violet-400" />
-            </div>
-          )}
+      {chats.map((chat) => {
+        const isRenaming = String(renamingId) === String(chat.id);
 
-          <button
-            onClick={(e) => onToggleDropdown(chat.id, e)}
-            className={`dropdown-container absolute top-3 right-3 rounded-full p-1 text-gray-400 hover:bg-gray-200 dark:text-gray-200 dark:hover:bg-zinc-600 ${chat.pinned ? 'hidden group-hover:block' : ''}`}
+        return (
+          <div
+            key={chat.id}
+            onClick={() => {
+              if (isRenaming) return;
+              onSelectChat(chat.id);
+            }}
+            className={`group relative cursor-pointer px-3 py-3 transition-all duration-200 sm:px-4 ${
+              selectedChatId === chat.id
+                ? ' border-l-4 border-[#7C3AED] bg-[#FAF5FF] pl-3 dark:border-[#A78BFA] dark:bg-[#1F1433]'
+                : 'hover:bg-gray-100 dark:hover:bg-zinc-700'
+            }`}
           >
-            <MoreVertical className="h-4 w-4" />
-          </button>
+            {chat.pinned && !isRenaming && (
+              <div className="absolute top-3 right-3 group-hover:hidden">
+                <Pin className="h-4 w-4 text-violet-600 dark:text-violet-400" />
+              </div>
+            )}
 
-          {openDropdown === chat.id && (
-            <div className="dropdown-container absolute top-10 right-3 z-50 w-40 rounded-lg border border-gray-200 bg-white shadow-lg dark:border-zinc-600 dark:bg-zinc-700">
+            {!isRenaming && (
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onPin(chat.id);
-                }}
-                className="flex w-full items-center gap-3 rounded-t-lg px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 dark:text-white dark:hover:bg-zinc-600"
+                type="button"
+                onClick={(e) => onToggleDropdown(chat.id, e)}
+                className={`dropdown-container absolute top-3 right-3 rounded-full p-1 text-gray-400 hover:bg-gray-200 dark:text-gray-200 dark:hover:bg-zinc-600 ${chat.pinned ? 'hidden group-hover:block' : ''}`}
               >
-                <Pin className="h-4 w-4" />
-                <span>{chat.pinned ? 'Unpin' : 'Pin'}</span>
+                <MoreVertical className="h-4 w-4" />
               </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete(chat.id);
-                }}
-                className="flex w-full items-center gap-3 rounded-b-lg px-4 py-2.5 text-sm text-red-600 hover:bg-gray-100 dark:text-red-400 dark:hover:bg-zinc-600"
-              >
-                <Trash2 className="h-4 w-4" />
-                <span>Delete</span>
-              </button>
-            </div>
-          )}
+            )}
 
-          <div className="flex gap-3 pr-8">
-            <div className="min-w-0 flex-1">
-              <h3 className="text-sm font-semibold text-[#000000] dark:text-white">{chat.name}</h3>
-              <p className="mt-1 line-clamp-1 text-xs text-[#6B7280] dark:text-gray-200">
-                {chat.preview}
-              </p>
-              <p className="mt-1 line-clamp-1 text-xs text-[#B2B2B2] dark:text-gray-300">
-                {chat.time}
-              </p>
+            {openDropdown === chat.id && !isRenaming && (
+              <div className="dropdown-container absolute top-10 right-3 z-50 w-40 rounded-lg border border-gray-200 bg-white shadow-lg dark:border-zinc-600 dark:bg-zinc-700">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onPin(chat.id);
+                  }}
+                  className="flex w-full items-center gap-3 rounded-t-lg px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 dark:text-white dark:hover:bg-zinc-600"
+                >
+                  <Pin className="h-4 w-4" />
+                  <span>{chat.pinned ? 'Unpin' : 'Pin'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleDropdown(null, e);
+                    startRename(chat);
+                  }}
+                  className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 dark:text-white dark:hover:bg-zinc-600"
+                >
+                  <PiPencilSimpleLight size={16} />
+                  <span>Rename</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(chat.id);
+                  }}
+                  className="flex w-full items-center gap-3 rounded-b-lg px-4 py-2.5 text-sm text-red-600 hover:bg-gray-100 dark:text-red-400 dark:hover:bg-zinc-600"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span>Delete</span>
+                </button>
+              </div>
+            )}
+
+            <div className="flex gap-3 pr-8">
+              <div className="min-w-0 flex-1">
+                {isRenaming ? (
+                  <input
+                    ref={renameInputRef}
+                    type="text"
+                    value={renameValue}
+                    onChange={(e) => setRenameValue(e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => {
+                      e.stopPropagation();
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        commitRename(chat.id);
+                      }
+                      if (e.key === 'Escape') {
+                        e.preventDefault();
+                        cancelRename();
+                      }
+                    }}
+                    onBlur={() => commitRename(chat.id)}
+                    className="w-full rounded-md border border-[#8022fe] bg-white px-2 py-1 text-sm font-semibold text-[#000000] outline-none dark:bg-zinc-900 dark:text-white"
+                    aria-label="Rename conversation"
+                  />
+                ) : (
+                  <h3 className="text-sm font-semibold text-[#000000] dark:text-white">{chat.name}</h3>
+                )}
+                <p className="mt-1 line-clamp-1 text-xs text-[#6B7280] dark:text-gray-200">
+                  {chat.preview}
+                </p>
+                <p className="mt-1 line-clamp-1 text-xs text-[#B2B2B2] dark:text-gray-300">
+                  {chat.time}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
