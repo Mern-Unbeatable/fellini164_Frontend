@@ -29,6 +29,7 @@ export default function MessagePage() {
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const [justSentMessage, setJustSentMessage] = useState(false);
   const messagesEndRef = useRef(null);
+  const didAutoSelectRef = useRef(false);
 
   // Get current chat and messages from Redux state
   const currentChat = selectedChatIndex !== null ? chats[selectedChatIndex] : null;
@@ -47,6 +48,24 @@ export default function MessagePage() {
   useEffect(() => {
     dispatch(fetchConversations());
   }, [dispatch]);
+
+  // After refresh/load: select the first sidebar conversation by default (once)
+  useEffect(() => {
+    if (didAutoSelectRef.current || loadingConversations) return;
+    if (!chats.length) {
+      didAutoSelectRef.current = true;
+      return;
+    }
+
+    didAutoSelectRef.current = true;
+    const first = chats[0];
+    dispatch(setSelectedChatIndex(0));
+    setShowChat(true);
+
+    if (first?.id != null && typeof first.id === 'string') {
+      dispatch(fetchConversationById(first.id));
+    }
+  }, [loadingConversations, chats, dispatch]);
 
   const handleSend = async () => {
     if (!inputValue.trim() || isLoading) return;
