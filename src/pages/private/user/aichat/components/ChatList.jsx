@@ -18,10 +18,14 @@ export default function ChatList({
   const renameInputRef = useRef(null);
 
   useEffect(() => {
-    if (renamingId != null) {
-      renameInputRef.current?.focus();
-      renameInputRef.current?.select();
-    }
+    if (renamingId == null) return;
+    const input = renameInputRef.current;
+    if (!input) return;
+    input.focus();
+    // Select after paint so browser applies our themed ::selection (not system yellow)
+    requestAnimationFrame(() => {
+      input.select();
+    });
   }, [renamingId]);
 
   const startRename = (chat) => {
@@ -159,7 +163,7 @@ export default function ChatList({
                       }
                     }}
                     onBlur={() => commitRename(chat.id)}
-                    className="w-full rounded-md border border-[#8022fe] bg-white px-2 py-1 text-sm font-semibold text-[#000000] outline-none dark:bg-zinc-900 dark:text-white"
+                    className="w-full rounded-md border border-[#8022fe] bg-[#FAF5FF] px-2 py-1 text-sm font-semibold text-[#181818] caret-[#8022fe] outline-none selection:bg-[#8022fe] selection:text-white dark:border-[#A78BFA] dark:bg-[#1F1433] dark:text-white dark:caret-[#A78BFA] dark:selection:bg-[#A78BFA] dark:selection:text-[#181818]"
                     aria-label="Rename conversation"
                   />
                 ) : (

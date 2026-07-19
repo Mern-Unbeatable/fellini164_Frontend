@@ -161,11 +161,6 @@ export const togglePinConversation = createAsyncThunk(
         : await axiosInstance.post(pinUrl, { pinned: true });
 
       const updatedData = response?.data?.data;
-      const apiMessage =
-        response?.data?.message ||
-        (isPinned ? 'Conversation unpinned successfully' : 'Conversation pinned successfully');
-
-      toast.success(apiMessage);
 
       return {
         chatId: updatedData?.id || chatId,
