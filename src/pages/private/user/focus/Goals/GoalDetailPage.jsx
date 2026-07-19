@@ -20,6 +20,8 @@ import {
 } from 'lucide-react';
 import { getGoalById, getPageTasks, getPageHabits, WEEKDAY_LABELS } from './goalsData';
 import GoalAiAssistant from './components/GoalAiAssistant';
+import NewHabitsModal from '../Habits/components/NewHabitsModal';
+import TaskFormModal from '../Tasks/components/TaskFormModal';
 
 const PRIORITY_STYLES = {
   URGENT: 'bg-[rgba(220,38,38,0.05)] text-[#dc2626]',
@@ -95,12 +97,19 @@ function GoalDetailMenu({ onClose, onEdit, onImprove, onPause, onDelete }) {
   );
 }
 
-function TaskCardMenu({ onClose }) {
+function TaskCardMenu({ onEdit, onClose }) {
   const itemBase =
     'flex w-full items-center gap-1.5 px-2.5 py-1.5 text-left text-[12px] font-medium whitespace-nowrap hover:bg-[#fcfcfc] dark:hover:bg-zinc-700';
   return (
     <div className="absolute right-0 top-full z-50 mt-1 flex w-max flex-col overflow-hidden rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
-      <button type="button" onClick={onClose} className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}>
+      <button
+        type="button"
+        onClick={() => {
+          onEdit?.();
+          onClose();
+        }}
+        className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}
+      >
         <Pencil size={12} className="shrink-0" />
         Edit task
       </button>
@@ -127,7 +136,7 @@ function MetaTag({ tag }) {
   );
 }
 
-function PageTaskCard({ task }) {
+function PageTaskCard({ task, onEdit }) {
   const isDone = task.faded;
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
@@ -181,7 +190,12 @@ function PageTaskCard({ task }) {
               >
                 <MoreHorizontal size={16} />
               </button>
-              {menuOpen && <TaskCardMenu onClose={() => setMenuOpen(false)} />}
+              {menuOpen && (
+                <TaskCardMenu
+                  onClose={() => setMenuOpen(false)}
+                  onEdit={() => onEdit?.(task)}
+                />
+              )}
             </div>
           </div>
           <div className="flex flex-col gap-1">
@@ -296,12 +310,19 @@ function HabitDayCell({ state, todayProgress, onToggle }) {
   );
 }
 
-function HabitRowMenu({ onClose }) {
+function HabitRowMenu({ onEdit, onClose }) {
   const itemBase =
     'flex w-full items-center gap-1.5 px-2.5 py-1.5 text-left text-[12px] font-medium whitespace-nowrap hover:bg-[#fcfcfc] dark:hover:bg-zinc-700';
   return (
     <div className="absolute right-0 top-full z-50 mt-1 flex w-max flex-col overflow-hidden rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
-      <button type="button" onClick={onClose} className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}>
+      <button
+        type="button"
+        onClick={() => {
+          onEdit?.();
+          onClose();
+        }}
+        className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}
+      >
         <Pencil size={12} className="shrink-0" />
         Edit habit
       </button>
@@ -318,7 +339,7 @@ function HabitRowMenu({ onClose }) {
   );
 }
 
-function PageHabitRow({ habit }) {
+function PageHabitRow({ habit, onEdit }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [days, setDays] = useState(habit.days);
@@ -438,7 +459,10 @@ function PageHabitRow({ habit }) {
       )}
       {menuOpen && (
         <div className="absolute right-3 top-9 z-50">
-          <HabitRowMenu onClose={() => setMenuOpen(false)} />
+          <HabitRowMenu
+            onClose={() => setMenuOpen(false)}
+            onEdit={() => onEdit?.(habit)}
+          />
         </div>
       )}
     </div>
@@ -526,6 +550,22 @@ export default function GoalDetailPage() {
   const [isAssistantOpen, setIsAssistantOpen] = useState(true);
   const [isAssistantExpanded, setIsAssistantExpanded] = useState(false);
   const [showAllTasks, setShowAllTasks] = useState(false);
+  const [habits, setHabits] = useState(() => {
+    const g = getGoalById(goalId);
+    return g ? getPageHabits(g) : [];
+  });
+  const [tasks, setTasks] = useState(() => {
+    const g = getGoalById(goalId);
+    return g ? getPageTasks(g) : [];
+  });
+  const [habitModal, setHabitModal] = useState({ open: false, habit: null });
+  const [taskModal, setTaskModal] = useState({ open: false, task: null });
+
+  useEffect(() => {
+    const g = getGoalById(goalId);
+    setHabits(g ? getPageHabits(g) : []);
+    setTasks(g ? getPageTasks(g) : []);
+  }, [goalId]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -537,8 +577,6 @@ export default function GoalDetailPage() {
 
   if (!goal) return <Navigate to="/user/goals" replace />;
 
-  const tasks = getPageTasks(goal);
-  const habits = getPageHabits(goal);
   const hasDue = goal.dueDetail || goal.due;
 
   const closeAssistant = () => {
@@ -546,6 +584,73 @@ export default function GoalDetailPage() {
     setIsAssistantExpanded(false);
   };
   const toggleExpandAssistant = () => setIsAssistantExpanded((e) => !e);
+
+  const openEditTask = (task) => setTaskModal({ open: true, task });
+  const closeTaskModal = () => setTaskModal({ open: false, task: null });
+  const handleSubmitTask = (form) => {
+    if (!taskModal.task) return;
+    const tags = [{ label: form.category }];
+    if (form.estMinutes) tags.push({ label: `${form.estMinutes} Min`, icon: 'clock' });
+    if (form.linkedGoal && form.linkedGoal !== '__create_new__') {
+      tags.push({ label: form.linkedGoal, linkedGoal: true });
+    }
+    const statusRaw = form.status || taskModal.task.status || 'to do';
+    const dueLabel = form.dueDate
+      ? (() => {
+          const [year, month, day] = form.dueDate.split('-').map(Number);
+          return new Date(year, month - 1, day).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+          });
+        })()
+      : taskModal.task.due;
+    setTasks((prev) =>
+      prev.map((t) => {
+        if (t.id !== taskModal.task.id) return t;
+        return {
+          ...t,
+          title: form.title || t.title,
+          description: form.description ?? t.description,
+          priority: (form.priority || t.priority).toUpperCase(),
+          category: form.category,
+          tags,
+          status: statusRaw,
+          statusUppercase: /^(to do|done)$/i.test(statusRaw),
+          due: dueLabel,
+          faded: /done/i.test(statusRaw),
+          completedLabel: /done/i.test(statusRaw) ? t.completedLabel || 'Completed' : undefined,
+        };
+      })
+    );
+  };
+
+  const openEditHabit = (habit) => setHabitModal({ open: true, habit });
+  const closeHabitModal = () => setHabitModal({ open: false, habit: null });
+  const handleSaveHabit = (data) => {
+    if (!habitModal.habit) return;
+    setHabits((prev) =>
+      prev.map((h) => {
+        if (h.id !== habitModal.habit.id) return h;
+        const nextDays =
+          Array.isArray(data.targetDays) && data.targetDays.length > 0
+            ? WEEKDAY_LABELS.map((day) => (data.targetDays.includes(day) ? 'empty' : 'unscheduled'))
+            : h.days;
+        const mergedDays = nextDays.map((state, i) => {
+          if (state === 'unscheduled') return 'unscheduled';
+          if (h.days?.[i] === 'checked' || h.days?.[i] === 'today') return h.days[i];
+          return state;
+        });
+        return {
+          ...h,
+          title: data.title,
+          description: data.description,
+          days: mergedDays,
+          todayProgress: mergedDays[TODAY_INDEX] === 'today' ? h.todayProgress : undefined,
+        };
+      })
+    );
+  };
 
   return (
     <div className="flex min-h-full flex-col py-7.5 max-lg:py-4 max-lg:sm:py-6">
@@ -651,7 +756,7 @@ export default function GoalDetailPage() {
                   <div className="flex flex-col items-center gap-4">
                     <div className="grid w-full grid-cols-1 gap-2.5 md:grid-cols-2">
                       {(showAllTasks ? tasks : tasks.slice(0, 4)).map((task) => (
-                        <PageTaskCard key={task.id} task={task} />
+                        <PageTaskCard key={task.id} task={task} onEdit={openEditTask} />
                       ))}
                     </div>
                     {(tasks.length > 4 || (goal.tasks ?? 0) > tasks.length) && (
@@ -682,7 +787,7 @@ export default function GoalDetailPage() {
               ) : (
                 <div className="flex flex-col gap-2">
                   {habits.map((habit) => (
-                    <PageHabitRow key={habit.id} habit={habit} />
+                    <PageHabitRow key={habit.id} habit={habit} onEdit={openEditHabit} />
                   ))}
                 </div>
               )}
@@ -707,6 +812,27 @@ export default function GoalDetailPage() {
             <GoalAiAssistant onClose={closeAssistant} onToggleExpand={toggleExpandAssistant} isExpanded />
           </div>
         </div>
+      )}
+
+      {habitModal.open && (
+        <NewHabitsModal
+          key={habitModal.habit?.id ?? 'edit-habit'}
+          open
+          mode="edit"
+          initialHabit={habitModal.habit}
+          onClose={closeHabitModal}
+          onSave={handleSaveHabit}
+        />
+      )}
+
+      {taskModal.open && (
+        <TaskFormModal
+          key={taskModal.task?.id ?? 'edit-task'}
+          mode="edit"
+          initialTask={taskModal.task}
+          onClose={closeTaskModal}
+          onSubmit={handleSubmitTask}
+        />
       )}
     </div>
   );

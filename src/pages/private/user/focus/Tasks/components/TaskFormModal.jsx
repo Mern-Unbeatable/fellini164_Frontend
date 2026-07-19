@@ -47,6 +47,84 @@ const EMPTY_FORM = {
   description: '',
 };
 
+function toIsoDate(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+/** Card due labels ("May 13, 2026", "Today", "Tomorrow") → input[type=date] value. */
+function dueLabelToIso(due) {
+  if (!due || due === 'No date') return '';
+  const lower = String(due).toLowerCase().trim();
+  const today = new Date();
+  today.setHours(12, 0, 0, 0);
+  if (lower === 'today') return toIsoDate(today);
+  if (lower === 'tomorrow') {
+    const t = new Date(today);
+    t.setDate(t.getDate() + 1);
+    return toIsoDate(t);
+  }
+  const parsed = new Date(due);
+  if (!Number.isNaN(parsed.getTime())) return toIsoDate(parsed);
+  return '';
+}
+
+function formFromTask(task) {
+  if (!task) return EMPTY_FORM;
+
+  const tags = task.tags || [];
+  const category =
+    tags.find((t) => CATEGORIES.includes(t.label))?.label ||
+    task.category ||
+    EMPTY_FORM.category;
+
+  const minTag = tags.find(
+    (t) =>
+      /min/i.test(t.label || '') ||
+      t.icon === 'clock' ||
+      t.icon === Clock ||
+      t.icon === Watch
+  );
+
+  const linkedGoal =
+    tags.find((t) => t.linkedGoal)?.label ||
+    tags.find((t) => LINKED_GOALS.includes(t.label) && t.icon)?.label ||
+    task.linkedGoal ||
+    EMPTY_FORM.linkedGoal;
+
+  const statusKey = String(task.status || '').toLowerCase();
+  const statusMap = {
+    'to do': 'To Do',
+    todo: 'To Do',
+    'in progress': 'In Progress',
+    done: 'Done',
+  };
+
+  const priorityRaw = task.priority || 'MEDIUM';
+  const priority =
+    priorityRaw[0] + String(priorityRaw).slice(1).toLowerCase();
+
+  return {
+    ...EMPTY_FORM,
+    title: task.title || '',
+    priority: PRIORITIES.includes(priority) ? priority : 'Medium',
+    category,
+    description: task.description || '',
+    estMinutes:
+      minTag?.label?.replace(/\D/g, '') ||
+      (task.estMinutes != null ? String(task.estMinutes) : '') ||
+      '',
+    linkedGoal,
+    status: statusMap[statusKey] || (STATUSES.includes(task.status) ? task.status : 'To Do'),
+    dueDate: dueLabelToIso(task.due || task.dueLabel),
+    dueHour: task.dueHour ?? EMPTY_FORM.dueHour,
+    dueMinute: task.dueMinute ?? EMPTY_FORM.dueMinute,
+    duePeriod: task.duePeriod ?? EMPTY_FORM.duePeriod,
+  };
+}
+
 function mockGenerateTask(prompt) {
   const lower = prompt.toLowerCase();
   if (lower.includes('workout') || lower.includes('exercise')) {
@@ -397,23 +475,7 @@ export default function TaskFormModal({ mode = 'create', initialTask, onClose, o
   const [pendingTask, setPendingTask] = useState(null);
   const { revealStep, isRevealing, startReveal } = useAiGenerationReveal();
 
-  const [form, setForm] = useState(() => {
-    if (isEdit && initialTask) {
-      return {
-        ...EMPTY_FORM,
-        title: initialTask.title || '',
-        priority: initialTask.priority
-          ? initialTask.priority[0] + initialTask.priority.slice(1).toLowerCase()
-          : 'Medium',
-        category: initialTask.tags?.[0]?.label || initialTask.category || 'Career',
-        description: initialTask.description || '',
-        estMinutes: initialTask.tags?.find((t) => t.label?.includes('Min'))?.label?.replace(/\D/g, '') || '',
-        linkedGoal: initialTask.tags?.find((t) => t.icon)?.label || 'Improve Rate',
-        status: initialTask.status || 'To Do',
-      };
-    }
-    return EMPTY_FORM;
-  });
+  const [form, setForm] = useState(() => (isEdit && initialTask ? formFromTask(initialTask) : EMPTY_FORM));
 
   const update = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
 
