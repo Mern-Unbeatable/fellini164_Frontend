@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
-import { Copy, Check, Edit2 } from 'lucide-react';
+import { GoCopy, GoCheck } from 'react-icons/go';
+import { PiPencilSimpleLight } from 'react-icons/pi';
 import { toast } from 'react-toastify';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -239,31 +240,41 @@ const MessageItem = memo(
               )}
             </div>
 
-            {/* Action Buttons (Copy/Edit) - Positioned in whitespace */}
-            <div
-              className={`mt-1 flex items-center gap-4 opacity-0 transition-opacity select-none group-hover:opacity-100 ${isUser ? 'justify-end' : 'justify-start'}`}
-            >
-              {/* Edit Button Placeholder (User only) */}
-              {isUser &&
-                /* <button onClick={() => onEditStart(msg)}><Edit2 className="h-3 w-3 text-gray-400" /></button> */
-                null}
-
-              {/* Copy Button */}
-              {!msg.image && (
+            {/* Action Buttons (Copy / Edit) — same row under the bubble */}
+            {!msg.image && (
+              <div
+                className={`mt-1.5 flex items-center gap-2 opacity-0 transition-opacity select-none group-hover:opacity-100 ${
+                  isUser ? 'justify-end' : 'justify-start'
+                }`}
+              >
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     onCopy(msg.id, msg.text);
                   }}
-                  className="flex items-center gap-1 p-1 text-xs text-gray-400 transition-colors hover:text-gray-600 dark:hover:text-gray-200"
+                  className="flex size-7 items-center justify-center rounded-md text-[#5d5d5d] transition-colors hover:bg-[#f2f2f2] hover:text-[#181818] dark:text-gray-300 dark:hover:bg-zinc-700 dark:hover:text-white"
                   title="Copy message"
                   aria-label="Copy message"
                 >
-                  {isCopied ? <Check className="h-3 w-3" /> : <Copy className="h-4 w-4" />}
+                  {isCopied ? <GoCheck size={18} /> : <GoCopy size={18} />}
                 </button>
-              )}
-            </div>
+                {isUser && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEditStart(msg);
+                    }}
+                    className="flex size-7 items-center justify-center rounded-md text-[#5d5d5d] transition-colors hover:bg-[#f2f2f2] hover:text-[#181818] dark:text-gray-300 dark:hover:bg-zinc-700 dark:hover:text-white"
+                    title="Edit message"
+                    aria-label="Edit message"
+                  >
+                    <PiPencilSimpleLight size={18} />
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
