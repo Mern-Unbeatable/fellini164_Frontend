@@ -35,7 +35,8 @@ const PRIORITY_LABELS = {
   LOW: 'Low',
 };
 
-const TODAY_INDEX = (new Date().getDay() + 6) % 7; // Mon=0 ... Sun=6
+// Figma Frame 5.1 + Habits board lock today to Wed (Mon=0).
+const TODAY_INDEX = 2;
 
 function DueDetailPill({ goal }) {
   if (goal.dueDetail) {
@@ -240,32 +241,58 @@ function PageTaskCard({ task }) {
   );
 }
 
-function HabitDayCell({ state, todayProgress }) {
-  // Off-schedule days (e.g. Thu/Sat for Drink Water) — keep slot for grid align, hide the box
+// Same MVP toggle as Habits board: empty / today / 1/2 → checked; checked → empty (or today).
+function HabitDayCell({ state, todayProgress, onToggle }) {
   if (state === 'unscheduled') {
     return <div className="size-[30px] shrink-0" aria-hidden />;
   }
+
+  const boxClass =
+    'box-border size-[30px] shrink-0 cursor-pointer rounded-lg p-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#8022fe]/40';
+
   if (state === 'checked') {
     return (
-      <div className="flex size-[30px] shrink-0 items-center justify-center rounded-lg bg-[#f9f4ff]">
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-label="Mark habit incomplete for this day"
+        className={`flex items-center justify-center border-0 bg-[#f9f4ff] ${boxClass}`}
+      >
         <Check size={12} strokeWidth={3} className="text-[#8022fe]" />
-      </div>
+      </button>
     );
   }
-  if (state === 'today' && todayProgress) {
+
+  if ((state === 'today' || state === 'empty') && todayProgress) {
+    const fillPct = Math.min(100, Math.max(0, (todayProgress.done / todayProgress.total) * 100));
     return (
       <div className="flex shrink-0 flex-col items-center gap-2">
-        <div className="relative size-[30px] overflow-hidden rounded-lg border border-[#e9e9e9] bg-white dark:border-zinc-600">
-          <div className="absolute inset-y-0 left-0 w-1/2 rounded-br rounded-tr-sm bg-[#f9f4ff]" />
-        </div>
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-label={`${todayProgress.done} of ${todayProgress.total} completed — mark complete`}
+          className={`relative overflow-hidden border border-[#e9e9e9] bg-white dark:border-zinc-600 dark:bg-zinc-800 ${boxClass}`}
+        >
+          <span
+            aria-hidden
+            className="absolute inset-y-0 left-0 rounded-br rounded-tr-sm bg-[#f9f4ff]"
+            style={{ width: `${fillPct}%` }}
+          />
+        </button>
         <p className="text-[10px] font-medium text-[#181818] dark:text-gray-200">
           {todayProgress.done}/{todayProgress.total}
         </p>
       </div>
     );
   }
+
   return (
-    <div className="size-[30px] shrink-0 rounded-lg border border-[#e9e9e9] bg-white dark:border-zinc-600 dark:bg-zinc-800" />
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-label="Mark habit complete for this day"
+      className={`border border-[#e9e9e9] bg-white dark:border-zinc-600 dark:bg-zinc-800 ${boxClass}`}
+    />
   );
 }
 
@@ -294,7 +321,12 @@ function HabitRowMenu({ onClose }) {
 function PageHabitRow({ habit }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [days, setDays] = useState(habit.days);
   const cardRef = useRef(null);
+
+  useEffect(() => {
+    setDays(habit.days);
+  }, [habit]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -303,6 +335,21 @@ function PageHabitRow({ habit }) {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Match Habits board MVP: one click toggles empty/today/1/2 ↔ checked.
+  const handleToggleDay = (dayIndex) => {
+    setDays((prev) => {
+      const current = prev[dayIndex];
+      if (current === 'unscheduled') return prev;
+      const next = [...prev];
+      if (current === 'checked') {
+        next[dayIndex] = dayIndex === TODAY_INDEX ? 'today' : 'empty';
+      } else {
+        next[dayIndex] = 'checked';
+      }
+      return next;
+    });
+  };
 
   return (
     <div
@@ -343,11 +390,12 @@ function PageHabitRow({ habit }) {
         </div>
         {/* Desktop day cells — flex-1 fills to card right; justify-evenly = equal gaps */}
         <div className="hidden flex-1 items-start justify-evenly lg:flex">
-          {habit.days.map((day, i) => (
+          {days.map((day, i) => (
             <HabitDayCell
               key={WEEKDAY_LABELS[i]}
               state={day}
               todayProgress={day === 'today' ? habit.todayProgress : null}
+              onToggle={() => handleToggleDay(i)}
             />
           ))}
         </div>
@@ -367,11 +415,12 @@ function PageHabitRow({ habit }) {
           ))}
         </div>
         <div className="flex items-start justify-between">
-          {habit.days.map((day, i) => (
+          {days.map((day, i) => (
             <HabitDayCell
               key={`m-${WEEKDAY_LABELS[i]}`}
               state={day}
               todayProgress={day === 'today' ? habit.todayProgress : null}
+              onToggle={() => handleToggleDay(i)}
             />
           ))}
         </div>
