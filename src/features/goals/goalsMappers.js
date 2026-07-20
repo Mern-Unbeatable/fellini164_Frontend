@@ -1,0 +1,236 @@
+/** Map Goals API payloads ↔ existing UI fields only (no extra API fields on cards). */
+
+const PRIORITY_FROM_API = {
+  URGENT: 'URGENT',
+  HIGH: 'HIGH',
+  MEDIUM: 'MEDIUM',
+  LOW: 'LOW',
+};
+
+const STATUS_FROM_API = {
+  ACTIVE: 'active',
+  PAUSED: 'paused',
+  COMPLETED: 'completed',
+  ARCHIVED: 'completed',
+};
+
+const STATUS_TO_API = {
+  active: 'ACTIVE',
+  paused: 'PAUSED',
+  completed: 'COMPLETED',
+};
+
+export function categoryToApi(category) {
+  return String(category || 'Career').toUpperCase();
+}
+
+export function categoryFromApi(category) {
+  if (!category) return 'Career';
+  const normalized = String(category).toLowerCase();
+  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+}
+
+export function priorityFromApi(value) {
+  if (typeof value === 'string') {
+    const upper = value.toUpperCase();
+    if (PRIORITY_FROM_API[upper]) return upper;
+  }
+  return 'MEDIUM';
+}
+
+export function priorityToApi(value) {
+  return priorityFromApi(value);
+}
+
+export function statusFromApi(status) {
+  if (!status) return 'active';
+  return STATUS_FROM_API[String(status).toUpperCase()] || 'active';
+}
+
+export function statusToApi(status) {
+  return STATUS_TO_API[status] || 'ACTIVE';
+}
+
+function formatDisplayDate(iso) {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function formatRelativeDue(iso) {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return null;
+
+  const formatted = formatDisplayDate(iso);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const target = new Date(date);
+  target.setHours(0, 0, 0, 0);
+  const diffDays = Math.round((target - today) / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) return { due: 'Today', dueDetail: `${formatted} • Today` };
+  if (diffDays === 1) return { due: 'Tomorrow', dueDetail: `${formatted} • Tomorrow` };
+  if (diffDays > 1 && diffDays <= 14) {
+    return { due: `In ${diffDays} days`, dueDetail: `${formatted} • In ${diffDays} days` };
+  }
+  return { due: formatted, dueDetail: formatted };
+}
+
+export function parseDueToIso(dueDate, displayDue) {
+  if (dueDate && /^\d{4}-\d{2}-\d{2}$/.test(String(dueDate))) return dueDate;
+  if (!displayDue || displayDue === 'Today') {
+    return new Date().toISOString().slice(0, 10);
+  }
+  const parsed = new Date(displayDue);
+  if (!Number.isNaN(parsed.getTime())) return parsed.toISOString().slice(0, 10);
+  return undefined;
+}
+
+function readCount(apiGoal, keys, arrayKey) {
+  for (const key of keys) {
+    if (typeof apiGoal?.[key] === 'number') return apiGoal[key];
+  }
+  if (Array.isArray(apiGoal?.[arrayKey])) return apiGoal[arrayKey].length;
+  return 0;
+}
+
+export function mapGoalFromApi(apiGoal, sourceOverride) {
+  if (!apiGoal) return null;
+
+  const targetDate = apiGoal.targetDate || apiGoal.target_date || apiGoal.dueDate;
+  const dueFields = targetDate ? formatRelativeDue(targetDate) : { due: null, dueDetail: null };
+
+  const completedAt = apiGoal.completedAt || apiGoal.completed_at;
+  const uiStatus = statusFromApi(apiGoal.status);
+
+  let targetDateIso;
+  if (targetDate) {
+    const d = new Date(targetDate);
+    if (!Number.isNaN(d.getTime())) targetDateIso = d.toISOString().slice(0, 10);
+  }
+
+  return {
+    id: apiGoal.id,
+    priority: priorityFromApi(apiGoal.priorityLevel || apiGoal.priority),
+    title: apiGoal.title || '',
+    description: apiGoal.description || '',
+    category: categoryFromApi(apiGoal.category),
+    tasks: readCount(apiGoal, ['taskCount', 'tasksCount', 'linkedTaskCount'], 'linkedTasks'),
+    habits: readCount(apiGoal, ['habitCount', 'habitsCount', 'linkedHabitCount'], 'linkedHabits'),
+    due: dueFields.due,
+    dueDetail: dueFields.dueDetail,
+    targetDate: targetDateIso,
+    progress:
+      uiStatus === 'completed'
+        ? (apiGoal.progress ?? apiGoal.progressPercent ?? 100)
+        : (apiGoal.progress ?? apiGoal.progressPercent ?? 0),
+    status: uiStatus,
+    source:
+      sourceOverride ||
+      (apiGoal.createdByAi || apiGoal.source === 'ai' ? 'ai' : 'manual'),
+    completedDate:
+      uiStatus === 'completed' && completedAt
+        ? formatDisplayDate(completedAt)
+        : undefined,
+  };
+}
+
+export function mapCreatePayload(formData) {
+  const payload = {
+    title: formData.title,
+    description: formData.description || '',
+    category: categoryToApi(formData.category),
+    priorityLevel: priorityToApi(formData.priority),
+    isMainFocus: false,
+  };
+
+  const targetDate = parseDueToIso(formData.dueDate, formData.due);
+  if (targetDate) payload.targetDate = targetDate;
+
+  return payload;
+}
+
+export function mapUpdatePayload(formData) {
+  const payload = mapCreatePayload(formData);
+  delete payload.isMainFocus;
+  return payload;
+}
+
+export function normalizeGoalsList(data) {
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.goals)) return data.goals;
+  if (Array.isArray(data?.items)) return data.items;
+  if (Array.isArray(data?.data)) return data.data;
+  return [];
+}
+
+export function normalizeBoardSummary(data, goals = []) {
+  if (data && typeof data.active === 'number') {
+    return {
+      active: data.active,
+      paused: data.paused ?? 0,
+      completedThisMonth: data.completedThisMonth ?? data.completedThisMonthCount ?? 0,
+    };
+  }
+
+  return {
+    active: goals.filter((g) => g.status === 'active').length,
+    paused: goals.filter((g) => g.status === 'paused').length,
+    completedThisMonth: goals.filter((g) => g.status === 'completed').length,
+  };
+}
+
+function mapTaskStatus(status) {
+  const raw = String(status || 'to do');
+  const lower = raw.toLowerCase();
+  const uppercaseStatuses = ['to do', 'todo'];
+  return {
+    status: raw,
+    statusUppercase: uppercaseStatuses.includes(lower),
+  };
+}
+
+export function mapLinkedTaskFromApi(task) {
+  if (!task) return null;
+  const statusFields = mapTaskStatus(task.status);
+  const dueRaw = task.dueDate || task.due_date || task.due;
+
+  return {
+    id: task.id,
+    priority: priorityFromApi(task.priorityLevel || task.priority),
+    source: task.source === 'ai' || task.createdByAi ? 'ai' : undefined,
+    title: task.title || '',
+    description: task.description || '',
+    tags: Array.isArray(task.tags)
+      ? task.tags
+      : task.category
+        ? [{ label: categoryFromApi(task.category) }]
+        : [],
+    due: dueRaw ? formatDisplayDate(dueRaw) || String(dueRaw) : undefined,
+    overdueDays: task.overdueDays,
+    overdueLabel: task.overdueLabel,
+    overdueOrange: task.overdueOrange,
+    completedLabel: task.completedLabel,
+    faded: ['done', 'completed'].includes(String(task.status || '').toLowerCase()),
+    ...statusFields,
+  };
+}
+
+export function mapLinkedHabitFromApi(habit) {
+  if (!habit) return null;
+
+  return {
+    id: habit.id,
+    title: habit.title || habit.name || '',
+    description: habit.description || '',
+    tags: Array.isArray(habit.tags) ? habit.tags : [],
+    days: Array.isArray(habit.days) ? habit.days : [],
+    todayProgress: habit.todayProgress || { done: 0, total: 0 },
+  };
+}
+
+export function isUuid(value) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    String(value)
+  );
+}

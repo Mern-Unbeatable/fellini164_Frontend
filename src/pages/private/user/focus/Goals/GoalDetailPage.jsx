@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
-import { useParams, Navigate } from 'react-router-dom';
+import { useParams, Navigate, useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   Sparkles,
   MoreHorizontal,
@@ -18,7 +19,18 @@ import {
   Pause,
   Trash2,
 } from 'lucide-react';
-import { getGoalById, getPageTasks, getPageHabits, WEEKDAY_LABELS } from './goalsData';
+import { WEEKDAY_LABELS } from './goalsData';
+import {
+  clearCurrentGoal,
+  deleteGoal,
+  fetchGoalById,
+  selectCurrentGoal,
+  selectCurrentGoalHabits,
+  selectCurrentGoalTasks,
+  selectGoalDetailLoading,
+  selectGoals,
+  updateGoalStatus,
+} from '../../../../../features/goals/goalsSlice';
 import GoalAiAssistant from './components/GoalAiAssistant';
 import NewHabitsModal from '../Habits/components/NewHabitsModal';
 import TaskFormModal from '../Tasks/components/TaskFormModal';
@@ -544,28 +556,34 @@ function EmptyLinkedState({ message }) {
 
 export default function GoalDetailPage() {
   const { goalId } = useParams();
-  const goal = getGoalById(goalId);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const goals = useSelector(selectGoals);
+  const currentGoal = useSelector(selectCurrentGoal);
+  const apiTasks = useSelector(selectCurrentGoalTasks);
+  const apiHabits = useSelector(selectCurrentGoalHabits);
+  const loadingGoal = useSelector(selectGoalDetailLoading);
+  const goal = currentGoal || goals.find((g) => String(g.id) === String(goalId)) || null;
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
   const [isAssistantOpen, setIsAssistantOpen] = useState(true);
   const [isAssistantExpanded, setIsAssistantExpanded] = useState(false);
   const [showAllTasks, setShowAllTasks] = useState(false);
-  const [habits, setHabits] = useState(() => {
-    const g = getGoalById(goalId);
-    return g ? getPageHabits(g) : [];
-  });
-  const [tasks, setTasks] = useState(() => {
-    const g = getGoalById(goalId);
-    return g ? getPageTasks(g) : [];
-  });
+  const [editedLists, setEditedLists] = useState({ goalId: null, tasks: null, habits: null });
   const [habitModal, setHabitModal] = useState({ open: false, habit: null });
   const [taskModal, setTaskModal] = useState({ open: false, task: null });
+  const tasks =
+    editedLists.goalId === goalId && editedLists.tasks ? editedLists.tasks : apiTasks;
+  const habits =
+    editedLists.goalId === goalId && editedLists.habits ? editedLists.habits : apiHabits;
 
   useEffect(() => {
-    const g = getGoalById(goalId);
-    setHabits(g ? getPageHabits(g) : []);
-    setTasks(g ? getPageTasks(g) : []);
-  }, [goalId]);
+    if (!goalId) return undefined;
+    dispatch(fetchGoalById(goalId));
+    return () => {
+      dispatch(clearCurrentGoal());
+    };
+  }, [dispatch, goalId]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -575,7 +593,8 @@ export default function GoalDetailPage() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  if (!goal) return <Navigate to="/user/goals" replace />;
+  if (loadingGoal && !goal) return null;
+  if (!loadingGoal && !goal) return <Navigate to="/user/goals" replace />;
 
   const hasDue = goal.dueDetail || goal.due;
 
@@ -605,8 +624,11 @@ export default function GoalDetailPage() {
           });
         })()
       : taskModal.task.due;
-    setTasks((prev) =>
-      prev.map((t) => {
+    const baseTasks =
+      editedLists.goalId === goalId && editedLists.tasks ? editedLists.tasks : apiTasks;
+    setEditedLists({
+      goalId,
+      tasks: baseTasks.map((t) => {
         if (t.id !== taskModal.task.id) return t;
         return {
           ...t,
@@ -621,16 +643,20 @@ export default function GoalDetailPage() {
           faded: /done/i.test(statusRaw),
           completedLabel: /done/i.test(statusRaw) ? t.completedLabel || 'Completed' : undefined,
         };
-      })
-    );
+      }),
+      habits: editedLists.goalId === goalId ? editedLists.habits : null,
+    });
   };
 
   const openEditHabit = (habit) => setHabitModal({ open: true, habit });
   const closeHabitModal = () => setHabitModal({ open: false, habit: null });
   const handleSaveHabit = (data) => {
     if (!habitModal.habit) return;
-    setHabits((prev) =>
-      prev.map((h) => {
+    const baseHabits =
+      editedLists.goalId === goalId && editedLists.habits ? editedLists.habits : apiHabits;
+    setEditedLists({
+      goalId,
+      habits: baseHabits.map((h) => {
         if (h.id !== habitModal.habit.id) return h;
         const nextDays =
           Array.isArray(data.targetDays) && data.targetDays.length > 0
@@ -648,8 +674,9 @@ export default function GoalDetailPage() {
           days: mergedDays,
           todayProgress: mergedDays[TODAY_INDEX] === 'today' ? h.todayProgress : undefined,
         };
-      })
-    );
+      }),
+      tasks: editedLists.goalId === goalId ? editedLists.tasks : null,
+    });
   };
 
   return (
@@ -697,8 +724,16 @@ export default function GoalDetailPage() {
                       onClose={() => setMenuOpen(false)}
                       onEdit={() => setMenuOpen(false)}
                       onImprove={() => setMenuOpen(false)}
-                      onPause={() => setMenuOpen(false)}
-                      onDelete={() => setMenuOpen(false)}
+                      onPause={async () => {
+                        setMenuOpen(false);
+                        const nextStatus = goal.status === 'paused' ? 'active' : 'paused';
+                        await dispatch(updateGoalStatus({ goalId: goal.id, status: nextStatus }));
+                      }}
+                      onDelete={async () => {
+                        setMenuOpen(false);
+                        await dispatch(deleteGoal(goal.id));
+                        navigate('/user/goals');
+                      }}
                     />
                   )}
                 </div>
