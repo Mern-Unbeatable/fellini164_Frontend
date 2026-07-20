@@ -105,8 +105,9 @@ export async function completeGoalApi(id) {
 
 /**
  * Pause / Activate toggle.
- * Postman name: PATCH Pause / Activate Goal (Toggle)
- * Tries dedicated routes, then Update Goal with { status }.
+ * Postman (Goals_Updated):
+ *   PATCH {{baseUrl}}/goals/{{goalId}}/pause   → status PAUSED
+ *   Activate uses /activate (or pause toggle reverse)
  */
 export async function updateGoalStatusApi(id, status) {
   const upper = String(status || '').toUpperCase();
@@ -115,24 +116,20 @@ export async function updateGoalStatusApi(id, status) {
   const isCompleted = upper === 'COMPLETED';
 
   const attempts = [
-    // Documented path
-    () => axiosInstance.patch(`${BASE}/${id}/status`, { status: upper }),
-    () => axiosInstance.post(`${BASE}/${id}/status`, { status: upper }),
-    // Dedicated pause / activate / complete routes (common Postman naming)
+    // Confirmed Postman: PATCH /goals/:id/pause
     ...(isPaused
       ? [
           () => axiosInstance.patch(`${BASE}/${id}/pause`),
           () => axiosInstance.post(`${BASE}/${id}/pause`),
-          () => axiosInstance.patch(`${BASE}/${id}/activate`, { paused: true }),
         ]
       : []),
+    // Activate counterpart
     ...(isActive
       ? [
           () => axiosInstance.patch(`${BASE}/${id}/activate`),
           () => axiosInstance.post(`${BASE}/${id}/activate`),
           () => axiosInstance.patch(`${BASE}/${id}/unpause`),
           () => axiosInstance.post(`${BASE}/${id}/unpause`),
-          () => axiosInstance.patch(`${BASE}/${id}/pause`, { paused: false }),
         ]
       : []),
     ...(isCompleted
@@ -141,10 +138,12 @@ export async function updateGoalStatusApi(id, status) {
           () => axiosInstance.post(`${BASE}/${id}/complete`),
         ]
       : []),
-    // Fallback: Update Goal (works if /status route is missing)
+    // Legacy /status (often 404 Route not found on this backend)
+    () => axiosInstance.patch(`${BASE}/${id}/status`, { status: upper }),
+    () => axiosInstance.post(`${BASE}/${id}/status`, { status: upper }),
+    // Last resort: Update Goal body
     () => axiosInstance.patch(`${BASE}/${id}`, { status: upper }),
     () => axiosInstance.put(`${BASE}/${id}`, { status: upper }),
-    () => axiosInstance.post(`${BASE}/${id}`, { status: upper }),
   ];
 
   let lastError;

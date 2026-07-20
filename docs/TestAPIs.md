@@ -127,7 +127,7 @@ Confirm all of the following:
 | Link tasks | `POST .../link-tasks` (+ `/tasks` fallback) | Named in collection; exact path/body not pasted here | Yes — `LinkItemsModal` | **PARTIAL** |
 | Link habits | `POST .../link-habits` (+ `/habits` fallback) | Named in collection; exact path/body not pasted here | Yes — `LinkItemsModal` | **PARTIAL** |
 | Complete | `PATCH .../complete` then status fallbacks | Named “PATCH Complete Goal” | Yes — card menu | **PARTIAL** |
-| Pause / Activate | `PATCH .../status` + `/pause` `/activate` + update `{ status }` | User said `PATCH /status`; app got **Route not found** then fallbacks | Yes — toggle label Activate/Pause | **PARTIAL / BLOCKED without Postman proof** |
+| Pause / Activate | `PATCH /api/v1/goals/:id/pause` (Activate: `/activate`) | Confirmed in VS Code Postman: `200 OK`, `status: "PAUSED"` | Yes — card menu toggle | **PASS** (path corrected from `/status`) |
 | Delete | `DELETE /api/v1/goals/:id` | Named in collection | Yes — card / detail | **PASS** (needs Network re-check) |
 
 ### A.2 Request Contract (Create) — Known from Postman
