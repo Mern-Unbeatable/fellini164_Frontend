@@ -79,7 +79,7 @@ function PillBadge({ children, className = '' }) {
   );
 }
 
-function GoalDetailMenu({ onClose, onEdit, onImprove, onPause, onDelete }) {
+function GoalDetailMenu({ onClose, onEdit, onImprove, onPause, onDelete, isPaused }) {
   const itemBase =
     'flex w-full items-center gap-1.5 px-2.5 py-1.5 text-left text-[12px] font-medium whitespace-nowrap hover:bg-[#fcfcfc] dark:hover:bg-zinc-700';
 
@@ -96,7 +96,7 @@ function GoalDetailMenu({ onClose, onEdit, onImprove, onPause, onDelete }) {
       <div className="h-px w-full bg-[#f2f2f2] dark:bg-zinc-700" />
       <button type="button" onClick={onPause} className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}>
         <Pause size={12} className="shrink-0" />
-        Pause goal
+        {isPaused ? 'Activate goal' : 'Pause goal'}
       </button>
       <button type="button" onClick={onDelete} className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}>
         <Trash2 size={12} className="shrink-0" />
@@ -721,6 +721,7 @@ export default function GoalDetailPage() {
                   </button>
                   {menuOpen && (
                     <GoalDetailMenu
+                      isPaused={goal.status === 'paused'}
                       onClose={() => setMenuOpen(false)}
                       onEdit={() => setMenuOpen(false)}
                       onImprove={() => setMenuOpen(false)}

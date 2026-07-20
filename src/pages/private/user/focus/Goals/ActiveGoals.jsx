@@ -409,7 +409,7 @@ function GhostGoalCard({ goal, onDismiss, onRegenerate, onAccept }) {
 
 // Figma Goals Board (1440) - 1.1 - hover (1250:10104)
 // Menu: Edit | ✦ Add Task, ✦ Add Habit | Complete, Pause, Delete
-function GoalCardMenu({ onEdit, onAddTask, onAddHabit, onComplete, onPause, onDelete }) {
+function GoalCardMenu({ onEdit, onAddTask, onAddHabit, onComplete, onPause, onDelete, isPaused }) {
   const itemBase =
     'flex w-full items-center gap-1.5 px-[10px] py-1.5 text-left text-[12px] font-medium leading-[1.5] whitespace-nowrap hover:bg-[#fcfcfc] dark:hover:bg-zinc-700';
   return (
@@ -447,7 +447,7 @@ function GoalCardMenu({ onEdit, onAddTask, onAddHabit, onComplete, onPause, onDe
         className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}
       >
         <Pause size={ICON.menu} className="size-2.5 shrink-0" />
-        Pause
+        {isPaused ? 'Activate' : 'Pause'}
       </button>
       <button
         type="button"
@@ -600,6 +600,7 @@ function GoalCard({
       {menuOpen && (
         <div className="absolute top-9 right-3 z-50">
           <GoalCardMenu
+            isPaused={isPaused}
             onEdit={() => {
               setMenuOpen(false);
               onEdit(goal);
