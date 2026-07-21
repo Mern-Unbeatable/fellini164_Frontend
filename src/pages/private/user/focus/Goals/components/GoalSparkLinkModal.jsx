@@ -1,7 +1,14 @@
 import { useEffect, useState } from 'react';
 import { X, Sparkles, Check, ChevronDown } from 'lucide-react';
 import TypewriterPlaceholder from '../../../../../../components/ui/TypewriterPlaceholder';
-import { LINK_HABIT_OPTIONS, LINK_TASK_OPTIONS } from './LinkItemsModal';
+import {
+  fetchHabitsForLinkApi,
+  fetchTasksForLinkApi,
+} from '../../../../../../features/goals/goalsAPI';
+import {
+  normalizeLinkPickerOptions,
+  orderedLinkPickerOptions,
+} from '../../../../../../features/goals/goalsMappers';
 
 const AI_TASK_PHRASES = [
   'Create a task for my weekly workout...',
@@ -14,10 +21,6 @@ const AI_HABIT_PHRASES = [
   'Build a daily stretch routine...',
   'Suggest a habit for better focus...',
 ];
-
-function orderedOptions(options) {
-  return [...options].sort((a, b) => Number(Boolean(b.aiSuggested)) - Number(Boolean(a.aiSuggested)));
-}
 
 function OptionBadge({ type }) {
   if (type === 'aiSuggested') {
@@ -138,24 +141,35 @@ export default function GoalSparkLinkModal({
   const [generated, setGenerated] = useState(null);
   const [selected, setSelected] = useState([]);
   const [listOpen, setListOpen] = useState(true);
+  const [options, setOptions] = useState([]);
 
-  const options = orderedOptions(isTasks ? LINK_TASK_OPTIONS : LINK_HABIT_OPTIONS).filter(
-    (o) => !excludeIds.includes(o.id),
-  );
   const phrases = isTasks ? AI_TASK_PHRASES : AI_HABIT_PHRASES;
   const title = isTasks ? 'New Task' : 'New Habit';
   const findLabel = isTasks ? 'Linked Tasks' : 'Linked Habits';
   const findPlaceholder = isTasks ? 'Select Tasks' : 'Select Habits';
 
   useEffect(() => {
-    if (!open) return;
-    setActiveTab('ai');
-    setAiPhase('input');
-    setAiPrompt('');
-    setGenerated(null);
-    setSelected([]);
-    setListOpen(true);
-  }, [open, type]);
+    if (!open) return undefined;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = isTasks ? await fetchTasksForLinkApi() : await fetchHabitsForLinkApi();
+        if (cancelled) return;
+        setOptions(
+          orderedLinkPickerOptions(normalizeLinkPickerOptions(data)).filter(
+            (o) => !excludeIds.includes(o.id),
+          ),
+        );
+      } catch {
+        if (!cancelled) setOptions([]);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open, type, isTasks, excludeIds]);
 
   if (!open) return null;
 

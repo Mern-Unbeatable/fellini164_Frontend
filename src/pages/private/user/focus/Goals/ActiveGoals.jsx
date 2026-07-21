@@ -1138,6 +1138,7 @@ export default function ActiveGoals() {
         confirming={linking}
       />
       <GoalSparkLinkModal
+        key={`${sparkModal.open}-${sparkModal.type}-${sparkModal.goal?.id ?? 'none'}`}
         open={sparkModal.open}
         type={sparkModal.type}
         goalTitle={sparkModal.goal?.title}

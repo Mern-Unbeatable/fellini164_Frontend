@@ -121,9 +121,9 @@ Confirm all of the following:
 | Action | Method + Path (as coded) | Postman validation | Frontend wired | Status |
 |--------|--------------------------|--------------------|----------------|--------|
 | List goals (+ filters) | `GET /api/v1/goals` + query params | Confirmed 2026-07-21 — samples for bare list, `status`+`priorityLevel`, `search`+`page`+`limit`, `dueFilter` | Yes — `ActiveGoals` → `fetchGoals({ filters, search })` | **PASS** (mapper audit ALL PASS; live Network needs logged-in session) |
-| AI generate goal | `POST /api/v1/goals/ai/generate` | Confirmed 2026-07-21 — sample `data` goal + `tokensUsed` | Yes — New Goal → AI Generation → Generate | **PASS** (body `{ prompt }` used; confirm Postman body key if different) |
+| AI generate goal | `POST /api/v1/goals/ai/generate` | Confirmed 2026-07-21 — body `{ prompt, category }` | Yes — New Goal → AI Generation → Generate | **PASS** (body `{ prompt, category }`; server persists; Add to Board refreshes only) |
 | Board summary | Embedded in list response `summary` | Confirmed in list responses (`active` / `paused` / `completedThisMonth` / `total`) | Yes — used from list envelope; separate `/summary` kept as unused fallback | **PASS** for list-embedded summary |
-| Create goal | `POST /api/v1/goals` | Confirmed `201 Created` earlier | Yes — `NewGoalModal` | **PASS** (needs Network re-check logged in) |
+| Create goal | `POST /api/v1/goals` | Confirmed body with `source`, optional UUID `taskIds`/`habitIds` | Yes — `NewGoalModal` manual + live task/habit pickers | **PASS** (omit `taskIds`/`habitIds` when empty; never send placeholders) |
 | Get single goal | `GET /api/v1/goals/:id` | Confirmed via `goalId` variable flow | Yes — `GoalDetailPage` | **PASS** |
 | Update goal | `PATCH` → `PUT` → `POST` `/api/v1/goals/:id` | Exact method not locked in Postman paste | Yes — Edit modal | **PARTIAL** — method fallbacks |
 | Link tasks | `POST .../link-tasks` (+ `/tasks` fallback) | Exact path/body not pasted this session | Yes — `LinkItemsModal` | **PARTIAL** |
@@ -156,11 +156,29 @@ Verified Postman body shape used by frontend mapper:
   "category": "CAREER",
   "priorityLevel": "MEDIUM",
   "targetDate": "YYYY-MM-DD",
-  "isMainFocus": false
+  "isMainFocus": false,
+  "source": "MANUAL",
+  "taskIds": ["uuid"],
+  "habitIds": ["uuid"]
 }
 ```
 
+- `category`: `CAREER` | `HEALTH` | `FINANCE` | `PERSONAL` | `EDUCATION`
+- `priorityLevel`: `LOW` | `MEDIUM` | `HIGH` | `URGENT` (default MEDIUM)
+- `taskIds` / `habitIds`: only included when non-empty real UUIDs (placeholders like `{{taskId}}` fail validation)
+
 Frontend mapper: `mapCreatePayload` in `goalsMappers.js` — **aligned**.
+
+### A.2b Request Contract (AI Generate)
+
+```json
+{
+  "prompt": "I want to developers my math learning path",
+  "category": "CAREER"
+}
+```
+
+Frontend: `generateGoal` → `generateGoalApi({ prompt, category })`. Response goal is already persisted — do not `POST /goals` again.
 
 ### A.3 Response Contract (Create) — Known from Postman
 

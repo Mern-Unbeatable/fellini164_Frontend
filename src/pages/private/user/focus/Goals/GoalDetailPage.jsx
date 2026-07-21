@@ -1041,6 +1041,7 @@ export default function GoalDetailPage() {
         onConfirm={handleConfirmLink}
       />
       <GoalSparkLinkModal
+        key={`${sparkModal.open}-${sparkModal.type}-${goal?.id ?? 'none'}`}
         open={sparkModal.open}
         type={sparkModal.type}
         goalTitle={goal?.title}

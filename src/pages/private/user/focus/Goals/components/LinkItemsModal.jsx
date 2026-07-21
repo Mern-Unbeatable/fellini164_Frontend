@@ -1,25 +1,13 @@
 import { useEffect, useState } from 'react';
 import { X, Check, ChevronDown } from 'lucide-react';
-
-/** Same catalogue as New Goal Linked multi-select (Figma / client screenshot). */
-export const LINK_TASK_OPTIONS = [
-  { id: 'task-1', label: 'Exercise Routine', aiSuggested: true },
-  { id: 'task-2', label: 'Deliver message' },
-  { id: 'task-3', label: 'Work 3' },
-  { id: 'task-4', label: 'Work 4' },
-];
-
-export const LINK_HABIT_OPTIONS = [
-  { id: 'habit-1', label: 'Drink Water', aiSuggested: true },
-  { id: 'habit-2', label: 'Take Breaks' },
-  { id: 'habit-3', label: 'Meditate', status: 'paused' },
-  { id: 'habit-4', label: 'Exercise' },
-  { id: 'habit-5', label: 'Drink Water 2', status: 'completed' },
-];
-
-function orderedOptions(options) {
-  return [...options].sort((a, b) => Number(Boolean(b.aiSuggested)) - Number(Boolean(a.aiSuggested)));
-}
+import {
+  fetchHabitsForLinkApi,
+  fetchTasksForLinkApi,
+} from '../../../../../../features/goals/goalsAPI';
+import {
+  normalizeLinkPickerOptions,
+  orderedLinkPickerOptions,
+} from '../../../../../../features/goals/goalsMappers';
 
 function OptionBadge({ type }) {
   if (type === 'aiSuggested') {
@@ -47,7 +35,7 @@ function OptionBadge({ type }) {
 }
 
 /**
- * Plus (+) on Linked Tasks / Habits — multi-select list matching New Goal linked picker.
+ * Plus (+) on Linked Tasks / Habits — multi-select from live GET /tasks | /habits.
  */
 export default function LinkItemsModal({
   open,
@@ -58,21 +46,46 @@ export default function LinkItemsModal({
   confirming,
   excludeIds = [],
 }) {
+  const [options, setOptions] = useState([]);
   const [selected, setSelected] = useState([]);
   const [listOpen, setListOpen] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const isTasks = type === 'tasks';
   const label = isTasks ? 'Linked Tasks' : 'Linked Habits';
   const placeholder = isTasks ? 'Select Tasks' : 'Select Habits';
-  const options = orderedOptions(isTasks ? LINK_TASK_OPTIONS : LINK_HABIT_OPTIONS).filter(
-    (o) => !excludeIds.includes(o.id),
-  );
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) return undefined;
+
+    let cancelled = false;
     setSelected([]);
     setListOpen(true);
-  }, [open, type]);
+    setError(null);
+    setLoading(true);
+
+    (async () => {
+      try {
+        const data = isTasks ? await fetchTasksForLinkApi() : await fetchHabitsForLinkApi();
+        if (cancelled) return;
+        const next = orderedLinkPickerOptions(normalizeLinkPickerOptions(data)).filter(
+          (o) => !excludeIds.includes(o.id),
+        );
+        setOptions(next);
+      } catch (err) {
+        if (cancelled) return;
+        setError(err?.response?.data?.message || `Failed to load ${isTasks ? 'tasks' : 'habits'}`);
+        setOptions([]);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open, isTasks, excludeIds]);
 
   if (!open) return null;
 
@@ -110,9 +123,11 @@ export default function LinkItemsModal({
               className="flex h-[31px] w-full items-center justify-between rounded-[8px] border border-[#f2f2f2] bg-white px-[12px] py-[8px] text-left dark:border-zinc-700 dark:bg-zinc-800"
             >
               <span className="truncate text-[12px] font-medium leading-normal text-[#c2c2c2]">
-                {selectedItems.length > 0
-                  ? selectedItems.map((i) => i.label).join(', ')
-                  : placeholder}
+                {loading
+                  ? 'Loading…'
+                  : selectedItems.length > 0
+                    ? selectedItems.map((i) => i.label).join(', ')
+                    : placeholder}
               </span>
               <ChevronDown
                 size={12}
@@ -121,12 +136,20 @@ export default function LinkItemsModal({
             </button>
 
             {listOpen && (
-              <div className="overflow-hidden rounded-[8px] border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
-                {options.length === 0 ? (
+              <div className="max-h-60 overflow-y-auto overflow-hidden rounded-[8px] border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
+                {loading && (
+                  <p className="px-[10px] py-3 text-[12px] font-medium text-[#c2c2c2]">Loading…</p>
+                )}
+                {!loading && error && (
+                  <p className="px-[10px] py-3 text-[12px] font-medium text-red-500">{error}</p>
+                )}
+                {!loading && !error && options.length === 0 && (
                   <p className="px-[10px] py-3 text-[12px] font-medium text-[#c2c2c2]">
                     No {isTasks ? 'tasks' : 'habits'} available to link.
                   </p>
-                ) : (
+                )}
+                {!loading &&
+                  !error &&
                   options.map((option) => {
                     const checked = selected.includes(option.id);
                     return (
@@ -153,8 +176,7 @@ export default function LinkItemsModal({
                         {option.status === 'completed' && <OptionBadge type="completed" />}
                       </button>
                     );
-                  })
-                )}
+                  })}
               </div>
             )}
           </div>

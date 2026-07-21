@@ -15,7 +15,7 @@ import {
 } from './goalsAPI';
 import {
   buildGoalsQueryParams,
-  isUuid,
+  categoryToApi,
   mapAiGeneratedGoalForPreview,
   mapCreatePayload,
   mapGoalFromApi,
@@ -84,49 +84,34 @@ export const createGoal = createAsyncThunk(
     try {
       const payload = mapCreatePayload(formData);
       const created = await createGoalApi(payload);
-      let goal = mapGoalFromApi(created, formData.source || 'manual');
-
-      const taskIds = (formData.linkedTasks || []).filter(isUuid);
-      const habitIds = (formData.linkedHabits || []).filter(isUuid);
-
-      if (taskIds.length) {
-        try {
-          await linkTasksToGoalApi(goal.id, taskIds);
-          goal = { ...goal, tasks: taskIds.length };
-        } catch {
-          /* optional until real task IDs exist */
-        }
-      }
-
-      if (habitIds.length) {
-        try {
-          await linkHabitsToGoalApi(goal.id, habitIds);
-          goal = { ...goal, habits: habitIds.length };
-        } catch {
-          /* optional until real habit IDs exist */
-        }
-      }
-
-      return goal;
+      return mapGoalFromApi(created, formData.source || 'manual');
     } catch (error) {
-      toast.error(error?.response?.data?.message || 'Failed to create goal');
-      return rejectWithValue(error?.response?.data?.message || 'Failed to create goal');
+      const data = error?.response?.data;
+      const fieldErrors = Array.isArray(data?.errors)
+        ? data.errors.map((e) => e.msg).filter(Boolean).join('; ')
+        : '';
+      const message = fieldErrors || data?.message || 'Failed to create goal';
+      toast.error(message);
+      return rejectWithValue(message);
     }
   }
 );
 
 /**
  * POST /goals/ai/generate
- * Body (Postman contract used here): { prompt: string }
- * Response data is an already-persisted goal — do not POST /goals again on Add to Board.
+ * Body: { prompt, category } — category CAREER|HEALTH|FINANCE|PERSONAL|EDUCATION
+ * Response data is already persisted — do not POST /goals again on Add to Board.
  */
 export const generateGoal = createAsyncThunk(
   'goals/generateGoal',
-  async ({ prompt }, { rejectWithValue }) => {
+  async ({ prompt, category }, { rejectWithValue }) => {
     try {
       const trimmed = String(prompt || '').trim();
       if (!trimmed) return rejectWithValue('Describe the goal you want to generate');
-      const data = await generateGoalApi({ prompt: trimmed });
+      const data = await generateGoalApi({
+        prompt: trimmed,
+        category: categoryToApi(category || 'Career'),
+      });
       const preview = mapAiGeneratedGoalForPreview(data);
       if (!preview?.id) {
         return rejectWithValue('Invalid AI generate response');

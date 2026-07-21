@@ -226,10 +226,20 @@ export function mapCreatePayload(formData) {
     category: categoryToApi(formData.category),
     priorityLevel: priorityToApi(formData.priority),
     isMainFocus: false,
+    source:
+      formData.source === 'ai' || String(formData.source || '').toUpperCase() === 'AI'
+        ? 'AI'
+        : 'MANUAL',
   };
 
   const targetDate = parseDueToIso(formData.dueDate, formData.due);
   if (targetDate) payload.targetDate = targetDate;
+
+  // Only real UUIDs — backend rejects placeholders like "{{taskId}}"
+  const taskIds = (formData.taskIds || formData.linkedTasks || []).filter(isUuid);
+  const habitIds = (formData.habitIds || formData.linkedHabits || []).filter(isUuid);
+  if (taskIds.length) payload.taskIds = taskIds;
+  if (habitIds.length) payload.habitIds = habitIds;
 
   return payload;
 }
@@ -336,5 +346,39 @@ export function mapLinkedHabitFromApi(habit) {
 export function isUuid(value) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
     String(value)
+  );
+}
+
+/** Normalize GET /tasks or /habits list → Linked multi-select options (UUID ids only). */
+export function normalizeLinkPickerOptions(list) {
+  let arr = [];
+  if (Array.isArray(list)) arr = list;
+  else if (Array.isArray(list?.data)) arr = list.data;
+  else if (Array.isArray(list?.items)) arr = list.items;
+  else if (Array.isArray(list?.tasks)) arr = list.tasks;
+  else if (Array.isArray(list?.habits)) arr = list.habits;
+
+  return arr
+    .map((item) => {
+      if (!item?.id || !isUuid(item.id)) return null;
+      const statusRaw = String(item.status || '').toUpperCase();
+      let status;
+      if (statusRaw === 'PAUSED') status = 'paused';
+      if (statusRaw === 'COMPLETED' || statusRaw === 'DONE') status = 'completed';
+      return {
+        id: item.id,
+        label: item.title || item.name || 'Untitled',
+        status,
+        aiSuggested:
+          String(item.source || '').toUpperCase() === 'AI' || Boolean(item.aiSuggested),
+      };
+    })
+    .filter(Boolean);
+}
+
+/** Prefer AI-suggested items first (Rule 4). */
+export function orderedLinkPickerOptions(options) {
+  return [...(options || [])].sort(
+    (a, b) => Number(Boolean(b.aiSuggested)) - Number(Boolean(a.aiSuggested))
   );
 }

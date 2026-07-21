@@ -13,6 +13,14 @@ import TypewriterPlaceholder from '../../../../../../components/ui/TypewriterPla
 import SkeletonBar from '../../../../../../components/ui/SkeletonBar';
 import { useAiGenerationReveal } from '../../../../../../hooks/useAiGenerationReveal';
 import { generateGoal } from '../../../../../../features/goals/goalsSlice';
+import {
+  fetchHabitsForLinkApi,
+  fetchTasksForLinkApi,
+} from '../../../../../../features/goals/goalsAPI';
+import {
+  normalizeLinkPickerOptions,
+  orderedLinkPickerOptions,
+} from '../../../../../../features/goals/goalsMappers';
 
 const PRIORITIES = ['Low', 'Medium', 'High', 'Urgent'];
 const CATEGORIES = ['Career', 'Health', 'Finance', 'Personal', 'Education'];
@@ -23,26 +31,6 @@ const AI_PROMPT_PHRASES = [
   'Build a savings goal for this year...',
   'Create a goal to learn a new skill...',
 ];
-
-const TASK_OPTIONS = [
-  { id: 'task-1', label: 'Exercise Routine', aiSuggested: true },
-  { id: 'task-2', label: 'Deliver message' },
-  { id: 'task-3', label: 'Work 3' },
-  { id: 'task-4', label: 'Work 4' },
-];
-
-const HABIT_OPTIONS = [
-  { id: 'habit-1', label: 'Drink Water', aiSuggested: true },
-  { id: 'habit-2', label: 'Take Breaks' },
-  { id: 'habit-3', label: 'Meditate', status: 'paused' },
-  { id: 'habit-4', label: 'Exercise' },
-  { id: 'habit-5', label: 'Drink Water 2', status: 'completed' },
-];
-
-/** Rule 4 — AI Suggested first based on goal title/category (static mock order). */
-function orderedLinkOptions(options) {
-  return [...options].sort((a, b) => Number(Boolean(b.aiSuggested)) - Number(Boolean(a.aiSuggested)));
-}
 
 const PRIORITY_STYLES = {
   URGENT: 'bg-[rgba(220,38,38,0.05)] text-[#dc2626]',
@@ -402,7 +390,17 @@ function DueDateField({ value, onChange }) {
   );
 }
 
-function ManualFormFields({ form, update, tasksOpen, habitsOpen, setTasksOpen, setHabitsOpen }) {
+function ManualFormFields({
+  form,
+  update,
+  tasksOpen,
+  habitsOpen,
+  setTasksOpen,
+  setHabitsOpen,
+  taskOptions = [],
+  habitOptions = [],
+  linksLoading = false,
+}) {
   return (
     <div className="flex flex-col gap-[16px]">
       <Field label="Title">
@@ -458,8 +456,8 @@ function ManualFormFields({ form, update, tasksOpen, habitsOpen, setTasksOpen, s
 
       <LinkedMultiSelect
         label="Linked Tasks"
-        placeholder="Select Tasks"
-        options={orderedLinkOptions(TASK_OPTIONS)}
+        placeholder={linksLoading ? 'Loading tasks…' : 'Select Tasks'}
+        options={orderedLinkPickerOptions(taskOptions)}
         selectedIds={form.linkedTasks}
         onChange={(ids) => update('linkedTasks', ids)}
         open={tasksOpen}
@@ -468,8 +466,8 @@ function ManualFormFields({ form, update, tasksOpen, habitsOpen, setTasksOpen, s
 
       <LinkedMultiSelect
         label="Linked Habits"
-        placeholder="Select Habits"
-        options={orderedLinkOptions(HABIT_OPTIONS)}
+        placeholder={linksLoading ? 'Loading habits…' : 'Select Habits'}
+        options={orderedLinkPickerOptions(habitOptions)}
         selectedIds={form.linkedHabits}
         onChange={(ids) => update('linkedHabits', ids)}
         open={habitsOpen}
@@ -618,18 +616,69 @@ export default function NewGoalModal({ open, onClose, onSave, mode = 'create', i
   const [form, setForm] = useState(buildInitialForm);
   const [tasksOpen, setTasksOpen] = useState(false);
   const [habitsOpen, setHabitsOpen] = useState(false);
+  const [taskOptions, setTaskOptions] = useState([]);
+  const [habitOptions, setHabitOptions] = useState([]);
+  const [linksLoading, setLinksLoading] = useState(false);
   const { revealStep, isRevealing, startReveal, resetReveal } = useAiGenerationReveal();
+
+  useEffect(() => {
+    if (!open) return undefined;
+    setForm(buildInitialForm());
+    setActiveTab(isEdit ? 'manual' : 'ai');
+    setAiPhase('input');
+    setAiPrompt('');
+    setChangeRequest('');
+    setGeneratedGoal(null);
+    setPendingGoal(null);
+    setTasksOpen(false);
+    setHabitsOpen(false);
+
+    let cancelled = false;
+    setLinksLoading(true);
+    (async () => {
+      try {
+        const [tasksRaw, habitsRaw] = await Promise.all([
+          fetchTasksForLinkApi(),
+          fetchHabitsForLinkApi(),
+        ]);
+        if (cancelled) return;
+        setTaskOptions(normalizeLinkPickerOptions(tasksRaw));
+        setHabitOptions(normalizeLinkPickerOptions(habitsRaw));
+      } catch {
+        if (cancelled) return;
+        setTaskOptions([]);
+        setHabitOptions([]);
+      } finally {
+        if (!cancelled) setLinksLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reset when modal opens / edit target changes
+  }, [open, isEdit, initialGoal?.id]);
 
   if (!open) return null;
 
   const update = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
 
   const runAiGeneration = async (prompt) => {
-    setPendingGoal(generatedGoal || { title: '', description: '', priority: 'MEDIUM', category: 'Career', due: '' });
+    setPendingGoal(
+      generatedGoal || {
+        title: '',
+        description: '',
+        priority: 'MEDIUM',
+        category: form.category || 'Career',
+        due: '',
+      }
+    );
     setAiPhase('generating');
     setChangeRequest('');
     const revealPromise = startReveal();
-    const result = await dispatch(generateGoal({ prompt }));
+    const result = await dispatch(
+      generateGoal({ prompt, category: form.category || 'Career' })
+    );
     await revealPromise;
 
     if (generateGoal.fulfilled.match(result)) {
@@ -729,6 +778,9 @@ export default function NewGoalModal({ open, onClose, onSave, mode = 'create', i
             setHabitsOpen(next);
             if (next) setTasksOpen(false);
           }}
+          taskOptions={taskOptions}
+          habitOptions={habitOptions}
+          linksLoading={linksLoading}
         />
       );
     }
@@ -751,17 +803,36 @@ export default function NewGoalModal({ open, onClose, onSave, mode = 'create', i
     }
 
     return (
-      <div className="flex flex-col gap-2">
-        <p className="text-[12px] font-medium text-[#5d5d5d] dark:text-gray-300">
-          Describe the goal you want to generate
-        </p>
-        <div className="relative">
-          <textarea
-            value={aiPrompt}
-            onChange={(e) => setAiPrompt(e.target.value)}
-            className={`${textareaClasses} relative z-10 h-[140px] resize-none rounded-xl bg-transparent!`}
-          />
-          <TypewriterPlaceholder phrases={AI_PROMPT_PHRASES} visible={!aiPrompt.trim()} />
+      <div className="flex flex-col gap-4">
+        <Field label="Category">
+          <div className="relative">
+            <select
+              value={form.category}
+              onChange={(e) => update('category', e.target.value)}
+              className={`${inputClasses} appearance-none pr-8`}
+            >
+              {CATEGORIES.map((c) => (
+                <option key={c}>{c}</option>
+              ))}
+            </select>
+            <ChevronDown
+              size={12}
+              className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-[#a3a3a3]"
+            />
+          </div>
+        </Field>
+        <div className="flex flex-col gap-2">
+          <p className="text-[12px] font-medium text-[#5d5d5d] dark:text-gray-300">
+            Describe the goal you want to generate
+          </p>
+          <div className="relative">
+            <textarea
+              value={aiPrompt}
+              onChange={(e) => setAiPrompt(e.target.value)}
+              className={`${textareaClasses} relative z-10 h-[140px] resize-none rounded-xl bg-transparent!`}
+            />
+            <TypewriterPlaceholder phrases={AI_PROMPT_PHRASES} visible={!aiPrompt.trim()} />
+          </div>
         </div>
       </div>
     );
