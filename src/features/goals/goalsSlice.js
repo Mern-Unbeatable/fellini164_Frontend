@@ -13,6 +13,7 @@ import {
   updateGoalStatusApi,
 } from './goalsAPI';
 import {
+  buildGoalsQueryParams,
   isUuid,
   mapCreatePayload,
   mapGoalFromApi,
@@ -20,7 +21,7 @@ import {
   mapLinkedTaskFromApi,
   mapUpdatePayload,
   normalizeBoardSummary,
-  normalizeGoalsList,
+  parseGoalsListResponse,
   statusToApi,
 } from './goalsMappers';
 
@@ -36,15 +37,19 @@ function mergeGoalIntoState(state, mapped) {
   state.boardStats = normalizeBoardSummary(null, state.items);
 }
 
-export const fetchGoals = createAsyncThunk('goals/fetchGoals', async (_, { rejectWithValue }) => {
-  try {
-    const data = await fetchGoalsApi();
-    return normalizeGoalsList(data);
-  } catch (error) {
-    toast.error(error?.response?.data?.message || 'Failed to load goals');
-    return rejectWithValue(error?.response?.data?.message || 'Failed to load goals');
+export const fetchGoals = createAsyncThunk(
+  'goals/fetchGoals',
+  async (queryInput = {}, { rejectWithValue }) => {
+    try {
+      const params = buildGoalsQueryParams(queryInput);
+      const envelope = await fetchGoalsApi(params);
+      return parseGoalsListResponse(envelope);
+    } catch (error) {
+      toast.error(error?.response?.data?.message || 'Failed to load goals');
+      return rejectWithValue(error?.response?.data?.message || 'Failed to load goals');
+    }
   }
-});
+);
 
 export const fetchBoardSummary = createAsyncThunk(
   'goals/fetchBoardSummary',
@@ -224,6 +229,8 @@ const initialState = {
   items: [],
   rawItems: [],
   boardStats: { active: 0, paused: 0, completedThisMonth: 0 },
+  listPagination: null,
+  listCount: 0,
   currentGoal: null,
   currentGoalTasks: [],
   currentGoalHabits: [],
@@ -251,9 +258,14 @@ const goalsSlice = createSlice({
       })
       .addCase(fetchGoals.fulfilled, (state, action) => {
         state.loadingList = false;
-        state.rawItems = action.payload;
-        state.items = action.payload.map((item) => mapGoalFromApi(item)).filter(Boolean);
-        state.boardStats = normalizeBoardSummary(null, state.items);
+        const { items, summary, pagination, count } = action.payload;
+        state.rawItems = items;
+        state.items = items.map((item) => mapGoalFromApi(item)).filter(Boolean);
+        state.listPagination = pagination;
+        state.listCount = count;
+        state.boardStats = summary
+          ? normalizeBoardSummary(summary)
+          : normalizeBoardSummary(null, state.items);
       })
       .addCase(fetchGoals.rejected, (state, action) => {
         state.loadingList = false;

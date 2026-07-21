@@ -14,7 +14,7 @@ import {
   Pause,
   Trash2,
 } from 'lucide-react';
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import NewGoalModal from './components/NewGoalModal';
@@ -31,12 +31,12 @@ import {
   completeGoal,
   createGoal,
   deleteGoal,
-  fetchBoardSummary,
   fetchGoals,
   linkHabitsToGoal,
   linkTasksToGoal,
   selectBoardStats,
   selectGoals,
+  selectGoalsLoading,
   updateGoal,
   updateGoalStatus,
 } from '../../../../../features/goals/goalsSlice';
@@ -105,40 +105,6 @@ const GHOST_REGENERATIONS = {
 
 function resolveForceEmptyBoard() {
   return import.meta.env.DEV && new URLSearchParams(window.location.search).get('empty') === '1';
-}
-
-function goalMatchesFilters(goal, filters) {
-  if (filters.Status && filters.Status !== 'All Statuses') {
-    const status = (goal.status || 'active').toLowerCase();
-    if (filters.Status === 'Active' && status !== 'active') return false;
-    if (filters.Status === 'Paused' && status !== 'paused') return false;
-    if (filters.Status === 'Completed' && status !== 'completed') return false;
-  }
-
-  if (filters.Progress && filters.Progress !== 'Any') {
-    const p = goal.progress ?? 0;
-    if (filters.Progress === '0-25%' && !(p >= 0 && p <= 25)) return false;
-    if (filters.Progress === '26-50%' && !(p >= 26 && p <= 50)) return false;
-    if (filters.Progress === '51-75%' && !(p >= 51 && p <= 75)) return false;
-    if (filters.Progress === '76-100%' && !(p >= 76 && p <= 100)) return false;
-  }
-
-  if (filters.Priority && filters.Priority !== 'All Priorities') {
-    if (PRIORITY_LABELS[goal.priority] !== filters.Priority) return false;
-  }
-
-  if (filters.Category && filters.Category !== 'All Categories') {
-    if (goal.category !== filters.Category) return false;
-  }
-
-  if (filters.Source && filters.Source !== 'All Sources') {
-    const isAi = goal.source === 'ai';
-    if (filters.Source === 'Created by AI' && !isAi) return false;
-    if (filters.Source === 'Created manually' && isAi) return false;
-  }
-
-  // Date buckets need canonical dueAt from API — mock labels stay visible for Figma parity.
-  return true;
 }
 
 const STATUS_STYLES = {
@@ -731,6 +697,7 @@ export default function ActiveGoals() {
   const dispatch = useDispatch();
   const goals = useSelector(selectGoals);
   const boardStats = useSelector(selectBoardStats);
+  const loadingList = useSelector(selectGoalsLoading);
   const [modal, setModal] = useState(false);
   const [modalProgress, setModalProgress] = useState(false);
   const [ghostGoals, setGhostGoals] = useState(GHOST_GOALS);
@@ -816,14 +783,26 @@ export default function ActiveGoals() {
       ...(item.status === 'completed' ? { status: 'completed' } : {}),
     }));
 
+  const loadGoals = useCallback(() => {
+    if (resolveForceEmptyBoard()) return Promise.resolve();
+    return dispatch(
+      fetchGoals({
+        filters: activeFilters,
+        search: searchQuery,
+        page: 1,
+        limit: 50,
+      })
+    );
+  }, [dispatch, activeFilters, searchQuery]);
+
   useEffect(() => {
-    if (resolveForceEmptyBoard()) return;
-    dispatch(fetchGoals()).then((result) => {
-      if (fetchGoals.fulfilled.match(result)) {
-        dispatch(fetchBoardSummary());
-      }
-    });
-  }, [dispatch]);
+    if (resolveForceEmptyBoard()) return undefined;
+    const delay = searchQuery.trim() ? 300 : 0;
+    const timer = setTimeout(() => {
+      loadGoals();
+    }, delay);
+    return () => clearTimeout(timer);
+  }, [loadGoals, searchQuery]);
 
   const handleOpenModal = () => {
     setEditingGoal(null);
@@ -841,6 +820,7 @@ export default function ActiveGoals() {
     } else {
       await dispatch(createGoal(data));
     }
+    await loadGoals();
   };
 
   const handleDismissGhost = (id) => {
@@ -867,6 +847,7 @@ export default function ActiveGoals() {
       })
     );
     setGhostGoals((prev) => prev.filter((g) => g.id !== ghost.id));
+    await loadGoals();
   };
 
   const handleEditGoal = (goal) => {
@@ -906,7 +887,7 @@ export default function ActiveGoals() {
         linkTasksToGoal.fulfilled.match(result) ||
         linkHabitsToGoal.fulfilled.match(result)
       ) {
-        dispatch(fetchBoardSummary());
+        await loadGoals();
       }
     } finally {
       setLinking(false);
@@ -946,16 +927,19 @@ export default function ActiveGoals() {
 
   const handleCompleteGoal = async (goal) => {
     await dispatch(completeGoal(goal.id));
+    await loadGoals();
   };
 
   const handlePauseGoal = async (goal) => {
     const nextStatus = goal.status === 'paused' ? 'active' : 'paused';
     await dispatch(updateGoalStatus({ goalId: goal.id, status: nextStatus }));
+    await loadGoals();
   };
 
   const handleDeleteGoal = async (id) => {
     await dispatch(deleteGoal(id));
     if (selectedGoalId === id) setSelectedGoalId(null);
+    await loadGoals();
   };
 
   const handleSelectGoal = (goal) => setSelectedGoalId(goal.id);
@@ -966,22 +950,23 @@ export default function ActiveGoals() {
     setActiveFilters((prev) => ({ ...prev, [key]: value }));
   };
 
-  const filteredGoals = useMemo(
-    () =>
-      goals.filter(
-        (g) => goalMatchesSearch(g, searchQuery) && goalMatchesFilters(g, activeFilters)
-      ),
-    [goals, searchQuery, activeFilters]
-  );
-
   const filteredGhostGoals = useMemo(
     () => ghostGoals.filter((g) => goalMatchesSearch(g, searchQuery)),
     [ghostGoals, searchQuery]
   );
 
-  const boardIsEmpty = resolveForceEmptyBoard() ? true : goals.length === 0;
+  const boardIsEmpty = resolveForceEmptyBoard() ? true : !loadingList && goals.length === 0;
   const isSearching = searchQuery.trim().length > 0;
-  const showGhostCards = boardIsEmpty && filteredGhostGoals.length > 0;
+  const hasActiveFilters = Object.entries(activeFilters).some(([key, value]) => {
+    if (key === 'Status') return value !== 'All Statuses';
+    if (key === 'Progress') return value !== 'Any';
+    if (key === 'Priority') return value !== 'All Priorities';
+    if (key === 'Category') return value !== 'All Categories';
+    if (key === 'Source') return value !== 'All Sources';
+    if (key === 'Date') return value !== 'All Dates';
+    return false;
+  });
+  const showGhostCards = boardIsEmpty && !isSearching && !hasActiveFilters && filteredGhostGoals.length > 0;
 
   const activeCount = boardStats.active;
   const pausedCount = boardStats.paused;
@@ -1080,13 +1065,17 @@ export default function ActiveGoals() {
                   ))}
                 </div>
             )
-          ) : filteredGoals.length === 0 ? (
+          ) : loadingList ? (
             <p className="py-10 text-center text-sm font-medium text-[#c2c2c2] dark:text-gray-500">
-              {isSearching ? 'No matching goals.' : 'No goals to show yet.'}
+              Loading goals…
+            </p>
+          ) : goals.length === 0 ? (
+            <p className="py-10 text-center text-sm font-medium text-[#c2c2c2] dark:text-gray-500">
+              {isSearching || hasActiveFilters ? 'No matching goals.' : 'No goals to show yet.'}
             </p>
           ) : (
             <div className="grid auto-rows-[186px] grid-cols-1 gap-[10px] sm:grid-cols-2 xl:grid-cols-3">
-                {filteredGoals.map((goal) => (
+                {goals.map((goal) => (
                   <div key={goal.id} className="h-[186px] min-h-[186px]">
                     <GoalCard
                     goal={goal}

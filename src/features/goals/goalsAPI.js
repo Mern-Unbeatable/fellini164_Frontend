@@ -8,9 +8,14 @@ export function unwrapData(response) {
   return body;
 }
 
+/** GET /goals — returns full envelope { data, summary, pagination, count }. */
 export async function fetchGoalsApi(params = {}) {
   const response = await axiosInstance.get(BASE, { params });
-  return unwrapData(response);
+  const body = response?.data;
+  if (body && Array.isArray(body.data)) return body;
+  if (Array.isArray(body)) return { data: body, count: body.length };
+  if (body?.data !== undefined) return body;
+  return { data: [], count: 0 };
 }
 
 export async function fetchBoardSummaryApi() {

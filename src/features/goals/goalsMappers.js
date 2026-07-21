@@ -87,11 +87,95 @@ export function parseDueToIso(dueDate, displayDue) {
 }
 
 function readCount(apiGoal, keys, arrayKey) {
+  const countField = arrayKey === 'linkedTasks' ? 'tasks' : arrayKey === 'linkedHabits' ? 'habits' : null;
+  if (countField && typeof apiGoal?._count?.[countField] === 'number') {
+    return apiGoal._count[countField];
+  }
   for (const key of keys) {
     if (typeof apiGoal?.[key] === 'number') return apiGoal[key];
   }
   if (Array.isArray(apiGoal?.[arrayKey])) return apiGoal[arrayKey].length;
+  if (Array.isArray(apiGoal?.tasks) && arrayKey === 'linkedTasks') return apiGoal.tasks.length;
+  if (Array.isArray(apiGoal?.habits) && arrayKey === 'linkedHabits') return apiGoal.habits.length;
   return 0;
+}
+
+const DATE_FILTER_TO_API = {
+  Today: 'today',
+  Tomorrow: 'tomorrow',
+  'This week': 'this_week',
+  'This month': 'this_month',
+  Overdue: 'overdue',
+};
+
+const PROGRESS_RANGES = {
+  '0-25%': { minProgress: 0, maxProgress: 25 },
+  '26-50%': { minProgress: 26, maxProgress: 50 },
+  '51-75%': { minProgress: 51, maxProgress: 75 },
+  '76-100%': { minProgress: 76, maxProgress: 100 },
+};
+
+const STATUS_FILTER_TO_API = {
+  Active: 'ACTIVE',
+  Paused: 'PAUSED',
+  Completed: 'COMPLETED',
+};
+
+/** Map Goals Board UI filters → GET /goals query params. */
+export function buildGoalsQueryParams({ filters = {}, search = '', page = 1, limit = 50 } = {}) {
+  const params = { page, limit };
+
+  if (filters.Status && filters.Status !== 'All Statuses') {
+    const status = STATUS_FILTER_TO_API[filters.Status];
+    if (status) params.status = status;
+  }
+
+  if (filters.Priority && filters.Priority !== 'All Priorities') {
+    params.priorityLevel = String(filters.Priority).toUpperCase();
+  }
+
+  if (filters.Category && filters.Category !== 'All Categories') {
+    params.category = categoryToApi(filters.Category);
+  }
+
+  if (filters.Source && filters.Source !== 'All Sources') {
+    params.source = filters.Source === 'Created by AI' ? 'AI' : 'MANUAL';
+  }
+
+  if (filters.Progress && filters.Progress !== 'Any' && PROGRESS_RANGES[filters.Progress]) {
+    Object.assign(params, PROGRESS_RANGES[filters.Progress]);
+  }
+
+  if (filters.Date && filters.Date !== 'All Dates' && DATE_FILTER_TO_API[filters.Date]) {
+    params.dueFilter = DATE_FILTER_TO_API[filters.Date];
+  }
+
+  const q = String(search || '').trim();
+  if (q) params.search = q;
+
+  return params;
+}
+
+/** Parse GET /goals envelope into items + summary + pagination. */
+export function parseGoalsListResponse(envelope) {
+  if (!envelope) {
+    return { items: [], summary: null, pagination: null, count: 0 };
+  }
+  if (Array.isArray(envelope)) {
+    return {
+      items: envelope,
+      summary: null,
+      pagination: null,
+      count: envelope.length,
+    };
+  }
+  const items = normalizeGoalsList(envelope);
+  return {
+    items,
+    summary: envelope.summary ?? null,
+    pagination: envelope.pagination ?? null,
+    count: envelope.count ?? items.length,
+  };
 }
 
 export function mapGoalFromApi(apiGoal, sourceOverride) {
@@ -127,7 +211,7 @@ export function mapGoalFromApi(apiGoal, sourceOverride) {
     status: uiStatus,
     source:
       sourceOverride ||
-      (apiGoal.createdByAi || apiGoal.source === 'ai' ? 'ai' : 'manual'),
+      (apiGoal.createdByAi || String(apiGoal.source || '').toUpperCase() === 'AI' ? 'ai' : 'manual'),
     completedDate:
       uiStatus === 'completed' && completedAt
         ? formatDisplayDate(completedAt)
