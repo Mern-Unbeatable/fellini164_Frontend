@@ -245,13 +245,20 @@ export default function Habits() {
   };
 
   const handleToggleDay = (habitId, dayIndex) => {
-    // MVP: one check-in per day — toggle empty ↔ checked on the clicked box only.
     setHabits((prev) =>
       prev.map((h) => {
         if (h.id !== habitId || h.status === 'completed' || h.status === 'paused') return h;
         const current = h.days[dayIndex];
         if (current === 'unscheduled') return h;
         const next = [...h.days];
+
+        // Fractional habits (1/2, 2/3): one click collapses empty → partial fill; click again → empty.
+        // Fill ratio comes from habit.todayProgress (the label under the cell).
+        if (h.todayProgress && dayIndex === TODAY_INDEX) {
+          next[dayIndex] = current === 'today' ? 'empty' : 'today';
+          return { ...h, days: next };
+        }
+
         if (current === 'checked') {
           next[dayIndex] = dayIndex === TODAY_INDEX ? 'today' : 'empty';
         } else {
@@ -259,7 +266,7 @@ export default function Habits() {
           next[dayIndex] = 'checked';
         }
         return { ...h, days: next };
-      })
+      }),
     );
   };
 
