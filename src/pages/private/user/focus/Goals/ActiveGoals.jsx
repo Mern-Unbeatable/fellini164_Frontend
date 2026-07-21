@@ -19,8 +19,12 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import NewGoalModal from './components/NewGoalModal';
 import GoalProgressModal from './components/GoalProgressModal';
-import GoalDetailPanel from './components/GoalDetailPanel';
+import GoalDetailPanel, {
+  getLinkedHabits,
+  getLinkedTasks,
+} from './components/GoalDetailPanel';
 import LinkItemsModal from './components/LinkItemsModal';
+import GoalSparkLinkModal from './components/GoalSparkLinkModal';
 import TypewriterText from '../../../../../components/ui/TypewriterText';
 import { GHOST_GOALS } from './goalsData';
 import {
@@ -735,12 +739,82 @@ export default function ActiveGoals() {
   const [selectedGoalId, setSelectedGoalId] = useState(null);
   const [editingGoal, setEditingGoal] = useState(null);
   const [linkModal, setLinkModal] = useState({ open: false, type: 'tasks', goal: null });
+  const [sparkModal, setSparkModal] = useState({ open: false, type: 'tasks', goal: null });
   const [linking, setLinking] = useState(false);
+  /** Local linked-item overlays for detail panel (UI) until board refresh returns them. */
+  const [linkOverrides, setLinkOverrides] = useState({});
 
-  const selectedGoal = useMemo(
-    () => goals.find((g) => g.id === selectedGoalId) ?? null,
-    [goals, selectedGoalId]
-  );
+  const selectedGoal = useMemo(() => {
+    const base = goals.find((g) => g.id === selectedGoalId) ?? null;
+    if (!base) return null;
+    const override = linkOverrides[base.id];
+    if (!override) return base;
+    return {
+      ...base,
+      linkedTasks: override.tasks,
+      linkedHabits: override.habits,
+      tasks: override.tasks?.length ?? base.tasks,
+      habits: override.habits?.length ?? base.habits,
+    };
+  }, [goals, selectedGoalId, linkOverrides]);
+
+  const appendLinkedItems = (goalId, type, items) => {
+    if (!goalId || !items?.length) return;
+    setLinkOverrides((prev) => {
+      const current = prev[goalId] || { tasks: null, habits: null };
+      const baseGoal = goals.find((g) => g.id === goalId);
+      const existingTasks = current.tasks ?? (baseGoal ? getLinkedTasks(baseGoal) : []);
+      const existingHabits = current.habits ?? (baseGoal ? getLinkedHabits(baseGoal) : []);
+
+      if (type === 'tasks') {
+        const merged = [...existingTasks];
+        for (const item of items) {
+          if (!merged.some((t) => t.id === item.id)) merged.push(item);
+        }
+        return {
+          ...prev,
+          [goalId]: {
+            tasks: merged,
+            habits: current.habits ?? existingHabits,
+          },
+        };
+      }
+
+      const merged = [...existingHabits];
+      for (const item of items) {
+        if (!merged.some((h) => h.id === item.id)) merged.push(item);
+      }
+      return {
+        ...prev,
+        [goalId]: {
+          tasks: current.tasks ?? existingTasks,
+          habits: merged,
+        },
+      };
+    });
+  };
+
+  const optionsToTaskCards = (selectedItems) =>
+    selectedItems.map((item) => ({
+      id: item.id,
+      priority: 'MEDIUM',
+      status: item.status === 'completed' ? 'done' : 'to do',
+      statusUppercase: true,
+      title: item.label,
+      description: 'Linked from your board.',
+      due: 'Tomorrow',
+      source: item.aiSuggested ? 'ai' : 'manual',
+    }));
+
+  const optionsToHabitCards = (selectedItems) =>
+    selectedItems.map((item) => ({
+      id: item.id,
+      title: item.label,
+      description: 'Linked from your board.',
+      stats: [{ label: 'Today' }],
+      ...(item.status === 'paused' ? { status: 'paused' } : {}),
+      ...(item.status === 'completed' ? { status: 'completed' } : {}),
+    }));
 
   useEffect(() => {
     if (resolveForceEmptyBoard()) return;
@@ -813,20 +887,60 @@ export default function ActiveGoals() {
     setLinking(false);
   };
 
-  const handleConfirmLink = async (ids) => {
+  const handleConfirmLink = async (ids, selectedItems = []) => {
     if (!linkModal.goal?.id || !ids?.length) return;
     setLinking(true);
-    const result =
+
+    const cards =
       linkModal.type === 'tasks'
-        ? await dispatch(linkTasksToGoal({ goalId: linkModal.goal.id, taskIds: ids }))
-        : await dispatch(linkHabitsToGoal({ goalId: linkModal.goal.id, habitIds: ids }));
-    setLinking(false);
-    if (
-      linkTasksToGoal.fulfilled.match(result) ||
-      linkHabitsToGoal.fulfilled.match(result)
-    ) {
+        ? optionsToTaskCards(selectedItems)
+        : optionsToHabitCards(selectedItems);
+    appendLinkedItems(linkModal.goal.id, linkModal.type, cards);
+
+    try {
+      const result =
+        linkModal.type === 'tasks'
+          ? await dispatch(linkTasksToGoal({ goalId: linkModal.goal.id, taskIds: ids }))
+          : await dispatch(linkHabitsToGoal({ goalId: linkModal.goal.id, habitIds: ids }));
+      if (
+        linkTasksToGoal.fulfilled.match(result) ||
+        linkHabitsToGoal.fulfilled.match(result)
+      ) {
+        dispatch(fetchBoardSummary());
+      }
+    } finally {
+      setLinking(false);
       handleCloseLinkModal();
-      dispatch(fetchBoardSummary());
+    }
+  };
+
+  const handleOpenSparkTasks = (goal) => {
+    setSparkModal({ open: true, type: 'tasks', goal });
+  };
+  const handleOpenSparkHabits = (goal) => {
+    setSparkModal({ open: true, type: 'habits', goal });
+  };
+  const handleCloseSparkModal = () => {
+    setSparkModal({ open: false, type: 'tasks', goal: null });
+  };
+
+  const handleSparkGenerate = (generated) => {
+    if (!sparkModal.goal?.id || !generated) return;
+    appendLinkedItems(sparkModal.goal.id, sparkModal.type, [generated]);
+  };
+
+  const handleSparkAttach = (ids, selectedItems = []) => {
+    if (!sparkModal.goal?.id || !ids?.length) return;
+    const cards =
+      sparkModal.type === 'tasks'
+        ? optionsToTaskCards(selectedItems)
+        : optionsToHabitCards(selectedItems);
+    appendLinkedItems(sparkModal.goal.id, sparkModal.type, cards);
+    const goalId = sparkModal.goal.id;
+    if (sparkModal.type === 'tasks') {
+      dispatch(linkTasksToGoal({ goalId, taskIds: ids }));
+    } else {
+      dispatch(linkHabitsToGoal({ goalId, habitIds: ids }));
     }
   };
 
@@ -1001,6 +1115,10 @@ export default function ActiveGoals() {
           onImprove={handleEditGoal}
           onPause={handlePauseGoal}
           onDelete={(g) => handleDeleteGoal(g.id)}
+          onAddLinkedTasks={handleAddTask}
+          onAddLinkedHabits={handleAddHabit}
+          onAiLinkedTasks={handleOpenSparkTasks}
+          onAiLinkedHabits={handleOpenSparkHabits}
         />
       )}
 
@@ -1024,6 +1142,14 @@ export default function ActiveGoals() {
         onClose={handleCloseLinkModal}
         onConfirm={handleConfirmLink}
         confirming={linking}
+      />
+      <GoalSparkLinkModal
+        open={sparkModal.open}
+        type={sparkModal.type}
+        goalTitle={sparkModal.goal?.title}
+        onClose={handleCloseSparkModal}
+        onGenerate={handleSparkGenerate}
+        onAttach={handleSparkAttach}
       />
     </div>
   );

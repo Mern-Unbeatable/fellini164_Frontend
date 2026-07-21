@@ -70,7 +70,7 @@ function formFromHabit(habit) {
 
   return {
     title: habit.title || '',
-    category: categoryTag?.label || habit.category || 'Career',
+    category: habit.category || categoryTag?.label || 'Health',
     hour,
     minute,
     period,
