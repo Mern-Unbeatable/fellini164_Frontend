@@ -7,6 +7,7 @@ import {
   fetchBoardSummaryApi,
   fetchGoalByIdApi,
   fetchGoalsApi,
+  generateGoalApi,
   linkHabitsToGoalApi,
   linkTasksToGoalApi,
   updateGoalApi,
@@ -15,6 +16,7 @@ import {
 import {
   buildGoalsQueryParams,
   isUuid,
+  mapAiGeneratedGoalForPreview,
   mapCreatePayload,
   mapGoalFromApi,
   mapLinkedHabitFromApi,
@@ -109,6 +111,30 @@ export const createGoal = createAsyncThunk(
     } catch (error) {
       toast.error(error?.response?.data?.message || 'Failed to create goal');
       return rejectWithValue(error?.response?.data?.message || 'Failed to create goal');
+    }
+  }
+);
+
+/**
+ * POST /goals/ai/generate
+ * Body (Postman contract used here): { prompt: string }
+ * Response data is an already-persisted goal — do not POST /goals again on Add to Board.
+ */
+export const generateGoal = createAsyncThunk(
+  'goals/generateGoal',
+  async ({ prompt }, { rejectWithValue }) => {
+    try {
+      const trimmed = String(prompt || '').trim();
+      if (!trimmed) return rejectWithValue('Describe the goal you want to generate');
+      const data = await generateGoalApi({ prompt: trimmed });
+      const preview = mapAiGeneratedGoalForPreview(data);
+      if (!preview?.id) {
+        return rejectWithValue('Invalid AI generate response');
+      }
+      return preview;
+    } catch (error) {
+      toast.error(error?.response?.data?.message || 'Failed to generate goal');
+      return rejectWithValue(error?.response?.data?.message || 'Failed to generate goal');
     }
   }
 );

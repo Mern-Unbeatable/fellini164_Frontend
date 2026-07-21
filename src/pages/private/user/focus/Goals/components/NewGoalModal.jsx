@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useDispatch } from 'react-redux';
 import {
   X,
   Sparkles,
@@ -11,6 +12,7 @@ import {
 import TypewriterPlaceholder from '../../../../../../components/ui/TypewriterPlaceholder';
 import SkeletonBar from '../../../../../../components/ui/SkeletonBar';
 import { useAiGenerationReveal } from '../../../../../../hooks/useAiGenerationReveal';
+import { generateGoal } from '../../../../../../features/goals/goalsSlice';
 
 const PRIORITIES = ['Low', 'Medium', 'High', 'Urgent'];
 const CATEGORIES = ['Career', 'Health', 'Finance', 'Personal', 'Education'];
@@ -65,40 +67,6 @@ const EMPTY_FORM = {
   linkedTasks: [],
   linkedHabits: [],
 };
-
-const FIGMA_PREVIEW_GOAL = {
-  priority: 'MEDIUM',
-  title: 'Finish the work',
-  description: 'Stick to your professional growth plan or engage in a skill-building session.',
-  category: 'Career',
-  due: 'May 28, 2026',
-};
-
-function mockGenerateGoal(prompt) {
-  const lower = prompt.toLowerCase();
-  if (lower.includes('portfolio') || lower.includes('linkedin') || lower.includes('career') || lower.includes('work')) {
-    return { ...FIGMA_PREVIEW_GOAL };
-  }
-  if (lower.includes('marathon') || lower.includes('fitness') || lower.includes('workout')) {
-    return {
-      priority: 'URGENT',
-      title: 'Fitness Regimen',
-      description: 'Adhere to your workout schedule or participate in a fitness class.',
-      category: 'Health',
-      due: 'May 27, 2026',
-    };
-  }
-  if (lower.includes('savings') || lower.includes('finance') || lower.includes('budget')) {
-    return {
-      priority: 'MEDIUM',
-      title: 'Save $10,000',
-      description: 'Build consistent savings habits and track monthly contributions.',
-      category: 'Finance',
-      due: 'Dec 31, 2026',
-    };
-  }
-  return { ...FIGMA_PREVIEW_GOAL };
-}
 
 function formatDueDate(value) {
   if (!value) return '';
@@ -306,9 +274,9 @@ function AIGeneratedGoalPreviewCard({ goal, revealStep = 3 }) {
               {showMeta ? (
                 <>
                   <span
-                    className={`rounded-[6px] px-[6px] py-[2px] text-[12px] font-medium uppercase leading-[1.5] ${PRIORITY_STYLES[goal.priority]}`}
+                    className={`rounded-[6px] px-[6px] py-[2px] text-[12px] font-medium uppercase leading-[1.5] ${PRIORITY_STYLES[goal.priority] || PRIORITY_STYLES.MEDIUM}`}
                   >
-                    {PRIORITY_LABELS[goal.priority]}
+                    {PRIORITY_LABELS[goal.priority] || goal.priority}
                   </span>
                   <span className="flex items-center gap-[4px] rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-[12px] font-medium leading-[1.5] text-[#8022fe]">
                     <Sparkles size={12} className="shrink-0" />
@@ -351,9 +319,14 @@ function AIGeneratedGoalPreviewCard({ goal, revealStep = 3 }) {
         <div className="flex flex-col gap-[6px]">
           <div className="flex items-center justify-between text-[12px] font-medium leading-[1.5]">
             <span className="text-[#c2c2c2]">Progress</span>
-            <span className="text-[#5d5d5d] dark:text-gray-300">0%</span>
+            <span className="text-[#5d5d5d] dark:text-gray-300">{goal.progress ?? 0}%</span>
           </div>
-          <div className="h-[8px] w-full rounded-[40px] bg-[#e9e9e9] dark:bg-zinc-600" />
+          <div className="h-[8px] w-full overflow-hidden rounded-[40px] bg-[#e9e9e9] dark:bg-zinc-600">
+            <div
+              className="h-full rounded-[18px] bg-[#8022fe]"
+              style={{ width: `${Math.min(100, Math.max(0, goal.progress ?? 0))}%` }}
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -611,6 +584,7 @@ function ModalFooter({
 }
 
 export default function NewGoalModal({ open, onClose, onSave, mode = 'create', initialGoal = null }) {
+  const dispatch = useDispatch();
   const isEdit = mode === 'edit' && initialGoal;
 
   const PRIORITY_FORM = {
@@ -651,14 +625,23 @@ export default function NewGoalModal({ open, onClose, onSave, mode = 'create', i
   const update = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
 
   const runAiGeneration = async (prompt) => {
-    const goal = mockGenerateGoal(prompt);
-    setPendingGoal(goal);
+    setPendingGoal(generatedGoal || { title: '', description: '', priority: 'MEDIUM', category: 'Career', due: '' });
     setAiPhase('generating');
     setChangeRequest('');
-    await startReveal();
-    setGeneratedGoal(goal);
+    const revealPromise = startReveal();
+    const result = await dispatch(generateGoal({ prompt }));
+    await revealPromise;
+
+    if (generateGoal.fulfilled.match(result)) {
+      setGeneratedGoal(result.payload);
+      setPendingGoal(null);
+      setAiPhase('preview');
+      return;
+    }
+
     setPendingGoal(null);
-    setAiPhase('preview');
+    setGeneratedGoal(null);
+    setAiPhase('input');
   };
 
   const handleClose = () => {
@@ -673,7 +656,7 @@ export default function NewGoalModal({ open, onClose, onSave, mode = 'create', i
 
   const handleRegenerate = () => {
     if (isRevealing) return;
-    runAiGeneration(`${aiPrompt}${Date.now()}`);
+    runAiGeneration(aiPrompt);
   };
 
   const handleUpdatePreview = () => {
@@ -683,7 +666,9 @@ export default function NewGoalModal({ open, onClose, onSave, mode = 'create', i
 
   const handleAddGeneratedToBoard = () => {
     if (!generatedGoal) return;
+    // POST /goals/ai/generate already persisted the goal — only refresh the board.
     onSave({
+      id: generatedGoal.id,
       title: generatedGoal.title,
       description: generatedGoal.description,
       priority: generatedGoal.priority,
@@ -693,6 +678,7 @@ export default function NewGoalModal({ open, onClose, onSave, mode = 'create', i
       linkedTasks: [],
       linkedHabits: [],
       source: 'ai',
+      alreadyPersisted: true,
     });
     handleClose();
   };

@@ -814,7 +814,12 @@ export default function ActiveGoals() {
   };
   const handleCloseModalProgress = () => setModalProgress(false);
   const handleSavePlan = async (data) => {
-    if (!data?.title) return;
+    if (!data?.title && !data?.alreadyPersisted) return;
+    // AI Generate already created the goal on the server — refresh list only.
+    if (data.alreadyPersisted) {
+      await loadGoals();
+      return;
+    }
     if (editingGoal?.id) {
       await dispatch(updateGoal({ goalId: editingGoal.id, formData: data }));
     } else {

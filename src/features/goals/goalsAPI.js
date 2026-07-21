@@ -47,6 +47,12 @@ export async function createGoalApi(payload) {
   return unwrapData(response);
 }
 
+/** POST /goals/ai/generate — creates an AI goal from prompt (server persists immediately). */
+export async function generateGoalApi(payload) {
+  const response = await axiosInstance.post(`${BASE}/ai/generate`, payload);
+  return unwrapData(response);
+}
+
 export async function updateGoalApi(id, payload) {
   const url = `${BASE}/${id}`;
   const attempts = [

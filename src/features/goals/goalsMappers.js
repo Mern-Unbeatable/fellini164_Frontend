@@ -234,6 +234,26 @@ export function mapCreatePayload(formData) {
   return payload;
 }
 
+/**
+ * Map POST /goals/ai/generate `data` → New Goal AI preview card shape.
+ */
+export function mapAiGeneratedGoalForPreview(apiGoal) {
+  const mapped = mapGoalFromApi(apiGoal, 'ai');
+  if (!mapped) return null;
+
+  return {
+    id: mapped.id,
+    priority: mapped.priority,
+    title: mapped.title,
+    description: mapped.description,
+    category: mapped.category,
+    due: mapped.due || mapped.dueDetail || mapped.targetDate || '',
+    dueDate: mapped.targetDate,
+    progress: mapped.progress ?? 0,
+    source: 'ai',
+  };
+}
+
 export function mapUpdatePayload(formData) {
   const payload = mapCreatePayload(formData);
   delete payload.isMainFocus;

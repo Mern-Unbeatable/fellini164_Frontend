@@ -121,6 +121,7 @@ Confirm all of the following:
 | Action | Method + Path (as coded) | Postman validation | Frontend wired | Status |
 |--------|--------------------------|--------------------|----------------|--------|
 | List goals (+ filters) | `GET /api/v1/goals` + query params | Confirmed 2026-07-21 — samples for bare list, `status`+`priorityLevel`, `search`+`page`+`limit`, `dueFilter` | Yes — `ActiveGoals` → `fetchGoals({ filters, search })` | **PASS** (mapper audit ALL PASS; live Network needs logged-in session) |
+| AI generate goal | `POST /api/v1/goals/ai/generate` | Confirmed 2026-07-21 — sample `data` goal + `tokensUsed` | Yes — New Goal → AI Generation → Generate | **PASS** (body `{ prompt }` used; confirm Postman body key if different) |
 | Board summary | Embedded in list response `summary` | Confirmed in list responses (`active` / `paused` / `completedThisMonth` / `total`) | Yes — used from list envelope; separate `/summary` kept as unused fallback | **PASS** for list-embedded summary |
 | Create goal | `POST /api/v1/goals` | Confirmed `201 Created` earlier | Yes — `NewGoalModal` | **PASS** (needs Network re-check logged in) |
 | Get single goal | `GET /api/v1/goals/:id` | Confirmed via `goalId` variable flow | Yes — `GoalDetailPage` | **PASS** |
@@ -214,7 +215,7 @@ Goal object fields mapped to UI: `id`, `title`, `description`, `category`, `stat
 |-------------|--------|-------|
 | Verify in Postman before integrate | **PASS for GET list/filters**; **PARTIAL for Update/Link/Complete** | List + query samples pasted; Update/Link/Complete still need exact Postman method/body |
 | Exact method match (no guessing) | **PARTIAL** | Update/Complete/Link still use multi-method fallbacks |
-| Remove mock after connect | **PARTIAL** | Board list uses API; ghost cards + AI generate in modal still mock |
+| Remove mock after connect | **PARTIAL** | Board list + AI Generate use API; ghost cards + Manual linked pickers still mock |
 | Loading states | **PASS** (list) | Board shows “Loading goals…” via `loadingList` |
 | Empty state | **PASS** | Empty filter → “No matching goals.”; empty board → ghosts when no filters/search |
 | Error handling | **PASS** | Toasts on failure; axios 401 redirect exists |
