@@ -38,6 +38,48 @@ const EMPTY_FORM = {
   description: '',
 };
 
+const TIME_TAG_RE = /^(\d{1,2}):(\d{2})\s*(AM|PM)$/i;
+
+function formFromHabit(habit) {
+  if (!habit) return EMPTY_FORM;
+
+  const tags = Array.isArray(habit.tags) ? habit.tags : [];
+  const categoryTag = tags.find((t) => CATEGORIES.includes(t.label));
+  const timeTag = tags.find((t) => TIME_TAG_RE.test(t.label || ''));
+  const goalTag =
+    tags.find((t) => t.icon === Flag && LINKED_GOALS.includes(t.label)) ||
+    tags.find((t) => t.icon === Flag) ||
+    tags.find((t) => LINKED_GOALS.includes(t.label));
+
+  let hour = 8;
+  let minute = '00';
+  let period = 'PM';
+  if (timeTag) {
+    const match = timeTag.label.match(TIME_TAG_RE);
+    if (match) {
+      hour = Number(match[1]);
+      minute = match[2];
+      period = match[3].toUpperCase();
+    }
+  }
+
+  const targetDays =
+    Array.isArray(habit.days) && habit.days.length === 7
+      ? TARGET_DAYS.filter((_, i) => habit.days[i] !== 'unscheduled')
+      : [...EMPTY_FORM.targetDays];
+
+  return {
+    title: habit.title || '',
+    category: categoryTag?.label || habit.category || 'Career',
+    hour,
+    minute,
+    period,
+    targetDays: targetDays.length ? targetDays : [...EMPTY_FORM.targetDays],
+    linkedGoal: goalTag?.label || EMPTY_FORM.linkedGoal,
+    description: habit.description || '',
+  };
+}
+
 function mockGenerateHabit(prompt) {
   const lower = prompt.toLowerCase();
   if (lower.includes('water') || lower.includes('hydrat')) {
@@ -320,14 +362,23 @@ function ManualFormFields({ form, update }) {
   );
 }
 
-export default function NewHabitsModal({ open, onClose, onSave }) {
-  const [activeTab, setActiveTab] = useState('ai');
+export default function NewHabitsModal({
+  open,
+  onClose,
+  onSave,
+  mode = 'create',
+  initialHabit = null,
+}) {
+  const isEdit = mode === 'edit';
+  const [activeTab, setActiveTab] = useState(isEdit ? 'manual' : 'ai');
   const [aiPhase, setAiPhase] = useState('input');
   const [aiPrompt, setAiPrompt] = useState('');
   const [changeRequest, setChangeRequest] = useState('');
   const [generatedHabit, setGeneratedHabit] = useState(null);
   const { isRevealing, startReveal } = useAiGenerationReveal();
-  const [form, setForm] = useState(EMPTY_FORM);
+  const [form, setForm] = useState(() =>
+    isEdit && initialHabit ? formFromHabit(initialHabit) : EMPTY_FORM,
+  );
 
   if (!open) return null;
 
@@ -357,12 +408,12 @@ export default function NewHabitsModal({ open, onClose, onSave }) {
   };
 
   const handleClose = () => {
-    setActiveTab('ai');
+    setActiveTab(isEdit ? 'manual' : 'ai');
     setAiPhase('input');
     setAiPrompt('');
     setChangeRequest('');
     setGeneratedHabit(null);
-    setForm(EMPTY_FORM);
+    setForm(isEdit && initialHabit ? formFromHabit(initialHabit) : EMPTY_FORM);
     onClose();
   };
 
@@ -399,8 +450,8 @@ export default function NewHabitsModal({ open, onClose, onSave }) {
 
   const canSubmitManual = form.title.trim().length > 0;
   const canGenerate = aiPrompt.trim().length > 0 && !isRevealing;
-  const showAiPreview = activeTab === 'ai' && aiPhase === 'preview';
-  const showAiGenerating = activeTab === 'ai' && aiPhase === 'generating';
+  const showAiPreview = !isEdit && activeTab === 'ai' && aiPhase === 'preview';
+  const showAiGenerating = !isEdit && activeTab === 'ai' && aiPhase === 'generating';
 
   // State 3 (AI result preview) widens to fit the real board-row preview; states 1/2 stay compact.
   const modalWidthClass = showAiPreview ? 'max-w-[920px]' : 'max-w-[450px]';
@@ -426,18 +477,22 @@ export default function NewHabitsModal({ open, onClose, onSave }) {
         className={`flex max-h-[90vh] w-full flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] transition-all dark:border-zinc-700 dark:bg-zinc-900 ${modalWidthClass}`}
       >
         <div className="flex shrink-0 items-center justify-between border-b border-[#f2f2f2] px-3 py-2.5 dark:border-zinc-700">
-          <p className="text-[12px] font-medium text-[#5d5d5d] dark:text-gray-300">New Habit</p>
+          <p className="text-[12px] font-medium text-[#5d5d5d] dark:text-gray-300">
+            {isEdit ? 'Edit Habit' : 'New Habit'}
+          </p>
           <button type="button" onClick={handleClose} className="text-[#5d5d5d] dark:text-gray-300">
             <X size={14} />
           </button>
         </div>
 
         <div className="flex flex-col gap-6 overflow-y-auto p-3">
-          <div className="mx-auto w-full max-w-[430px]">
-            <TabToggle activeTab={activeTab} onChange={handleTabChange} disabled={isRevealing} />
-          </div>
+          {!isEdit && (
+            <div className="mx-auto w-full max-w-[430px]">
+              <TabToggle activeTab={activeTab} onChange={handleTabChange} disabled={isRevealing} />
+            </div>
+          )}
 
-          {activeTab === 'manual' ? (
+          {isEdit || activeTab === 'manual' ? (
             <ManualFormFields form={form} update={update} />
           ) : showAiGenerating ? (
             <div className="flex flex-col gap-2">
@@ -564,7 +619,20 @@ export default function NewHabitsModal({ open, onClose, onSave }) {
                 >
                   Cancel
                 </button>
-                {activeTab === 'ai' ? (
+                {isEdit ? (
+                  <button
+                    type="button"
+                    disabled={!canSubmitManual}
+                    onClick={handleManualSubmit}
+                    className={`flex flex-1 items-center justify-center rounded-lg px-3 py-2 text-[12px] font-semibold ${
+                      canSubmitManual
+                        ? 'bg-[#8022fe] text-white'
+                        : 'cursor-not-allowed bg-[#f1f1f1] text-[#dedede]'
+                    }`}
+                  >
+                    Edit
+                  </button>
+                ) : activeTab === 'ai' ? (
                   <button
                     type="button"
                     disabled={!canGenerate}

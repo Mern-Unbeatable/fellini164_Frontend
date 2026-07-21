@@ -159,7 +159,11 @@ function habitMatchesSearch(habit, query) {
 }
 
 export default function Habits() {
-  const [modal, setModal] = useState(false);
+  const [habitModal, setHabitModal] = useState({
+    open: false,
+    mode: 'create',
+    habit: null,
+  });
   const [ghostHabits, setGhostHabits] = useState(GHOST_HABITS);
   const [habits, setHabits] = useState(resolveInitialHabits);
   const [searchQuery, setSearchQuery] = useState('');
@@ -167,9 +171,40 @@ export default function Habits() {
 
   const updateFilter = (key, value) => setActiveFilters((prev) => ({ ...prev, [key]: value }));
 
-  const handleOpenModal = () => setModal(true);
-  const handleCloseModal = () => setModal(false);
+  const handleOpenModal = () =>
+    setHabitModal({ open: true, mode: 'create', habit: null });
+  const handleCloseModal = () =>
+    setHabitModal({ open: false, mode: 'create', habit: null });
   const handleSaveHabit = (data) => {
+    if (habitModal.mode === 'edit' && habitModal.habit) {
+      setHabits((prev) =>
+        prev.map((h) => {
+          if (h.id !== habitModal.habit.id) return h;
+
+          const nextDays =
+            Array.isArray(data.targetDays) && data.targetDays.length > 0
+              ? DAYS.map((day) => (data.targetDays.includes(day) ? 'empty' : 'unscheduled'))
+              : h.days;
+          const mergedDays = nextDays.map((state, i) => {
+            if (state === 'unscheduled') return 'unscheduled';
+            if (h.days?.[i] === 'checked' || h.days?.[i] === 'today') return h.days[i];
+            return state;
+          });
+
+          return {
+            ...h,
+            title: data.title,
+            description: data.description,
+            tags: data.tags,
+            days: mergedDays,
+            todayProgress:
+              mergedDays[TODAY_INDEX] === 'today' ? h.todayProgress : undefined,
+          };
+        }),
+      );
+      return;
+    }
+
     const days = Array(7).fill('empty');
     // Manual target days (if provided) mark unscheduled slots; default all empty/scheduled.
     if (Array.isArray(data.targetDays) && data.targetDays.length > 0) {
@@ -258,8 +293,8 @@ export default function Habits() {
     // Visual-only for Step 1 — AI regeneration wired in a later step.
   };
 
-  const handleEditHabit = () => {
-    // Edit flow reuses the New Habit modal in a later step — visual-only for now.
+  const handleEditHabit = (habit) => {
+    setHabitModal({ open: true, mode: 'edit', habit });
   };
 
   const handleImproveHabit = () => {
@@ -409,7 +444,18 @@ export default function Habits() {
         )}
       </div>
 
-      <NewHabitsModal open={modal} onClose={handleCloseModal} onSave={handleSaveHabit} />
+      <NewHabitsModal
+        key={
+          habitModal.open
+            ? `${habitModal.mode}-${habitModal.habit?.id ?? 'new'}`
+            : 'closed'
+        }
+        open={habitModal.open}
+        mode={habitModal.mode}
+        initialHabit={habitModal.habit}
+        onClose={handleCloseModal}
+        onSave={handleSaveHabit}
+      />
     </div>
   );
 }
