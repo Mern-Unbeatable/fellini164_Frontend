@@ -938,7 +938,6 @@ export default function ActiveGoals() {
   const handlePauseGoal = async (goal) => {
     const nextStatus = goal.status === 'paused' ? 'active' : 'paused';
     await dispatch(updateGoalStatus({ goalId: goal.id, status: nextStatus }));
-    await loadGoals();
   };
 
   const handleDeleteGoal = async (id) => {

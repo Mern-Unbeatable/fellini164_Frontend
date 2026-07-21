@@ -17,6 +17,7 @@ import {
   Hourglass,
   Pencil,
   Pause,
+  Play,
   Trash2,
   Bell,
 } from 'lucide-react';
@@ -30,11 +31,13 @@ import {
   selectCurrentGoalTasks,
   selectGoalDetailLoading,
   selectGoals,
+  updateGoal,
   updateGoalStatus,
 } from '../../../../../features/goals/goalsSlice';
 import GoalAiAssistant from './components/GoalAiAssistant';
 import LinkItemsModal from './components/LinkItemsModal';
 import GoalSparkLinkModal from './components/GoalSparkLinkModal';
+import NewGoalModal from './components/NewGoalModal';
 import NewHabitsModal from '../Habits/components/NewHabitsModal';
 import TaskFormModal from '../Tasks/components/TaskFormModal';
 
@@ -50,6 +53,10 @@ const PRIORITY_LABELS = {
   HIGH: 'High',
   MEDIUM: 'Medium',
   LOW: 'Low',
+};
+
+const STATUS_PILL = {
+  paused: 'bg-[rgba(93,93,93,0.05)] text-[#5d5d5d]',
 };
 
 // Figma Frame 5.1 + Habits board lock today to Wed (Mon=0).
@@ -98,7 +105,7 @@ function GoalDetailMenu({ onClose, onEdit, onImprove, onPause, onDelete, isPause
       </button>
       <div className="h-px w-full bg-[#f2f2f2] dark:bg-zinc-700" />
       <button type="button" onClick={onPause} className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}>
-        <Pause size={12} className="shrink-0" />
+        {isPaused ? <Play size={12} className="shrink-0" /> : <Pause size={12} className="shrink-0" />}
         {isPaused ? 'Activate goal' : 'Pause goal'}
       </button>
       <button type="button" onClick={onDelete} className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}>
@@ -591,6 +598,7 @@ export default function GoalDetailPage() {
   const [taskModal, setTaskModal] = useState({ open: false, task: null });
   const [linkModal, setLinkModal] = useState({ open: false, type: 'tasks' });
   const [sparkModal, setSparkModal] = useState({ open: false, type: 'tasks' });
+  const [editModalOpen, setEditModalOpen] = useState(false);
 
   const tasks = useMemo(() => {
     if (editedLists.goalId === goalId && editedLists.tasks) return editedLists.tasks;
@@ -624,6 +632,7 @@ export default function GoalDetailPage() {
   if (!loadingGoal && !goal) return <Navigate to="/user/goals" replace />;
 
   const hasDue = goal.dueDetail || goal.due;
+  const isPaused = goal.status === 'paused';
 
   const closeAssistant = () => {
     setIsAssistantOpen(false);
@@ -633,6 +642,24 @@ export default function GoalDetailPage() {
 
   const openEditTask = (task) => setTaskModal({ open: true, task });
   const closeTaskModal = () => setTaskModal({ open: false, task: null });
+
+  const openEditGoal = () => {
+    setMenuOpen(false);
+    setEditModalOpen(true);
+  };
+
+  const handleSaveGoal = async (data) => {
+    if (!goal?.id || !data?.title) return;
+    await dispatch(updateGoal({ goalId: goal.id, formData: data }));
+    setEditModalOpen(false);
+    await dispatch(fetchGoalById(goal.id));
+  };
+
+  const handleTogglePause = async () => {
+    setMenuOpen(false);
+    const nextStatus = isPaused ? 'active' : 'paused';
+    await dispatch(updateGoalStatus({ goalId: goal.id, status: nextStatus }));
+  };
   const handleSubmitTask = (form) => {
     if (!taskModal.task) return;
     const tags = [{ label: form.category }];
@@ -865,6 +892,13 @@ export default function GoalDetailPage() {
                   >
                     {PRIORITY_LABELS[goal.priority]}
                   </span>
+                  {isPaused && (
+                    <span
+                      className={`rounded-md px-2 pt-0.5 pb-[3px] text-[14px] font-medium ${STATUS_PILL.paused}`}
+                    >
+                      Paused
+                    </span>
+                  )}
                   {goal.source === 'ai' && (
                     <span className="flex items-center gap-1.5 rounded-md bg-[#f9f4ff] px-2 pt-0.5 pb-[3px] text-[14px] font-medium text-[#8022fe]">
                       <Sparkles size={14} />
@@ -883,15 +917,11 @@ export default function GoalDetailPage() {
                   </button>
                   {menuOpen && (
                     <GoalDetailMenu
-                      isPaused={goal.status === 'paused'}
+                      isPaused={isPaused}
                       onClose={() => setMenuOpen(false)}
-                      onEdit={() => setMenuOpen(false)}
-                      onImprove={() => setMenuOpen(false)}
-                      onPause={async () => {
-                        setMenuOpen(false);
-                        const nextStatus = goal.status === 'paused' ? 'active' : 'paused';
-                        await dispatch(updateGoalStatus({ goalId: goal.id, status: nextStatus }));
-                      }}
+                      onEdit={openEditGoal}
+                      onImprove={openEditGoal}
+                      onPause={handleTogglePause}
                       onDelete={async () => {
                         setMenuOpen(false);
                         await dispatch(deleteGoal(goal.id));
@@ -901,21 +931,21 @@ export default function GoalDetailPage() {
                   )}
                 </div>
               </div>
-              <div className="flex flex-col gap-2">
+              <div className={`flex flex-col gap-2 ${isPaused ? 'opacity-50' : ''}`}>
                 <h1 className="text-[20px] font-medium text-[#181818] dark:text-white">{goal.title}</h1>
                 <p className="text-[12px] font-medium text-[#c2c2c2]">{goal.description}</p>
               </div>
             </div>
 
             {goal.status !== 'completed' && !goal.completedDate && (
-              <div className="flex flex-col gap-2">
+              <div className={`flex flex-col gap-2 ${isPaused ? 'opacity-50' : ''}`}>
                 <div className="flex items-center justify-between text-[14px] font-medium">
                   <span className="text-[#c2c2c2]">Progress</span>
                   <span className="text-[#5d5d5d] dark:text-gray-300">{goal.progress ?? 0}%</span>
                 </div>
                 <div className="h-2 w-full overflow-hidden rounded-[40px] bg-[#f2f2f2] dark:bg-zinc-700">
                   <div
-                    className="h-full rounded-[18px] bg-[#8022fe]"
+                    className={`h-full rounded-[18px] ${isPaused ? 'bg-[#c2c2c2]' : 'bg-[#8022fe]'}`}
                     style={{ width: `${goal.progress ?? 0}%` }}
                   />
                 </div>
@@ -1011,6 +1041,15 @@ export default function GoalDetailPage() {
           </div>
         </div>
       )}
+
+      <NewGoalModal
+        key={goal?.id ? `edit-${goal.id}` : 'edit-goal'}
+        open={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        onSave={handleSaveGoal}
+        mode="edit"
+        initialGoal={goal}
+      />
 
       {habitModal.open && (
         <NewHabitsModal
