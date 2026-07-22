@@ -1261,7 +1261,6 @@ export default function GoalDetailPage() {
           <div className="flex h-125 w-full shrink-0 flex-col xl:h-full xl:w-100">
             <GoalAiAssistant
               goalId={goal?.id}
-              goal={goal}
               onClose={closeAssistant}
               onToggleExpand={toggleExpandAssistant}
               isExpanded={false}
@@ -1276,7 +1275,6 @@ export default function GoalDetailPage() {
           <div className="h-[85vh] w-full max-w-2xl">
             <GoalAiAssistant
               goalId={goal?.id}
-              goal={goal}
               onClose={closeAssistant}
               onToggleExpand={toggleExpandAssistant}
               isExpanded

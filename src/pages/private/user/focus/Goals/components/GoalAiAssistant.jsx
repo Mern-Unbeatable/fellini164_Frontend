@@ -1,12 +1,17 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Sparkles, X, Maximize2, Minimize2, Send, ListTodo, Pencil, Repeat } from 'lucide-react';
 import { toast } from 'react-toastify';
 import {
   acceptGoalSuggestionApi,
   dismissGoalSuggestionApi,
+  fetchGoalAiSuggestionsApi,
   suggestGoalApi,
   undoGoalAiApi,
 } from '../../../../../../features/goals/goalsAPI';
+import {
+  formatGoalSuggestionBody,
+  mapGoalAiSuggestionsToMessages,
+} from '../../../../../../features/goals/goalsMappers';
 
 const QUICK_ACTIONS = [
   {
@@ -83,36 +88,6 @@ function ActionPill({ children, onClick, disabled }) {
   );
 }
 
-function formatSuggestionBody(data) {
-  const lines = [data?.message || 'Here is what I suggest.'];
-  const goal = data?.proposedGoal;
-  if (goal?.title || goal?.description) {
-    lines.push('');
-    lines.push('Proposed goal updates:');
-    if (goal.title) lines.push(`• Title: ${goal.title}`);
-    if (goal.description) lines.push(`• Description: ${goal.description}`);
-    if (goal.priorityLevel) lines.push(`• Priority: ${goal.priorityLevel}`);
-    if (goal.targetDate) lines.push(`• Target: ${goal.targetDate}`);
-  }
-  const tasks = Array.isArray(data?.proposedTasks) ? data.proposedTasks : [];
-  if (tasks.length) {
-    lines.push('');
-    lines.push(`Proposed tasks (${tasks.length}):`);
-    tasks.forEach((t, i) => {
-      lines.push(`${i + 1}. ${t.title || t.name || 'Untitled task'}`);
-    });
-  }
-  const habits = Array.isArray(data?.proposedHabits) ? data.proposedHabits : [];
-  if (habits.length) {
-    lines.push('');
-    lines.push(`Proposed habits (${habits.length}):`);
-    habits.forEach((h, i) => {
-      lines.push(`${i + 1}. ${h.name || h.title || 'Untitled habit'}`);
-    });
-  }
-  return lines.join('\n');
-}
-
 function hasApplyableProposal(data) {
   if (!data) return false;
   if (data.proposedGoal?.title || data.proposedGoal?.description) return true;
@@ -121,61 +96,49 @@ function hasApplyableProposal(data) {
   return false;
 }
 
-function assistantStorageKey(goalId) {
-  return `fellini:goal-ai-assistant:${goalId}`;
-}
-
-function loadAssistantMessages(goalId) {
-  if (!goalId || typeof sessionStorage === 'undefined') return [];
-  try {
-    const raw = sessionStorage.getItem(assistantStorageKey(goalId));
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveAssistantMessages(goalId, messages) {
-  if (!goalId || typeof sessionStorage === 'undefined') return;
-  try {
-    sessionStorage.setItem(assistantStorageKey(goalId), JSON.stringify(messages));
-  } catch {
-    // ignore quota / private mode
-  }
-}
-
 /**
- * Goal detail AI Assistant — POST /goals/:id/ai/suggest
- * Accept: POST /goals/ai/suggestions/:suggestionId/accept
- * Dismiss: POST /goals/ai/suggestions/:suggestionId/dismiss
- * Undo: POST /goals/:goalId/ai/undo
- * Chat thread kept in sessionStorage for refresh within the tab.
+ * Goal detail AI Assistant
+ * Suggest: POST /goals/:id/ai/suggest
+ * History: GET /goals/:id/ai/suggestions  (refresh restores Yes, apply / No, cancel)
+ * Accept / Dismiss / Undo: suggestion action endpoints
  */
 export default function GoalAiAssistant({
   goalId,
-  goal,
   onClose,
   onToggleExpand,
   isExpanded = false,
   onRefreshGoal,
 }) {
   const [prompt, setPrompt] = useState('');
-  const [messages, setMessages] = useState(() => loadAssistantMessages(goalId));
+  const [messages, setMessages] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(Boolean(goalId));
   const [loading, setLoading] = useState(false);
   const [busyId, setBusyId] = useState(null);
   const [sessionStamp] = useState(formatSessionStamp);
   const textareaRef = useRef(null);
   const bottomRef = useRef(null);
 
-  useEffect(() => {
-    setMessages(loadAssistantMessages(goalId));
+  const reloadHistory = useCallback(async () => {
+    if (!goalId) {
+      setMessages([]);
+      setHistoryLoading(false);
+      return;
+    }
+    setHistoryLoading(true);
+    try {
+      const suggestions = await fetchGoalAiSuggestionsApi(goalId);
+      setMessages(mapGoalAiSuggestionsToMessages(suggestions));
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message || 'Failed to load AI history';
+      toast.error(msg);
+    } finally {
+      setHistoryLoading(false);
+    }
   }, [goalId]);
 
   useEffect(() => {
-    saveAssistantMessages(goalId, messages);
-  }, [goalId, messages]);
+    reloadHistory();
+  }, [reloadHistory]);
 
   useEffect(() => {
     const el = textareaRef.current;
@@ -186,7 +149,7 @@ export default function GoalAiAssistant({
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, loading]);
+  }, [messages, loading, historyLoading]);
 
   const runSuggest = async (action, message) => {
     if (!goalId || !message?.trim() || loading) return;
@@ -200,17 +163,27 @@ export default function GoalAiAssistant({
       if (!data?.success && data?.success !== undefined) {
         throw new Error(data?.message || 'Suggestion failed');
       }
+      const suggestionId = data?.suggestionId || data?.id || null;
       setMessages((prev) => [
         ...prev,
         {
-          id: `a-${Date.now()}`,
+          id: `a-${suggestionId || Date.now()}`,
           role: 'assistant',
-          text: formatSuggestionBody(data),
+          text: formatGoalSuggestionBody(data),
           suggestion: data,
-          suggestionId: data?.suggestionId || data?.id || null,
+          suggestionId,
           action: data?.action || action,
         },
       ]);
+      // Sync from backend so refresh + Yes/No stay accurate
+      if (suggestionId) {
+        try {
+          const suggestions = await fetchGoalAiSuggestionsApi(goalId);
+          setMessages(mapGoalAiSuggestionsToMessages(suggestions));
+        } catch {
+          // keep optimistic local message
+        }
+      }
     } catch (err) {
       const msg = err?.response?.data?.message || err?.message || 'Failed to get AI suggestion';
       toast.error(msg);
@@ -239,34 +212,18 @@ export default function GoalAiAssistant({
     if (!suggestionId || busyId) return;
     setBusyId(msg.id);
     setPrompt('');
-    setMessages((prev) => [
-      ...prev.map((m) => (m.id === msg.id ? { ...m, suggestion: null, dismissed: true } : m)),
-      { id: `u-apply-${Date.now()}`, role: 'user', text: 'Yes, apply' },
-    ]);
 
     try {
       const data = await acceptGoalSuggestionApi(suggestionId);
       if (!data?.success && data?.success !== undefined) {
         throw new Error(data?.message || 'Failed to apply suggestion');
       }
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `done-${Date.now()}`,
-          role: 'assistant',
-          text: data?.message || 'Done. The goal has been updated.',
-          canUndo: true,
-        },
-      ]);
       toast.success(data?.message || 'Changes applied');
       await onRefreshGoal?.();
+      await reloadHistory();
     } catch (err) {
       const message = err?.response?.data?.message || err?.message || 'Failed to apply changes';
       toast.error(message);
-      setMessages((prev) => [
-        ...prev,
-        { id: `err-${Date.now()}`, role: 'assistant', text: message, error: true },
-      ]);
     } finally {
       setBusyId(null);
     }
@@ -274,35 +231,18 @@ export default function GoalAiAssistant({
 
   const handleDismiss = async (msg) => {
     const suggestionId = msg.suggestionId || msg.suggestion?.suggestionId || msg.suggestion?.id;
-    if (busyId) return;
+    if (!suggestionId || busyId) return;
     setBusyId(msg.id);
-    setMessages((prev) => [
-      ...prev.map((m) => (m.id === msg.id ? { ...m, suggestion: null, dismissed: true } : m)),
-      { id: `u-cancel-${Date.now()}`, role: 'user', text: 'No, cancel' },
-    ]);
 
     try {
-      if (suggestionId) {
-        const data = await dismissGoalSuggestionApi(suggestionId);
-        if (!data?.success && data?.success !== undefined) {
-          throw new Error(data?.message || 'Failed to dismiss suggestion');
-        }
+      const data = await dismissGoalSuggestionApi(suggestionId);
+      if (!data?.success && data?.success !== undefined) {
+        throw new Error(data?.message || 'Failed to dismiss suggestion');
       }
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `c-${Date.now()}`,
-          role: 'assistant',
-          text: 'Okay, I discarded that suggestion.',
-        },
-      ]);
+      await reloadHistory();
     } catch (err) {
       const message = err?.response?.data?.message || err?.message || 'Failed to cancel suggestion';
       toast.error(message);
-      setMessages((prev) => [
-        ...prev,
-        { id: `err-${Date.now()}`, role: 'assistant', text: message, error: true },
-      ]);
     } finally {
       setBusyId(null);
     }
@@ -316,17 +256,9 @@ export default function GoalAiAssistant({
       if (!data?.success && data?.success !== undefined) {
         throw new Error(data?.message || 'Failed to undo');
       }
-      setMessages((prev) =>
-        prev
-          .map((m) => (m.id === msg.id ? { ...m, canUndo: false } : m))
-          .concat({
-            id: `undo-${Date.now()}`,
-            role: 'assistant',
-            text: data?.message || 'Changes have been undone.',
-          }),
-      );
       toast.success(data?.message || 'Changes undone');
       await onRefreshGoal?.();
+      await reloadHistory();
     } catch (err) {
       const message = err?.response?.data?.message || err?.message || 'Failed to undo changes';
       toast.error(message);
@@ -334,6 +266,8 @@ export default function GoalAiAssistant({
       setBusyId(null);
     }
   };
+
+  const showEmptyWelcome = !historyLoading && messages.length === 0 && !loading;
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-white dark:border-zinc-700 dark:bg-zinc-900">
@@ -363,48 +297,50 @@ export default function GoalAiAssistant({
       <div className="scrollbar-white flex min-h-0 flex-1 flex-col overflow-y-auto py-3 pl-3 pr-4.5">
         <p className="mb-2.5 text-center text-[12px] font-medium text-[#c2c2c2]">{sessionStamp}</p>
         <div className="flex flex-col gap-5">
-          {messages.length === 0 && (
+          {historyLoading && <AiBubble>Loading conversation…</AiBubble>}
+          {showEmptyWelcome && (
             <AiBubble>
               {`Hi — I can improve this goal, suggest tasks, or habits.\n\nUse a quick action below or describe what you want.`}
             </AiBubble>
           )}
-          {messages.map((msg) => (
-            <div key={msg.id} className="flex flex-col gap-2.5">
-              {msg.role === 'user' ? (
-                <UserBubble>{msg.text}</UserBubble>
-              ) : (
-                <>
-                  <AiBubble>{msg.text}</AiBubble>
-                  {hasApplyableProposal(msg.suggestion) && !msg.dismissed && (
-                    <div className="flex items-center gap-2">
-                      <ActionPill
+          {!historyLoading &&
+            messages.map((msg) => (
+              <div key={msg.id} className="flex flex-col gap-2.5">
+                {msg.role === 'user' ? (
+                  <UserBubble>{msg.text}</UserBubble>
+                ) : (
+                  <>
+                    <AiBubble>{msg.text}</AiBubble>
+                    {hasApplyableProposal(msg.suggestion) && !msg.dismissed && (
+                      <div className="flex items-center gap-2">
+                        <ActionPill
+                          disabled={Boolean(busyId) || loading}
+                          onClick={() => handleApply(msg)}
+                        >
+                          {busyId === msg.id ? 'Applying…' : 'Yes, apply'}
+                        </ActionPill>
+                        <ActionPill
+                          disabled={Boolean(busyId) || loading}
+                          onClick={() => handleDismiss(msg)}
+                        >
+                          No, cancel
+                        </ActionPill>
+                      </div>
+                    )}
+                    {msg.canUndo && (
+                      <button
+                        type="button"
                         disabled={Boolean(busyId) || loading}
-                        onClick={() => handleApply(msg)}
+                        onClick={() => handleUndo(msg)}
+                        className="w-fit text-[14px] font-medium text-[#8022fe] disabled:opacity-50"
                       >
-                        {busyId === msg.id ? 'Applying…' : 'Yes, apply'}
-                      </ActionPill>
-                      <ActionPill
-                        disabled={Boolean(busyId) || loading}
-                        onClick={() => handleDismiss(msg)}
-                      >
-                        No, cancel
-                      </ActionPill>
-                    </div>
-                  )}
-                  {msg.canUndo && (
-                    <button
-                      type="button"
-                      disabled={Boolean(busyId) || loading}
-                      onClick={() => handleUndo(msg)}
-                      className="w-fit text-[14px] font-medium text-[#8022fe] disabled:opacity-50"
-                    >
-                      {busyId === msg.id ? 'Undoing…' : 'Undo changes'}
-                    </button>
-                  )}
-                </>
-              )}
-            </div>
-          ))}
+                        {busyId === msg.id ? 'Undoing…' : 'Undo changes'}
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
+            ))}
           {loading && <AiBubble>Thinking…</AiBubble>}
           <div ref={bottomRef} />
         </div>
@@ -416,7 +352,7 @@ export default function GoalAiAssistant({
             <button
               key={action.key}
               type="button"
-              disabled={!goalId || loading || Boolean(busyId)}
+              disabled={!goalId || loading || historyLoading || Boolean(busyId)}
               onClick={() => handleQuickAction(action)}
               className="flex items-center gap-1.5 rounded-lg border border-[#f2f2f2] px-2.5 py-1.5 text-[12px] font-medium text-[#5d5d5d] disabled:opacity-50 dark:border-zinc-700 dark:text-gray-300"
             >
@@ -438,13 +374,13 @@ export default function GoalAiAssistant({
             }}
             placeholder="Describe what you want to change..."
             rows={1}
-            disabled={!goalId || loading || Boolean(busyId)}
+            disabled={!goalId || loading || historyLoading || Boolean(busyId)}
             className="max-h-30 flex-1 resize-none overflow-hidden bg-transparent text-[12px] text-[#5d5d5d] placeholder:text-[#c2c2c2] focus:outline-none disabled:opacity-50 dark:text-gray-300"
           />
           <button
             type="button"
             aria-label="Send"
-            disabled={!goalId || !prompt.trim() || loading || Boolean(busyId)}
+            disabled={!goalId || !prompt.trim() || loading || historyLoading || Boolean(busyId)}
             onClick={handleSend}
             className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#8022fe] text-white disabled:opacity-50"
           >

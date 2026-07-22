@@ -162,6 +162,7 @@ If Postman has no valid response:
 | Accept AI suggestion | `POST /api/v1/goals/ai/suggestions/:suggestionId/accept` | AI Assistant **Yes, apply** | Applies proposal server-side; then refetch goal | **FULFILLED** |
 | Dismiss AI suggestion | `POST /api/v1/goals/ai/suggestions/:suggestionId/dismiss` | AI Assistant **No, cancel** | Discards pending suggestion | **FULFILLED** |
 | Undo AI changes | `POST /api/v1/goals/:goalId/ai/undo` | AI Assistant **Undo changes** | Reverts last accepted suggestion; refetch goal | **FULFILLED** |
+| AI suggestion history | `GET /api/v1/goals/:goalId/ai/suggestions` | Goal detail AI Assistant open / refresh | Restores chat + pending **Yes, apply / No, cancel** | **FULFILLED** |
 | Update linked task | `PATCH /api/v1/tasks/:taskId` | Goal detail Linked Tasks ⋯ → **Edit task** | Body e.g. `{ priority, status, title, … }`; response `{ task }` | **FULFILLED** |
 | Complete linked task | `POST /api/v1/tasks/:taskId/complete` | Goal detail Linked Tasks ⋯ → **Complete** | Body `{ actualMinutes }`; response `{ task }` | **FULFILLED** |
 | Delete linked task | `DELETE /api/v1/tasks/:taskId` | Goal detail Linked Tasks ⋯ → **Delete** | Removes card + refreshes goal | **FULFILLED** |
@@ -274,7 +275,7 @@ If Postman has no response:
 | Spark AI generate task (`POST /tasks/ai/generate`) | **FULFILLED** |
 | Spark AI generate habit (`POST /habits/ai/generate`) | **FULFILLED** |
 | Goal AI Assistant suggest (`POST /goals/:id/ai/suggest`) | **FULFILLED** |
-| AI suggestion Accept / Dismiss / Undo | **FULFILLED** |
+| AI suggestion Accept / Dismiss / Undo / History | **FULFILLED** |
 | Linked task Edit / Complete / Delete (`PATCH` / `POST .../complete` / `DELETE /tasks/:id`) | **FULFILLED** |
 | Linked habit Edit / Skip / Delete (`PATCH` / `POST .../skip` / `DELETE /habits/:id`) | **FULFILLED** |
 | Update / Complete goal / Link mutations | **PARTIAL** (wired, contract not locked) |
@@ -372,14 +373,15 @@ Habit Spark **AI Generation** → `POST /api/v1/habits/ai/generate` — see **B.
 
 | Step | Action in app | Expected Network |
 |------|---------------|------------------|
-| 1 | Open goal detail → AI Assistant | Panel visible |
+| 1 | Open goal detail → AI Assistant | `GET /api/v1/goals/:id/ai/suggestions` → history + pending Yes/No |
 | 2 | **Improve description** | `POST /api/v1/goals/:id/ai/suggest` `{ "action": "IMPROVE_DESCRIPTION", "message": "Make it more specific and motivating" }` |
 | 3 | **Add tasks** | `{ "action": "ADD_TASKS", "message": "Add practical next steps for this week" }` |
 | 4 | **Add habits** | `{ "action": "ADD_HABITS", "message": "Suggest daily habits that support this goal" }` |
 | 5 | Chat send | `{ "action": "CHAT", "message": "<user text>" }` |
-| 6 | **Yes, apply** | `POST /api/v1/goals/ai/suggestions/:suggestionId/accept` → refresh goal detail |
-| 7 | **No, cancel** | `POST /api/v1/goals/ai/suggestions/:suggestionId/dismiss` |
-| 8 | **Undo changes** (after apply) | `POST /api/v1/goals/:goalId/ai/undo` → refresh goal detail |
+| 6 | **Yes, apply** | `POST /api/v1/goals/ai/suggestions/:suggestionId/accept` → refresh goal + `GET .../ai/suggestions` |
+| 7 | **No, cancel** | `POST /api/v1/goals/ai/suggestions/:suggestionId/dismiss` → `GET .../ai/suggestions` |
+| 8 | **Undo changes** (after apply) | `POST /api/v1/goals/:goalId/ai/undo` → refresh goal + `GET .../ai/suggestions` |
+| 9 | Browser refresh on pending Yes/No | Same `GET .../ai/suggestions` restores buttons |
 
 ### B.7 Linked Tasks card menu (Goal detail)
 
@@ -416,13 +418,15 @@ Habit Spark **AI Generation** → `POST /api/v1/habits/ai/generate` — see **B.
 }
 ```
 
-### A.14 AI suggestion accept / dismiss / undo
+### A.14 AI suggestion accept / dismiss / undo / history
+
+**History** `GET /api/v1/goals/:goalId/ai/suggestions` — list suggestions (`PENDING` keeps Yes/No; `ACCEPTED`/`DISMISSED` as history).
 
 **Accept** `POST /api/v1/goals/ai/suggestions/:suggestionId/accept`  
 **Dismiss** `POST /api/v1/goals/ai/suggestions/:suggestionId/dismiss`  
 **Undo** `POST /api/v1/goals/:goalId/ai/undo`
 
-No request body required (empty POST). After accept/undo, frontend refetches `GET /goals/:id`.
+Accept/dismiss/undo: empty POST body. After mutations, frontend refetches goal + suggestions.
 
 ### A.12 Linked task mutations (Goal detail card menu)
 

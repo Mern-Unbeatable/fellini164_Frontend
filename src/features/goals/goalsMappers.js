@@ -527,3 +527,151 @@ export function orderedLinkPickerOptions(options) {
     (a, b) => Number(Boolean(b.aiSuggested)) - Number(Boolean(a.aiSuggested))
   );
 }
+
+/** Format AI suggest / history payload for chat bubble text. */
+export function formatGoalSuggestionBody(data) {
+  const lines = [data?.message || data?.assistantMessage || 'Here is what I suggest.'];
+  const goal = data?.proposedGoal;
+  if (goal?.title || goal?.description) {
+    lines.push('');
+    lines.push('Proposed goal updates:');
+    if (goal.title) lines.push(`• Title: ${goal.title}`);
+    if (goal.description) lines.push(`• Description: ${goal.description}`);
+    if (goal.priorityLevel) lines.push(`• Priority: ${goal.priorityLevel}`);
+    if (goal.targetDate) lines.push(`• Target: ${goal.targetDate}`);
+  }
+  const tasks = Array.isArray(data?.proposedTasks) ? data.proposedTasks : [];
+  if (tasks.length) {
+    lines.push('');
+    lines.push(`Proposed tasks (${tasks.length}):`);
+    tasks.forEach((t, i) => {
+      lines.push(`${i + 1}. ${t.title || t.name || 'Untitled task'}`);
+    });
+  }
+  const habits = Array.isArray(data?.proposedHabits) ? data.proposedHabits : [];
+  if (habits.length) {
+    lines.push('');
+    lines.push(`Proposed habits (${habits.length}):`);
+    habits.forEach((h, i) => {
+      lines.push(`${i + 1}. ${h.name || h.title || 'Untitled habit'}`);
+    });
+  }
+  return lines.join('\n');
+}
+
+function suggestionStatus(item) {
+  return String(item?.status || item?.state || 'PENDING').toUpperCase();
+}
+
+function isPendingSuggestion(status) {
+  return ['PENDING', 'OPEN', 'ACTIVE', 'AWAITING', 'AWAITING_CONFIRMATION'].includes(status);
+}
+
+function isAcceptedSuggestion(status) {
+  return ['ACCEPTED', 'APPLIED', 'COMPLETED', 'DONE'].includes(status);
+}
+
+function isDismissedSuggestion(status) {
+  return ['DISMISSED', 'CANCELLED', 'CANCELED', 'REJECTED'].includes(status);
+}
+
+/**
+ * Map GET /goals/:id/ai/suggestions → AI Assistant chat messages
+ * (user + assistant bubbles, Yes/No for PENDING, Undo for latest ACCEPTED).
+ */
+export function mapGoalAiSuggestionsToMessages(list) {
+  const items = Array.isArray(list) ? list : [];
+  const sorted = [...items].sort((a, b) => {
+    const ta = new Date(a.createdAt || a.updatedAt || 0).getTime();
+    const tb = new Date(b.createdAt || b.updatedAt || 0).getTime();
+    return ta - tb;
+  });
+
+  const messages = [];
+  let lastAcceptedDoneId = null;
+
+  sorted.forEach((item, index) => {
+    const suggestionId = item.suggestionId || item.id;
+    if (!suggestionId) return;
+    const status = suggestionStatus(item);
+    const pending = isPendingSuggestion(status);
+    const accepted = isAcceptedSuggestion(status);
+    const dismissed = isDismissedSuggestion(status);
+
+    const userText =
+      item.userMessage ||
+      item.prompt ||
+      item.requestMessage ||
+      item.inputMessage ||
+      item.request?.message;
+    if (userText) {
+      messages.push({
+        id: `u-${suggestionId}`,
+        role: 'user',
+        text: String(userText),
+      });
+    }
+
+    const suggestionPayload = {
+      ...item,
+      id: suggestionId,
+      suggestionId,
+      message: item.assistantMessage || item.responseMessage || item.message,
+      proposedGoal: item.proposedGoal || null,
+      proposedTasks: Array.isArray(item.proposedTasks) ? item.proposedTasks : [],
+      proposedHabits: Array.isArray(item.proposedHabits) ? item.proposedHabits : [],
+      action: item.action,
+    };
+
+    messages.push({
+      id: `a-${suggestionId}`,
+      role: 'assistant',
+      text: formatGoalSuggestionBody(suggestionPayload),
+      suggestion: pending ? suggestionPayload : null,
+      suggestionId,
+      dismissed: dismissed || (!pending && !accepted),
+      action: item.action,
+      fromHistory: true,
+    });
+
+    if (accepted) {
+      // Figma: user confirm bubble may be stored; otherwise synthesize apply/done
+      if (!userText || String(userText).toLowerCase() !== 'yes, apply') {
+        messages.push({
+          id: `u-apply-${suggestionId}`,
+          role: 'user',
+          text: 'Yes, apply',
+        });
+      }
+      const doneId = `done-${suggestionId}`;
+      messages.push({
+        id: doneId,
+        role: 'assistant',
+        text: item.applyMessage || 'Done. The goal has been updated.',
+        canUndo: false,
+        suggestionId,
+        fromHistory: true,
+      });
+      lastAcceptedDoneId = doneId;
+    } else if (dismissed) {
+      messages.push({
+        id: `u-cancel-${suggestionId}-${index}`,
+        role: 'user',
+        text: 'No, cancel',
+      });
+      messages.push({
+        id: `c-${suggestionId}`,
+        role: 'assistant',
+        text: 'Okay, I discarded that suggestion.',
+        fromHistory: true,
+      });
+    }
+  });
+
+  if (lastAcceptedDoneId) {
+    return messages.map((m) =>
+      m.id === lastAcceptedDoneId ? { ...m, canUndo: true } : m,
+    );
+  }
+  return messages;
+}

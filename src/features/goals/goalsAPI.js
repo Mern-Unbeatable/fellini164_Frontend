@@ -280,6 +280,21 @@ export async function undoGoalAiApi(goalId) {
 }
 
 /**
+ * GET /api/v1/goals/:goalId/ai/suggestions
+ * Chat / suggestion history for Goal detail AI Assistant (refresh-safe).
+ * Envelope variants: { suggestions }, { data }, or array.
+ */
+export async function fetchGoalAiSuggestionsApi(goalId) {
+  const response = await axiosInstance.get(`${BASE}/${goalId}/ai/suggestions`);
+  const body = response?.data;
+  if (Array.isArray(body?.suggestions)) return body.suggestions;
+  if (Array.isArray(body?.data)) return body.data;
+  if (Array.isArray(body?.items)) return body.items;
+  if (Array.isArray(body)) return body;
+  return [];
+}
+
+/**
  * GET /api/v1/tasks — List Tasks (filters & pagination).
  * Envelope: { success, count, tasks, pagination }
  * Link-picker default: parentOnly + page/limit (do not pass goalId — that filters already-linked tasks).
