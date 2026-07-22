@@ -37,10 +37,15 @@ import {
 } from '../../../../../features/goals/goalsSlice';
 import {
   completeTaskApi,
+  deleteHabitApi,
   deleteTaskApi,
+  skipHabitApi,
+  updateHabitApi,
   updateTaskApi,
 } from '../../../../../features/goals/goalsAPI';
 import {
+  mapHabitUpdatePayload,
+  mapLinkedHabitFromApi,
   mapLinkedTaskFromApi,
   mapTaskUpdatePayload,
 } from '../../../../../features/goals/goalsMappers';
@@ -358,7 +363,7 @@ function HabitDayCell({ state, todayProgress, onToggle }) {
   );
 }
 
-function HabitRowMenu({ onEdit, onClose }) {
+function HabitRowMenu({ onEdit, onSkip, onDelete, onClose }) {
   const itemBase =
     'flex w-full items-center gap-1.5 px-2.5 py-1.5 text-left text-[12px] font-medium whitespace-nowrap hover:bg-[#fcfcfc] dark:hover:bg-zinc-700';
   return (
@@ -374,12 +379,26 @@ function HabitRowMenu({ onEdit, onClose }) {
         <Pencil size={12} className="shrink-0" />
         Edit habit
       </button>
-      <button type="button" onClick={onClose} className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}>
+      <button
+        type="button"
+        onClick={() => {
+          onSkip?.();
+          onClose();
+        }}
+        className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}
+      >
         <Pause size={12} className="shrink-0" />
         Skip today
       </button>
       <div className="h-px w-full bg-[#f2f2f2] dark:bg-zinc-700" />
-      <button type="button" onClick={onClose} className={`${itemBase} text-[#dc2626]`}>
+      <button
+        type="button"
+        onClick={() => {
+          onDelete?.();
+          onClose();
+        }}
+        className={`${itemBase} text-[#dc2626]`}
+      >
         <Trash2 size={12} className="shrink-0" />
         Delete
       </button>
@@ -387,7 +406,73 @@ function HabitRowMenu({ onEdit, onClose }) {
   );
 }
 
-function PageHabitRow({ habit, onEdit }) {
+function SkipHabitModal({ habitTitle, reason, onChangeReason, onClose, onConfirm, submitting }) {
+  const canSubmit = String(reason || '').trim().length > 0 && !submitting;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div
+        className="flex w-full max-w-[400px] flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-900"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between border-b border-[#f2f2f2] px-3 py-2.5 dark:border-zinc-700">
+          <p className="text-[12px] font-medium text-[#5d5d5d] dark:text-gray-300">Skip today</p>
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={submitting}
+            className="text-[#5d5d5d] dark:text-gray-300"
+            aria-label="Close"
+          >
+            <CircleX size={14} />
+          </button>
+        </div>
+        <div className="flex flex-col gap-3 p-3">
+          {habitTitle && (
+            <p className="text-[13px] font-medium text-[#181818] dark:text-white">{habitTitle}</p>
+          )}
+          <label className="flex flex-col gap-1.5">
+            <span className="text-[12px] font-medium text-[#5d5d5d] dark:text-gray-300">
+              Why are you skipping today?
+            </span>
+            <input
+              type="text"
+              value={reason}
+              onChange={(e) => onChangeReason(e.target.value)}
+              placeholder="e.g. Travel day"
+              autoFocus
+              disabled={submitting}
+              className="rounded-lg border border-[#f2f2f2] bg-white px-3 py-2 text-[13px] text-[#181818] outline-none focus:border-[#8022fe] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
+            />
+          </label>
+        </div>
+        <div className="flex gap-2 border-t border-[#f2f2f2] p-3 dark:border-zinc-700">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={submitting}
+            className="flex flex-1 items-center justify-center rounded-lg bg-[#f2f2f2] px-3 py-2 text-[12px] font-medium text-[#5d5d5d] dark:bg-zinc-700 dark:text-gray-300"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            disabled={!canSubmit}
+            onClick={onConfirm}
+            className={`flex flex-1 items-center justify-center rounded-lg px-3 py-2 text-[12px] font-semibold ${
+              canSubmit
+                ? 'bg-[#8022fe] text-white'
+                : 'cursor-not-allowed bg-[#f1f1f1] text-[#dedede]'
+            }`}
+          >
+            {submitting ? 'Skipping…' : 'Skip'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PageHabitRow({ habit, onEdit, onSkip, onDelete }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const initialDays =
@@ -524,6 +609,8 @@ function PageHabitRow({ habit, onEdit }) {
           <HabitRowMenu
             onClose={() => setMenuOpen(false)}
             onEdit={() => onEdit?.(habit)}
+            onSkip={() => onSkip?.(habit)}
+            onDelete={() => onDelete?.(habit)}
           />
         </div>
       )}
@@ -621,6 +708,8 @@ export default function GoalDetailPage() {
   const [showAllTasks, setShowAllTasks] = useState(false);
   const [editedLists, setEditedLists] = useState({ goalId: null, tasks: null, habits: null });
   const [habitModal, setHabitModal] = useState({ open: false, habit: null });
+  const [skipModal, setSkipModal] = useState({ open: false, habit: null, reason: 'Travel day' });
+  const [habitActionBusy, setHabitActionBusy] = useState(null);
   const [taskModal, setTaskModal] = useState({ open: false, task: null });
   const [taskActionBusy, setTaskActionBusy] = useState(null);
   const [linkModal, setLinkModal] = useState({ open: false, type: 'tasks' });
@@ -718,66 +807,6 @@ export default function GoalDetailPage() {
   const openEditHabit = (habit) => setHabitModal({ open: true, habit });
   const closeHabitModal = () => setHabitModal({ open: false, habit: null });
 
-  const handleSaveHabit = (data) => {
-    if (!habitModal.habit) return;
-    const baseHabits =
-      editedLists.goalId === goalId && editedLists.habits ? editedLists.habits : habits;
-    setEditedLists({
-      goalId,
-      habits: baseHabits.map((h) => {
-        if (h.id !== habitModal.habit.id) return h;
-        const nextDays =
-          Array.isArray(data.targetDays) && data.targetDays.length > 0
-            ? WEEKDAY_LABELS.map((day) => (data.targetDays.includes(day) ? 'empty' : 'unscheduled'))
-            : h.days;
-        const mergedDays = (nextDays || Array(7).fill('empty')).map((state, i) => {
-          if (state === 'unscheduled') return 'unscheduled';
-          if (h.days?.[i] === 'checked' || h.days?.[i] === 'today') return h.days[i];
-          return state;
-        });
-        const nextTags = Array.isArray(data.tags) && data.tags.length > 0
-          ? data.tags
-          : [
-              { label: data.category || 'Health' },
-              data.hour != null
-                ? {
-                    label: `${data.hour}:${data.minute || '00'} ${data.period || 'PM'}`,
-                    icon: Bell,
-                  }
-                : null,
-              data.linkedGoal && data.linkedGoal !== '__create_new__'
-                ? { label: data.linkedGoal, icon: Flag }
-                : null,
-            ].filter(Boolean);
-
-        // Keep streak / days-left style tags that aren't category/time/goal.
-        const preserved = (h.tags || []).filter(
-          (t) =>
-            t.icon === 'flame' ||
-            t.icon === 'hourglass' ||
-            t.icon === Flame ||
-            t.icon === Hourglass ||
-            /^\+?\d+$/.test(t.label || '') ||
-            /days?\s*left/i.test(t.label || '') ||
-            /\d+\s*days?/i.test(t.label || ''),
-        );
-
-        return {
-          ...h,
-          title: data.title,
-          description: data.description,
-          category: data.category,
-          tags: [...nextTags.filter((t) => t.label), ...preserved].slice(0, 6),
-          days: mergedDays,
-          todayProgress:
-            mergedDays[TODAY_INDEX] === 'today' ? h.todayProgress : undefined,
-        };
-      }),
-      tasks: editedLists.goalId === goalId ? editedLists.tasks : null,
-    });
-    closeHabitModal();
-  };
-
   const mergeEditedTasks = (nextTasks) => {
     setEditedLists({
       goalId,
@@ -791,6 +820,133 @@ export default function GoalDetailPage() {
       tasks: editedLists.goalId === goalId ? editedLists.tasks : null,
       habits: nextHabits,
     });
+  };
+
+  const getCurrentHabits = () =>
+    editedLists.goalId === goalId && editedLists.habits ? editedLists.habits : habits;
+
+  const replaceHabitInList = (apiHabit, extras = {}) => {
+    const mapped = mapLinkedHabitFromApi(apiHabit);
+    if (!mapped?.id) return;
+    const base = getCurrentHabits();
+    mergeEditedHabits(
+      base.map((h) => (h.id === mapped.id ? { ...h, ...mapped, ...extras } : h)),
+    );
+  };
+
+  const handleSaveHabit = async (data) => {
+    if (!habitModal.habit?.id) return;
+    const habitId = habitModal.habit.id;
+    try {
+      const payload = mapHabitUpdatePayload(data, { goalId: goal?.id });
+      const updated = await updateHabitApi(habitId, payload);
+      const nextDays =
+        Array.isArray(data.targetDays) && data.targetDays.length > 0
+          ? WEEKDAY_LABELS.map((day) => (data.targetDays.includes(day) ? 'empty' : 'unscheduled'))
+          : undefined;
+      const tags =
+        Array.isArray(data.tags) && data.tags.length > 0
+          ? data.tags
+          : [
+              { label: data.category || 'Health' },
+              data.hour != null
+                ? {
+                    label: `${data.hour}:${data.minute || '00'} ${data.period || 'PM'}`,
+                    icon: Bell,
+                  }
+                : null,
+            ].filter(Boolean);
+      if (updated?.id) {
+        replaceHabitInList(updated, {
+          ...(nextDays ? { days: nextDays } : {}),
+          tags,
+        });
+      } else {
+        const base = getCurrentHabits();
+        mergeEditedHabits(
+          base.map((h) =>
+            h.id === habitId
+              ? {
+                  ...h,
+                  title: data.title || h.title,
+                  description: data.description ?? h.description,
+                  category: data.category || h.category,
+                  tags,
+                  ...(nextDays ? { days: nextDays } : {}),
+                }
+              : h,
+          ),
+        );
+      }
+      toast.success('Habit updated');
+    } catch (err) {
+      const message =
+        err?.response?.data?.message || err?.message || 'Failed to update habit';
+      toast.error(message);
+      throw err;
+    }
+  };
+
+  const handleSkipHabit = (habit) => {
+    if (!habit?.id || habitActionBusy) return;
+    setSkipModal({ open: true, habit, reason: 'Travel day' });
+  };
+
+  const closeSkipModal = () => {
+    if (habitActionBusy) return;
+    setSkipModal({ open: false, habit: null, reason: 'Travel day' });
+  };
+
+  const confirmSkipHabit = async () => {
+    const habit = skipModal.habit;
+    const trimmed = String(skipModal.reason || '').trim();
+    if (!habit?.id || !trimmed || habitActionBusy) return;
+    setHabitActionBusy(habit.id);
+    try {
+      const updated = await skipHabitApi(habit.id, { reason: trimmed });
+      if (updated?.id) {
+        replaceHabitInList(updated);
+      } else {
+        const base = getCurrentHabits();
+        mergeEditedHabits(
+          base.map((h) => {
+            if (h.id !== habit.id) return h;
+            const days =
+              Array.isArray(h.days) && h.days.length === 7
+                ? [...h.days]
+                : Array(7).fill('empty');
+            days[TODAY_INDEX] = 'empty';
+            return { ...h, days, todayProgress: undefined };
+          }),
+        );
+      }
+      toast.success('Habit skipped for today');
+      setSkipModal({ open: false, habit: null, reason: 'Travel day' });
+      if (goal?.id) dispatch(fetchGoalById(goal.id));
+    } catch (err) {
+      const message =
+        err?.response?.data?.message || err?.message || 'Failed to skip habit';
+      toast.error(message);
+    } finally {
+      setHabitActionBusy(null);
+    }
+  };
+
+  const handleDeleteHabit = async (habit) => {
+    if (!habit?.id || habitActionBusy) return;
+    setHabitActionBusy(habit.id);
+    try {
+      await deleteHabitApi(habit.id);
+      mergeEditedHabits(getCurrentHabits().filter((h) => h.id !== habit.id));
+      toast.success('Habit deleted');
+      if (goal?.id) dispatch(fetchGoalById(goal.id));
+    } catch (err) {
+      const message =
+        err?.response?.data?.message || err?.message || 'Failed to delete habit';
+      toast.error(message);
+    } finally {
+      setHabitActionBusy(null);
+    }
   };
 
   const getCurrentTasks = () =>
@@ -1096,7 +1252,13 @@ export default function GoalDetailPage() {
               ) : (
                 <div className="flex flex-col gap-2">
                   {habits.map((habit) => (
-                    <PageHabitRow key={habit.id} habit={habit} onEdit={openEditHabit} />
+                    <PageHabitRow
+                      key={habit.id}
+                      habit={habit}
+                      onEdit={openEditHabit}
+                      onSkip={handleSkipHabit}
+                      onDelete={handleDeleteHabit}
+                    />
                   ))}
                 </div>
               )}
@@ -1154,6 +1316,17 @@ export default function GoalDetailPage() {
           initialHabit={habitModal.habit}
           onClose={closeHabitModal}
           onSave={handleSaveHabit}
+        />
+      )}
+
+      {skipModal.open && (
+        <SkipHabitModal
+          habitTitle={skipModal.habit?.title}
+          reason={skipModal.reason}
+          onChangeReason={(reason) => setSkipModal((prev) => ({ ...prev, reason }))}
+          onClose={closeSkipModal}
+          onConfirm={confirmSkipHabit}
+          submitting={Boolean(habitActionBusy)}
         />
       )}
 

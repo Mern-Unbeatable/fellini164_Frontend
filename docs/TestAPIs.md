@@ -162,6 +162,9 @@ If Postman has no valid response:
 | Update linked task | `PATCH /api/v1/tasks/:taskId` | Goal detail Linked Tasks ⋯ → **Edit task** | Body e.g. `{ priority, status, title, … }`; response `{ task }` | **FULFILLED** |
 | Complete linked task | `POST /api/v1/tasks/:taskId/complete` | Goal detail Linked Tasks ⋯ → **Complete** | Body `{ actualMinutes }`; response `{ task }` | **FULFILLED** |
 | Delete linked task | `DELETE /api/v1/tasks/:taskId` | Goal detail Linked Tasks ⋯ → **Delete** | Removes card + refreshes goal | **FULFILLED** |
+| Update linked habit | `PATCH /api/v1/habits/:habitId` | Goal detail Linked Habits ⋯ → **Edit habit** | Body e.g. `{ difficulty, reminderTime, name?, goalId? }`; response `{ habit }` | **FULFILLED** |
+| Skip linked habit | `POST /api/v1/habits/:habitId/skip` | Goal detail Linked Habits ⋯ → **Skip today** | Body `{ reason }` | **FULFILLED** |
+| Delete linked habit | `DELETE /api/v1/habits/:habitId` | Goal detail Linked Habits ⋯ → **Delete** | Removes row + refreshes goal | **FULFILLED** |
 
 ### A.1b Deferred / still mock (no backend contract yet)
 
@@ -269,6 +272,7 @@ If Postman has no response:
 | Spark AI generate habit (`POST /habits/ai/generate`) | **FULFILLED** |
 | Goal AI Assistant suggest (`POST /goals/:id/ai/suggest`) | **FULFILLED** |
 | Linked task Edit / Complete / Delete (`PATCH` / `POST .../complete` / `DELETE /tasks/:id`) | **FULFILLED** |
+| Linked habit Edit / Skip / Delete (`PATCH` / `POST .../skip` / `DELETE /habits/:id`) | **FULFILLED** |
 | Update / Complete goal / Link mutations | **PARTIAL** (wired, contract not locked) |
 | Ghosts | **DEFERRED** |
 | Overall Goals Board | **FULFILLED for contracted APIs**; PARTIAL/DEFERRED only where Postman/backend incomplete |
@@ -379,6 +383,14 @@ Habit Spark **AI Generation** → `POST /api/v1/habits/ai/generate` — see **B.
 | 2 | Card ⋯ → **Complete** | `POST /api/v1/tasks/:taskId/complete` `{ "actualMinutes": <estimated or 30> }` → status `COMPLETED` |
 | 3 | Card ⋯ → **Delete** | `DELETE /api/v1/tasks/:taskId` → card removed; goal refetch |
 
+### B.8 Linked Habits row menu (Goal detail)
+
+| Step | Action in app | Expected Network |
+|------|---------------|------------------|
+| 1 | Open goal detail → Linked Habits ⋯ → **Edit habit** → Update | `PATCH /api/v1/habits/:habitId` body includes `difficulty`, `reminderTime` (and name/description/category/`goalId` when set) |
+| 2 | Row ⋯ → **Skip today** → enter reason | `POST /api/v1/habits/:habitId/skip` `{ "reason": "..." }` |
+| 3 | Row ⋯ → **Delete** | `DELETE /api/v1/habits/:habitId` → row removed; goal refetch |
+
 ### A.11 POST /goals/:id/ai/suggest — Request / Response
 
 ```json
@@ -429,6 +441,24 @@ Habit Spark **AI Generation** → `POST /api/v1/habits/ai/generate` — see **B.
 ```
 
 **DELETE** `/api/v1/tasks/:taskId` — no body; removes task.
+
+### A.13 Linked habit mutations (Goal detail row menu)
+
+**PATCH** `/api/v1/habits/:habitId`
+
+```json
+{ "difficulty": "MEDIUM", "reminderTime": "08:00" }
+```
+
+Optional: `{ "goalId": "uuid" }` to link/unlink goal.
+
+**POST** `/api/v1/habits/:habitId/skip`
+
+```json
+{ "reason": "Travel day" }
+```
+
+**DELETE** `/api/v1/habits/:habitId` — no body; removes habit.
 
 Automated checks (no auth):
 

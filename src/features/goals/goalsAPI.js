@@ -335,3 +335,34 @@ export async function deleteTaskApi(taskId) {
   await axiosInstance.delete(`/api/v1/tasks/${taskId}`);
   return taskId;
 }
+
+/**
+ * PATCH /api/v1/habits/:habitId
+ * Sample body: { difficulty, reminderTime } — also accepts name, description, category, goalId
+ * Response: { success, message, habit } (or habit in data)
+ */
+export async function updateHabitApi(habitId, payload) {
+  const response = await axiosInstance.patch(`/api/v1/habits/${habitId}`, payload);
+  const body = response?.data;
+  if (body?.habit) return body.habit;
+  return unwrapData(response);
+}
+
+/**
+ * POST /api/v1/habits/:habitId/skip
+ * Body: { reason }
+ */
+export async function skipHabitApi(habitId, payload = {}) {
+  const response = await axiosInstance.post(`/api/v1/habits/${habitId}/skip`, payload);
+  const body = response?.data;
+  if (body?.habit) return body.habit;
+  return unwrapData(response);
+}
+
+/**
+ * DELETE /api/v1/habits/:habitId
+ */
+export async function deleteHabitApi(habitId) {
+  await axiosInstance.delete(`/api/v1/habits/${habitId}`);
+  return habitId;
+}

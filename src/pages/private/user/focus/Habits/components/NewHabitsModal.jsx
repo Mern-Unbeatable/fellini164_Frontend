@@ -417,23 +417,33 @@ export default function NewHabitsModal({
     onClose();
   };
 
-  const handleManualSubmit = () => {
-    onSave({
-      title: form.title,
-      description: form.description || 'New habit',
-      category: form.category,
-      // MVP: one reminder time (12h) + target days for schedule — no multi-time / times-per-day.
-      tags: [
-        { label: form.category },
-        { label: `${form.hour}:${form.minute} ${form.period}`, icon: Bell },
-        ...(form.linkedGoal && form.linkedGoal !== '__create_new__'
-          ? [{ label: form.linkedGoal, icon: Flag }]
-          : []),
-      ],
-      targetDays: form.targetDays,
-      source: 'manual',
-    });
-    handleClose();
+  const handleManualSubmit = async () => {
+    try {
+      await Promise.resolve(
+        onSave({
+          title: form.title,
+          description: form.description || 'New habit',
+          category: form.category,
+          hour: form.hour,
+          minute: form.minute,
+          period: form.period,
+          difficulty: form.difficulty || 'MEDIUM',
+          // MVP: one reminder time (12h) + target days for schedule — no multi-time / times-per-day.
+          tags: [
+            { label: form.category },
+            { label: `${form.hour}:${form.minute} ${form.period}`, icon: Bell },
+            ...(form.linkedGoal && form.linkedGoal !== '__create_new__'
+              ? [{ label: form.linkedGoal, icon: Flag }]
+              : []),
+          ],
+          targetDays: form.targetDays,
+          source: 'manual',
+        }),
+      );
+      handleClose();
+    } catch {
+      // Parent handles error UI; keep modal open
+    }
   };
 
   const handleAddGeneratedToBoard = () => {
@@ -630,7 +640,7 @@ export default function NewHabitsModal({
                         : 'cursor-not-allowed bg-[#f1f1f1] text-[#dedede]'
                     }`}
                   >
-                    Edit
+                    Update
                   </button>
                 ) : activeTab === 'ai' ? (
                   <button

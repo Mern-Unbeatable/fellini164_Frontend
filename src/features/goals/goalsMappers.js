@@ -397,6 +397,40 @@ export function mapAiGeneratedTaskForPreview(apiTask) {
   };
 }
 
+/** Convert NewHabitsModal 12h time → API `reminderTime` `HH:mm` (24h). */
+export function reminderTimeToApi(hour, minute, period) {
+  let h = Number(hour);
+  if (Number.isNaN(h)) h = 8;
+  const m = String(minute ?? '00').padStart(2, '0');
+  const p = String(period || 'AM').toUpperCase();
+  if (p === 'AM') {
+    if (h === 12) h = 0;
+  } else if (h !== 12) {
+    h += 12;
+  }
+  return `${String(h).padStart(2, '0')}:${m}`;
+}
+
+/** Map NewHabitsModal fields → PATCH /habits/:id body (Postman contract). */
+export function mapHabitUpdatePayload(form, { goalId } = {}) {
+  const payload = {};
+  const name = form.title || form.name;
+  if (name != null && name !== '') {
+    payload.name = name;
+    payload.title = name;
+  }
+  if (form.description != null) payload.description = form.description;
+  if (form.category) payload.category = categoryToApi(form.category);
+  if (form.difficulty) payload.difficulty = String(form.difficulty).toUpperCase();
+  else payload.difficulty = 'MEDIUM';
+  if (form.hour != null || form.reminderTime) {
+    payload.reminderTime =
+      form.reminderTime || reminderTimeToApi(form.hour, form.minute, form.period);
+  }
+  if (goalId && isUuid(goalId)) payload.goalId = goalId;
+  return payload;
+}
+
 export function mapLinkedHabitFromApi(habit) {
   if (!habit) return null;
 
