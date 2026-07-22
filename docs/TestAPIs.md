@@ -159,6 +159,9 @@ If Postman has no valid response:
 | AI generate task | `POST /api/v1/tasks/ai/generate` | Spark ✨ → **AI Generation** (Linked Tasks) | Body `{ prompt, category, goalId? }`; response `{ task }` | **FULFILLED** |
 | AI generate habit | `POST /api/v1/habits/ai/generate` | Spark ✨ → **AI Generation** (Linked Habits) | Body `{ prompt, category, goalId? }`; response `{ habit }` | **FULFILLED** |
 | AI suggest (assistant) | `POST /api/v1/goals/:id/ai/suggest` | Goal detail **AI Assistant** — Add tasks / Improve description / Add habits / chat | Body `{ action, message }`; actions `IMPROVE_DESCRIPTION` \| `ADD_TASKS` \| `ADD_HABITS` \| `CHAT` | **FULFILLED** |
+| Accept AI suggestion | `POST /api/v1/goals/ai/suggestions/:suggestionId/accept` | AI Assistant **Yes, apply** | Applies proposal server-side; then refetch goal | **FULFILLED** |
+| Dismiss AI suggestion | `POST /api/v1/goals/ai/suggestions/:suggestionId/dismiss` | AI Assistant **No, cancel** | Discards pending suggestion | **FULFILLED** |
+| Undo AI changes | `POST /api/v1/goals/:goalId/ai/undo` | AI Assistant **Undo changes** | Reverts last accepted suggestion; refetch goal | **FULFILLED** |
 | Update linked task | `PATCH /api/v1/tasks/:taskId` | Goal detail Linked Tasks ⋯ → **Edit task** | Body e.g. `{ priority, status, title, … }`; response `{ task }` | **FULFILLED** |
 | Complete linked task | `POST /api/v1/tasks/:taskId/complete` | Goal detail Linked Tasks ⋯ → **Complete** | Body `{ actualMinutes }`; response `{ task }` | **FULFILLED** |
 | Delete linked task | `DELETE /api/v1/tasks/:taskId` | Goal detail Linked Tasks ⋯ → **Delete** | Removes card + refreshes goal | **FULFILLED** |
@@ -271,6 +274,7 @@ If Postman has no response:
 | Spark AI generate task (`POST /tasks/ai/generate`) | **FULFILLED** |
 | Spark AI generate habit (`POST /habits/ai/generate`) | **FULFILLED** |
 | Goal AI Assistant suggest (`POST /goals/:id/ai/suggest`) | **FULFILLED** |
+| AI suggestion Accept / Dismiss / Undo | **FULFILLED** |
 | Linked task Edit / Complete / Delete (`PATCH` / `POST .../complete` / `DELETE /tasks/:id`) | **FULFILLED** |
 | Linked habit Edit / Skip / Delete (`PATCH` / `POST .../skip` / `DELETE /habits/:id`) | **FULFILLED** |
 | Update / Complete goal / Link mutations | **PARTIAL** (wired, contract not locked) |
@@ -373,7 +377,9 @@ Habit Spark **AI Generation** → `POST /api/v1/habits/ai/generate` — see **B.
 | 3 | **Add tasks** | `{ "action": "ADD_TASKS", "message": "Add practical next steps for this week" }` |
 | 4 | **Add habits** | `{ "action": "ADD_HABITS", "message": "Suggest daily habits that support this goal" }` |
 | 5 | Chat send | `{ "action": "CHAT", "message": "<user text>" }` |
-| 6 | **Yes, apply** | Applies `proposedGoal` via update; creates proposed tasks/habits via `/tasks/ai/generate` / `/habits/ai/generate` with `goalId` |
+| 6 | **Yes, apply** | `POST /api/v1/goals/ai/suggestions/:suggestionId/accept` → refresh goal detail |
+| 7 | **No, cancel** | `POST /api/v1/goals/ai/suggestions/:suggestionId/dismiss` |
+| 8 | **Undo changes** (after apply) | `POST /api/v1/goals/:goalId/ai/undo` → refresh goal detail |
 
 ### B.7 Linked Tasks card menu (Goal detail)
 
@@ -409,6 +415,14 @@ Habit Spark **AI Generation** → `POST /api/v1/habits/ai/generate` — see **B.
   "tokensUsed": 993
 }
 ```
+
+### A.14 AI suggestion accept / dismiss / undo
+
+**Accept** `POST /api/v1/goals/ai/suggestions/:suggestionId/accept`  
+**Dismiss** `POST /api/v1/goals/ai/suggestions/:suggestionId/dismiss`  
+**Undo** `POST /api/v1/goals/:goalId/ai/undo`
+
+No request body required (empty POST). After accept/undo, frontend refetches `GET /goals/:id`.
 
 ### A.12 Linked task mutations (Goal detail card menu)
 

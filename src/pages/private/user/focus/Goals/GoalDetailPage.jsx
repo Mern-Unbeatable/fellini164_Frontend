@@ -782,31 +782,11 @@ export default function GoalDetailPage() {
     await dispatch(fetchGoalById(goal.id));
   };
 
-  const handleAssistantGoalUpdated = async (formData) => {
-    if (!goal?.id || !formData?.title) return;
-    await dispatch(updateGoal({ goalId: goal.id, formData }));
+  const handleAssistantRefresh = async () => {
+    if (!goal?.id) return;
+    // Clear local overrides so accept/undo results show from GET /goals/:id
+    setEditedLists({ goalId: null, tasks: null, habits: null });
     await dispatch(fetchGoalById(goal.id));
-  };
-
-  const handleAssistantTasksCreated = (createdTasks) => {
-    if (!createdTasks?.length) return;
-    const base = editedLists.goalId === goalId && editedLists.tasks ? editedLists.tasks : tasks;
-    const next = [...base];
-    createdTasks.forEach((t) => {
-      if (!next.some((x) => x.id === t.id)) next.push(t);
-    });
-    mergeEditedTasks(next);
-  };
-
-  const handleAssistantHabitsCreated = (createdHabits) => {
-    if (!createdHabits?.length) return;
-    const base =
-      editedLists.goalId === goalId && editedLists.habits ? editedLists.habits : habits;
-    const next = [...base];
-    createdHabits.forEach((h) => {
-      if (!next.some((x) => x.id === h.id)) next.push(h);
-    });
-    mergeEditedHabits(next);
   };
 
   const handleTogglePause = async () => {
@@ -1285,9 +1265,7 @@ export default function GoalDetailPage() {
               onClose={closeAssistant}
               onToggleExpand={toggleExpandAssistant}
               isExpanded={false}
-              onGoalUpdated={handleAssistantGoalUpdated}
-              onTasksCreated={handleAssistantTasksCreated}
-              onHabitsCreated={handleAssistantHabitsCreated}
+              onRefreshGoal={handleAssistantRefresh}
             />
           </div>
         )}
@@ -1302,9 +1280,7 @@ export default function GoalDetailPage() {
               onClose={closeAssistant}
               onToggleExpand={toggleExpandAssistant}
               isExpanded
-              onGoalUpdated={handleAssistantGoalUpdated}
-              onTasksCreated={handleAssistantTasksCreated}
-              onHabitsCreated={handleAssistantHabitsCreated}
+              onRefreshGoal={handleAssistantRefresh}
             />
           </div>
         </div>

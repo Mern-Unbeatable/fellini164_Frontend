@@ -253,6 +253,33 @@ export async function suggestGoalApi(goalId, payload) {
 }
 
 /**
+ * POST /api/v1/goals/ai/suggestions/:suggestionId/accept
+ * Applies a pending AI suggestion (goal / tasks / habits) on the backend.
+ */
+export async function acceptGoalSuggestionApi(suggestionId) {
+  const response = await axiosInstance.post(`${BASE}/ai/suggestions/${suggestionId}/accept`);
+  return response?.data;
+}
+
+/**
+ * POST /api/v1/goals/ai/suggestions/:suggestionId/dismiss
+ * Discards a pending AI suggestion.
+ */
+export async function dismissGoalSuggestionApi(suggestionId) {
+  const response = await axiosInstance.post(`${BASE}/ai/suggestions/${suggestionId}/dismiss`);
+  return response?.data;
+}
+
+/**
+ * POST /api/v1/goals/:goalId/ai/undo
+ * Reverts the last accepted AI suggestion for this goal.
+ */
+export async function undoGoalAiApi(goalId) {
+  const response = await axiosInstance.post(`${BASE}/${goalId}/ai/undo`);
+  return response?.data;
+}
+
+/**
  * GET /api/v1/tasks — List Tasks (filters & pagination).
  * Envelope: { success, count, tasks, pagination }
  * Link-picker default: parentOnly + page/limit (do not pass goalId — that filters already-linked tasks).
