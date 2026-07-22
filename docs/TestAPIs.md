@@ -108,13 +108,35 @@ Confirm all of the following:
 
 ---
 
+## 9. Mandatory Post-Integration Test (Agent + Engineer)
+
+**Rule:** After every API wire-up, do **not** mark done until this section is followed against `docs/TestAPIs.md`.
+
+1. **Contract** — Confirm endpoint, method, query/body, and sample response exist in Appendix A (or paste Postman evidence first).
+2. **Code match** — Frontend request must match Postman (path, params, body keys). No invented fields.
+3. **Automated audits** (no auth):
+   - `node scripts/audit-goals-list.mjs` — GET `/goals` filters/search
+   - `node scripts/audit-link-pickers.mjs` — GET `/tasks` + `/habits` link pickers
+4. **QA §6 / Final §7** — Tick what was verified; leave unchecked if only Network QA remains.
+5. **Update Appendix A** — Set row to **FULFILLED** / **PARTIAL** / **DEFERRED** with date + evidence notes.
+6. **Logged-in Network** — Run Appendix B smoke steps in browser; compare Network tab to Postman.
+
+If Postman has no valid response:
+
+> This API is not returning a response in Postman. A valid backend response is required before frontend integration can be completed.
+
+---
+
 ## Appendix A — Goals Board API Audit (Current Frontend)
 
 **Date:** 2026-07-22  
+**Last automated re-test:** 2026-07-22 (`audit-goals-list.mjs` + `audit-link-pickers.mjs` → ALL PASS)  
 **Module:** `src/features/goals/` + `src/pages/private/user/focus/Goals/`  
 **Base URL (env):** `VITE_API_BASE_URL` → `https://backendtest.elyxaai.com`  
 **API prefix used in code:** `/api/v1/goals`  
-**Contract verifier:** `node scripts/audit-goals-list.mjs`
+**Contract verifiers:**  
+- `node scripts/audit-goals-list.mjs`  
+- `node scripts/audit-link-pickers.mjs`  
 
 ### A.1 Endpoint Matrix (as coded)
 
@@ -130,10 +152,10 @@ Confirm all of the following:
 | Delete | `DELETE /api/v1/goals/:id` | Card / detail menu | Wired | **FULFILLED** |
 | Update goal | `PATCH` → `PUT` → `POST` `/api/v1/goals/:id` | Edit Goal modal (board + detail) | Method not locked in Postman | **PARTIAL** |
 | Complete goal | `PATCH/POST .../complete` (+ status fallbacks) | Card menu Complete | Exact contract not pasted | **PARTIAL** |
-| Link tasks | `POST .../link-tasks` (+ `/tasks` fallback) | Plus / Find & Attach | Exact path not locked | **PARTIAL** |
-| Link habits | `POST .../link-habits` (+ `/habits` fallback) | Plus / Find & Attach | Exact path not locked | **PARTIAL** |
-| Tasks for link picker | `GET /api/v1/tasks` | New Goal linked fields, Link / Spark Find & Attach, goal ⋯ → Add Task | Live list; envelope `{ tasks, pagination }`; default `parentOnly=true&page=1&limit=50` (no `goalId` on attach — that filters already-linked) | **FULFILLED** |
-| Habits for link picker | `GET /api/v1/habits` | New Goal linked fields, Link / Spark Find & Attach, goal ⋯ → Add Habit | Live list; envelope `{ habits, pagination }`; default `isActive=true&page=1&limit=50` (no `goalId` on attach) | **FULFILLED** |
+| Link tasks | `POST .../link-tasks` (+ `/tasks` fallback) | Plus / Spark Find & Attach | Exact path not locked | **PARTIAL** |
+| Link habits | `POST .../link-habits` (+ `/habits` fallback) | Plus / Spark Find & Attach | Exact path not locked | **PARTIAL** |
+| Tasks for link picker | `GET /api/v1/tasks` | **+** `LinkItemsModal`, Spark **Find & Attach**, New Goal linked tasks, ⋯ Add Task | Envelope `{ tasks, pagination }`; default `parentOnly=true&page=1&limit=50` (no `goalId`) | **FULFILLED** |
+| Habits for link picker | `GET /api/v1/habits` | **+** `LinkItemsModal`, Spark **Find & Attach**, New Goal linked habits, ⋯ Add Habit | Envelope `{ habits, pagination }`; default `isActive=true&page=1&limit=50` (no `goalId`) | **FULFILLED** |
 
 ### A.1b Deferred / still mock (no backend contract yet)
 
@@ -218,8 +240,8 @@ Goal fields mapped to UI: `id`, `title`, `description`, `category`, `status`, `p
 | Exact method (no guessing) | **PARTIAL** | Update / Complete / Link use fallbacks |
 | Remove mock after connect | **PASS** for list/create/AI/link pickers; **DEFERRED** ghosts + Spark AI generate | See A.1b |
 | Loading / empty / errors | **PASS** | Soft list reload; empty copy; toasts; 401 → login |
-| Mapper audit | **PASS** | `node scripts/audit-goals-list.mjs` → ALL PASS |
-| Logged-in Network QA | **Manual** | Engineer checklist in Appendix B |
+| Mapper audit | **PASS** | `audit-goals-list.mjs` + `audit-link-pickers.mjs` — ALL PASS (2026-07-22) |
+| Logged-in Network QA | **Manual** | Engineer checklist in Appendix B (Plus + Spark + filters) |
 
 ### A.5 Blockers (need Postman evidence)
 
@@ -270,25 +292,40 @@ For each Goals endpoint in Postman:
 | 8 | Date → Overdue | `...&dueFilter=overdue` |
 | 9 | Stats bar | Matches `summary.active` / `paused` / `completedThisMonth` |
 
-Automated mapper check (no auth): `node scripts/audit-goals-list.mjs`
+```bash
+node scripts/audit-goals-list.mjs
+node scripts/audit-link-pickers.mjs
+```
 
-### B.2 GET /tasks link-picker smoke (Goals → Add Task)
+### B.2 GET /tasks link-picker smoke (Goals side panel)
 
 | Step | Action in app | Expected Network |
 |------|---------------|------------------|
-| 1 | Goal card ⋯ → **Add Task** (or Linked Tasks **+**) | `GET /api/v1/tasks?parentOnly=true&page=1&limit=50` → `200` + `{ tasks, pagination }` |
-| 2 | Confirm select | `POST /api/v1/goals/:id/link-tasks` (or `/tasks` fallback) with `{ taskIds: [uuid] }` |
+| 1 | Goal card → right panel → Linked Tasks **+** | `GET /api/v1/tasks?parentOnly=true&page=1&limit=50` → `200` + `{ tasks, pagination }` |
+| 2 | Same panel → Linked Tasks **✨** → **Find & Attach** | Same `GET /api/v1/tasks?...` |
+| 3 | Select + Attach / Create | `POST /api/v1/goals/:id/link-tasks` (or `/tasks` fallback) `{ taskIds: [uuid] }` |
 
 **Do not** send `goalId` on the list call for Add/Attach — `goalId` filters tasks already linked to that goal (often empty).
 
-### B.3 GET /habits link-picker smoke (Goals → Add Habit)
+Empty `tasks: []` → UI shows “No tasks available…” (not stuck Loading).
+
+### B.3 GET /habits link-picker smoke (Goals side panel)
 
 | Step | Action in app | Expected Network |
 |------|---------------|------------------|
-| 1 | Goal card ⋯ → **Add Habit** (or Linked Habits **+**) | `GET /api/v1/habits?isActive=true&page=1&limit=50` → `200` + `{ habits, pagination }` |
-| 2 | Confirm select | `POST /api/v1/goals/:id/link-habits` (or `/habits` fallback) with `{ habitIds: [uuid] }` |
+| 1 | Goal card → right panel → Linked Habits **+** | `GET /api/v1/habits?isActive=true&page=1&limit=50` → `200` + `{ habits, pagination }` |
+| 2 | Same panel → Linked Habits **✨** → **Find & Attach** | Same `GET /api/v1/habits?...` |
+| 3 | Select + Attach | `POST /api/v1/goals/:id/link-habits` (or `/habits` fallback) `{ habitIds: [uuid] }` |
 
 **Do not** send `goalId` on the list call for Add/Attach — same reason as tasks.
+
+Automated checks (no auth):
+
+```bash
+node scripts/audit-goals-list.mjs
+node scripts/audit-link-pickers.mjs
+```
+
 
 ### A.7 GET /tasks — Query params (link picker)
 

@@ -1129,9 +1129,15 @@ export default function ActiveGoals() {
         initialGoal={editingGoal}
       />
       <LinkItemsModal
+        key={`${linkModal.open}-${linkModal.type}-${linkModal.goal?.id ?? 'none'}`}
         open={linkModal.open}
         type={linkModal.type}
         goalTitle={linkModal.goal?.title}
+        excludeIds={
+          linkModal.type === 'tasks'
+            ? (linkModal.goal?.linkedTasks || []).map((t) => t.id).filter(Boolean)
+            : (linkModal.goal?.linkedHabits || []).map((h) => h.id).filter(Boolean)
+        }
         onClose={handleCloseLinkModal}
         onConfirm={handleConfirmLink}
         confirming={linking}

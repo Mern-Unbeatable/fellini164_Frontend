@@ -9,6 +9,8 @@ import {
   orderedLinkPickerOptions,
 } from '../../../../../../features/goals/goalsMappers';
 
+const EMPTY_IDS = [];
+
 function OptionBadge({ type }) {
   if (type === 'aiSuggested') {
     return (
@@ -36,6 +38,7 @@ function OptionBadge({ type }) {
 
 /**
  * Plus (+) on Linked Tasks / Habits — multi-select from live GET /tasks | /habits.
+ * Same list API as Spark → Find & Attach.
  */
 export default function LinkItemsModal({
   open,
@@ -44,7 +47,7 @@ export default function LinkItemsModal({
   onClose,
   onConfirm,
   confirming,
-  excludeIds = [],
+  excludeIds = EMPTY_IDS,
 }) {
   const [options, setOptions] = useState([]);
   const [selected, setSelected] = useState([]);
@@ -55,24 +58,28 @@ export default function LinkItemsModal({
   const isTasks = type === 'tasks';
   const label = isTasks ? 'Linked Tasks' : 'Linked Habits';
   const placeholder = isTasks ? 'Select Tasks' : 'Select Habits';
+  const excludeKey = (excludeIds || EMPTY_IDS).join(',');
 
   useEffect(() => {
     if (!open) return undefined;
 
     let cancelled = false;
-    setSelected([]);
-    setListOpen(true);
-    setError(null);
     setLoading(true);
+    setError(null);
 
     (async () => {
       try {
+        // GET /api/v1/tasks|habits — same contract as Spark Find & Attach
         const data = isTasks ? await fetchTasksForLinkApi() : await fetchHabitsForLinkApi();
         if (cancelled) return;
-        const next = orderedLinkPickerOptions(normalizeLinkPickerOptions(data)).filter(
-          (o) => !excludeIds.includes(o.id),
+        const excluded = new Set(excludeIds || EMPTY_IDS);
+        setOptions(
+          orderedLinkPickerOptions(normalizeLinkPickerOptions(data)).filter(
+            (o) => !excluded.has(o.id),
+          ),
         );
-        setOptions(next);
+        setSelected([]);
+        setListOpen(true);
       } catch (err) {
         if (cancelled) return;
         setError(err?.response?.data?.message || `Failed to load ${isTasks ? 'tasks' : 'habits'}`);
@@ -85,7 +92,8 @@ export default function LinkItemsModal({
     return () => {
       cancelled = true;
     };
-  }, [open, isTasks, excludeIds]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- excludeKey stands in for excludeIds
+  }, [open, isTasks, excludeKey]);
 
   if (!open) return null;
 
@@ -94,7 +102,7 @@ export default function LinkItemsModal({
   };
 
   const selectedItems = options.filter((o) => selected.includes(o.id));
-  const canSubmit = selected.length > 0 && !confirming;
+  const canSubmit = selected.length > 0 && !confirming && !loading;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -136,9 +144,11 @@ export default function LinkItemsModal({
             </button>
 
             {listOpen && (
-              <div className="max-h-60 overflow-y-auto overflow-hidden rounded-[8px] border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
+              <div className="max-h-60 overflow-y-auto overflow-x-hidden rounded-[8px] border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
                 {loading && (
-                  <p className="px-[10px] py-3 text-[12px] font-medium text-[#c2c2c2]">Loading…</p>
+                  <p className="px-[10px] py-3 text-[12px] font-medium text-[#c2c2c2]">
+                    Loading {isTasks ? 'tasks' : 'habits'}…
+                  </p>
                 )}
                 {!loading && error && (
                   <p className="px-[10px] py-3 text-[12px] font-medium text-red-500">{error}</p>
@@ -199,7 +209,7 @@ export default function LinkItemsModal({
                   : 'cursor-not-allowed bg-[#f1f1f1] text-[#dedede]'
               }`}
             >
-              {confirming ? 'Linking…' : 'Create'}
+              {confirming ? 'Linking…' : 'Attach'}
             </button>
           </div>
         </div>

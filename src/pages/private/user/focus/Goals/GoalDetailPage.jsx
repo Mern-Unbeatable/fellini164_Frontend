@@ -1073,9 +1073,15 @@ export default function GoalDetailPage() {
       )}
 
       <LinkItemsModal
+        key={`${linkModal.open}-${linkModal.type}-${goal?.id ?? 'none'}`}
         open={linkModal.open}
         type={linkModal.type}
         goalTitle={goal?.title}
+        excludeIds={
+          linkModal.type === 'tasks'
+            ? tasks.map((t) => t.id).filter(Boolean)
+            : habits.map((h) => h.id).filter(Boolean)
+        }
         onClose={() => setLinkModal({ open: false, type: 'tasks' })}
         onConfirm={handleConfirmLink}
       />

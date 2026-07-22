@@ -22,6 +22,8 @@ const AI_HABIT_PHRASES = [
   'Suggest a habit for better focus...',
 ];
 
+const EMPTY_IDS = [];
+
 function OptionBadge({ type }) {
   if (type === 'aiSuggested') {
     return (
@@ -133,7 +135,7 @@ export default function GoalSparkLinkModal({
   onClose,
   onGenerate,
   onAttach,
-  excludeIds = [],
+  excludeIds = EMPTY_IDS,
   initialTab = 'find',
 }) {
   const isTasks = type === 'tasks';
@@ -151,7 +153,7 @@ export default function GoalSparkLinkModal({
   const title = isTasks ? 'New Task' : 'New Habit';
   const findLabel = isTasks ? 'Linked Tasks' : 'Linked Habits';
   const findPlaceholder = isTasks ? 'Select Tasks' : 'Select Habits';
-  const excludeKey = (excludeIds || []).join(',');
+  const excludeKey = (excludeIds || EMPTY_IDS).join(',');
 
   useEffect(() => {
     if (!open) return undefined;
@@ -165,7 +167,7 @@ export default function GoalSparkLinkModal({
         // GET /api/v1/tasks|habits — Find & Attach (no goalId; that filters already-linked)
         const data = isTasks ? await fetchTasksForLinkApi() : await fetchHabitsForLinkApi();
         if (cancelled) return;
-        const excluded = new Set(excludeIds);
+        const excluded = new Set(excludeIds || EMPTY_IDS);
         setOptions(
           orderedLinkPickerOptions(normalizeLinkPickerOptions(data)).filter(
             (o) => !excluded.has(o.id),
