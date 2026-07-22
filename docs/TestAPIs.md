@@ -133,7 +133,7 @@ Confirm all of the following:
 | Link tasks | `POST .../link-tasks` (+ `/tasks` fallback) | Plus / Find & Attach | Exact path not locked | **PARTIAL** |
 | Link habits | `POST .../link-habits` (+ `/habits` fallback) | Plus / Find & Attach | Exact path not locked | **PARTIAL** |
 | Tasks for link picker | `GET /api/v1/tasks` | New Goal linked fields, Link / Spark Find & Attach, goal ⋯ → Add Task | Live list; envelope `{ tasks, pagination }`; default `parentOnly=true&page=1&limit=50` (no `goalId` on attach — that filters already-linked) | **FULFILLED** |
-| Habits for link picker | `GET /api/v1/habits` | Same | Live list | **FULFILLED** |
+| Habits for link picker | `GET /api/v1/habits` | New Goal linked fields, Link / Spark Find & Attach, goal ⋯ → Add Habit | Live list; envelope `{ habits, pagination }`; default `isActive=true&page=1&limit=50` (no `goalId` on attach) | **FULFILLED** |
 
 ### A.1b Deferred / still mock (no backend contract yet)
 
@@ -281,6 +281,15 @@ Automated mapper check (no auth): `node scripts/audit-goals-list.mjs`
 
 **Do not** send `goalId` on the list call for Add/Attach — `goalId` filters tasks already linked to that goal (often empty).
 
+### B.3 GET /habits link-picker smoke (Goals → Add Habit)
+
+| Step | Action in app | Expected Network |
+|------|---------------|------------------|
+| 1 | Goal card ⋯ → **Add Habit** (or Linked Habits **+**) | `GET /api/v1/habits?isActive=true&page=1&limit=50` → `200` + `{ habits, pagination }` |
+| 2 | Confirm select | `POST /api/v1/goals/:id/link-habits` (or `/habits` fallback) with `{ habitIds: [uuid] }` |
+
+**Do not** send `goalId` on the list call for Add/Attach — same reason as tasks.
+
 ### A.7 GET /tasks — Query params (link picker)
 
 | Param | Allowed | Link-picker usage |
@@ -301,6 +310,31 @@ Response envelope:
   "success": true,
   "count": 0,
   "tasks": [],
+  "pagination": { "page": 1, "limit": 50, "total": 0, "totalPages": 0 }
+}
+```
+
+### A.8 GET /habits — Query params (link picker)
+
+| Param | Allowed | Link-picker usage |
+|-------|---------|-------------------|
+| `status` | ACTIVE / PAUSED / COMPLETED | Optional |
+| `category` | Goal category enum | Optional |
+| `frequency` | DAILY / WEEKLY / MONTHLY | Optional |
+| `difficulty` | EASY / MEDIUM / HARD | Optional |
+| `goalId` | Linked goal UUID | **Not sent** for Add Habit / Find & Attach |
+| `isActive` | true / false | **Default `true`** |
+| `aiSuggested` | true / false | Optional |
+| `search` | string | Optional |
+| `page` / `limit` | page size max 100 | Always sent (`1` / `50`) |
+
+Response envelope:
+
+```json
+{
+  "success": true,
+  "count": 0,
+  "habits": [],
   "pagination": { "page": 1, "limit": 50, "total": 0, "totalPages": 0 }
 }
 ```

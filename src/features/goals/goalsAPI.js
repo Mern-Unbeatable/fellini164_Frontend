@@ -242,10 +242,17 @@ export async function fetchTasksForLinkApi(params = {}) {
   return [];
 }
 
+/**
+ * GET /api/v1/habits — List Habits with Search and Filters.
+ * Envelope: { success, count, habits, pagination }
+ * Link-picker default: page/limit + isActive=true (do not pass goalId — that filters already-linked habits).
+ * Optional params: status, category, frequency, difficulty, goalId, isActive, aiSuggested, search, page, limit
+ */
 export async function fetchHabitsForLinkApi(params = {}) {
   const query = {
     page: 1,
     limit: 50,
+    isActive: true,
     ...params,
   };
   Object.keys(query).forEach((key) => {
