@@ -85,13 +85,15 @@ const FIGMA_LINKED_HABITS = [
   },
 ];
 
-function getLinkedTasks(goal) {
+export function getLinkedTasks(goal) {
+  if (Array.isArray(goal?.linkedTasks)) return goal.linkedTasks;
   if (!goal?.tasks) return [];
   if (goal.id === 'goal-1') return FIGMA_LINKED_TASKS;
   return FIGMA_LINKED_TASKS.slice(0, Math.min(goal.tasks, 3));
 }
 
-function getLinkedHabits(goal) {
+export function getLinkedHabits(goal) {
+  if (Array.isArray(goal?.linkedHabits)) return goal.linkedHabits;
   if (!goal?.habits) return [];
   if (goal.id === 'goal-1') return FIGMA_LINKED_HABITS;
   return FIGMA_LINKED_HABITS.slice(0, Math.min(goal.habits, 2));
@@ -115,7 +117,7 @@ function DueDetailPill({ goal }) {
   return goal.due;
 }
 
-function GoalDetailMenu({ onClose, onEdit, onImprove, onPause, onDelete }) {
+function GoalDetailMenu({ onClose, onEdit, onImprove, onPause, onDelete, isPaused }) {
   const itemBase =
     'flex w-full items-center gap-1.5 px-2.5 py-1.5 text-left text-[12px] font-medium whitespace-nowrap hover:bg-[#fcfcfc] dark:hover:bg-zinc-700';
 
@@ -132,7 +134,7 @@ function GoalDetailMenu({ onClose, onEdit, onImprove, onPause, onDelete }) {
       <div className="h-px w-full bg-[#f2f2f2] dark:bg-zinc-700" />
       <button type="button" onClick={onPause} className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}>
         <Pause size={12} className="shrink-0" />
-        Pause goal
+        {isPaused ? 'Activate goal' : 'Pause goal'}
       </button>
       <button type="button" onClick={onDelete} className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}>
         <Trash2 size={12} className="shrink-0" />
@@ -320,6 +322,10 @@ export default function GoalDetailPanel({
   onImprove,
   onPause,
   onDelete,
+  onAddLinkedTasks,
+  onAddLinkedHabits,
+  onAiLinkedTasks,
+  onAiLinkedHabits,
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
@@ -383,8 +389,12 @@ export default function GoalDetailPanel({
 
   const linkedTasks = getLinkedTasks(goal);
   const linkedHabits = getLinkedHabits(goal);
-  const taskCount = goal.tasks ?? linkedTasks.length;
-  const habitCount = goal.habits ?? linkedHabits.length;
+  const taskCount = Array.isArray(goal.linkedTasks)
+    ? linkedTasks.length
+    : (goal.tasks ?? linkedTasks.length);
+  const habitCount = Array.isArray(goal.linkedHabits)
+    ? linkedHabits.length
+    : (goal.habits ?? linkedHabits.length);
   const hasDue = goal.dueDetail || goal.due;
 
   return (
@@ -456,6 +466,7 @@ export default function GoalDetailPanel({
                   </button>
                   {menuOpen && (
                     <GoalDetailMenu
+                      isPaused={goal.status === 'paused'}
                       onClose={() => setMenuOpen(false)}
                       onEdit={() => {
                         setMenuOpen(false);
@@ -523,7 +534,12 @@ export default function GoalDetailPanel({
             )}
 
             <div className="flex w-full flex-col gap-1.5">
-              <LinkedSectionHeader label="Linked Tasks" count={taskCount} onAdd={() => {}} onAi={() => {}} />
+              <LinkedSectionHeader
+                label="Linked Tasks"
+                count={taskCount}
+                onAdd={() => onAddLinkedTasks?.(goal)}
+                onAi={() => onAiLinkedTasks?.(goal)}
+              />
               {linkedTasks.length === 0 ? (
                 <EmptyLinkedState message="No linked tasks yet" />
               ) : (
@@ -536,7 +552,12 @@ export default function GoalDetailPanel({
             </div>
 
             <div className="flex w-full flex-col gap-1.5">
-              <LinkedSectionHeader label="Linked Habits" count={habitCount} onAdd={() => {}} onAi={() => {}} />
+              <LinkedSectionHeader
+                label="Linked Habits"
+                count={habitCount}
+                onAdd={() => onAddLinkedHabits?.(goal)}
+                onAi={() => onAiLinkedHabits?.(goal)}
+              />
               {linkedHabits.length === 0 ? (
                 <EmptyLinkedState message="No linked habits yet" />
               ) : (

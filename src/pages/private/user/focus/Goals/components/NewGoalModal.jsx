@@ -528,6 +528,7 @@ function ModalFooter({
   onAddGeneratedToBoard,
   onGenerate,
   onManualSubmit,
+  submitLabel = 'Create',
 }) {
   return (
     <div className="flex shrink-0 items-center gap-[10px]">
@@ -600,7 +601,7 @@ function ModalFooter({
                   : 'cursor-not-allowed bg-[#f1f1f1] text-[#dedede]'
               }`}
             >
-              Create
+              {submitLabel}
             </button>
           )}
         </>
@@ -609,34 +610,41 @@ function ModalFooter({
   );
 }
 
-export default function NewGoalModal({ open, onClose, onSave }) {
-  const [activeTab, setActiveTab] = useState('ai');
+export default function NewGoalModal({ open, onClose, onSave, mode = 'create', initialGoal = null }) {
+  const isEdit = mode === 'edit' && initialGoal;
+
+  const PRIORITY_FORM = {
+    URGENT: 'Urgent',
+    HIGH: 'High',
+    MEDIUM: 'Medium',
+    LOW: 'Low',
+  };
+
+  const buildInitialForm = () => {
+    if (isEdit) {
+      return {
+        title: initialGoal.title || '',
+        priority: PRIORITY_FORM[initialGoal.priority] || 'Medium',
+        category: initialGoal.category || 'Career',
+        dueDate: initialGoal.targetDate || '',
+        description: initialGoal.description || '',
+        linkedTasks: [],
+        linkedHabits: [],
+      };
+    }
+    return EMPTY_FORM;
+  };
+
+  const [activeTab, setActiveTab] = useState(isEdit ? 'manual' : 'ai');
   const [aiPhase, setAiPhase] = useState('input');
   const [aiPrompt, setAiPrompt] = useState('');
   const [changeRequest, setChangeRequest] = useState('');
   const [generatedGoal, setGeneratedGoal] = useState(null);
   const [pendingGoal, setPendingGoal] = useState(null);
-  const [form, setForm] = useState(EMPTY_FORM);
+  const [form, setForm] = useState(buildInitialForm);
   const [tasksOpen, setTasksOpen] = useState(false);
   const [habitsOpen, setHabitsOpen] = useState(false);
   const { revealStep, isRevealing, startReveal, resetReveal } = useAiGenerationReveal();
-
-  const resetState = () => {
-    setActiveTab('ai');
-    setAiPhase('input');
-    setAiPrompt('');
-    setChangeRequest('');
-    setGeneratedGoal(null);
-    setPendingGoal(null);
-    setForm(EMPTY_FORM);
-    setTasksOpen(false);
-    setHabitsOpen(false);
-    resetReveal();
-  };
-
-  useEffect(() => {
-    if (!open) resetState();
-  }, [open]);
 
   if (!open) return null;
 
@@ -654,7 +662,7 @@ export default function NewGoalModal({ open, onClose, onSave }) {
   };
 
   const handleClose = () => {
-    resetState();
+    resetReveal();
     onClose();
   };
 
@@ -681,6 +689,7 @@ export default function NewGoalModal({ open, onClose, onSave }) {
       priority: generatedGoal.priority,
       category: generatedGoal.category,
       due: generatedGoal.due,
+      dueDate: generatedGoal.dueDate,
       linkedTasks: [],
       linkedHabits: [],
       source: 'ai',
@@ -695,6 +704,7 @@ export default function NewGoalModal({ open, onClose, onSave }) {
       priority: form.priority.toUpperCase(),
       category: form.category,
       due: form.dueDate ? formatDueDate(form.dueDate) : 'Today',
+      dueDate: form.dueDate,
       linkedTasks: form.linkedTasks,
       linkedHabits: form.linkedHabits,
       source: 'manual',
@@ -793,6 +803,7 @@ export default function NewGoalModal({ open, onClose, onSave }) {
       onAddGeneratedToBoard={handleAddGeneratedToBoard}
       onGenerate={handleGenerate}
       onManualSubmit={handleManualSubmit}
+      submitLabel={isEdit ? 'Save changes' : 'Create'}
     />
   );
 
@@ -802,7 +813,9 @@ export default function NewGoalModal({ open, onClose, onSave }) {
         className={`flex w-full flex-col overflow-visible rounded-[16px] border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-900 max-w-[450px] sm:w-[450px] ${modalHeightClass}`}
       >
         <div className="flex shrink-0 items-center justify-between border-b border-[#f2f2f2] px-[12px] py-[10px] dark:border-zinc-700">
-          <p className="text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:text-gray-300">New Goal</p>
+          <p className="text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:text-gray-300">
+            {isEdit ? 'Edit Goal' : 'New Goal'}
+          </p>
           <button type="button" onClick={handleClose} className="text-[#5d5d5d] dark:text-gray-300">
             <X size={14} />
           </button>
@@ -810,7 +823,9 @@ export default function NewGoalModal({ open, onClose, onSave }) {
 
         {isManualTab ? (
           <div className="flex flex-col gap-[24px] overflow-visible p-[12px] max-sm:max-h-[calc(90vh-38px)] max-sm:overflow-y-auto">
-            <TabToggle activeTab={activeTab} onChange={handleTabChange} disabled={isRevealing} />
+            {!isEdit && (
+              <TabToggle activeTab={activeTab} onChange={handleTabChange} disabled={isRevealing} />
+            )}
             {renderBodyContent()}
             {modalFooter}
           </div>

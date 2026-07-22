@@ -595,11 +595,24 @@ export default function DailyPlanner() {
     });
   };
 
-  const navigateMonth = (direction) => {
-    const nextDate = new Date(currentDate);
-    nextDate.setMonth(currentDate.getMonth() + direction);
+  const navigateByView = (direction) => {
+    const nextDate = new Date(selectedDate);
+    if (viewMode === 'Weekly') {
+      nextDate.setDate(nextDate.getDate() + direction * 7);
+    } else if (viewMode === 'Monthly') {
+      nextDate.setMonth(nextDate.getMonth() + direction);
+    } else {
+      // Daily — day by day
+      nextDate.setDate(nextDate.getDate() + direction);
+    }
     setCurrentDate(nextDate);
     setSelectedDate(nextDate);
+  };
+
+  const goToToday = () => {
+    const today = new Date();
+    setCurrentDate(today);
+    setSelectedDate(today);
   };
 
   const closeAssistant = () => {
@@ -644,12 +657,13 @@ export default function DailyPlanner() {
           <PlannerHeader />
           <PlannerControls
             currentDate={currentDate}
-            setSelectedDate={setSelectedDate}
+            selectedDate={selectedDate}
+            goToToday={goToToday}
             viewMode={viewMode}
             setViewMode={setViewMode}
             dropdownOpen={dropdownOpen}
             setDropdownOpen={setDropdownOpen}
-            navigateMonth={navigateMonth}
+            navigateByView={navigateByView}
             handleOpenModal={() => setIsNewPlanModalOpen(true)}
             handleQuickAction={handleQuickAction}
             hasAcceptedPlan={hasAcceptedPlan}

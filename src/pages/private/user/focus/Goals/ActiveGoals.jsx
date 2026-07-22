@@ -16,11 +16,30 @@ import {
 } from 'lucide-react';
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import NewGoalModal from './components/NewGoalModal';
 import GoalProgressModal from './components/GoalProgressModal';
-import GoalDetailPanel from './components/GoalDetailPanel';
+import GoalDetailPanel, {
+  getLinkedHabits,
+  getLinkedTasks,
+} from './components/GoalDetailPanel';
+import LinkItemsModal from './components/LinkItemsModal';
+import GoalSparkLinkModal from './components/GoalSparkLinkModal';
 import TypewriterText from '../../../../../components/ui/TypewriterText';
-import { GHOST_GOALS, INITIAL_GOALS, FIGMA_BOARD_STATS } from './goalsData';
+import { GHOST_GOALS } from './goalsData';
+import {
+  completeGoal,
+  createGoal,
+  deleteGoal,
+  fetchBoardSummary,
+  fetchGoals,
+  linkHabitsToGoal,
+  linkTasksToGoal,
+  selectBoardStats,
+  selectGoals,
+  updateGoal,
+  updateGoalStatus,
+} from '../../../../../features/goals/goalsSlice';
 
 // Rule 7 — hardcoded typewriter phrases (Figma empty frame also shows a static subtitle;
 // rotation uses the brief's suggested set).
@@ -84,11 +103,8 @@ const GHOST_REGENERATIONS = {
   },
 };
 
-function resolveInitialGoals() {
-  if (import.meta.env.DEV && new URLSearchParams(window.location.search).get('empty') === '1') {
-    return [];
-  }
-  return INITIAL_GOALS;
+function resolveForceEmptyBoard() {
+  return import.meta.env.DEV && new URLSearchParams(window.location.search).get('empty') === '1';
 }
 
 function goalMatchesFilters(goal, filters) {
@@ -397,7 +413,7 @@ function GhostGoalCard({ goal, onDismiss, onRegenerate, onAccept }) {
 
 // Figma Goals Board (1440) - 1.1 - hover (1250:10104)
 // Menu: Edit | ✦ Add Task, ✦ Add Habit | Complete, Pause, Delete
-function GoalCardMenu({ onEdit, onAddTask, onAddHabit, onComplete, onPause, onDelete }) {
+function GoalCardMenu({ onEdit, onAddTask, onAddHabit, onComplete, onPause, onDelete, isPaused }) {
   const itemBase =
     'flex w-full items-center gap-1.5 px-[10px] py-1.5 text-left text-[12px] font-medium leading-[1.5] whitespace-nowrap hover:bg-[#fcfcfc] dark:hover:bg-zinc-700';
   return (
@@ -435,7 +451,7 @@ function GoalCardMenu({ onEdit, onAddTask, onAddHabit, onComplete, onPause, onDe
         className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}
       >
         <Pause size={ICON.menu} className="size-2.5 shrink-0" />
-        Pause
+        {isPaused ? 'Activate' : 'Pause'}
       </button>
       <button
         type="button"
@@ -588,6 +604,7 @@ function GoalCard({
       {menuOpen && (
         <div className="absolute top-9 right-3 z-50">
           <GoalCardMenu
+            isPaused={isPaused}
             onEdit={() => {
               setMenuOpen(false);
               onEdit(goal);
@@ -711,45 +728,119 @@ function goalMatchesSearch(goal, query) {
 
 export default function ActiveGoals() {
   const navigate = useNavigate();
-  const [goals, setGoals] = useState(resolveInitialGoals);
+  const dispatch = useDispatch();
+  const goals = useSelector(selectGoals);
+  const boardStats = useSelector(selectBoardStats);
   const [modal, setModal] = useState(false);
   const [modalProgress, setModalProgress] = useState(false);
   const [ghostGoals, setGhostGoals] = useState(GHOST_GOALS);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilters, setActiveFilters] = useState(DEFAULT_FILTERS);
   const [selectedGoalId, setSelectedGoalId] = useState(null);
+  const [editingGoal, setEditingGoal] = useState(null);
+  const [linkModal, setLinkModal] = useState({ open: false, type: 'tasks', goal: null });
+  const [sparkModal, setSparkModal] = useState({ open: false, type: 'tasks', goal: null });
+  const [linking, setLinking] = useState(false);
+  /** Local linked-item overlays for detail panel (UI) until board refresh returns them. */
+  const [linkOverrides, setLinkOverrides] = useState({});
 
-  const selectedGoal = useMemo(
-    () => goals.find((g) => g.id === selectedGoalId) ?? null,
-    [goals, selectedGoalId]
-  );
+  const selectedGoal = useMemo(() => {
+    const base = goals.find((g) => g.id === selectedGoalId) ?? null;
+    if (!base) return null;
+    const override = linkOverrides[base.id];
+    if (!override) return base;
+    return {
+      ...base,
+      linkedTasks: override.tasks,
+      linkedHabits: override.habits,
+      tasks: override.tasks?.length ?? base.tasks,
+      habits: override.habits?.length ?? base.habits,
+    };
+  }, [goals, selectedGoalId, linkOverrides]);
 
-  const handleOpenModal = () => setModal(true);
-  const handleCloseModal = () => setModal(false);
+  const appendLinkedItems = (goalId, type, items) => {
+    if (!goalId || !items?.length) return;
+    setLinkOverrides((prev) => {
+      const current = prev[goalId] || { tasks: null, habits: null };
+      const baseGoal = goals.find((g) => g.id === goalId);
+      const existingTasks = current.tasks ?? (baseGoal ? getLinkedTasks(baseGoal) : []);
+      const existingHabits = current.habits ?? (baseGoal ? getLinkedHabits(baseGoal) : []);
+
+      if (type === 'tasks') {
+        const merged = [...existingTasks];
+        for (const item of items) {
+          if (!merged.some((t) => t.id === item.id)) merged.push(item);
+        }
+        return {
+          ...prev,
+          [goalId]: {
+            tasks: merged,
+            habits: current.habits ?? existingHabits,
+          },
+        };
+      }
+
+      const merged = [...existingHabits];
+      for (const item of items) {
+        if (!merged.some((h) => h.id === item.id)) merged.push(item);
+      }
+      return {
+        ...prev,
+        [goalId]: {
+          tasks: current.tasks ?? existingTasks,
+          habits: merged,
+        },
+      };
+    });
+  };
+
+  const optionsToTaskCards = (selectedItems) =>
+    selectedItems.map((item) => ({
+      id: item.id,
+      priority: 'MEDIUM',
+      status: item.status === 'completed' ? 'done' : 'to do',
+      statusUppercase: true,
+      title: item.label,
+      description: 'Linked from your board.',
+      due: 'Tomorrow',
+      source: item.aiSuggested ? 'ai' : 'manual',
+    }));
+
+  const optionsToHabitCards = (selectedItems) =>
+    selectedItems.map((item) => ({
+      id: item.id,
+      title: item.label,
+      description: 'Linked from your board.',
+      stats: [{ label: 'Today' }],
+      ...(item.status === 'paused' ? { status: 'paused' } : {}),
+      ...(item.status === 'completed' ? { status: 'completed' } : {}),
+    }));
+
+  useEffect(() => {
+    if (resolveForceEmptyBoard()) return;
+    dispatch(fetchGoals()).then((result) => {
+      if (fetchGoals.fulfilled.match(result)) {
+        dispatch(fetchBoardSummary());
+      }
+    });
+  }, [dispatch]);
+
+  const handleOpenModal = () => {
+    setEditingGoal(null);
+    setModal(true);
+  };
+  const handleCloseModal = () => {
+    setModal(false);
+    setEditingGoal(null);
+  };
   const handleCloseModalProgress = () => setModalProgress(false);
-  const handleSavePlan = (data) => {
+  const handleSavePlan = async (data) => {
     if (!data?.title) return;
-    const linkedTaskCount = Array.isArray(data.linkedTasks) ? data.linkedTasks.length : data.tasks ?? 0;
-    const linkedHabitCount = Array.isArray(data.linkedHabits)
-      ? data.linkedHabits.length
-      : data.habits ?? 0;
-    setGoals((prev) => [
-      {
-        id: `goal-${Date.now()}`,
-        priority: data.priority || 'MEDIUM',
-        title: data.title,
-        description: data.description || '',
-        category: data.category || 'Career',
-        // Rule 3 — AI create starts with 0 links; Manual may count selected IDs (Rule 4).
-        tasks: linkedTaskCount,
-        habits: linkedHabitCount,
-        due: data.due || 'Today',
-        progress: 0,
-        status: 'active',
-        source: data.source || 'manual',
-      },
-      ...prev,
-    ]);
+    if (editingGoal?.id) {
+      await dispatch(updateGoal({ goalId: editingGoal.id, formData: data }));
+    } else {
+      await dispatch(createGoal(data));
+    }
   };
 
   const handleDismissGhost = (id) => {
@@ -762,58 +853,108 @@ export default function ActiveGoals() {
     setGhostGoals((prev) => prev.map((g) => (g.id === id ? { ...g, ...alternate } : g)));
   };
 
-  const handleAcceptGhost = (ghost) => {
-    setGoals((prev) => [
-      {
-        id: `goal-${Date.now()}`,
-        priority: ghost.priority,
+  const handleAcceptGhost = async (ghost) => {
+    await dispatch(
+      createGoal({
         title: ghost.title,
         description: ghost.description,
+        priority: ghost.priority,
         category: ghost.category,
-        tasks: ghost.tasks ?? 0,
-        habits: ghost.habits ?? 0,
         due: ghost.due,
-        progress: 0,
-        status: 'active',
+        linkedTasks: [],
+        linkedHabits: [],
         source: 'ai',
-      },
-      ...prev,
-    ]);
+      })
+    );
     setGhostGoals((prev) => prev.filter((g) => g.id !== ghost.id));
   };
 
-  const handleEditGoal = () => {
+  const handleEditGoal = (goal) => {
+    setEditingGoal(goal);
     setModal(true);
   };
 
-  const handleAddTask = () => {
-    // Opens detail linking flow in a later step — control stays for Figma 1.1 parity.
+  const handleAddTask = (goal) => {
+    setLinkModal({ open: true, type: 'tasks', goal });
   };
 
-  const handleAddHabit = () => {
-    // Opens detail linking flow in a later step — control stays for Figma 1.1 parity.
+  const handleAddHabit = (goal) => {
+    setLinkModal({ open: true, type: 'habits', goal });
   };
 
-  const handleCompleteGoal = (goal) => {
-    setGoals((prev) =>
-      prev.map((g) =>
-        g.id === goal.id
-          ? { ...g, status: 'completed', progress: 100, completedDate: 'May 8, 2026' }
-          : g
-      )
-    );
+  const handleCloseLinkModal = () => {
+    setLinkModal({ open: false, type: 'tasks', goal: null });
+    setLinking(false);
   };
 
-  const handlePauseGoal = (goal) => {
-    setGoals((prev) =>
-      prev.map((g) =>
-        g.id === goal.id ? { ...g, status: g.status === 'paused' ? 'active' : 'paused' } : g
-      )
-    );
+  const handleConfirmLink = async (ids, selectedItems = []) => {
+    if (!linkModal.goal?.id || !ids?.length) return;
+    setLinking(true);
+
+    const cards =
+      linkModal.type === 'tasks'
+        ? optionsToTaskCards(selectedItems)
+        : optionsToHabitCards(selectedItems);
+    appendLinkedItems(linkModal.goal.id, linkModal.type, cards);
+
+    try {
+      const result =
+        linkModal.type === 'tasks'
+          ? await dispatch(linkTasksToGoal({ goalId: linkModal.goal.id, taskIds: ids }))
+          : await dispatch(linkHabitsToGoal({ goalId: linkModal.goal.id, habitIds: ids }));
+      if (
+        linkTasksToGoal.fulfilled.match(result) ||
+        linkHabitsToGoal.fulfilled.match(result)
+      ) {
+        dispatch(fetchBoardSummary());
+      }
+    } finally {
+      setLinking(false);
+      handleCloseLinkModal();
+    }
   };
 
-  const handleDeleteGoal = (id) => {
-    setGoals((prev) => prev.filter((g) => g.id !== id));
+  const handleOpenSparkTasks = (goal) => {
+    setSparkModal({ open: true, type: 'tasks', goal });
+  };
+  const handleOpenSparkHabits = (goal) => {
+    setSparkModal({ open: true, type: 'habits', goal });
+  };
+  const handleCloseSparkModal = () => {
+    setSparkModal({ open: false, type: 'tasks', goal: null });
+  };
+
+  const handleSparkGenerate = (generated) => {
+    if (!sparkModal.goal?.id || !generated) return;
+    appendLinkedItems(sparkModal.goal.id, sparkModal.type, [generated]);
+  };
+
+  const handleSparkAttach = (ids, selectedItems = []) => {
+    if (!sparkModal.goal?.id || !ids?.length) return;
+    const cards =
+      sparkModal.type === 'tasks'
+        ? optionsToTaskCards(selectedItems)
+        : optionsToHabitCards(selectedItems);
+    appendLinkedItems(sparkModal.goal.id, sparkModal.type, cards);
+    const goalId = sparkModal.goal.id;
+    if (sparkModal.type === 'tasks') {
+      dispatch(linkTasksToGoal({ goalId, taskIds: ids }));
+    } else {
+      dispatch(linkHabitsToGoal({ goalId, habitIds: ids }));
+    }
+  };
+
+  const handleCompleteGoal = async (goal) => {
+    await dispatch(completeGoal(goal.id));
+  };
+
+  const handlePauseGoal = async (goal) => {
+    const nextStatus = goal.status === 'paused' ? 'active' : 'paused';
+    await dispatch(updateGoalStatus({ goalId: goal.id, status: nextStatus }));
+  };
+
+  const handleDeleteGoal = async (id) => {
+    await dispatch(deleteGoal(id));
     if (selectedGoalId === id) setSelectedGoalId(null);
   };
 
@@ -838,13 +979,13 @@ export default function ActiveGoals() {
     [ghostGoals, searchQuery]
   );
 
-  const boardIsEmpty = goals.length === 0;
+  const boardIsEmpty = resolveForceEmptyBoard() ? true : goals.length === 0;
   const isSearching = searchQuery.trim().length > 0;
   const showGhostCards = boardIsEmpty && filteredGhostGoals.length > 0;
 
-  const activeCount = FIGMA_BOARD_STATS.active;
-  const pausedCount = FIGMA_BOARD_STATS.paused;
-  const completedThisMonth = FIGMA_BOARD_STATS.completedThisMonth;
+  const activeCount = boardStats.active;
+  const pausedCount = boardStats.paused;
+  const completedThisMonth = boardStats.completedThisMonth;
 
   return (
     <div className="relative flex min-h-full flex-col py-7.5 max-lg:min-h-0 max-lg:py-4 max-lg:sm:py-6">
@@ -974,6 +1115,10 @@ export default function ActiveGoals() {
           onImprove={handleEditGoal}
           onPause={handlePauseGoal}
           onDelete={(g) => handleDeleteGoal(g.id)}
+          onAddLinkedTasks={handleAddTask}
+          onAddLinkedHabits={handleAddHabit}
+          onAiLinkedTasks={handleOpenSparkTasks}
+          onAiLinkedHabits={handleOpenSparkHabits}
         />
       )}
 
@@ -982,7 +1127,30 @@ export default function ActiveGoals() {
         onClose={handleCloseModalProgress}
         onSave={handleSavePlan}
       />
-      <NewGoalModal open={modal} onClose={handleCloseModal} onSave={handleSavePlan} />
+      <NewGoalModal
+        key={editingGoal ? `edit-${editingGoal.id}` : `create-${modal}`}
+        open={modal}
+        onClose={handleCloseModal}
+        onSave={handleSavePlan}
+        mode={editingGoal ? 'edit' : 'create'}
+        initialGoal={editingGoal}
+      />
+      <LinkItemsModal
+        open={linkModal.open}
+        type={linkModal.type}
+        goalTitle={linkModal.goal?.title}
+        onClose={handleCloseLinkModal}
+        onConfirm={handleConfirmLink}
+        confirming={linking}
+      />
+      <GoalSparkLinkModal
+        open={sparkModal.open}
+        type={sparkModal.type}
+        goalTitle={sparkModal.goal?.title}
+        onClose={handleCloseSparkModal}
+        onGenerate={handleSparkGenerate}
+        onAttach={handleSparkAttach}
+      />
     </div>
   );
 }

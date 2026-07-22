@@ -2,12 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { LogOut, Bell, Settings, PanelLeft } from 'lucide-react';
-import { getGoalById } from '../../../pages/private/user/focus/Goals/goalsData';
 import {
   selectNotifications,
   markNotificationAsRead,
   markAllNotificationsAsRead,
 } from '../../../features/notifications/notificationsSlice';
+import { selectGoals } from '../../../features/goals/goalsSlice';
 import NotificationPanel from './NotificationPanel';
 
 const BREADCRUMBS = [
@@ -29,10 +29,10 @@ const BREADCRUMBS = [
   { prefix: '/user/analytics', page: 'Analytics' },
 ];
 
-function getBreadcrumb(pathname) {
+function getBreadcrumb(pathname, goals = []) {
   const goalDetailMatch = pathname.match(/^\/user\/goals\/([^/]+)$/);
   if (goalDetailMatch) {
-    const goal = getGoalById(goalDetailMatch[1]);
+    const goal = goals.find((g) => String(g.id) === goalDetailMatch[1]);
     return {
       section: 'Work',
       page: 'Goals',
@@ -52,7 +52,8 @@ function getInitials(user) {
 }
 
 export default function PrivateNavbar({ pathname, user, onOpenMobileSidebar, onLogout, taskDetail }) {
-  const { section, page, detail: routeDetail } = getBreadcrumb(pathname);
+  const goals = useSelector(selectGoals);
+  const { section, page, detail: routeDetail } = getBreadcrumb(pathname, goals);
   const detail = pathname.startsWith('/user/tasks') ? taskDetail : routeDetail;
   const dispatch = useDispatch();
   const notifications = useSelector(selectNotifications);

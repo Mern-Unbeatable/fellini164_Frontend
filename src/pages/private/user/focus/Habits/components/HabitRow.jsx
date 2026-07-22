@@ -7,7 +7,8 @@ const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const TODAY_INDEX = 2;
 
 // Day states: 'unscheduled' | 'empty' | 'checked' | 'today'
-// Optional todayProgress [done, total] → Figma partial fill + "1/2" / "2/3" under Wed (node 1234:11963).
+// Optional progress [done, total] on 'today' → Figma partial fill + "1/2" / "2/3" (node 1234:11963).
+// One click from empty → today (box fill collapses to done/total); click again → empty.
 function DayCell({ state, progress, dimmed, interactive, onToggle }) {
   if (state === 'unscheduled') {
     return <div className="w-10 shrink-0 max-lg:w-9" aria-hidden>
@@ -20,7 +21,7 @@ function DayCell({ state, progress, dimmed, interactive, onToggle }) {
     interactive && !dimmed ? 'cursor-pointer' : ''
   }`;
 
-  if (progress && (state === 'today' || state === 'empty')) {
+  if (progress && state === 'today') {
     const [done, total] = progress;
     const fillPct = Math.min(100, Math.max(0, (done / total) * 100));
     return (
@@ -253,7 +254,7 @@ export default function HabitRow({
               key={day}
               state={habit.days[i]}
               progress={
-                (habit.days[i] === 'today' || i === TODAY_INDEX) && habit.todayProgress
+                habit.days[i] === 'today' && habit.todayProgress
                   ? habit.todayProgress
                   : null
               }
