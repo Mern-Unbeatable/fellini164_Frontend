@@ -258,7 +258,7 @@ export default function MessagePage() {
         <div
           className={`${
             showChat ? 'flex' : 'hidden'
-          } h-full w-full flex-1 flex-col overflow-hidden bg-white md:flex dark:bg-zinc-800`}
+          } h-full w-full flex-1 flex-col overflow-hidden bg-white md:flex dark:bg-zinc-900`}
         >
           {/* Chat Header - Fixed */}
           <div className="shrink-0 border-b border-[#f2f2f2] bg-[#fcfcfc] px-4 py-3 dark:border-zinc-700 dark:bg-zinc-800">

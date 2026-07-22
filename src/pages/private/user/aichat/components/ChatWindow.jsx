@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { GoCopy, GoCheck } from 'react-icons/go';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { UserChatBubble, AiChatBubble } from '../../../../../components/ui/ChatBubbles';
 
 // --- Utility Functions ---
 const copyToClipboard = async (text) => {
@@ -134,21 +135,27 @@ const markdownComponents = {
 // --- Sub-Components ---
 
 // 1. Date Header Component
-const DateHeader = ({ date }) => (
-  <div className="py-2 text-center">
-    <p className="text-xs font-medium text-gray-400 sm:text-sm dark:text-gray-300">
-      {date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })} •{' '}
-      {date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+const DateHeader = ({ date }) => {
+  const datePart = date.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'short',
+    day: 'numeric',
+  });
+  const timePart = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+
+  return (
+    <p className="text-center text-[12px] font-medium text-[#c2c2c2]">
+      {datePart} • {timePart}
     </p>
-  </div>
-);
+  );
+};
 
 // 2. AI Message Content with Typing Effect
 const AIMessageContent = ({ text, isNewMessage }) => {
   const { displayedText, isTyping } = useTypingEffect(text, isNewMessage, 12);
 
   return (
-    <div className="ai-message-content text-base sm:text-sm">
+    <div className="ai-message-content whitespace-normal">
       <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
         {displayedText}
       </ReactMarkdown>
@@ -163,60 +170,52 @@ const AIMessageContent = ({ text, isNewMessage }) => {
 const MessageItem = memo(({ msg, onCopy, copiedId, isLastAIMessage }) => {
   const isUser = msg.sent;
   const isCopied = copiedId === msg.id;
-
-  // Determine Bubble Styles - wider for AI messages to show formatted content
-  const bubbleClass = `relative w-full rounded-xl px-3 py-2 sm:rounded-br-xl sm:px-4 sm:py-2.5 
-        ${
-          isUser
-            ? 'rounded-tr-none bg-[#7C3AED] text-white shadow-sm'
-            : 'rounded-tl-none border border-[#f2f2f2] bg-[#fcfcfc] text-[#181818] dark:border-zinc-700 dark:bg-zinc-800 dark:text-gray-200'
-        }`;
-
-  // Check if this message is newly added (for typing effect)
   const isNewAIMessage = !isUser && isLastAIMessage && msg.isNew;
 
-  return (
-    <div className={`group flex ${isUser ? 'justify-end' : 'justify-start'} gap-2 sm:gap-3`}>
-      <div
-        className={`flex flex-col ${isUser ? 'items-end' : 'items-start'} ${isUser ? 'max-w-[70%] sm:max-w-sm' : 'max-w-[85%] sm:max-w-xl'}`}
+  const copyButton = !msg.image && (
+    <div
+      className={`flex items-center gap-2 opacity-0 transition-opacity select-none group-hover:opacity-100 ${
+        isUser ? 'justify-end pl-15' : 'justify-start pr-15'
+      }`}
+    >
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onCopy(msg.id, msg.text);
+        }}
+        className="flex size-7 items-center justify-center rounded-md text-[#5d5d5d] transition-colors hover:bg-[#f2f2f2] hover:text-[#181818] dark:text-gray-300 dark:hover:bg-zinc-700 dark:hover:text-white"
+        title="Copy message"
+        aria-label="Copy message"
       >
-        {/* Message Bubble */}
-        <div className={bubbleClass}>
-          {msg.image ? (
-            <img
-              src={msg.image}
-              alt="AI generated"
-              className="h-auto max-w-full rounded-md object-contain"
-            />
-          ) : isUser ? (
-            <p className="text-base wrap-break-word sm:text-sm">{msg.text}</p>
-          ) : (
-            <AIMessageContent text={msg.text} isNewMessage={isNewAIMessage} />
-          )}
-        </div>
+        {isCopied ? <GoCheck size={18} /> : <GoCopy size={18} />}
+      </button>
+    </div>
+  );
 
-        {/* Copy only */}
-        {!msg.image && (
-          <div
-            className={`mt-1.5 flex items-center gap-2 opacity-0 transition-opacity select-none group-hover:opacity-100 ${
-              isUser ? 'justify-end' : 'justify-start'
-            }`}
-          >
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onCopy(msg.id, msg.text);
-              }}
-              className="flex size-7 items-center justify-center rounded-md text-[#5d5d5d] transition-colors hover:bg-[#f2f2f2] hover:text-[#181818] dark:text-gray-300 dark:hover:bg-zinc-700 dark:hover:text-white"
-              title="Copy message"
-              aria-label="Copy message"
-            >
-              {isCopied ? <GoCheck size={18} /> : <GoCopy size={18} />}
-            </button>
-          </div>
-        )}
+  if (isUser) {
+    return (
+      <div className="group flex flex-col gap-1.5">
+        <UserChatBubble>{msg.text}</UserChatBubble>
+        {copyButton}
       </div>
+    );
+  }
+
+  return (
+    <div className="group flex max-w-[85%] flex-col gap-1.5 sm:max-w-xl">
+      <AiChatBubble contentClassName="whitespace-normal">
+        {msg.image ? (
+          <img
+            src={msg.image}
+            alt="AI generated"
+            className="h-auto max-w-full rounded-md object-contain"
+          />
+        ) : (
+          <AIMessageContent text={msg.text} isNewMessage={isNewAIMessage} />
+        )}
+      </AiChatBubble>
+      {copyButton}
     </div>
   );
 });
@@ -294,10 +293,10 @@ export default function ChatWindow({
   }, []);
 
   return (
-    <div className="flex-1 overflow-y-auto bg-[#F8FBFE] p-3 sm:p-4 md:px-10 lg:px-12 xl:px-30 dark:bg-zinc-800">
+    <div className="scrollbar-hidden flex flex-1 flex-col gap-5 overflow-y-auto bg-white p-3 sm:p-4 md:px-10 lg:px-12 xl:px-30 dark:bg-zinc-900">
       <DateHeader date={currentDateTime} />
 
-      <div className="flex flex-col gap-3 sm:gap-4">
+      <div className="flex flex-col gap-5">
         {currentMessages.map((msg, index) => {
           const isLastAI = index === lastAIMessageIndex;
           // Only show typing effect if:
