@@ -156,16 +156,14 @@ If Postman has no valid response:
 | Link habits | `POST .../link-habits` (+ `/habits` fallback) | Plus / Spark Find & Attach | Exact path not locked | **PARTIAL** |
 | Tasks for link picker | `GET /api/v1/tasks` | **+** `LinkItemsModal`, Spark **Find & Attach**, New Goal linked tasks | Envelope `{ tasks, pagination }`; default `parentOnly=true&page=1&limit=50` (no `goalId`) | **FULFILLED** |
 | Habits for link picker | `GET /api/v1/habits` | **+** `LinkItemsModal`, Spark **Find & Attach**, New Goal linked habits | Envelope `{ habits, pagination }`; default `isActive=true&page=1&limit=50` (no `goalId`) | **FULFILLED** |
-| AI generate task | `POST /api/v1/tasks/ai/generate` | Spark ✨ → **AI Generation** (Linked Tasks) | Body `{ prompt, category, goalId? }`; response `{ task }`; already persisted | **FULFILLED** |
+| AI generate task | `POST /api/v1/tasks/ai/generate` | Spark ✨ → **AI Generation** (Linked Tasks) | Body `{ prompt, category, goalId? }`; response `{ task }` | **FULFILLED** |
+| AI generate habit | `POST /api/v1/habits/ai/generate` | Spark ✨ → **AI Generation** (Linked Habits) | Body `{ prompt, category, goalId? }`; response `{ habit }` | **FULFILLED** |
 
 ### A.1b Deferred / still mock (no backend contract yet)
 
 | UI | Notes | Status |
 |----|-------|--------|
 | Empty-board ghost goal cards | Local `GHOST_GOALS` — integrate later when suggestions API exists | **DEFERRED** |
-| Spark ✨ → AI Generation tab (task) | `POST /tasks/ai/generate` | **FULFILLED** |
-| Spark ✨ → AI Generation tab (habit) | Local `mockGenerate` until habit AI API | **DEFERRED** |
-| Spark ✨ → Find & Attach tab | Uses live `GET /tasks` / `GET /habits` | **FULFILLED** (link mutation still **PARTIAL**) |
 
 ### A.1c GET /goals — Query Parameters
 
@@ -250,7 +248,7 @@ Goal fields mapped to UI: `id`, `title`, `description`, `category`, `status`, `p
 1. **Update Goal** — exact method + sample `200` body  
 2. **Complete Goal** — exact URL + method + sample response  
 3. **Link tasks / habits** — exact path + body (`taskIds` / `habitIds`) + response  
-4. **Ghost suggestions / Spark habit AI** — endpoints when backend ready  
+4. **Ghost suggestions** — endpoints when backend ready  
 
 If Postman has no response:
 
@@ -264,8 +262,9 @@ If Postman has no response:
 | Create + AI generate + Get + Pause/Activate + Delete | **FULFILLED** |
 | Link picker lists (`GET /tasks`, `GET /habits`) | **FULFILLED** |
 | Spark AI generate task (`POST /tasks/ai/generate`) | **FULFILLED** |
+| Spark AI generate habit (`POST /habits/ai/generate`) | **FULFILLED** |
 | Update / Complete / Link mutations | **PARTIAL** (wired, contract not locked) |
-| Ghosts + Spark AI Generation (habit) | **DEFERRED** |
+| Ghosts | **DEFERRED** |
 | Overall Goals Board | **FULFILLED for contracted APIs**; PARTIAL/DEFERRED only where Postman/backend incomplete |
 
 ---
@@ -316,11 +315,45 @@ Empty `tasks: []` → UI shows “No tasks available…” (not stuck Loading).
 
 | Step | Action in app | Expected Network |
 |------|---------------|------------------|
-| 1 | Goal card → right panel → Linked Habits **+** | `GET /api/v1/habits?isActive=true&page=1&limit=50` → `200` + `{ habits, pagination }` |
-| 2 | Same panel → Linked Habits **✨** → **Find & Attach** | Same `GET /api/v1/habits?...` |
+| 1 | Goal → Linked Habits **+** | `GET /api/v1/habits?isActive=true&page=1&limit=50` → `200` + `{ habits, pagination }` |
+| 2 | Goal → Linked Habits **✨** → **Find & Attach** (opens on this tab for habits) | Same `GET /api/v1/habits?...` |
 | 3 | Select + Attach | `POST /api/v1/goals/:id/link-habits` (or `/habits` fallback) `{ habitIds: [uuid] }` |
 
-**Do not** send `goalId` on the list call for Add/Attach — same reason as tasks.
+**Do not** send `goalId` on the list call for Add/Attach — `goalId` filters habits already linked (often empty).
+
+Empty `habits: []` → UI “No habits available to attach” (not stuck Loading).
+
+Habit Spark **AI Generation** → `POST /api/v1/habits/ai/generate` — see **B.5**.
+
+### B.5 POST /habits/ai/generate smoke (Spark → AI Generation)
+
+| Step | Action in app | Expected Network |
+|------|---------------|------------------|
+| 1 | Goal → Linked Habits **✨** → **AI Generation** | Modal opens on AI tab |
+| 2 | Enter prompt → Generate | `POST /api/v1/habits/ai/generate` body `{ prompt, category, goalId }` → `200` + `{ habit }` |
+| 3 | Add to Goal | UI appends habit (already persisted; no second create) |
+
+`category`: CAREER \| HEALTH \| FINANCE \| FITNESS \| WELLNESS \| PRODUCTIVITY \| PERSONAL \| EDUCATION
+
+### A.10 POST /habits/ai/generate — Request / Response
+
+```json
+{
+  "prompt": "Help me build a consistent reading habit",
+  "category": "CAREER",
+  "goalId": "uuid"
+}
+```
+
+```json
+{
+  "success": true,
+  "message": "Habit generated successfully",
+  "habit": { "id": "uuid", "name": "...", "goalId": "uuid", "source": "AI", "aiSuggested": true },
+  "tokensUsed": 707
+}
+```
+
 
 Automated checks (no auth):
 

@@ -350,13 +350,55 @@ export function mapAiGeneratedTaskForPreview(apiTask) {
 export function mapLinkedHabitFromApi(habit) {
   if (!habit) return null;
 
+  const sourceRaw = String(habit.source || '').toUpperCase();
+  const isAi =
+    Boolean(habit.aiSuggested) ||
+    Boolean(habit.aiGenerated) ||
+    sourceRaw === 'AI' ||
+    sourceRaw === 'AI_GENERATED';
+
+  const weekdayMap = {
+    MONDAY: 0,
+    TUESDAY: 1,
+    WEDNESDAY: 2,
+    THURSDAY: 3,
+    FRIDAY: 4,
+    SATURDAY: 5,
+    SUNDAY: 6,
+  };
+  let days = Array.isArray(habit.days) ? habit.days : [];
+  if ((!days || days.length === 0) && Array.isArray(habit.targetDays) && habit.targetDays.length) {
+    days = Array(7).fill('empty');
+    habit.targetDays.forEach((d) => {
+      const idx = weekdayMap[String(d).toUpperCase()];
+      if (idx !== undefined) days[idx] = 'pending';
+    });
+  }
+
   return {
     id: habit.id,
     title: habit.title || habit.name || '',
     description: habit.description || '',
     tags: Array.isArray(habit.tags) ? habit.tags : [],
-    days: Array.isArray(habit.days) ? habit.days : [],
-    todayProgress: habit.todayProgress || { done: 0, total: 0 },
+    days,
+    todayProgress: habit.todayProgress || {
+      done: 0,
+      total: habit.targetTimesPerDay || 1,
+    },
+    stats: [{ label: habit.frequency ? String(habit.frequency).toLowerCase() : 'Today' }],
+    source: isAi ? 'ai' : undefined,
+    status: habit.status === 'PAUSED' || habit.status === 'paused' ? 'paused' : undefined,
+  };
+}
+
+/** Map POST /habits/ai/generate `habit` → Spark AI preview / linked card. */
+export function mapAiGeneratedHabitForPreview(apiHabit) {
+  const mapped = mapLinkedHabitFromApi(apiHabit);
+  if (!mapped?.id) return null;
+  return {
+    ...mapped,
+    source: 'ai',
+    alreadyPersisted: true,
   };
 }
 

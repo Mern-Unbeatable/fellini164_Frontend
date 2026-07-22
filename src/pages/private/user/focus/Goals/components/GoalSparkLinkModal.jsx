@@ -4,10 +4,12 @@ import TypewriterPlaceholder from '../../../../../../components/ui/TypewriterPla
 import {
   fetchHabitsForLinkApi,
   fetchTasksForLinkApi,
+  generateHabitApi,
   generateTaskApi,
 } from '../../../../../../features/goals/goalsAPI';
 import {
   categoryToApi,
+  mapAiGeneratedHabitForPreview,
   mapAiGeneratedTaskForPreview,
   normalizeLinkPickerOptions,
   orderedLinkPickerOptions,
@@ -81,55 +83,9 @@ function TabToggle({ activeTab, onChange }) {
   );
 }
 
-function mockGenerate(type, prompt) {
-  const lower = (prompt || '').toLowerCase();
-  if (type === 'tasks') {
-    if (lower.includes('resume') || lower.includes('linkedin')) {
-      return {
-        id: `gen-task-${Date.now()}`,
-        title: 'Update Resume and LinkedIn Profile',
-        description: 'Refresh headline, summary, and recent projects.',
-        priority: 'MEDIUM',
-        status: 'to do',
-        statusUppercase: true,
-        source: 'ai',
-        due: 'Tomorrow',
-      };
-    }
-    return {
-      id: `gen-task-${Date.now()}`,
-      title: 'Exercise Routine',
-      description: 'Follow your fitness routine or do a workout session.',
-      priority: 'URGENT',
-      status: 'to do',
-      statusUppercase: true,
-      source: 'ai',
-      due: 'May 12, 2026',
-      overdueDays: 2,
-    };
-  }
-  if (lower.includes('meditat') || lower.includes('mindful')) {
-    return {
-      id: `gen-habit-${Date.now()}`,
-      title: 'Meditate',
-      description: 'Practice mindfulness for mental clarity',
-      stats: [{ label: 'Today' }],
-      source: 'ai',
-    };
-  }
-  return {
-    id: `gen-habit-${Date.now()}`,
-    title: 'Drink Water',
-    description: 'Stay hydrated throughout the day',
-    stats: [{ label: 'Today' }],
-    todayProgress: { done: 0, total: 2 },
-    source: 'ai',
-  };
-}
-
 /**
  * Spark on Linked Tasks / Habits — New Task / New Habit window:
- * 1) AI Generation — tasks: POST /tasks/ai/generate; habits: mock until API
+ * 1) AI Generation — POST /tasks/ai/generate | /habits/ai/generate
  * 2) Find & Attach → GET /api/v1/tasks | /habits
  */
 export default function GoalSparkLinkModal({
@@ -213,14 +169,6 @@ export default function GoalSparkLinkModal({
     setGenerateError(null);
     setAiPhase('generating');
 
-    if (!isTasks) {
-      window.setTimeout(() => {
-        setGenerated(mockGenerate(type, aiPrompt));
-        setAiPhase('preview');
-      }, 700);
-      return;
-    }
-
     try {
       const payload = {
         prompt: aiPrompt.trim(),
@@ -228,16 +176,23 @@ export default function GoalSparkLinkModal({
       };
       if (goalId) payload.goalId = goalId;
 
-      const task = await generateTaskApi(payload);
-      const preview = mapAiGeneratedTaskForPreview(task);
-      if (!preview?.id) {
-        throw new Error('Invalid AI task response');
+      if (isTasks) {
+        const task = await generateTaskApi(payload);
+        const preview = mapAiGeneratedTaskForPreview(task);
+        if (!preview?.id) throw new Error('Invalid AI task response');
+        setGenerated(preview);
+      } else {
+        const habit = await generateHabitApi(payload);
+        const preview = mapAiGeneratedHabitForPreview(habit);
+        if (!preview?.id) throw new Error('Invalid AI habit response');
+        setGenerated(preview);
       }
-      setGenerated(preview);
       setAiPhase('preview');
     } catch (err) {
       const message =
-        err?.response?.data?.message || err?.message || 'Failed to generate task';
+        err?.response?.data?.message ||
+        err?.message ||
+        `Failed to generate ${isTasks ? 'task' : 'habit'}`;
       setGenerateError(message);
       toast.error(message);
       setAiPhase('input');

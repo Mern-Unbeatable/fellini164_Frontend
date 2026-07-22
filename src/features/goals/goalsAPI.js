@@ -229,6 +229,19 @@ export async function generateTaskApi(payload) {
 }
 
 /**
+ * POST /api/v1/habits/ai/generate
+ * Body: { prompt, category, goalId? }
+ * category: CAREER|HEALTH|FINANCE|FITNESS|WELLNESS|PRODUCTIVITY|PERSONAL|EDUCATION
+ * Response: { success, message, habit, tokensUsed } — habit is already persisted (often with goalId).
+ */
+export async function generateHabitApi(payload) {
+  const response = await axiosInstance.post('/api/v1/habits/ai/generate', payload);
+  const body = response?.data;
+  if (body?.habit) return body.habit;
+  return unwrapData(response);
+}
+
+/**
  * GET /api/v1/tasks — List Tasks (filters & pagination).
  * Envelope: { success, count, tasks, pagination }
  * Link-picker default: parentOnly + page/limit (do not pass goalId — that filters already-linked tasks).
