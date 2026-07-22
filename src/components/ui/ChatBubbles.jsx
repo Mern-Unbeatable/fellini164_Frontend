@@ -1,8 +1,10 @@
-export function UserChatBubble({ children }) {
+export function UserChatBubble({ children, contentClassName = '' }) {
   return (
     <div className="flex justify-end pl-15">
       <div className="relative rounded-tl-[10px] rounded-bl-[10px] rounded-br-[10px] rounded-tr-none bg-[#8022fe] px-3 py-2">
-        <p className="text-[14px] font-medium whitespace-pre-line text-white">{children}</p>
+        <div className={`text-[14px] font-medium whitespace-pre-line text-white ${contentClassName}`}>
+          {children}
+        </div>
         <svg
           className="absolute top-0 -right-[11px]"
           width="11"
@@ -18,13 +20,15 @@ export function UserChatBubble({ children }) {
   );
 }
 
-export function AiChatBubble({ children }) {
+export function AiChatBubble({ children, contentClassName = '' }) {
   return (
     <div className="flex justify-start pr-15">
       <div className="relative rounded-tr-[10px] rounded-bl-[10px] rounded-br-[10px] rounded-tl-none border border-[#f2f2f2] bg-[#fcfcfc] px-3 py-2 dark:border-zinc-700 dark:bg-zinc-800">
-        <p className="text-[14px] font-medium whitespace-pre-line text-[#181818] dark:text-gray-200">
+        <div
+          className={`text-[14px] font-medium whitespace-pre-line text-[#181818] dark:text-gray-200 ${contentClassName}`}
+        >
           {children}
-        </p>
+        </div>
         <svg
           className="absolute -top-px -left-[13px] text-[#f2f2f2] dark:text-zinc-700"
           width="12"
