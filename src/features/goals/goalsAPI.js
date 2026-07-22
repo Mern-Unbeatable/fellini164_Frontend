@@ -242,6 +242,17 @@ export async function generateHabitApi(payload) {
 }
 
 /**
+ * POST /api/v1/goals/:goalId/ai/suggest
+ * Body: { action, message }
+ * action: IMPROVE_DESCRIPTION | ADD_TASKS | ADD_HABITS | CHAT
+ * Response: { success, message, suggestionId, action, proposedGoal, proposedTasks, proposedHabits, goal, tokensUsed }
+ */
+export async function suggestGoalApi(goalId, payload) {
+  const response = await axiosInstance.post(`${BASE}/${goalId}/ai/suggest`, payload);
+  return response?.data;
+}
+
+/**
  * GET /api/v1/tasks — List Tasks (filters & pagination).
  * Envelope: { success, count, tasks, pagination }
  * Link-picker default: parentOnly + page/limit (do not pass goalId — that filters already-linked tasks).

@@ -158,6 +158,7 @@ If Postman has no valid response:
 | Habits for link picker | `GET /api/v1/habits` | **+** `LinkItemsModal`, Spark **Find & Attach**, New Goal linked habits | Envelope `{ habits, pagination }`; default `isActive=true&page=1&limit=50` (no `goalId`) | **FULFILLED** |
 | AI generate task | `POST /api/v1/tasks/ai/generate` | Spark ✨ → **AI Generation** (Linked Tasks) | Body `{ prompt, category, goalId? }`; response `{ task }` | **FULFILLED** |
 | AI generate habit | `POST /api/v1/habits/ai/generate` | Spark ✨ → **AI Generation** (Linked Habits) | Body `{ prompt, category, goalId? }`; response `{ habit }` | **FULFILLED** |
+| AI suggest (assistant) | `POST /api/v1/goals/:id/ai/suggest` | Goal detail **AI Assistant** — Add tasks / Improve description / Add habits / chat | Body `{ action, message }`; actions `IMPROVE_DESCRIPTION` \| `ADD_TASKS` \| `ADD_HABITS` \| `CHAT` | **FULFILLED** |
 
 ### A.1b Deferred / still mock (no backend contract yet)
 
@@ -263,6 +264,7 @@ If Postman has no response:
 | Link picker lists (`GET /tasks`, `GET /habits`) | **FULFILLED** |
 | Spark AI generate task (`POST /tasks/ai/generate`) | **FULFILLED** |
 | Spark AI generate habit (`POST /habits/ai/generate`) | **FULFILLED** |
+| Goal AI Assistant suggest (`POST /goals/:id/ai/suggest`) | **FULFILLED** |
 | Update / Complete / Link mutations | **PARTIAL** (wired, contract not locked) |
 | Ghosts | **DEFERRED** |
 | Overall Goals Board | **FULFILLED for contracted APIs**; PARTIAL/DEFERRED only where Postman/backend incomplete |
@@ -351,6 +353,36 @@ Habit Spark **AI Generation** → `POST /api/v1/habits/ai/generate` — see **B.
   "message": "Habit generated successfully",
   "habit": { "id": "uuid", "name": "...", "goalId": "uuid", "source": "AI", "aiSuggested": true },
   "tokensUsed": 707
+}
+```
+
+### B.6 POST /goals/:id/ai/suggest smoke (Goal detail AI Assistant)
+
+| Step | Action in app | Expected Network |
+|------|---------------|------------------|
+| 1 | Open goal detail → AI Assistant | Panel visible |
+| 2 | **Improve description** | `POST /api/v1/goals/:id/ai/suggest` `{ "action": "IMPROVE_DESCRIPTION", "message": "Make it more specific and motivating" }` |
+| 3 | **Add tasks** | `{ "action": "ADD_TASKS", "message": "Add practical next steps for this week" }` |
+| 4 | **Add habits** | `{ "action": "ADD_HABITS", "message": "Suggest daily habits that support this goal" }` |
+| 5 | Chat send | `{ "action": "CHAT", "message": "<user text>" }` |
+| 6 | **Yes, apply** | Applies `proposedGoal` via update; creates proposed tasks/habits via `/tasks/ai/generate` / `/habits/ai/generate` with `goalId` |
+
+### A.11 POST /goals/:id/ai/suggest — Request / Response
+
+```json
+{ "action": "ADD_HABITS", "message": "Suggest daily habits that support this goal" }
+```
+
+```json
+{
+  "success": true,
+  "message": "...",
+  "suggestionId": "uuid",
+  "action": "ADD_HABITS",
+  "proposedGoal": { "title": "...", "description": "...", "category": "CAREER", "priorityLevel": "MEDIUM", "targetDate": "YYYY-MM-DD" },
+  "proposedTasks": [],
+  "proposedHabits": [ { "name": "...", "description": "...", "category": "CAREER", "frequency": "DAILY" } ],
+  "tokensUsed": 993
 }
 ```
 

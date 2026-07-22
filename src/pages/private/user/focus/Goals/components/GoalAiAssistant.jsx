@@ -1,11 +1,47 @@
 import { useEffect, useRef, useState } from 'react';
 import { Sparkles, X, Maximize2, Minimize2, Send, ListTodo, Pencil, Repeat } from 'lucide-react';
+import { toast } from 'react-toastify';
+import {
+  generateHabitApi,
+  generateTaskApi,
+  suggestGoalApi,
+} from '../../../../../../features/goals/goalsAPI';
+import {
+  categoryToApi,
+  mapAiGeneratedHabitForPreview,
+  mapAiGeneratedTaskForPreview,
+} from '../../../../../../features/goals/goalsMappers';
 
 const QUICK_ACTIONS = [
-  { label: 'Add tasks', icon: ListTodo },
-  { label: 'Improve description', icon: Pencil },
-  { label: 'Add habits', icon: Repeat },
+  {
+    key: 'ADD_TASKS',
+    label: 'Add tasks',
+    icon: ListTodo,
+    message: 'Add practical next steps for this week',
+  },
+  {
+    key: 'IMPROVE_DESCRIPTION',
+    label: 'Improve description',
+    icon: Pencil,
+    message: 'Make it more specific and motivating',
+  },
+  {
+    key: 'ADD_HABITS',
+    label: 'Add habits',
+    icon: Repeat,
+    message: 'Suggest daily habits that support this goal',
+  },
 ];
+
+function formatSessionStamp() {
+  return new Date().toLocaleString('en-US', {
+    weekday: 'long',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
 
 function UserBubble({ children }) {
   return (
@@ -24,9 +60,9 @@ function AiBubble({ children }) {
   return (
     <div className="flex justify-start pr-15">
       <div className="relative rounded-tr-[10px] rounded-bl-[10px] rounded-br-[10px] rounded-tl-none border border-[#f2f2f2] bg-[#fcfcfc] px-3 py-2 dark:border-zinc-700 dark:bg-zinc-800">
-        <p className="text-[14px] font-medium whitespace-pre-line text-[#181818] dark:text-gray-200">
+        <div className="text-[14px] font-medium whitespace-pre-line text-[#181818] dark:text-gray-200">
           {children}
-        </p>
+        </div>
         <svg className="absolute -top-px -left-[13px] text-[#f2f2f2] dark:text-zinc-700" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
           <path d="M0 0C6.62742 0 12 5.37258 12 12V0H0Z" fill="currentColor" />
         </svg>
@@ -38,21 +74,79 @@ function AiBubble({ children }) {
   );
 }
 
-function ActionPill({ children, onClick }) {
+function ActionPill({ children, onClick, disabled }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="w-fit rounded-md bg-[#f9f4ff] px-2 pt-0.5 pb-0.75 text-[14px] font-medium text-[#8022fe]"
+      disabled={disabled}
+      className="w-fit rounded-md bg-[#f9f4ff] px-2 pt-0.5 pb-0.75 text-[14px] font-medium text-[#8022fe] disabled:opacity-50"
     >
       {children}
     </button>
   );
 }
 
-export default function GoalAiAssistant({ onClose, onToggleExpand, isExpanded = false }) {
+function formatSuggestionBody(data) {
+  const lines = [data?.message || 'Here is what I suggest.'];
+  const goal = data?.proposedGoal;
+  if (goal?.title || goal?.description) {
+    lines.push('');
+    lines.push('Proposed goal updates:');
+    if (goal.title) lines.push(`• Title: ${goal.title}`);
+    if (goal.description) lines.push(`• Description: ${goal.description}`);
+    if (goal.priorityLevel) lines.push(`• Priority: ${goal.priorityLevel}`);
+    if (goal.targetDate) lines.push(`• Target: ${goal.targetDate}`);
+  }
+  const tasks = Array.isArray(data?.proposedTasks) ? data.proposedTasks : [];
+  if (tasks.length) {
+    lines.push('');
+    lines.push(`Proposed tasks (${tasks.length}):`);
+    tasks.forEach((t, i) => {
+      lines.push(`${i + 1}. ${t.title || t.name || 'Untitled task'}`);
+    });
+  }
+  const habits = Array.isArray(data?.proposedHabits) ? data.proposedHabits : [];
+  if (habits.length) {
+    lines.push('');
+    lines.push(`Proposed habits (${habits.length}):`);
+    habits.forEach((h, i) => {
+      lines.push(`${i + 1}. ${h.name || h.title || 'Untitled habit'}`);
+    });
+  }
+  return lines.join('\n');
+}
+
+function hasApplyableProposal(data) {
+  if (!data) return false;
+  if (data.proposedGoal?.title || data.proposedGoal?.description) return true;
+  if (Array.isArray(data.proposedTasks) && data.proposedTasks.length) return true;
+  if (Array.isArray(data.proposedHabits) && data.proposedHabits.length) return true;
+  return false;
+}
+
+/**
+ * Goal detail AI Assistant — POST /goals/:id/ai/suggest
+ * Quick actions: ADD_TASKS | IMPROVE_DESCRIPTION | ADD_HABITS
+ * Chat input: CHAT
+ */
+export default function GoalAiAssistant({
+  goalId,
+  goal,
+  onClose,
+  onToggleExpand,
+  isExpanded = false,
+  onGoalUpdated,
+  onTasksCreated,
+  onHabitsCreated,
+}) {
   const [prompt, setPrompt] = useState('');
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [applyingId, setApplyingId] = useState(null);
+  const [sessionStamp] = useState(formatSessionStamp);
   const textareaRef = useRef(null);
+  const bottomRef = useRef(null);
 
   useEffect(() => {
     const el = textareaRef.current;
@@ -60,6 +154,133 @@ export default function GoalAiAssistant({ onClose, onToggleExpand, isExpanded = 
     el.style.height = 'auto';
     el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
   }, [prompt]);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, loading]);
+
+  const runSuggest = async (action, message) => {
+    if (!goalId || !message?.trim() || loading) return;
+
+    const userText = message.trim();
+    setMessages((prev) => [...prev, { id: `u-${Date.now()}`, role: 'user', text: userText }]);
+    setLoading(true);
+
+    try {
+      const data = await suggestGoalApi(goalId, { action, message: userText });
+      if (!data?.success && data?.success !== undefined) {
+        throw new Error(data?.message || 'Suggestion failed');
+      }
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `a-${Date.now()}`,
+          role: 'assistant',
+          text: formatSuggestionBody(data),
+          suggestion: data,
+          action: data?.action || action,
+        },
+      ]);
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message || 'Failed to get AI suggestion';
+      toast.error(msg);
+      setMessages((prev) => [
+        ...prev,
+        { id: `e-${Date.now()}`, role: 'assistant', text: msg, error: true },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleQuickAction = (action) => {
+    runSuggest(action.key, action.message);
+  };
+
+  const handleSend = () => {
+    if (!prompt.trim()) return;
+    const text = prompt.trim();
+    setPrompt('');
+    runSuggest('CHAT', text);
+  };
+
+  const handleApply = async (msg) => {
+    const data = msg.suggestion;
+    if (!data || !goalId || applyingId) return;
+    setApplyingId(msg.id);
+
+    try {
+      const proposed = data.proposedGoal;
+      if (proposed && (proposed.title || proposed.description)) {
+        await onGoalUpdated?.({
+          title: proposed.title || goal?.title,
+          description: proposed.description || goal?.description || '',
+          category: proposed.category || goal?.category || 'Career',
+          priority: proposed.priorityLevel || goal?.priority || 'MEDIUM',
+          dueDate: proposed.targetDate || goal?.targetDate || '',
+          due: proposed.targetDate || goal?.due,
+          source: goal?.source || 'manual',
+        });
+      }
+
+      const createdTasks = [];
+      for (const item of data.proposedTasks || []) {
+        const title = item.title || item.name;
+        if (!title) continue;
+        const task = await generateTaskApi({
+          prompt: `${title}. ${item.description || ''}`.trim(),
+          category: categoryToApi(item.category || goal?.category || 'Career'),
+          goalId,
+        });
+        const mapped = mapAiGeneratedTaskForPreview(task);
+        if (mapped) createdTasks.push(mapped);
+      }
+      if (createdTasks.length) onTasksCreated?.(createdTasks);
+
+      const createdHabits = [];
+      for (const item of data.proposedHabits || []) {
+        const name = item.name || item.title;
+        if (!name) continue;
+        const habit = await generateHabitApi({
+          prompt: `${name}. ${item.description || ''}`.trim(),
+          category: categoryToApi(item.category || goal?.category || 'Career'),
+          goalId,
+        });
+        const mapped = mapAiGeneratedHabitForPreview(habit);
+        if (mapped) createdHabits.push(mapped);
+      }
+      if (createdHabits.length) onHabitsCreated?.(createdHabits);
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `done-${Date.now()}`,
+          role: 'assistant',
+          text: 'Done. The suggested changes have been applied.',
+        },
+      ]);
+      toast.success('Changes applied');
+    } catch (err) {
+      const message = err?.response?.data?.message || err?.message || 'Failed to apply changes';
+      toast.error(message);
+      setMessages((prev) => [
+        ...prev,
+        { id: `err-${Date.now()}`, role: 'assistant', text: message, error: true },
+      ]);
+    } finally {
+      setApplyingId(null);
+    }
+  };
+
+  const handleDismiss = (msgId) => {
+    setMessages((prev) => [
+      ...prev,
+      { id: `c-${Date.now()}`, role: 'assistant', text: 'Okay, I discarded that suggestion.' },
+    ]);
+    setMessages((prev) =>
+      prev.map((m) => (m.id === msgId ? { ...m, suggestion: null, dismissed: true } : m)),
+    );
+  };
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-white dark:border-zinc-700 dark:bg-zinc-900">
@@ -87,30 +308,42 @@ export default function GoalAiAssistant({ onClose, onToggleExpand, isExpanded = 
       </div>
 
       <div className="scrollbar-white flex min-h-0 flex-1 flex-col overflow-y-auto py-3 pl-3 pr-4.5">
-        <p className="mb-2.5 text-center text-[12px] font-medium text-[#c2c2c2]">
-          Tuesday, May 5 • 7:39 PM
-        </p>
+        <p className="mb-2.5 text-center text-[12px] font-medium text-[#c2c2c2]">{sessionStamp}</p>
         <div className="flex flex-col gap-5">
-          <UserBubble>Hi, I want to improve this goal</UserBubble>
-
-          <AiBubble>
-            {'Sure, I can update this goal.\n\nThis will:\n• improve clarity\n• improve tracking'}
-          </AiBubble>
-
-          <div className="flex flex-col gap-2.5">
-            <AiBubble>Do you want me to apply these changes?</AiBubble>
-            <div className="flex items-center gap-2">
-              <ActionPill>Yes, apply</ActionPill>
-              <ActionPill>No, cancel</ActionPill>
+          {messages.length === 0 && (
+            <AiBubble>
+              {`Hi — I can improve this goal, suggest tasks, or habits.\n\nUse a quick action below or describe what you want.`}
+            </AiBubble>
+          )}
+          {messages.map((msg) => (
+            <div key={msg.id} className="flex flex-col gap-2.5">
+              {msg.role === 'user' ? (
+                <UserBubble>{msg.text}</UserBubble>
+              ) : (
+                <>
+                  <AiBubble>{msg.text}</AiBubble>
+                  {hasApplyableProposal(msg.suggestion) && !msg.dismissed && (
+                    <div className="flex items-center gap-2">
+                      <ActionPill
+                        disabled={Boolean(applyingId) || loading}
+                        onClick={() => handleApply(msg)}
+                      >
+                        {applyingId === msg.id ? 'Applying…' : 'Yes, apply'}
+                      </ActionPill>
+                      <ActionPill
+                        disabled={Boolean(applyingId) || loading}
+                        onClick={() => handleDismiss(msg.id)}
+                      >
+                        No, cancel
+                      </ActionPill>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
-          </div>
-
-          <UserBubble>Yes, apply</UserBubble>
-
-          <div className="flex flex-col gap-2.5">
-            <AiBubble>Done. The goal has been updated</AiBubble>
-            <ActionPill>Undo changes</ActionPill>
-          </div>
+          ))}
+          {loading && <AiBubble>Thinking…</AiBubble>}
+          <div ref={bottomRef} />
         </div>
       </div>
 
@@ -118,9 +351,11 @@ export default function GoalAiAssistant({ onClose, onToggleExpand, isExpanded = 
         <div className="flex flex-wrap gap-2">
           {QUICK_ACTIONS.map((action) => (
             <button
-              key={action.label}
+              key={action.key}
               type="button"
-              className="flex items-center gap-1.5 rounded-lg border border-[#f2f2f2] px-2.5 py-1.5 text-[12px] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300"
+              disabled={!goalId || loading}
+              onClick={() => handleQuickAction(action)}
+              className="flex items-center gap-1.5 rounded-lg border border-[#f2f2f2] px-2.5 py-1.5 text-[12px] font-medium text-[#5d5d5d] disabled:opacity-50 dark:border-zinc-700 dark:text-gray-300"
             >
               <action.icon size={14} className="shrink-0 text-[#8022fe]" />
               {action.label}
@@ -135,16 +370,19 @@ export default function GoalAiAssistant({ onClose, onToggleExpand, isExpanded = 
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
+                handleSend();
               }
             }}
             placeholder="Describe what you want to change..."
             rows={1}
-            className="max-h-30 flex-1 resize-none overflow-hidden bg-transparent text-[12px] text-[#5d5d5d] placeholder:text-[#c2c2c2] focus:outline-none dark:text-gray-300"
+            disabled={!goalId || loading}
+            className="max-h-30 flex-1 resize-none overflow-hidden bg-transparent text-[12px] text-[#5d5d5d] placeholder:text-[#c2c2c2] focus:outline-none disabled:opacity-50 dark:text-gray-300"
           />
           <button
             type="button"
             aria-label="Send"
-            disabled={!prompt.trim()}
+            disabled={!goalId || !prompt.trim() || loading}
+            onClick={handleSend}
             className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#8022fe] text-white disabled:opacity-50"
           >
             <Send size={12} />

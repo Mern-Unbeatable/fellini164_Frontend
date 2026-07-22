@@ -655,6 +655,33 @@ export default function GoalDetailPage() {
     await dispatch(fetchGoalById(goal.id));
   };
 
+  const handleAssistantGoalUpdated = async (formData) => {
+    if (!goal?.id || !formData?.title) return;
+    await dispatch(updateGoal({ goalId: goal.id, formData }));
+    await dispatch(fetchGoalById(goal.id));
+  };
+
+  const handleAssistantTasksCreated = (createdTasks) => {
+    if (!createdTasks?.length) return;
+    const base = editedLists.goalId === goalId && editedLists.tasks ? editedLists.tasks : tasks;
+    const next = [...base];
+    createdTasks.forEach((t) => {
+      if (!next.some((x) => x.id === t.id)) next.push(t);
+    });
+    mergeEditedTasks(next);
+  };
+
+  const handleAssistantHabitsCreated = (createdHabits) => {
+    if (!createdHabits?.length) return;
+    const base =
+      editedLists.goalId === goalId && editedLists.habits ? editedLists.habits : habits;
+    const next = [...base];
+    createdHabits.forEach((h) => {
+      if (!next.some((x) => x.id === h.id)) next.push(h);
+    });
+    mergeEditedHabits(next);
+  };
+
   const handleTogglePause = async () => {
     setMenuOpen(false);
     const nextStatus = isPaused ? 'active' : 'paused';
@@ -1026,9 +1053,14 @@ export default function GoalDetailPage() {
         {isAssistantOpen && !isAssistantExpanded && (
           <div className="flex h-125 w-full shrink-0 flex-col xl:h-full xl:w-100">
             <GoalAiAssistant
+              goalId={goal?.id}
+              goal={goal}
               onClose={closeAssistant}
               onToggleExpand={toggleExpandAssistant}
               isExpanded={false}
+              onGoalUpdated={handleAssistantGoalUpdated}
+              onTasksCreated={handleAssistantTasksCreated}
+              onHabitsCreated={handleAssistantHabitsCreated}
             />
           </div>
         )}
@@ -1037,7 +1069,16 @@ export default function GoalDetailPage() {
       {isAssistantOpen && isAssistantExpanded && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="h-[85vh] w-full max-w-2xl">
-            <GoalAiAssistant onClose={closeAssistant} onToggleExpand={toggleExpandAssistant} isExpanded />
+            <GoalAiAssistant
+              goalId={goal?.id}
+              goal={goal}
+              onClose={closeAssistant}
+              onToggleExpand={toggleExpandAssistant}
+              isExpanded
+              onGoalUpdated={handleAssistantGoalUpdated}
+              onTasksCreated={handleAssistantTasksCreated}
+              onHabitsCreated={handleAssistantHabitsCreated}
+            />
           </div>
         </div>
       )}
