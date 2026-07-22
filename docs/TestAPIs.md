@@ -159,6 +159,9 @@ If Postman has no valid response:
 | AI generate task | `POST /api/v1/tasks/ai/generate` | Spark ✨ → **AI Generation** (Linked Tasks) | Body `{ prompt, category, goalId? }`; response `{ task }` | **FULFILLED** |
 | AI generate habit | `POST /api/v1/habits/ai/generate` | Spark ✨ → **AI Generation** (Linked Habits) | Body `{ prompt, category, goalId? }`; response `{ habit }` | **FULFILLED** |
 | AI suggest (assistant) | `POST /api/v1/goals/:id/ai/suggest` | Goal detail **AI Assistant** — Add tasks / Improve description / Add habits / chat | Body `{ action, message }`; actions `IMPROVE_DESCRIPTION` \| `ADD_TASKS` \| `ADD_HABITS` \| `CHAT` | **FULFILLED** |
+| Update linked task | `PATCH /api/v1/tasks/:taskId` | Goal detail Linked Tasks ⋯ → **Edit task** | Body e.g. `{ priority, status, title, … }`; response `{ task }` | **FULFILLED** |
+| Complete linked task | `POST /api/v1/tasks/:taskId/complete` | Goal detail Linked Tasks ⋯ → **Complete** | Body `{ actualMinutes }`; response `{ task }` | **FULFILLED** |
+| Delete linked task | `DELETE /api/v1/tasks/:taskId` | Goal detail Linked Tasks ⋯ → **Delete** | Removes card + refreshes goal | **FULFILLED** |
 
 ### A.1b Deferred / still mock (no backend contract yet)
 
@@ -265,7 +268,8 @@ If Postman has no response:
 | Spark AI generate task (`POST /tasks/ai/generate`) | **FULFILLED** |
 | Spark AI generate habit (`POST /habits/ai/generate`) | **FULFILLED** |
 | Goal AI Assistant suggest (`POST /goals/:id/ai/suggest`) | **FULFILLED** |
-| Update / Complete / Link mutations | **PARTIAL** (wired, contract not locked) |
+| Linked task Edit / Complete / Delete (`PATCH` / `POST .../complete` / `DELETE /tasks/:id`) | **FULFILLED** |
+| Update / Complete goal / Link mutations | **PARTIAL** (wired, contract not locked) |
 | Ghosts | **DEFERRED** |
 | Overall Goals Board | **FULFILLED for contracted APIs**; PARTIAL/DEFERRED only where Postman/backend incomplete |
 
@@ -367,6 +371,14 @@ Habit Spark **AI Generation** → `POST /api/v1/habits/ai/generate` — see **B.
 | 5 | Chat send | `{ "action": "CHAT", "message": "<user text>" }` |
 | 6 | **Yes, apply** | Applies `proposedGoal` via update; creates proposed tasks/habits via `/tasks/ai/generate` / `/habits/ai/generate` with `goalId` |
 
+### B.7 Linked Tasks card menu (Goal detail)
+
+| Step | Action in app | Expected Network |
+|------|---------------|------------------|
+| 1 | Open goal detail → Linked Tasks card ⋯ → **Edit task** → Save | `PATCH /api/v1/tasks/:taskId` body includes `priority` / `status` (and title, description, category, dueDate, estimatedMinutes when set) → `200` + `{ task }` |
+| 2 | Card ⋯ → **Complete** | `POST /api/v1/tasks/:taskId/complete` `{ "actualMinutes": <estimated or 30> }` → status `COMPLETED` |
+| 3 | Card ⋯ → **Delete** | `DELETE /api/v1/tasks/:taskId` → card removed; goal refetch |
+
 ### A.11 POST /goals/:id/ai/suggest — Request / Response
 
 ```json
@@ -386,6 +398,37 @@ Habit Spark **AI Generation** → `POST /api/v1/habits/ai/generate` — see **B.
 }
 ```
 
+### A.12 Linked task mutations (Goal detail card menu)
+
+**PATCH** `/api/v1/tasks/:taskId`
+
+```json
+{ "priority": "URGENT", "status": "IN_PROGRESS" }
+```
+
+```json
+{
+  "success": true,
+  "message": "Task updated successfully",
+  "task": { "id": "uuid", "status": "IN_PROGRESS", "priority": "URGENT" }
+}
+```
+
+**POST** `/api/v1/tasks/:taskId/complete`
+
+```json
+{ "actualMinutes": 45 }
+```
+
+```json
+{
+  "success": true,
+  "message": "Task marked as complete",
+  "task": { "id": "uuid", "status": "COMPLETED", "actualMinutes": 45 }
+}
+```
+
+**DELETE** `/api/v1/tasks/:taskId` — no body; removes task.
 
 Automated checks (no auth):
 

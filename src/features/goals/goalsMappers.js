@@ -296,12 +296,44 @@ export function normalizeBoardSummary(data, goals = []) {
 
 function mapTaskStatus(status) {
   const raw = String(status || 'to do');
-  const lower = raw.toLowerCase();
-  const uppercaseStatuses = ['to do', 'todo'];
+  const lower = raw.toLowerCase().replace(/_/g, ' ');
+  const display =
+    lower === 'todo' || lower === 'to do'
+      ? 'TODO'
+      : lower === 'in progress' || lower === 'in_progress'
+        ? 'IN_PROGRESS'
+        : lower === 'completed' || lower === 'done'
+          ? 'COMPLETED'
+          : raw;
   return {
-    status: raw,
-    statusUppercase: uppercaseStatuses.includes(lower),
+    status: display,
+    statusUppercase: true,
   };
+}
+
+/** Map TaskFormModal fields → PATCH /tasks/:id body (Postman contract). */
+export function mapTaskUpdatePayload(form) {
+  const statusMap = {
+    'to do': 'TODO',
+    todo: 'TODO',
+    'in progress': 'IN_PROGRESS',
+    done: 'COMPLETED',
+    completed: 'COMPLETED',
+  };
+  const statusKey = String(form.status || '').toLowerCase();
+  const payload = {};
+
+  if (form.title != null) payload.title = form.title;
+  if (form.description != null) payload.description = form.description;
+  if (form.priority) payload.priority = String(form.priority).toUpperCase();
+  if (form.status) payload.status = statusMap[statusKey] || String(form.status).toUpperCase().replace(/\s+/g, '_');
+  if (form.category) payload.category = categoryToApi(form.category);
+  if (form.dueDate) payload.dueDate = form.dueDate;
+  if (form.estMinutes !== '' && form.estMinutes != null) {
+    const mins = Number(form.estMinutes);
+    if (!Number.isNaN(mins)) payload.estimatedMinutes = mins;
+  }
+  return payload;
 }
 
 export function mapLinkedTaskFromApi(task) {
@@ -314,6 +346,21 @@ export function mapLinkedTaskFromApi(task) {
     Boolean(task.createdByAi) ||
     sourceRaw === 'AI' ||
     sourceRaw === 'AI_GENERATED';
+  const isDone = ['done', 'completed'].includes(String(task.status || '').toLowerCase());
+  const categoryLabel = task.category ? categoryFromApi(task.category) : null;
+  const categoryKey = categoryLabel?.toLowerCase();
+  const extraTags = Array.isArray(task.tags)
+    ? task.tags
+        .map((t) => (typeof t === 'string' ? { label: t } : t))
+        .filter((t) => {
+          const label = String(t?.label || '').toLowerCase();
+          return label && label !== 'focus' && label !== categoryKey;
+        })
+    : [];
+  const tags = [
+    ...(categoryLabel ? [{ label: categoryLabel }] : []),
+    ...extraTags,
+  ];
 
   return {
     id: task.id,
@@ -321,17 +368,20 @@ export function mapLinkedTaskFromApi(task) {
     source: isAi ? 'ai' : undefined,
     title: task.title || '',
     description: task.description || '',
-    tags: Array.isArray(task.tags)
-      ? task.tags.map((t) => (typeof t === 'string' ? { label: t } : t))
-      : task.category
-        ? [{ label: categoryFromApi(task.category) }]
-        : [],
+    tags,
+    category: categoryLabel || undefined,
+    estimatedMinutes: task.estimatedMinutes ?? null,
     due: dueRaw ? formatDisplayDate(dueRaw) || String(dueRaw) : undefined,
     overdueDays: task.overdueDays,
     overdueLabel: task.overdueLabel,
     overdueOrange: task.overdueOrange,
-    completedLabel: task.completedLabel,
-    faded: ['done', 'completed'].includes(String(task.status || '').toLowerCase()),
+    completedLabel: isDone
+      ? task.completedLabel ||
+        (task.completedAt
+          ? `Completed ${formatDisplayDate(task.completedAt) || ''}`.trim()
+          : 'Completed')
+      : task.completedLabel,
+    faded: isDone,
     ...statusFields,
   };
 }

@@ -490,9 +490,13 @@ export default function TaskFormModal({ mode = 'create', initialTask, onClose, o
     setAiPhase('preview');
   };
 
-  const handleManualSubmit = () => {
-    onSubmit(form);
-    onClose();
+  const handleManualSubmit = async () => {
+    try {
+      await Promise.resolve(onSubmit(form));
+      onClose();
+    } catch {
+      // Parent handles error UI; keep modal open
+    }
   };
 
   const handleGenerate = () => {

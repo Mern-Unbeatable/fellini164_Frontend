@@ -303,3 +303,35 @@ export async function fetchHabitsForLinkApi(params = {}) {
   if (Array.isArray(body)) return body;
   return [];
 }
+
+/**
+ * PATCH /api/v1/tasks/:taskId
+ * Sample body: { priority, status } — also accepts title, description, category, dueDate, etc.
+ * Response: { success, message, task }
+ */
+export async function updateTaskApi(taskId, payload) {
+  const response = await axiosInstance.patch(`/api/v1/tasks/${taskId}`, payload);
+  const body = response?.data;
+  if (body?.task) return body.task;
+  return unwrapData(response);
+}
+
+/**
+ * POST /api/v1/tasks/:taskId/complete
+ * Body: { actualMinutes }
+ * Response: { success, message, task }
+ */
+export async function completeTaskApi(taskId, payload = {}) {
+  const response = await axiosInstance.post(`/api/v1/tasks/${taskId}/complete`, payload);
+  const body = response?.data;
+  if (body?.task) return body.task;
+  return unwrapData(response);
+}
+
+/**
+ * DELETE /api/v1/tasks/:taskId
+ */
+export async function deleteTaskApi(taskId) {
+  await axiosInstance.delete(`/api/v1/tasks/${taskId}`);
+  return taskId;
+}

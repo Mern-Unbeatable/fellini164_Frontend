@@ -22,6 +22,7 @@ import {
   Bell,
 } from 'lucide-react';
 import { WEEKDAY_LABELS, getPageHabits, getPageTasks } from './goalsData';
+import { toast } from 'react-toastify';
 import {
   clearCurrentGoal,
   deleteGoal,
@@ -34,6 +35,15 @@ import {
   updateGoal,
   updateGoalStatus,
 } from '../../../../../features/goals/goalsSlice';
+import {
+  completeTaskApi,
+  deleteTaskApi,
+  updateTaskApi,
+} from '../../../../../features/goals/goalsAPI';
+import {
+  mapLinkedTaskFromApi,
+  mapTaskUpdatePayload,
+} from '../../../../../features/goals/goalsMappers';
 import GoalAiAssistant from './components/GoalAiAssistant';
 import LinkItemsModal from './components/LinkItemsModal';
 import GoalSparkLinkModal from './components/GoalSparkLinkModal';
@@ -119,7 +129,7 @@ function GoalDetailMenu({ onClose, onEdit, onImprove, onPause, onDelete, isPause
   );
 }
 
-function TaskCardMenu({ onEdit, onClose }) {
+function TaskCardMenu({ onEdit, onComplete, onDelete, onClose }) {
   const itemBase =
     'flex w-full items-center gap-1.5 px-2.5 py-1.5 text-left text-[12px] font-medium whitespace-nowrap hover:bg-[#fcfcfc] dark:hover:bg-zinc-700';
   return (
@@ -135,12 +145,26 @@ function TaskCardMenu({ onEdit, onClose }) {
         <Pencil size={12} className="shrink-0" />
         Edit task
       </button>
-      <button type="button" onClick={onClose} className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}>
+      <button
+        type="button"
+        onClick={() => {
+          onComplete?.();
+          onClose();
+        }}
+        className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}
+      >
         <Check size={12} className="shrink-0" />
         Complete
       </button>
       <div className="h-px w-full bg-[#f2f2f2] dark:bg-zinc-700" />
-      <button type="button" onClick={onClose} className={`${itemBase} text-[#dc2626]`}>
+      <button
+        type="button"
+        onClick={() => {
+          onDelete?.();
+          onClose();
+        }}
+        className={`${itemBase} text-[#dc2626]`}
+      >
         <Trash2 size={12} className="shrink-0" />
         Delete
       </button>
@@ -158,7 +182,7 @@ function MetaTag({ tag }) {
   );
 }
 
-function PageTaskCard({ task, onEdit }) {
+function PageTaskCard({ task, onEdit, onComplete, onDelete }) {
   const isDone = task.faded;
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
@@ -216,6 +240,8 @@ function PageTaskCard({ task, onEdit }) {
                 <TaskCardMenu
                   onClose={() => setMenuOpen(false)}
                   onEdit={() => onEdit?.(task)}
+                  onComplete={() => onComplete?.(task)}
+                  onDelete={() => onDelete?.(task)}
                 />
               )}
             </div>
@@ -596,6 +622,7 @@ export default function GoalDetailPage() {
   const [editedLists, setEditedLists] = useState({ goalId: null, tasks: null, habits: null });
   const [habitModal, setHabitModal] = useState({ open: false, habit: null });
   const [taskModal, setTaskModal] = useState({ open: false, task: null });
+  const [taskActionBusy, setTaskActionBusy] = useState(null);
   const [linkModal, setLinkModal] = useState({ open: false, type: 'tasks' });
   const [sparkModal, setSparkModal] = useState({ open: false, type: 'tasks' });
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -687,47 +714,6 @@ export default function GoalDetailPage() {
     const nextStatus = isPaused ? 'active' : 'paused';
     await dispatch(updateGoalStatus({ goalId: goal.id, status: nextStatus }));
   };
-  const handleSubmitTask = (form) => {
-    if (!taskModal.task) return;
-    const tags = [{ label: form.category }];
-    if (form.estMinutes) tags.push({ label: `${form.estMinutes} Min`, icon: 'clock' });
-    if (form.linkedGoal && form.linkedGoal !== '__create_new__') {
-      tags.push({ label: form.linkedGoal, linkedGoal: true });
-    }
-    const statusRaw = form.status || taskModal.task.status || 'to do';
-    const dueLabel = form.dueDate
-      ? (() => {
-          const [year, month, day] = form.dueDate.split('-').map(Number);
-          return new Date(year, month - 1, day).toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric',
-          });
-        })()
-      : taskModal.task.due;
-    const baseTasks =
-      editedLists.goalId === goalId && editedLists.tasks ? editedLists.tasks : apiTasks;
-    setEditedLists({
-      goalId,
-      tasks: baseTasks.map((t) => {
-        if (t.id !== taskModal.task.id) return t;
-        return {
-          ...t,
-          title: form.title || t.title,
-          description: form.description ?? t.description,
-          priority: (form.priority || t.priority).toUpperCase(),
-          category: form.category,
-          tags,
-          status: statusRaw,
-          statusUppercase: /^(to do|done)$/i.test(statusRaw),
-          due: dueLabel,
-          faded: /done/i.test(statusRaw),
-          completedLabel: /done/i.test(statusRaw) ? t.completedLabel || 'Completed' : undefined,
-        };
-      }),
-      habits: editedLists.goalId === goalId ? editedLists.habits : null,
-    });
-  };
 
   const openEditHabit = (habit) => setHabitModal({ open: true, habit });
   const closeHabitModal = () => setHabitModal({ open: false, habit: null });
@@ -805,6 +791,68 @@ export default function GoalDetailPage() {
       tasks: editedLists.goalId === goalId ? editedLists.tasks : null,
       habits: nextHabits,
     });
+  };
+
+  const getCurrentTasks = () =>
+    editedLists.goalId === goalId && editedLists.tasks ? editedLists.tasks : tasks;
+
+  const replaceTaskInList = (apiTask) => {
+    const mapped = mapLinkedTaskFromApi(apiTask);
+    if (!mapped?.id) return;
+    const base = getCurrentTasks();
+    mergeEditedTasks(base.map((t) => (t.id === mapped.id ? { ...t, ...mapped } : t)));
+  };
+
+  const handleSubmitTask = async (form) => {
+    if (!taskModal.task?.id) return;
+    const taskId = taskModal.task.id;
+    try {
+      const payload = mapTaskUpdatePayload(form);
+      const updated = await updateTaskApi(taskId, payload);
+      replaceTaskInList(updated);
+      toast.success('Task updated');
+    } catch (err) {
+      const message =
+        err?.response?.data?.message || err?.message || 'Failed to update task';
+      toast.error(message);
+      throw err;
+    }
+  };
+
+  const handleCompleteTask = async (task) => {
+    if (!task?.id || taskActionBusy) return;
+    setTaskActionBusy(task.id);
+    try {
+      const actualMinutes = Number(task.estimatedMinutes) > 0 ? Number(task.estimatedMinutes) : 30;
+      const updated = await completeTaskApi(task.id, { actualMinutes });
+      replaceTaskInList(updated);
+      toast.success('Task completed');
+      if (goal?.id) dispatch(fetchGoalById(goal.id));
+    } catch (err) {
+      const message =
+        err?.response?.data?.message || err?.message || 'Failed to complete task';
+      toast.error(message);
+    } finally {
+      setTaskActionBusy(null);
+    }
+  };
+
+  const handleDeleteTask = async (task) => {
+    if (!task?.id || taskActionBusy) return;
+    setTaskActionBusy(task.id);
+    try {
+      await deleteTaskApi(task.id);
+      const base = getCurrentTasks();
+      mergeEditedTasks(base.filter((t) => t.id !== task.id));
+      toast.success('Task deleted');
+      if (goal?.id) dispatch(fetchGoalById(goal.id));
+    } catch (err) {
+      const message =
+        err?.response?.data?.message || err?.message || 'Failed to delete task';
+      toast.error(message);
+    } finally {
+      setTaskActionBusy(null);
+    }
   };
 
   const optionsToTaskCards = (selectedItems) =>
@@ -1011,7 +1059,13 @@ export default function GoalDetailPage() {
                   <div className="flex flex-col items-center gap-4">
                     <div className="grid w-full grid-cols-1 gap-2.5 md:grid-cols-2">
                       {(showAllTasks ? tasks : tasks.slice(0, 4)).map((task) => (
-                        <PageTaskCard key={task.id} task={task} onEdit={openEditTask} />
+                        <PageTaskCard
+                          key={task.id}
+                          task={task}
+                          onEdit={openEditTask}
+                          onComplete={handleCompleteTask}
+                          onDelete={handleDeleteTask}
+                        />
                       ))}
                     </div>
                     {(tasks.length > 4 || (goal.tasks ?? 0) > tasks.length) && (
