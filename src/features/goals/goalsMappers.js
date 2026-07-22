@@ -308,15 +308,21 @@ export function mapLinkedTaskFromApi(task) {
   if (!task) return null;
   const statusFields = mapTaskStatus(task.status);
   const dueRaw = task.dueDate || task.due_date || task.due;
+  const sourceRaw = String(task.source || '').toUpperCase();
+  const isAi =
+    Boolean(task.aiGenerated) ||
+    Boolean(task.createdByAi) ||
+    sourceRaw === 'AI' ||
+    sourceRaw === 'AI_GENERATED';
 
   return {
     id: task.id,
     priority: priorityFromApi(task.priorityLevel || task.priority),
-    source: task.source === 'ai' || task.createdByAi ? 'ai' : undefined,
+    source: isAi ? 'ai' : undefined,
     title: task.title || '',
     description: task.description || '',
     tags: Array.isArray(task.tags)
-      ? task.tags
+      ? task.tags.map((t) => (typeof t === 'string' ? { label: t } : t))
       : task.category
         ? [{ label: categoryFromApi(task.category) }]
         : [],
@@ -327,6 +333,17 @@ export function mapLinkedTaskFromApi(task) {
     completedLabel: task.completedLabel,
     faded: ['done', 'completed'].includes(String(task.status || '').toLowerCase()),
     ...statusFields,
+  };
+}
+
+/** Map POST /tasks/ai/generate `task` → Spark AI preview / linked card. */
+export function mapAiGeneratedTaskForPreview(apiTask) {
+  const mapped = mapLinkedTaskFromApi(apiTask);
+  if (!mapped?.id) return null;
+  return {
+    ...mapped,
+    source: 'ai',
+    alreadyPersisted: true,
   };
 }
 

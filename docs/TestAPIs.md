@@ -154,16 +154,18 @@ If Postman has no valid response:
 | Complete goal | `PATCH/POST .../complete` (+ status fallbacks) | Card menu Complete | Exact contract not pasted | **PARTIAL** |
 | Link tasks | `POST .../link-tasks` (+ `/tasks` fallback) | Plus / Spark Find & Attach | Exact path not locked | **PARTIAL** |
 | Link habits | `POST .../link-habits` (+ `/habits` fallback) | Plus / Spark Find & Attach | Exact path not locked | **PARTIAL** |
-| Tasks for link picker | `GET /api/v1/tasks` | **+** `LinkItemsModal`, Spark **Find & Attach**, New Goal linked tasks, ⋯ Add Task | Envelope `{ tasks, pagination }`; default `parentOnly=true&page=1&limit=50` (no `goalId`) | **FULFILLED** |
-| Habits for link picker | `GET /api/v1/habits` | **+** `LinkItemsModal`, Spark **Find & Attach**, New Goal linked habits, ⋯ Add Habit | Envelope `{ habits, pagination }`; default `isActive=true&page=1&limit=50` (no `goalId`) | **FULFILLED** |
+| Tasks for link picker | `GET /api/v1/tasks` | **+** `LinkItemsModal`, Spark **Find & Attach**, New Goal linked tasks | Envelope `{ tasks, pagination }`; default `parentOnly=true&page=1&limit=50` (no `goalId`) | **FULFILLED** |
+| Habits for link picker | `GET /api/v1/habits` | **+** `LinkItemsModal`, Spark **Find & Attach**, New Goal linked habits | Envelope `{ habits, pagination }`; default `isActive=true&page=1&limit=50` (no `goalId`) | **FULFILLED** |
+| AI generate task | `POST /api/v1/tasks/ai/generate` | Spark ✨ → **AI Generation** (Linked Tasks) | Body `{ prompt, category, goalId? }`; response `{ task }`; already persisted | **FULFILLED** |
 
 ### A.1b Deferred / still mock (no backend contract yet)
 
 | UI | Notes | Status |
 |----|-------|--------|
 | Empty-board ghost goal cards | Local `GHOST_GOALS` — integrate later when suggestions API exists | **DEFERRED** |
-| Spark ✨ → AI Generation tab (task/habit for a goal) | Local `mockGenerate` in `GoalSparkLinkModal` | **DEFERRED** |
-| Spark ✨ → Find & Attach tab | Uses live `GET /tasks` / `GET /habits` | **FULFILLED** (attach path still **PARTIAL** until link API locked) |
+| Spark ✨ → AI Generation tab (task) | `POST /tasks/ai/generate` | **FULFILLED** |
+| Spark ✨ → AI Generation tab (habit) | Local `mockGenerate` until habit AI API | **DEFERRED** |
+| Spark ✨ → Find & Attach tab | Uses live `GET /tasks` / `GET /habits` | **FULFILLED** (link mutation still **PARTIAL**) |
 
 ### A.1c GET /goals — Query Parameters
 
@@ -248,7 +250,7 @@ Goal fields mapped to UI: `id`, `title`, `description`, `category`, `status`, `p
 1. **Update Goal** — exact method + sample `200` body  
 2. **Complete Goal** — exact URL + method + sample response  
 3. **Link tasks / habits** — exact path + body (`taskIds` / `habitIds`) + response  
-4. **Ghost suggestions / Spark task-habit AI** — endpoints when backend ready  
+4. **Ghost suggestions / Spark habit AI** — endpoints when backend ready  
 
 If Postman has no response:
 
@@ -261,8 +263,9 @@ If Postman has no response:
 | List + filters + search + summary | **FULFILLED** |
 | Create + AI generate + Get + Pause/Activate + Delete | **FULFILLED** |
 | Link picker lists (`GET /tasks`, `GET /habits`) | **FULFILLED** |
+| Spark AI generate task (`POST /tasks/ai/generate`) | **FULFILLED** |
 | Update / Complete / Link mutations | **PARTIAL** (wired, contract not locked) |
-| Ghosts + Spark AI Generation (task/habit) | **DEFERRED** |
+| Ghosts + Spark AI Generation (habit) | **DEFERRED** |
 | Overall Goals Board | **FULFILLED for contracted APIs**; PARTIAL/DEFERRED only where Postman/backend incomplete |
 
 ---
@@ -326,6 +329,35 @@ node scripts/audit-goals-list.mjs
 node scripts/audit-link-pickers.mjs
 ```
 
+
+### B.4 POST /tasks/ai/generate smoke (Spark → AI Generation)
+
+| Step | Action in app | Expected Network |
+|------|---------------|------------------|
+| 1 | Goal → Linked Tasks **✨** → **AI Generation** | Modal opens on AI tab |
+| 2 | Enter prompt → Generate | `POST /api/v1/tasks/ai/generate` body `{ prompt, category, goalId }` → `200` + `{ task }` |
+| 3 | Add to Goal | UI appends task card (no second create; task already persisted with `goalId`) |
+
+`category`: `CAREER` \| `HEALTH` \| `FINANCE` \| `PERSONAL` \| `EDUCATION` (from goal).
+
+### A.9 POST /tasks/ai/generate — Request / Response
+
+```json
+{
+  "prompt": "I need to update my today work time",
+  "category": "CAREER",
+  "goalId": "uuid"
+}
+```
+
+```json
+{
+  "success": true,
+  "message": "Task generated successfully",
+  "task": { "id": "uuid", "title": "...", "goalId": "uuid", "source": "AI_GENERATED", "aiGenerated": true },
+  "tokensUsed": 671
+}
+```
 
 ### A.7 GET /tasks — Query params (link picker)
 

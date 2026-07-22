@@ -913,6 +913,7 @@ export default function ActiveGoals() {
   const handleSparkGenerate = (generated) => {
     if (!sparkModal.goal?.id || !generated) return;
     appendLinkedItems(sparkModal.goal.id, sparkModal.type, [generated]);
+    // POST /tasks/ai/generate already persisted + linked when goalId was sent — no link-tasks call.
   };
 
   const handleSparkAttach = (ids, selectedItems = []) => {
@@ -1147,7 +1148,9 @@ export default function ActiveGoals() {
         open={sparkModal.open}
         type={sparkModal.type}
         goalTitle={sparkModal.goal?.title}
-        initialTab="find"
+        goalId={sparkModal.goal?.id}
+        category={sparkModal.goal?.category}
+        initialTab="ai"
         excludeIds={
           sparkModal.type === 'tasks'
             ? (sparkModal.goal?.linkedTasks || []).map((t) => t.id).filter(Boolean)

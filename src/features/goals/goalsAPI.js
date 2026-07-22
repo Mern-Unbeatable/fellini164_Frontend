@@ -217,6 +217,18 @@ export async function linkHabitsToGoalApi(goalId, habitIds) {
 }
 
 /**
+ * POST /api/v1/tasks/ai/generate
+ * Body: { prompt, category, goalId? } — category CAREER|HEALTH|FINANCE|PERSONAL|EDUCATION
+ * Response: { success, message, task, tokensUsed } — task is already persisted (often with goalId).
+ */
+export async function generateTaskApi(payload) {
+  const response = await axiosInstance.post('/api/v1/tasks/ai/generate', payload);
+  const body = response?.data;
+  if (body?.task) return body.task;
+  return unwrapData(response);
+}
+
+/**
  * GET /api/v1/tasks — List Tasks (filters & pagination).
  * Envelope: { success, count, tasks, pagination }
  * Link-picker default: parentOnly + page/limit (do not pass goalId — that filters already-linked tasks).

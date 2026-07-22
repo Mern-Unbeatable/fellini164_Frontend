@@ -4,11 +4,15 @@ import TypewriterPlaceholder from '../../../../../../components/ui/TypewriterPla
 import {
   fetchHabitsForLinkApi,
   fetchTasksForLinkApi,
+  generateTaskApi,
 } from '../../../../../../features/goals/goalsAPI';
 import {
+  categoryToApi,
+  mapAiGeneratedTaskForPreview,
   normalizeLinkPickerOptions,
   orderedLinkPickerOptions,
 } from '../../../../../../features/goals/goalsMappers';
+import { toast } from 'react-toastify';
 
 const AI_TASK_PHRASES = [
   'Create a task for my weekly workout...',
@@ -125,18 +129,20 @@ function mockGenerate(type, prompt) {
 
 /**
  * Spark on Linked Tasks / Habits — New Task / New Habit window:
- * 1) AI Generation (mock until backend)
+ * 1) AI Generation — tasks: POST /tasks/ai/generate; habits: mock until API
  * 2) Find & Attach → GET /api/v1/tasks | /habits
  */
 export default function GoalSparkLinkModal({
   open,
   type = 'tasks',
   goalTitle,
+  goalId,
+  category,
   onClose,
   onGenerate,
   onAttach,
   excludeIds = EMPTY_IDS,
-  initialTab = 'find',
+  initialTab = 'ai',
 }) {
   const isTasks = type === 'tasks';
   const [activeTab, setActiveTab] = useState(initialTab);
@@ -148,6 +154,7 @@ export default function GoalSparkLinkModal({
   const [options, setOptions] = useState([]);
   const [listLoading, setListLoading] = useState(false);
   const [listError, setListError] = useState(null);
+  const [generateError, setGenerateError] = useState(null);
 
   const phrases = isTasks ? AI_TASK_PHRASES : AI_HABIT_PHRASES;
   const title = isTasks ? 'New Task' : 'New Habit';
@@ -201,13 +208,40 @@ export default function GoalSparkLinkModal({
     onClose?.();
   };
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (!canGenerate) return;
+    setGenerateError(null);
     setAiPhase('generating');
-    window.setTimeout(() => {
-      setGenerated(mockGenerate(type, aiPrompt));
+
+    if (!isTasks) {
+      window.setTimeout(() => {
+        setGenerated(mockGenerate(type, aiPrompt));
+        setAiPhase('preview');
+      }, 700);
+      return;
+    }
+
+    try {
+      const payload = {
+        prompt: aiPrompt.trim(),
+        category: categoryToApi(category || 'Career'),
+      };
+      if (goalId) payload.goalId = goalId;
+
+      const task = await generateTaskApi(payload);
+      const preview = mapAiGeneratedTaskForPreview(task);
+      if (!preview?.id) {
+        throw new Error('Invalid AI task response');
+      }
+      setGenerated(preview);
       setAiPhase('preview');
-    }, 700);
+    } catch (err) {
+      const message =
+        err?.response?.data?.message || err?.message || 'Failed to generate task';
+      setGenerateError(message);
+      toast.error(message);
+      setAiPhase('input');
+    }
   };
 
   const handleAddGenerated = () => {
@@ -276,11 +310,17 @@ export default function GoalSparkLinkModal({
                   <textarea
                     rows={5}
                     value={aiPrompt}
-                    onChange={(e) => setAiPrompt(e.target.value)}
+                    onChange={(e) => {
+                      setAiPrompt(e.target.value);
+                      if (generateError) setGenerateError(null);
+                    }}
                     className={`${inputClasses} relative z-10 h-[140px] resize-none rounded-xl bg-transparent!`}
                   />
                   <TypewriterPlaceholder phrases={phrases} visible={!aiPrompt.trim()} />
                 </div>
+                {generateError && (
+                  <p className="text-[12px] font-medium text-[#dc2626]">{generateError}</p>
+                )}
               </div>
             )
           ) : (
