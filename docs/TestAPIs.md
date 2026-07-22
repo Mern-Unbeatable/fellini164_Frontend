@@ -132,8 +132,8 @@ Confirm all of the following:
 | Complete goal | `PATCH/POST .../complete` (+ status fallbacks) | Card menu Complete | Exact contract not pasted | **PARTIAL** |
 | Link tasks | `POST .../link-tasks` (+ `/tasks` fallback) | Plus / Find & Attach | Exact path not locked | **PARTIAL** |
 | Link habits | `POST .../link-habits` (+ `/habits` fallback) | Plus / Find & Attach | Exact path not locked | **PARTIAL** |
-| Tasks for link picker | `GET /api/v1/tasks` | New Goal linked fields, Link / Spark Find & Attach | Live list (UUID only) | **FULFILLED** |
-| Habits for link picker | `GET /api/v1/habits` | Same | Live list (UUID only) | **FULFILLED** |
+| Tasks for link picker | `GET /api/v1/tasks` | New Goal linked fields, Link / Spark Find & Attach, goal ⋯ → Add Task | Live list; envelope `{ tasks, pagination }`; default `parentOnly=true&page=1&limit=50` (no `goalId` on attach — that filters already-linked) | **FULFILLED** |
+| Habits for link picker | `GET /api/v1/habits` | Same | Live list | **FULFILLED** |
 
 ### A.1b Deferred / still mock (no backend contract yet)
 
@@ -271,3 +271,36 @@ For each Goals endpoint in Postman:
 | 9 | Stats bar | Matches `summary.active` / `paused` / `completedThisMonth` |
 
 Automated mapper check (no auth): `node scripts/audit-goals-list.mjs`
+
+### B.2 GET /tasks link-picker smoke (Goals → Add Task)
+
+| Step | Action in app | Expected Network |
+|------|---------------|------------------|
+| 1 | Goal card ⋯ → **Add Task** (or Linked Tasks **+**) | `GET /api/v1/tasks?parentOnly=true&page=1&limit=50` → `200` + `{ tasks, pagination }` |
+| 2 | Confirm select | `POST /api/v1/goals/:id/link-tasks` (or `/tasks` fallback) with `{ taskIds: [uuid] }` |
+
+**Do not** send `goalId` on the list call for Add/Attach — `goalId` filters tasks already linked to that goal (often empty).
+
+### A.7 GET /tasks — Query params (link picker)
+
+| Param | Allowed | Link-picker usage |
+|-------|---------|-------------------|
+| `status` | TODO / IN_PROGRESS / COMPLETED / CANCELED / SKIPPED | Optional (not sent by default) |
+| `priority` | LOW / MEDIUM / HIGH / URGENT | Optional |
+| `category` | Goal category enum | Optional |
+| `goalId` | Linked goal UUID | **Not sent** for Add Task / Find & Attach |
+| `search` | string | Optional |
+| `dueFilter` | today / tomorrow / this_week / this_month / overdue | Optional |
+| `parentOnly` | `true` | **Default `true`** |
+| `page` / `limit` | defaults 1 / 50 | Always sent |
+
+Response envelope:
+
+```json
+{
+  "success": true,
+  "count": 0,
+  "tasks": [],
+  "pagination": { "page": 1, "limit": 50, "total": 0, "totalPages": 0 }
+}
+```

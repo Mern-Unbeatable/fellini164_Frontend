@@ -216,12 +216,47 @@ export async function linkHabitsToGoalApi(goalId, habitIds) {
   throw lastError;
 }
 
-export async function fetchTasksForLinkApi() {
-  const response = await axiosInstance.get('/api/v1/tasks');
-  return unwrapData(response);
+/**
+ * GET /api/v1/tasks — List Tasks (filters & pagination).
+ * Envelope: { success, count, tasks, pagination }
+ * Link-picker default: parentOnly + page/limit (do not pass goalId — that filters already-linked tasks).
+ */
+export async function fetchTasksForLinkApi(params = {}) {
+  const query = {
+    parentOnly: true,
+    page: 1,
+    limit: 50,
+    ...params,
+  };
+  // Drop empty / undefined keys
+  Object.keys(query).forEach((key) => {
+    if (query[key] === undefined || query[key] === null || query[key] === '') {
+      delete query[key];
+    }
+  });
+  const response = await axiosInstance.get('/api/v1/tasks', { params: query });
+  const body = response?.data;
+  if (Array.isArray(body?.tasks)) return body.tasks;
+  if (Array.isArray(body?.data)) return body.data;
+  if (Array.isArray(body)) return body;
+  return [];
 }
 
-export async function fetchHabitsForLinkApi() {
-  const response = await axiosInstance.get('/api/v1/habits');
-  return unwrapData(response);
+export async function fetchHabitsForLinkApi(params = {}) {
+  const query = {
+    page: 1,
+    limit: 50,
+    ...params,
+  };
+  Object.keys(query).forEach((key) => {
+    if (query[key] === undefined || query[key] === null || query[key] === '') {
+      delete query[key];
+    }
+  });
+  const response = await axiosInstance.get('/api/v1/habits', { params: query });
+  const body = response?.data;
+  if (Array.isArray(body?.habits)) return body.habits;
+  if (Array.isArray(body?.data)) return body.data;
+  if (Array.isArray(body)) return body;
+  return [];
 }

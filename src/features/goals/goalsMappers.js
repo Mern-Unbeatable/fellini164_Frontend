@@ -353,17 +353,19 @@ export function isUuid(value) {
 export function normalizeLinkPickerOptions(list) {
   let arr = [];
   if (Array.isArray(list)) arr = list;
-  else if (Array.isArray(list?.data)) arr = list.data;
-  else if (Array.isArray(list?.items)) arr = list.items;
   else if (Array.isArray(list?.tasks)) arr = list.tasks;
   else if (Array.isArray(list?.habits)) arr = list.habits;
+  else if (Array.isArray(list?.data)) arr = list.data;
+  else if (Array.isArray(list?.items)) arr = list.items;
 
   return arr
     .map((item) => {
       if (!item?.id || !isUuid(item.id)) return null;
       const statusRaw = String(item.status || '').toUpperCase();
       let status;
+      // Goals habit-style
       if (statusRaw === 'PAUSED') status = 'paused';
+      // Tasks API: TODO / IN_PROGRESS / COMPLETED / CANCELED / SKIPPED
       if (statusRaw === 'COMPLETED' || statusRaw === 'DONE') status = 'completed';
       return {
         id: item.id,
