@@ -674,7 +674,7 @@ export default function TaskFormModal({ mode = 'create', initialTask, onClose, o
                     onClick={handleManualSubmit}
                     className="flex flex-1 items-center justify-center rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] font-semibold text-white"
                   >
-                    Edit
+                    Update
                   </button>
                 ) : activeTab === 'ai' ? (
                   <button
