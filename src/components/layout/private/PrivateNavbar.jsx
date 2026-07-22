@@ -7,7 +7,7 @@ import {
   markNotificationAsRead,
   markAllNotificationsAsRead,
 } from '../../../features/notifications/notificationsSlice';
-import { selectGoals } from '../../../features/goals/goalsSlice';
+import { selectCurrentGoal, selectGoals } from '../../../features/goals/goalsSlice';
 import NotificationPanel from './NotificationPanel';
 
 const BREADCRUMBS = [
@@ -29,10 +29,13 @@ const BREADCRUMBS = [
   { prefix: '/user/analytics', page: 'Analytics' },
 ];
 
-function getBreadcrumb(pathname, goals = []) {
+function getBreadcrumb(pathname, goals = [], currentGoal = null) {
   const goalDetailMatch = pathname.match(/^\/user\/goals\/([^/]+)$/);
   if (goalDetailMatch) {
-    const goal = goals.find((g) => String(g.id) === goalDetailMatch[1]);
+    const goalId = goalDetailMatch[1];
+    const goal =
+      (currentGoal && String(currentGoal.id) === String(goalId) ? currentGoal : null) ||
+      goals.find((g) => String(g.id) === String(goalId));
     return {
       section: 'Work',
       page: 'Goals',
@@ -53,7 +56,8 @@ function getInitials(user) {
 
 export default function PrivateNavbar({ pathname, user, onOpenMobileSidebar, onLogout, taskDetail }) {
   const goals = useSelector(selectGoals);
-  const { section, page, detail: routeDetail } = getBreadcrumb(pathname, goals);
+  const currentGoal = useSelector(selectCurrentGoal);
+  const { section, page, detail: routeDetail } = getBreadcrumb(pathname, goals, currentGoal);
   const detail = pathname.startsWith('/user/tasks') ? taskDetail : routeDetail;
   const dispatch = useDispatch();
   const notifications = useSelector(selectNotifications);

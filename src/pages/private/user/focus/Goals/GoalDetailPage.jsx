@@ -715,6 +715,8 @@ export default function GoalDetailPage() {
   const [linkModal, setLinkModal] = useState({ open: false, type: 'tasks' });
   const [sparkModal, setSparkModal] = useState({ open: false, type: 'tasks' });
   const [editModalOpen, setEditModalOpen] = useState(false);
+  // Stay on detail URL until GET /goals/:id settles (refresh must not bounce to board).
+  const [detailFetchDone, setDetailFetchDone] = useState(false);
 
   const tasks = useMemo(() => {
     if (editedLists.goalId === goalId && editedLists.tasks) return editedLists.tasks;
@@ -729,9 +731,17 @@ export default function GoalDetailPage() {
   }, [editedLists, goalId, apiHabits, goal]);
 
   useEffect(() => {
-    if (!goalId) return undefined;
-    dispatch(fetchGoalById(goalId));
+    if (!goalId) {
+      setDetailFetchDone(true);
+      return undefined;
+    }
+    let cancelled = false;
+    setDetailFetchDone(false);
+    dispatch(fetchGoalById(goalId)).finally(() => {
+      if (!cancelled) setDetailFetchDone(true);
+    });
     return () => {
+      cancelled = true;
       dispatch(clearCurrentGoal());
     };
   }, [dispatch, goalId]);
@@ -744,8 +754,9 @@ export default function GoalDetailPage() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  if (loadingGoal && !goal) return null;
-  if (!loadingGoal && !goal) return <Navigate to="/user/goals" replace />;
+  // Wait for first fetch attempt — do not Navigate on the initial empty Redux frame.
+  if (!detailFetchDone || (loadingGoal && !goal)) return null;
+  if (detailFetchDone && !goal) return <Navigate to="/user/goals" replace />;
 
   const hasDue = goal.dueDetail || goal.due;
   const isPaused = goal.status === 'paused';
