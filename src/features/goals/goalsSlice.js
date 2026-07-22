@@ -264,7 +264,8 @@ const goalsSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(fetchGoals.pending, (state) => {
-        state.loadingList = true;
+        // Soft refetch — keep current cards while filters/search reload
+        if (state.items.length === 0) state.loadingList = true;
         state.error = null;
       })
       .addCase(fetchGoals.fulfilled, (state, action) => {

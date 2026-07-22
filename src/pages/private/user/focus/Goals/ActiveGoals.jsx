@@ -1069,7 +1069,7 @@ export default function ActiveGoals() {
                   ))}
                 </div>
             )
-          ) : loadingList ? (
+          ) : loadingList && goals.length === 0 ? (
             <p className="py-10 text-center text-sm font-medium text-[#c2c2c2] dark:text-gray-500">
               Loading goals…
             </p>

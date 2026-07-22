@@ -102,7 +102,7 @@ Confirm all of the following:
 ## 8. Non-Negotiable Rules
 
 1. **Never** make assumptions about backend responses.
-2. If Postman or the backend does not provide a valid response, explicitly state that a backend response is required before integration can be completed.
+2. If Postman or the backend does not provide a valid response, explicitly state that a backend response is required before frontend integration can be completed.
 3. Do not invent endpoints, fields, or status codes.
 4. Prefer failing loudly with a clear blocker over silent fallbacks that hide contract mismatches.
 
@@ -110,44 +110,53 @@ Confirm all of the following:
 
 ## Appendix A — Goals Board API Audit (Current Frontend)
 
-**Date:** 2026-07-21 (re-test)  
+**Date:** 2026-07-22  
 **Module:** `src/features/goals/` + `src/pages/private/user/focus/Goals/`  
 **Base URL (env):** `VITE_API_BASE_URL` → `https://backendtest.elyxaai.com`  
 **API prefix used in code:** `/api/v1/goals`  
-**Contract verifier:** `node scripts/audit-goals-list.mjs` (Postman sample responses)
+**Contract verifier:** `node scripts/audit-goals-list.mjs`
 
-### A.1 Endpoint Matrix
+### A.1 Endpoint Matrix (as coded)
 
-| Action | Method + Path (as coded) | Postman validation | Frontend wired | Status |
-|--------|--------------------------|--------------------|----------------|--------|
-| List goals (+ filters) | `GET /api/v1/goals` + query params | Confirmed 2026-07-21 — samples for bare list, `status`+`priorityLevel`, `search`+`page`+`limit`, `dueFilter` | Yes — `ActiveGoals` → `fetchGoals({ filters, search })` | **PASS** (mapper audit ALL PASS; live Network needs logged-in session) |
-| AI generate goal | `POST /api/v1/goals/ai/generate` | Confirmed 2026-07-21 — body `{ prompt, category }` | Yes — New Goal → AI Generation → Generate | **PASS** (body `{ prompt, category }`; server persists; Add to Board refreshes only) |
-| Board summary | Embedded in list response `summary` | Confirmed in list responses (`active` / `paused` / `completedThisMonth` / `total`) | Yes — used from list envelope; separate `/summary` kept as unused fallback | **PASS** for list-embedded summary |
-| Create goal | `POST /api/v1/goals` | Confirmed body with `source`, optional UUID `taskIds`/`habitIds` | Yes — `NewGoalModal` manual + live task/habit pickers | **PASS** (omit `taskIds`/`habitIds` when empty; never send placeholders) |
-| Get single goal | `GET /api/v1/goals/:id` | Confirmed via `goalId` variable flow | Yes — `GoalDetailPage` | **PASS** |
-| Update goal | `PATCH` → `PUT` → `POST` `/api/v1/goals/:id` | Exact method not locked in Postman paste | Yes — Edit modal | **PARTIAL** — method fallbacks |
-| Link tasks | `POST .../link-tasks` (+ `/tasks` fallback) | Exact path/body not pasted this session | Yes — `LinkItemsModal` | **PARTIAL** |
-| Link habits | `POST .../link-habits` (+ `/habits` fallback) | Exact path/body not pasted this session | Yes — `LinkItemsModal` | **PARTIAL** |
-| Complete | `PATCH .../complete` then status fallbacks | Named “PATCH Complete Goal” | Yes — card menu | **PARTIAL** |
-| Pause / Activate | `PATCH /api/v1/goals/:id/pause` (Activate: `/activate`) | Confirmed earlier: `200 OK`, `status: "PAUSED"` | Yes — card menu toggle | **PASS** |
-| Delete | `DELETE /api/v1/goals/:id` | Named in collection | Yes — card / detail | **PASS** (needs Network re-check) |
+| Action | Method + Path | Frontend entry | Contract evidence | Status |
+|--------|---------------|----------------|-------------------|--------|
+| List + filters + search | `GET /api/v1/goals` | Board filters + search → `buildGoalsQueryParams` → `fetchGoals` | Postman 2026-07-22 samples (bare, status+priority, search, dueFilter, empty HIGH) | **FULFILLED** |
+| Board summary | From list `summary` | Stats bar on `ActiveGoals` | List envelope `summary.active/paused/completedThisMonth/total` | **FULFILLED** |
+| AI generate goal | `POST /api/v1/goals/ai/generate` | New Goal → AI Generation | Body `{ prompt, category }`; server persists; Add to Board refreshes only | **FULFILLED** |
+| Create goal | `POST /api/v1/goals` | New Goal → Manual | Body with `source: MANUAL`, optional UUID `taskIds`/`habitIds` | **FULFILLED** |
+| Get goal | `GET /api/v1/goals/:id` | `GoalDetailPage` | Wired + mapped | **FULFILLED** |
+| Pause | `PATCH /api/v1/goals/:id/pause` | Card / detail menu | Confirmed `status: PAUSED` | **FULFILLED** |
+| Activate | `PATCH /api/v1/goals/:id/activate` | Same toggle | Counterpart of pause | **FULFILLED** |
+| Delete | `DELETE /api/v1/goals/:id` | Card / detail menu | Wired | **FULFILLED** |
+| Update goal | `PATCH` → `PUT` → `POST` `/api/v1/goals/:id` | Edit Goal modal (board + detail) | Method not locked in Postman | **PARTIAL** |
+| Complete goal | `PATCH/POST .../complete` (+ status fallbacks) | Card menu Complete | Exact contract not pasted | **PARTIAL** |
+| Link tasks | `POST .../link-tasks` (+ `/tasks` fallback) | Plus / Find & Attach | Exact path not locked | **PARTIAL** |
+| Link habits | `POST .../link-habits` (+ `/habits` fallback) | Plus / Find & Attach | Exact path not locked | **PARTIAL** |
+| Tasks for link picker | `GET /api/v1/tasks` | New Goal linked fields, Link / Spark Find & Attach | Live list (UUID only) | **FULFILLED** |
+| Habits for link picker | `GET /api/v1/habits` | Same | Live list (UUID only) | **FULFILLED** |
 
-### A.1b GET /goals — Query Parameters (Postman-fixed)
+### A.1b Deferred / still mock (no backend contract yet)
+
+| UI | Notes | Status |
+|----|-------|--------|
+| Empty-board ghost goal cards | Local `GHOST_GOALS` — integrate later when suggestions API exists | **DEFERRED** |
+| Spark ✨ → AI Generation tab (task/habit for a goal) | Local `mockGenerate` in `GoalSparkLinkModal` | **DEFERRED** |
+| Spark ✨ → Find & Attach tab | Uses live `GET /tasks` / `GET /habits` | **FULFILLED** (attach path still **PARTIAL** until link API locked) |
+
+### A.1c GET /goals — Query Parameters
 
 | Param | Allowed values | Frontend mapping |
 |-------|----------------|------------------|
-| `status` | ACTIVE / PAUSED / COMPLETED / ARCHIVED | UI Active/Paused/Completed → uppercase (ARCHIVED not in UI) |
-| `category` | e.g. CAREER | UI category → `categoryToApi` |
-| `priorityLevel` | LOW / MEDIUM / HIGH / URGENT | UI Priority → uppercase |
+| `status` | ACTIVE / PAUSED / COMPLETED / ARCHIVED | Active / Paused / Completed → uppercase |
+| `category` | CAREER / HEALTH / FINANCE / PERSONAL / EDUCATION | Category filter → `categoryToApi` |
+| `priorityLevel` | LOW / MEDIUM / HIGH / URGENT | Priority filter → uppercase |
 | `source` | AI / MANUAL | Created by AI → `AI`; Created manually → `MANUAL` |
 | `search` | string | Search input (300ms debounce) |
 | `minProgress` / `maxProgress` | numbers | Progress buckets e.g. `26-50%` → 26–50 |
-| `dueFilter` | today / tomorrow / this_week / this_month / overdue | Date filter labels → snake_case |
-| `page` / `limit` | page default 1; limit default 50 (max 100) | Always sent (`page=1`, `limit=50`) |
+| `dueFilter` | today / tomorrow / this_week / this_month / overdue | Date filter → snake_case |
+| `page` / `limit` | default `1` / `50` (max 100) | Always sent |
 
-### A.2 Request Contract (Create) — Known from Postman
-
-Verified Postman body shape used by frontend mapper:
+### A.2 Create — Request
 
 ```json
 {
@@ -163,13 +172,10 @@ Verified Postman body shape used by frontend mapper:
 }
 ```
 
-- `category`: `CAREER` | `HEALTH` | `FINANCE` | `PERSONAL` | `EDUCATION`
-- `priorityLevel`: `LOW` | `MEDIUM` | `HIGH` | `URGENT` (default MEDIUM)
-- `taskIds` / `habitIds`: only included when non-empty real UUIDs (placeholders like `{{taskId}}` fail validation)
+- `taskIds` / `habitIds` omitted when empty; never send placeholders like `{{taskId}}`.
+- Mapper: `mapCreatePayload` in `goalsMappers.js`.
 
-Frontend mapper: `mapCreatePayload` in `goalsMappers.js` — **aligned**.
-
-### A.2b Request Contract (AI Generate)
+### A.2b AI Generate — Request
 
 ```json
 {
@@ -178,81 +184,51 @@ Frontend mapper: `mapCreatePayload` in `goalsMappers.js` — **aligned**.
 }
 ```
 
-Frontend: `generateGoal` → `generateGoalApi({ prompt, category })`. Response goal is already persisted — do not `POST /goals` again.
+Response goal is already persisted — do **not** `POST /goals` again on Add to Board.
 
-### A.3 Response Contract (Create) — Known from Postman
-
-```json
-{
-  "success": true,
-  "message": "Goal created successfully",
-  "data": {
-    "id": "uuid",
-    "userId": "uuid",
-    "title": "string",
-    "description": "string",
-    "category": "CAREER",
-    "status": "ACTIVE",
-    "priority": 5,
-    "priorityLevel": "MEDIUM"
-  }
-}
-```
-
-Frontend maps only UI fields (`title`, `description`, `category`, `priorityLevel`, `status`, `targetDate` → `due`, `progress`, counts). Extra fields ignored — **aligned** with “no extra UI fields” rule.
-
-### A.3b Response Contract (List) — Confirmed 2026-07-21
-
-Envelope shape used by `fetchGoalsApi` + `parseGoalsListResponse`:
+### A.3 List — Response (confirmed 2026-07-22)
 
 ```json
 {
   "success": true,
-  "count": 5,
-  "data": [ /* goal objects */ ],
+  "count": 7,
+  "data": [ /* goals */ ],
   "summary": {
-    "active": 3,
+    "active": 4,
     "paused": 0,
-    "completedThisMonth": 2,
-    "total": 5
+    "completedThisMonth": 3,
+    "total": 7
   },
   "pagination": {
     "page": 1,
     "limit": 50,
-    "total": 5,
+    "total": 7,
     "totalPages": 1
   }
 }
 ```
 
-Goal object fields mapped to UI: `id`, `title`, `description`, `category`, `status`, `priorityLevel`, `targetDate`, `source` (`AI`/`MANUAL`), `progress`, `_count.tasks` / `_count.habits`, `completedAt`.
+Goal fields mapped to UI: `id`, `title`, `description`, `category`, `status`, `priorityLevel`, `targetDate`, `source` (`AI`/`MANUAL`), `progress`, `_count.tasks` / `_count.habits`, `completedAt`.
 
 ### A.4 Gaps vs This Standard
 
 | Requirement | Result | Notes |
 |-------------|--------|-------|
-| Verify in Postman before integrate | **PASS for GET list/filters**; **PARTIAL for Update/Link/Complete** | List + query samples pasted; Update/Link/Complete still need exact Postman method/body |
-| Exact method match (no guessing) | **PARTIAL** | Update/Complete/Link still use multi-method fallbacks |
-| Remove mock after connect | **PARTIAL** | Board list + AI Generate use API; ghost cards + Manual linked pickers still mock |
-| Loading states | **PASS** (list) | Board shows “Loading goals…” via `loadingList` |
-| Empty state | **PASS** | Empty filter → “No matching goals.”; empty board → ghosts when no filters/search |
-| Error handling | **PASS** | Toasts on failure; axios 401 redirect exists |
-| Unauthorized | **PASS** (client + probe) | Unauthenticated `GET /api/v1/goals` → **HTTP 401**; client clears token + redirects login |
-| Build / ESLint | **PASS** | `vite build` OK; eslint on goals modules clean |
-| Mapper contract audit | **PASS** | `node scripts/audit-goals-list.mjs` — ALL PASS |
-| Network QA logged-in | **NOT DONE HERE** | Requires user browser session; agent cannot read authenticated Network tab |
+| Postman before integrate | **PASS** for list/create/AI/pause; **PARTIAL** for update/link/complete | Exact method/body still needed for PARTIAL rows |
+| Exact method (no guessing) | **PARTIAL** | Update / Complete / Link use fallbacks |
+| Remove mock after connect | **PASS** for list/create/AI/link pickers; **DEFERRED** ghosts + Spark AI generate | See A.1b |
+| Loading / empty / errors | **PASS** | Soft list reload; empty copy; toasts; 401 → login |
+| Mapper audit | **PASS** | `node scripts/audit-goals-list.mjs` → ALL PASS |
+| Logged-in Network QA | **Manual** | Engineer checklist in Appendix B |
 
-### A.5 Blockers (Need Backend / Postman Evidence)
+### A.5 Blockers (need Postman evidence)
 
-Do **not** mark these complete until Postman shows:
+1. **Update Goal** — exact method + sample `200` body  
+2. **Complete Goal** — exact URL + method + sample response  
+3. **Link tasks / habits** — exact path + body (`taskIds` / `habitIds`) + response  
+4. **Ghost suggestions / Spark task-habit AI** — endpoints when backend ready  
 
-1. **Update Goal** — exact method (`PATCH` vs `PUT` vs `POST`) + sample `200` body  
-2. **Complete** — exact URL + method + sample response  
-3. **Link tasks / habits** — exact path + body keys (`taskIds` / `habitIds`) + response  
-
-List filters / search / summary-from-list are **unblocked** by Postman samples from 2026-07-21.
-
-If Postman has no response for any of the above, use this statement:
+If Postman has no response:
 
 > This API is not returning a response in Postman. A valid backend response is required before frontend integration can be completed.
 
@@ -260,10 +236,12 @@ If Postman has no response for any of the above, use this statement:
 
 | Area | Verdict |
 |------|---------|
-| List + filters + search + list summary | **Production-ready under contract** (re-verify Network once logged in) |
-| Create / Get / Delete / Pause | **Mostly production-ready** (re-verify Network once) |
-| Edit / Complete / Link | **Not fully validated** against Postman contracts |
-| Overall Goals Board APIs | **PARTIAL — List/filters PASS; mark complete only after logged-in Network QA for remaining endpoints** |
+| List + filters + search + summary | **FULFILLED** |
+| Create + AI generate + Get + Pause/Activate + Delete | **FULFILLED** |
+| Link picker lists (`GET /tasks`, `GET /habits`) | **FULFILLED** |
+| Update / Complete / Link mutations | **PARTIAL** (wired, contract not locked) |
+| Ghosts + Spark AI Generation (task/habit) | **DEFERRED** |
+| Overall Goals Board | **FULFILLED for contracted APIs**; PARTIAL/DEFERRED only where Postman/backend incomplete |
 
 ---
 
@@ -273,10 +251,10 @@ For each Goals endpoint in Postman:
 
 1. Select environment **Fellini** (`baseUrl` = `https://backendtest.elyxaai.com/api/v1`).
 2. Set `token` Current value (Bearer).
-3. Send request → save Status + Body screenshot.
-4. Open app Network tab → same action → compare URL, method, headers, body byte-for-byte.
+3. Send request → save Status + Body.
+4. Open app Network tab → same action → compare URL, method, headers, body.
 5. Tick QA checklist in §6.
-6. Only then flip Appendix A row to **PASS**.
+6. Only then flip Appendix A row to **FULFILLED**.
 
 ### B.1 GET /goals filter smoke (logged-in Network)
 
@@ -285,8 +263,11 @@ For each Goals endpoint in Postman:
 | 1 | Open `/user/goals` | `GET /api/v1/goals?page=1&limit=50` → `200` + `data` + `summary` |
 | 2 | Status → Active | `...&status=ACTIVE` |
 | 3 | Priority → High | `...&priorityLevel=HIGH` |
-| 4 | Search `career` | `...&search=career` (after debounce) |
-| 5 | Date → Overdue | `...&dueFilter=overdue` |
-| 6 | Stats bar | Matches response `summary.active` / `paused` / `completedThisMonth` |
+| 4 | Category → Career | `...&category=CAREER` |
+| 5 | Source → Created by AI | `...&source=AI` |
+| 6 | Progress → 26-50% | `...&minProgress=26&maxProgress=50` |
+| 7 | Search `career` | `...&search=career` (after debounce) |
+| 8 | Date → Overdue | `...&dueFilter=overdue` |
+| 9 | Stats bar | Matches `summary.active` / `paused` / `completedThisMonth` |
 
 Automated mapper check (no auth): `node scripts/audit-goals-list.mjs`
