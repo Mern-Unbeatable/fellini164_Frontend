@@ -50,18 +50,19 @@ const GOALS_SUBTITLE_PHRASES = [
   'AI helps you stay on track every day...',
 ];
 
-/** Goals Board icons — match Work boards (Tasks/Habits) existing sizes. */
+/** Goals Board icons — match tag text (12px) like Tasks board tags; toolbar stays 14. */
 const ICON = {
   search: 14,
   plus: 14,
   chevron: 14,
-  target: 13,
-  sparkles: 10,
+  target: 14,
+  sparkles: 12,
   tasks: 12,
   habits: 12,
   flag: 12,
   more: 14,
-  menu: 10,
+  menu: 12,
+  check: 12,
 };
 
 const DEFAULT_FILTERS = {
@@ -162,7 +163,7 @@ function GhostGoalMenu({ onRegenerate, onDismiss }) {
         onClick={onRegenerate}
         className="flex items-center gap-1.5 border-b border-[#f2f2f2] px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#8022fe] hover:bg-[#fcfcfc] dark:border-zinc-700 dark:hover:bg-zinc-700"
       >
-        <Sparkles size={ICON.sparkles} className="size-2.5 shrink-0" />
+        <Sparkles size={ICON.sparkles} className="shrink-0" />
         Regenerate suggestion
       </button>
       <button
@@ -170,7 +171,7 @@ function GhostGoalMenu({ onRegenerate, onDismiss }) {
         onClick={onDismiss}
         className="flex items-center gap-1.5 px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#5d5d5d] hover:bg-[#fcfcfc] dark:text-gray-300 dark:hover:bg-zinc-700"
       >
-        <X size={ICON.menu} className="size-2.5 shrink-0" />
+        <X size={ICON.menu} className="shrink-0" />
         Dismiss
       </button>
     </div>
@@ -269,7 +270,7 @@ function GhostGoalCard({ goal, onDismiss, onRegenerate, onAccept }) {
                 {PRIORITY_LABELS[goal.priority]}
               </span>
               <span className="flex items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-[12px] leading-[1.5] font-medium text-[#8022fe]">
-                <Sparkles size={ICON.sparkles} className="size-2.5 shrink-0" />
+                <Sparkles size={ICON.sparkles} className="shrink-0" />
                 AI
               </span>
             </div>
@@ -289,15 +290,15 @@ function GhostGoalCard({ goal, onDismiss, onRegenerate, onAccept }) {
             {goal.category}
           </span>
           <span className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] leading-[1.5] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
-            <ListTodo size={ICON.tasks} className="size-3 shrink-0" />
+            <ListTodo size={ICON.tasks} className="shrink-0" />
             {goal.tasks} Tasks
           </span>
           <span className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] leading-[1.5] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
-            <Repeat size={ICON.habits} className="h-3 w-[13px] shrink-0" />
+            <Repeat size={ICON.habits} className="shrink-0" />
             {goal.habits} Habits
           </span>
           <span className="flex min-w-0 shrink items-center gap-1.5 overflow-hidden whitespace-nowrap rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] leading-[1.5] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
-            <Flag size={ICON.flag} className="h-3 w-2 shrink-0" />
+            <Flag size={ICON.flag} className="shrink-0" />
             <span className="truncate">{goal.due}</span>
           </span>
         </div>
@@ -316,7 +317,7 @@ function GhostGoalCard({ goal, onDismiss, onRegenerate, onAccept }) {
             menuOpen ? 'bg-[#f2f2f2]' : 'hover:bg-[#f2f2f2]'
           }`}
         >
-          <MoreHorizontal size={ICON.more} className="size-3.5" />
+          <MoreHorizontal size={ICON.more} className="shrink-0" />
         </button>
       )}
 
@@ -369,7 +370,7 @@ function GhostGoalCard({ goal, onDismiss, onRegenerate, onAccept }) {
             className="flex shrink-0 items-center gap-1.5 rounded-[6px] bg-[#f9f4ff] px-2 py-0.5 text-[12px] leading-[1.5] font-medium text-[#8022fe]"
           >
             Accept Goal
-            <Check size={10} strokeWidth={2.5} />
+            <Check size={ICON.check} strokeWidth={2.5} className="shrink-0" />
           </button>
         </div>
       </div>
@@ -392,15 +393,15 @@ function GoalCardMenu({ onEdit, onAddTask, onAddHabit, onComplete, onPause, onDe
         onClick={onEdit}
         className={`${itemBase} border-b border-[#f2f2f2] text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300`}
       >
-        <Pencil size={ICON.menu} className="size-2.5 shrink-0" />
+        <Pencil size={ICON.menu} className="shrink-0" />
         Edit
       </button>
       <button type="button" onClick={onAddTask} className={`${itemBase} text-[#8022fe]`}>
-        <Sparkles size={ICON.sparkles} className="size-2.5 shrink-0" />
+        <Sparkles size={ICON.sparkles} className="shrink-0" />
         Add Task
       </button>
       <button type="button" onClick={onAddHabit} className={`${itemBase} text-[#8022fe]`}>
-        <Sparkles size={ICON.sparkles} className="size-2.5 shrink-0" />
+        <Sparkles size={ICON.sparkles} className="shrink-0" />
         Add Habit
       </button>
       <button
@@ -408,7 +409,7 @@ function GoalCardMenu({ onEdit, onAddTask, onAddHabit, onComplete, onPause, onDe
         onClick={onComplete}
         className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}
       >
-        <Check size={ICON.menu} className="size-2.5 shrink-0" />
+        <Check size={ICON.menu} className="shrink-0" />
         Complete
       </button>
       <button
@@ -416,7 +417,7 @@ function GoalCardMenu({ onEdit, onAddTask, onAddHabit, onComplete, onPause, onDe
         onClick={onPause}
         className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}
       >
-        <Pause size={ICON.menu} className="size-2.5 shrink-0" />
+        <Pause size={ICON.menu} className="shrink-0" />
         {isPaused ? 'Activate' : 'Pause'}
       </button>
       <button
@@ -424,7 +425,7 @@ function GoalCardMenu({ onEdit, onAddTask, onAddHabit, onComplete, onPause, onDe
         onClick={onDelete}
         className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}
       >
-        <Trash2 size={ICON.menu} className="size-2.5 shrink-0" />
+        <Trash2 size={ICON.menu} className="shrink-0" />
         Delete
       </button>
     </div>
@@ -506,7 +507,7 @@ function GoalCard({
             )}
             {goal.source === 'ai' && (
               <span className="flex shrink-0 items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-[12px] leading-[1.5] font-medium text-[#8022fe]">
-                <Sparkles size={ICON.sparkles} className="size-2.5 shrink-0" />
+                <Sparkles size={ICON.sparkles} className="shrink-0" />
                 AI
               </span>
             )}
@@ -531,19 +532,19 @@ function GoalCard({
           </span>
           {goal.tasks > 0 && (
             <span className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] leading-[1.5] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
-              <ListTodo size={ICON.tasks} className="size-3 shrink-0" />
+              <ListTodo size={ICON.tasks} className="shrink-0" />
               {goal.tasks} Tasks
             </span>
           )}
           {goal.habits > 0 && (
             <span className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] leading-[1.5] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
-              <Repeat size={ICON.habits} className="h-3 w-[13px] shrink-0" />
+              <Repeat size={ICON.habits} className="shrink-0" />
               {goal.habits} Habits
             </span>
           )}
           {goal.due && (
             <span className="flex min-w-0 shrink items-center gap-1.5 overflow-hidden whitespace-nowrap rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] leading-[1.5] font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
-              <Flag size={ICON.flag} className="h-3 w-2 shrink-0" />
+              <Flag size={ICON.flag} className="shrink-0" />
               <span className="truncate">{goal.due}</span>
             </span>
           )}
@@ -563,7 +564,7 @@ function GoalCard({
             menuOpen ? 'bg-[#f2f2f2] dark:bg-zinc-600' : 'hover:bg-[#f2f2f2] dark:hover:bg-zinc-600'
           }`}
         >
-          <MoreHorizontal size={ICON.more} className="size-3.5" />
+          <MoreHorizontal size={ICON.more} className="shrink-0" />
         </button>
       )}
 
@@ -605,7 +606,7 @@ function GoalCard({
             <p className="text-[12px] leading-[1.5] font-medium text-[#2a9d00]">
               Completed {goal.completedDate}
             </p>
-            <Check size={11} className="h-2 w-[11px] shrink-0 text-[#2a9d00]" strokeWidth={2.5} />
+            <Check size={ICON.check} className="shrink-0 text-[#2a9d00]" strokeWidth={2.5} />
           </div>
         </div>
       ) : (
@@ -656,7 +657,7 @@ function FilterDropdown({ filterKey, defaultLabel, options, value, onChange }) {
         </span>
         <ChevronDown
           size={ICON.chevron}
-          className={`size-3.5 shrink-0 text-[#a3a3a3] transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+          className={`shrink-0 text-[#a3a3a3] transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
         />
       </button>
 
@@ -989,7 +990,7 @@ export default function ActiveGoals() {
           />
         </div>
         <label className="flex w-62.5 items-center gap-2 rounded-lg border border-[#f2f2f2] bg-white px-3 py-1.75 focus-within:border-[#e9e9e9] max-lg:w-full max-lg:py-2 dark:border-zinc-700 dark:bg-zinc-800 dark:focus-within:border-zinc-600">
-          <Search size={ICON.search} className="size-3.5 shrink-0 text-[#c2c2c2]" aria-hidden />
+          <Search size={ICON.search} className="shrink-0 text-[#c2c2c2]" aria-hidden />
           <input
             type="search"
             value={searchQuery}
@@ -1007,7 +1008,7 @@ export default function ActiveGoals() {
           onClick={handleOpenModal}
           className="flex shrink-0 items-center gap-2 rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] leading-normal font-semibold whitespace-nowrap text-white max-lg:w-full max-lg:justify-center max-lg:py-2.5 max-lg:text-base"
         >
-          <Plus size={ICON.plus} strokeWidth={2.5} className="size-3.5 shrink-0 text-white" />
+          <Plus size={ICON.plus} strokeWidth={2.5} className="shrink-0 text-white" />
           New Goal
         </button>
 
@@ -1030,15 +1031,15 @@ export default function ActiveGoals() {
         <div className="flex shrink-0 items-center gap-2">
           {showGhostCards ? (
             <>
-              <Target size={ICON.target} className="size-[13px] shrink-0 text-[#c2c2c2]" />
+              <Target size={ICON.target} className="shrink-0 text-[#c2c2c2]" />
               <span className="flex shrink-0 items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-[12px] leading-[1.5] font-medium text-[#8022fe]">
-                <Sparkles size={ICON.sparkles} className="size-2.5 shrink-0" />
+                <Sparkles size={ICON.sparkles} className="shrink-0" />
                 {filteredGhostGoals.length} AI Suggestions
               </span>
             </>
           ) : (
             <>
-              <Target size={ICON.target} className="size-[13px] shrink-0 text-[#5d5d5d] dark:text-gray-300" />
+              <Target size={ICON.target} className="shrink-0 text-[#5d5d5d] dark:text-gray-300" />
               <p className="text-[14px] leading-[1.5] font-medium text-[#5d5d5d] dark:text-gray-300">
                 {activeCount} active
               </p>
