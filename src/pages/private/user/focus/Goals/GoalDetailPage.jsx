@@ -1084,6 +1084,12 @@ export default function GoalDetailPage() {
         open={sparkModal.open}
         type={sparkModal.type}
         goalTitle={goal?.title}
+        initialTab="find"
+        excludeIds={
+          sparkModal.type === 'tasks'
+            ? tasks.map((t) => t.id).filter(Boolean)
+            : habits.map((h) => h.id).filter(Boolean)
+        }
         onClose={() => setSparkModal({ open: false, type: 'tasks' })}
         onGenerate={handleSparkGenerate}
         onAttach={handleSparkAttach}

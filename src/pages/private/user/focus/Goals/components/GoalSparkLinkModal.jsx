@@ -122,8 +122,9 @@ function mockGenerate(type, prompt) {
 }
 
 /**
- * Spark (AI) on Linked Tasks / Habits — New Task–style window:
- * 1) AI Generation  2) Find & Attach most suitable existing items.
+ * Spark on Linked Tasks / Habits — New Task / New Habit window:
+ * 1) AI Generation (mock until backend)
+ * 2) Find & Attach → GET /api/v1/tasks | /habits
  */
 export default function GoalSparkLinkModal({
   open,
@@ -133,43 +134,60 @@ export default function GoalSparkLinkModal({
   onGenerate,
   onAttach,
   excludeIds = [],
+  initialTab = 'find',
 }) {
   const isTasks = type === 'tasks';
-  const [activeTab, setActiveTab] = useState('ai');
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [aiPhase, setAiPhase] = useState('input');
   const [aiPrompt, setAiPrompt] = useState('');
   const [generated, setGenerated] = useState(null);
   const [selected, setSelected] = useState([]);
   const [listOpen, setListOpen] = useState(true);
   const [options, setOptions] = useState([]);
+  const [listLoading, setListLoading] = useState(false);
+  const [listError, setListError] = useState(null);
 
   const phrases = isTasks ? AI_TASK_PHRASES : AI_HABIT_PHRASES;
   const title = isTasks ? 'New Task' : 'New Habit';
   const findLabel = isTasks ? 'Linked Tasks' : 'Linked Habits';
   const findPlaceholder = isTasks ? 'Select Tasks' : 'Select Habits';
+  const excludeKey = (excludeIds || []).join(',');
 
   useEffect(() => {
     if (!open) return undefined;
 
     let cancelled = false;
+    setListLoading(true);
+    setListError(null);
+
     (async () => {
       try {
+        // GET /api/v1/tasks|habits — Find & Attach (no goalId; that filters already-linked)
         const data = isTasks ? await fetchTasksForLinkApi() : await fetchHabitsForLinkApi();
         if (cancelled) return;
+        const excluded = new Set(excludeIds);
         setOptions(
           orderedLinkPickerOptions(normalizeLinkPickerOptions(data)).filter(
-            (o) => !excludeIds.includes(o.id),
+            (o) => !excluded.has(o.id),
           ),
         );
-      } catch {
-        if (!cancelled) setOptions([]);
+      } catch (err) {
+        if (cancelled) return;
+        setOptions([]);
+        setListError(
+          err?.response?.data?.message ||
+            `Failed to load ${isTasks ? 'tasks' : 'habits'}`,
+        );
+      } finally {
+        if (!cancelled) setListLoading(false);
       }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [open, type, isTasks, excludeIds]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- excludeKey stands in for excludeIds
+  }, [open, type, isTasks, excludeKey]);
 
   if (!open) return null;
 
@@ -222,8 +240,8 @@ export default function GoalSparkLinkModal({
               <p className="mt-0.5 text-[11px] font-medium text-[#a3a3a3] line-clamp-1">{goalTitle}</p>
             )}
           </div>
-          <button type="button" onClick={handleClose} className="text-[#5d5d5d] dark:text-gray-300" aria-label="Close">
-            <X size={14} />
+          <button type="button" onClick={handleClose} aria-label="Close" className="text-[#a3a3a3]">
+            <X size={16} />
           </button>
         </div>
 
@@ -282,34 +300,46 @@ export default function GoalSparkLinkModal({
                 />
               </button>
               {listOpen && (
-                <div className="overflow-hidden rounded-[8px] border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
-                  {options.map((option) => {
-                    const checked = selected.includes(option.id);
-                    return (
-                      <button
-                        key={option.id}
-                        type="button"
-                        onClick={() => toggle(option.id)}
-                        className="flex h-[30px] w-full items-center gap-[6px] px-[10px] py-[6px] text-left hover:bg-[#fcfcfc] dark:hover:bg-zinc-700"
-                      >
-                        <span
-                          className={`flex size-[14px] shrink-0 items-center justify-center rounded-[4px] border ${
-                            checked
-                              ? 'border-[#8022fe] bg-[#8022fe] text-white'
-                              : 'border-[#e9e9e9] bg-white dark:border-zinc-600 dark:bg-zinc-800'
-                          }`}
+                <div className="max-h-48 overflow-y-auto overflow-x-hidden rounded-[8px] border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
+                  {listLoading ? (
+                    <p className="px-[10px] py-3 text-[12px] font-medium text-[#c2c2c2]">
+                      Loading {isTasks ? 'tasks' : 'habits'}…
+                    </p>
+                  ) : listError ? (
+                    <p className="px-[10px] py-3 text-[12px] font-medium text-[#dc2626]">{listError}</p>
+                  ) : options.length === 0 ? (
+                    <p className="px-[10px] py-3 text-[12px] font-medium text-[#c2c2c2]">
+                      No {isTasks ? 'tasks' : 'habits'} available to attach
+                    </p>
+                  ) : (
+                    options.map((option) => {
+                      const checked = selected.includes(option.id);
+                      return (
+                        <button
+                          key={option.id}
+                          type="button"
+                          onClick={() => toggle(option.id)}
+                          className="flex h-[30px] w-full items-center gap-[6px] px-[10px] py-[6px] text-left hover:bg-[#fcfcfc] dark:hover:bg-zinc-700"
                         >
-                          {checked && <Check size={10} strokeWidth={3} />}
-                        </span>
-                        <span className="text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:text-gray-300">
-                          {option.label}
-                        </span>
-                        {option.aiSuggested && <OptionBadge type="aiSuggested" />}
-                        {option.status === 'paused' && <OptionBadge type="paused" />}
-                        {option.status === 'completed' && <OptionBadge type="completed" />}
-                      </button>
-                    );
-                  })}
+                          <span
+                            className={`flex size-[14px] shrink-0 items-center justify-center rounded-[4px] border ${
+                              checked
+                                ? 'border-[#8022fe] bg-[#8022fe] text-white'
+                                : 'border-[#e9e9e9] bg-white dark:border-zinc-600 dark:bg-zinc-800'
+                            }`}
+                          >
+                            {checked && <Check size={10} strokeWidth={3} />}
+                          </span>
+                          <span className="text-[12px] font-medium leading-[1.5] text-[#5d5d5d] dark:text-gray-300">
+                            {option.label}
+                          </span>
+                          {option.aiSuggested && <OptionBadge type="aiSuggested" />}
+                          {option.status === 'paused' && <OptionBadge type="paused" />}
+                          {option.status === 'completed' && <OptionBadge type="completed" />}
+                        </button>
+                      );
+                    })
+                  )}
                 </div>
               )}
             </div>
@@ -348,9 +378,29 @@ export default function GoalSparkLinkModal({
                 <button
                   type="button"
                   disabled
-                  className="flex flex-1 cursor-not-allowed items-center justify-center rounded-lg bg-[#f1f1f1] px-3 py-2 text-[12px] font-semibold text-[#dedede]"
+                  className="flex flex-1 cursor-not-allowed items-center justify-center rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] font-semibold text-white opacity-60"
                 >
-                  Generating...
+                  Generating…
+                </button>
+              </>
+            ) : activeTab === 'ai' ? (
+              <>
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  className="flex flex-1 items-center justify-center rounded-lg bg-[#f2f2f2] px-3 py-2 text-[12px] font-medium text-[#5d5d5d] dark:bg-zinc-700 dark:text-gray-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={!canGenerate}
+                  onClick={handleGenerate}
+                  className={`flex flex-1 items-center justify-center rounded-lg px-3 py-2 text-[12px] font-semibold text-white ${
+                    canGenerate ? 'bg-[#8022fe]' : 'cursor-not-allowed bg-[#8022fe]/60'
+                  }`}
+                >
+                  Generate
                 </button>
               </>
             ) : (
@@ -362,33 +412,16 @@ export default function GoalSparkLinkModal({
                 >
                   Cancel
                 </button>
-                {activeTab === 'ai' ? (
-                  <button
-                    type="button"
-                    disabled={!canGenerate}
-                    onClick={handleGenerate}
-                    className={`flex flex-1 items-center justify-center rounded-lg px-3 py-2 text-[12px] font-semibold ${
-                      canGenerate
-                        ? 'bg-[#8022fe] text-white'
-                        : 'cursor-not-allowed bg-[#f1f1f1] text-[#dedede]'
-                    }`}
-                  >
-                    Generate
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    disabled={!canAttach}
-                    onClick={handleAttach}
-                    className={`flex flex-1 items-center justify-center rounded-lg px-3 py-2 text-[12px] font-semibold ${
-                      canAttach
-                        ? 'bg-[#8022fe] text-white'
-                        : 'cursor-not-allowed bg-[#f1f1f1] text-[#dedede]'
-                    }`}
-                  >
-                    Attach
-                  </button>
-                )}
+                <button
+                  type="button"
+                  disabled={!canAttach}
+                  onClick={handleAttach}
+                  className={`flex flex-1 items-center justify-center rounded-lg px-3 py-2 text-[12px] font-semibold text-white ${
+                    canAttach ? 'bg-[#8022fe]' : 'cursor-not-allowed bg-[#8022fe]/60'
+                  }`}
+                >
+                  Attach
+                </button>
               </>
             )}
           </div>

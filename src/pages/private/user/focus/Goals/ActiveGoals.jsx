@@ -1141,6 +1141,12 @@ export default function ActiveGoals() {
         open={sparkModal.open}
         type={sparkModal.type}
         goalTitle={sparkModal.goal?.title}
+        initialTab="find"
+        excludeIds={
+          sparkModal.type === 'tasks'
+            ? (sparkModal.goal?.linkedTasks || []).map((t) => t.id).filter(Boolean)
+            : (sparkModal.goal?.linkedHabits || []).map((h) => h.id).filter(Boolean)
+        }
         onClose={handleCloseSparkModal}
         onGenerate={handleSparkGenerate}
         onAttach={handleSparkAttach}
