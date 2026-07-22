@@ -28,6 +28,7 @@ export default function MessagePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const [justSentMessage, setJustSentMessage] = useState(false);
+  const [chatToDelete, setChatToDelete] = useState(null);
   const messagesEndRef = useRef(null);
   const didAutoSelectRef = useRef(false);
 
@@ -138,9 +139,23 @@ export default function MessagePage() {
     setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
   };
 
-  const handleDeleteChat = async (chatId) => {
-    await dispatch(deleteConversation(chatId));
+  const handleDeleteChat = (chatId) => {
+    const chat = chats.find((c) => String(c.id) === String(chatId));
+    if (!chat) return;
+
+    setChatToDelete(chat);
     setOpenDropdown(null);
+  };
+
+  const handleConfirmDeleteChat = async () => {
+    if (!chatToDelete) return;
+
+    await dispatch(deleteConversation(chatToDelete.id));
+    setChatToDelete(null);
+  };
+
+  const handleCancelDeleteChat = () => {
+    setChatToDelete(null);
   };
 
   const handleRenameChat = async (chatId, title) => {
@@ -288,6 +303,55 @@ export default function MessagePage() {
       <p className="mt-2 text-center text-sm text-[#c2c2c2] dark:text-zinc-500">
         AI can make mistakes. Verify important info.
       </p>
+
+      {chatToDelete && (
+        <div
+          onClick={handleCancelDeleteChat}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="flex w-full max-w-md flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] font-sans shadow-xl dark:border-zinc-700 dark:bg-zinc-900"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-chat-title"
+          >
+            <div className="flex items-center justify-between border-b border-[#f2f2f2] px-6 py-3.5 dark:border-zinc-700">
+              <h3
+                id="delete-chat-title"
+                className="text-[16px] font-semibold text-[#181818] dark:text-white"
+              >
+                Delete conversation
+              </h3>
+            </div>
+            <div className="p-6">
+              <p className="text-[12px] font-medium text-[#5d5d5d] dark:text-gray-300">
+                Are you sure you want to delete{' '}
+                <span className="font-semibold text-[#181818] dark:text-white">
+                  "{chatToDelete.name || 'this conversation'}"
+                </span>
+                ? This action cannot be undone.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 border-t border-[#f2f2f2] px-6 py-3.5 dark:border-zinc-700">
+              <button
+                type="button"
+                onClick={handleCancelDeleteChat}
+                className="flex flex-1 items-center justify-center rounded-lg bg-[#f2f2f2] px-3 py-2 text-[12px] font-medium text-[#5d5d5d] transition-colors dark:bg-zinc-700 dark:text-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDeleteChat}
+                className="flex flex-1 items-center justify-center rounded-lg bg-red-600 px-3 py-2 text-[12px] font-semibold text-white transition-colors hover:bg-red-700"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

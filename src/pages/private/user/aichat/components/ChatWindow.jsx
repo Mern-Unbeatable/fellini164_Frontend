@@ -165,11 +165,11 @@ const MessageItem = memo(({ msg, onCopy, copiedId, isLastAIMessage }) => {
   const isCopied = copiedId === msg.id;
 
   // Determine Bubble Styles - wider for AI messages to show formatted content
-  const bubbleClass = `relative w-full rounded-xl px-3 py-2 shadow-sm sm:rounded-br-xl sm:px-4 sm:py-2.5 
+  const bubbleClass = `relative w-full rounded-xl px-3 py-2 sm:rounded-br-xl sm:px-4 sm:py-2.5 
         ${
           isUser
-            ? 'rounded-tr-none bg-[#7C3AED] text-white'
-            : 'rounded-tl-none bg-[#EDEDED] dark:bg-zinc-700 text-[#000000] dark:text-white'
+            ? 'rounded-tr-none bg-[#7C3AED] text-white shadow-sm'
+            : 'rounded-tl-none border border-[#f2f2f2] bg-[#fcfcfc] text-[#181818] dark:border-zinc-700 dark:bg-zinc-800 dark:text-gray-200'
         }`;
 
   // Check if this message is newly added (for typing effect)
