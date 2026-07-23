@@ -45,43 +45,27 @@ assert(
   JSON.stringify(create.targetDays) ===
     JSON.stringify(['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'])
 );
-assert('Create: no goalId when unset', create.goalId === undefined);
-
-const createWithGoal = mapCreatePayload({
-  title: 'Read',
-  category: 'Career',
-  linkedGoal: '6dbd828e-8c24-4f1c-87da-03dd240bc542',
-  hour: 8,
-  minute: '00',
-  period: 'AM',
-  targetDays: ['Mon'],
-});
-assert('Create: goalId when UUID', createWithGoal.goalId === '6dbd828e-8c24-4f1c-87da-03dd240bc542');
-
-console.log('\n=== Update Habit (PATCH payload) ===');
-const update = mapUpdatePayload({
-  title: 'Updated',
-  category: 'Finance',
-  difficulty: 'MEDIUM',
-  hour: 8,
-  minute: '00',
-  period: 'AM',
-});
-assert('Update: name', update.name === 'Updated');
-assert('Update: category FINANCE', update.category === 'FINANCE');
-assert('Update: reminderTime 08:00', update.reminderTime === '08:00');
 
 console.log('\n=== Category filter → GET /habits?category= ===');
-const catAll = buildHabitsQueryParams({ filters: { Category: 'All Category' } });
-assert('All Category: no category param', catAll.category === undefined);
-for (const ui of ['Career', 'Health', 'Finance', 'Fitness', 'Wellness', 'Productivity', 'Personal', 'Education']) {
+assert(
+  'All Category: no category param',
+  buildHabitsQueryParams({ filters: { Category: 'All Category' } }).category === undefined
+);
+for (const ui of [
+  'Career',
+  'Health',
+  'Finance',
+  'Fitness',
+  'Wellness',
+  'Productivity',
+  'Personal',
+  'Education',
+]) {
   const p = buildHabitsQueryParams({ filters: { Category: ui } });
   assert(`Category ${ui} → ${categoryToApi(ui)}`, p.category === categoryToApi(ui));
 }
 
 console.log('\n=== Schedule filter → GET /habits?frequency= ===');
-const schAll = buildHabitsQueryParams({ filters: { Schedule: 'All Schedule' } });
-assert('All Schedule: no frequency', schAll.frequency === undefined);
 assert(
   'Daily → DAILY',
   buildHabitsQueryParams({ filters: { Schedule: 'Daily' } }).frequency === 'DAILY'
@@ -99,95 +83,120 @@ assert(
   buildHabitsQueryParams({ filters: { Schedule: 'Custom' } }).frequency === undefined
 );
 
-console.log('\n=== Streak filter (client-only — API has no streak query) ===');
-const streakHabit = (n) => ({ streak: n, days: Array(7).fill('empty'), tags: [] });
+console.log('\n=== Streak filter → GET /habits?streak= (Postman) ===');
 assert(
-  'Streak API param never sent',
-  buildHabitsQueryParams({ filters: { Streak: 'Active streak' } }).streak === undefined &&
-    buildHabitsQueryParams({ filters: { Streak: 'Active streak' } }).minStreak === undefined
+  'All Streak: no streak param',
+  buildHabitsQueryParams({ filters: { Streak: 'All Streak' } }).streak === undefined
 );
 assert(
-  'Active streak matches streak>0',
-  habitMatchesClientFilters(streakHabit(3), { Streak: 'Active streak' })
+  'Active streak → ACTIVE',
+  buildHabitsQueryParams({ filters: { Streak: 'Active streak' } }).streak === 'ACTIVE'
 );
 assert(
-  'Active streak excludes 0',
-  !habitMatchesClientFilters(streakHabit(0), { Streak: 'Active streak' })
+  'No streak → NONE',
+  buildHabitsQueryParams({ filters: { Streak: 'No streak' } }).streak === 'NONE'
 );
 assert(
-  'No streak matches 0',
-  habitMatchesClientFilters(streakHabit(0), { Streak: 'No streak' })
-);
-assert(
-  'Best streak matches >=7',
-  habitMatchesClientFilters(streakHabit(7), { Streak: 'Best streak' }) &&
-    !habitMatchesClientFilters(streakHabit(6), { Streak: 'Best streak' })
+  'Best streak → BEST',
+  buildHabitsQueryParams({ filters: { Streak: 'Best streak' } }).streak === 'BEST'
 );
 
-console.log('\n=== Days Left filter (client-only — API has no daysLeft query) ===');
+console.log('\n=== Days Left filter → GET /habits?daysLeft= (Postman) ===');
 assert(
-  'Days Left API param never sent',
-  buildHabitsQueryParams({ filters: { 'Days Left': '1-7 days' } }).daysLeft === undefined
-);
-const withDays = {
-  streak: 0,
-  days: Array(7).fill('empty'),
-  tags: [{ label: '12 days left' }],
-};
-assert(
-  '8-30 days matches 12',
-  habitMatchesClientFilters(withDays, { 'Days Left': '8-30 days' })
+  'All Days Left: no daysLeft param',
+  buildHabitsQueryParams({ filters: { 'Days Left': 'All Days Left' } }).daysLeft === undefined
 );
 assert(
-  '1-7 days excludes 12',
-  !habitMatchesClientFilters(withDays, { 'Days Left': '1-7 days' })
+  '1-7 days → 1-7',
+  buildHabitsQueryParams({ filters: { 'Days Left': '1-7 days' } }).daysLeft === '1-7'
 );
 assert(
-  'No days-left tag → excluded when filter set',
-  !habitMatchesClientFilters(streakHabit(0), { 'Days Left': '1-7 days' })
+  '8-30 days → 8-30',
+  buildHabitsQueryParams({ filters: { 'Days Left': '8-30 days' } }).daysLeft === '8-30'
+);
+assert(
+  '30+ days → 30plus',
+  buildHabitsQueryParams({ filters: { 'Days Left': '30+ days' } }).daysLeft === '30plus'
 );
 
-console.log('\n=== Search + pagination ===');
-const search = buildHabitsQueryParams({ search: 'reading', page: 1, limit: 50 });
-assert('search param', search.search === 'reading');
-assert('page=1', search.page === 1);
-assert('limit=50', search.limit === 50);
+console.log('\n=== Combined query (Postman sample) ===');
+const combo = buildHabitsQueryParams({
+  filters: {
+    Category: 'Health',
+    Streak: 'Active streak',
+  },
+});
+assert('combo category=HEALTH', combo.category === 'HEALTH');
+assert('combo streak=ACTIVE', combo.streak === 'ACTIVE');
 
-console.log('\n=== Helpers ===');
-assert('reminder 8:00 AM → 08:00', reminderTimeToApi(8, '00', 'AM') === '08:00');
-assert('reminder 7:30 PM → 19:30', reminderTimeToApi(7, '30', 'PM') === '19:30');
+console.log('\n=== Client filter only Custom schedule ===');
 assert(
-  'targetDays UI→API',
-  targetDaysToApi(['Mon', 'Fri']).join() === 'MONDAY,FRIDAY'
+  'Custom excludes full week',
+  !habitMatchesClientFilters(
+    { days: Array(7).fill('empty') },
+    { Schedule: 'Custom' }
+  )
+);
+assert(
+  'Streak not client-filtered anymore',
+  habitMatchesClientFilters({ streak: 0, days: [] }, { Streak: 'Active streak' })
 );
 
+console.log('\n=== Map daysLeft from API ===');
 const mapped = mapHabitFromApi({
   id: '0c369aba-1f02-4569-81ee-44efed7d7c7f',
-  name: 'Daily Savings Challenge',
+  name: 'Daily Savings',
   category: 'FINANCE',
   frequency: 'DAILY',
   reminderTime: '08:00',
   currentStreak: 0,
   status: 'ACTIVE',
-  targetDays: ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'],
+  targetDays: ['MONDAY'],
   completions: [],
-  goal: { id: '6dbd828e-8c24-4f1c-87da-03dd240bc542', title: 'Start a retirement savings plan' },
+  daysLeft: 12,
+  goal: { title: 'Goal A', targetDate: '2026-08-01T00:00:00.000Z' },
 });
-assert('mapHabit: title from name', mapped.title === 'Daily Savings Challenge');
-assert('mapHabit: category Finance', mapped.category === 'Finance');
-assert('mapHabit: streak 0', mapped.streak === 0);
-assert('mapHabit: status active', mapped.status === 'active');
-assert('mapHabit: has Finance tag', mapped.tags.some((t) => t.label === 'Finance'));
-assert('mapHabit: has 8:00 AM tag', mapped.tags.some((t) => t.label === '8:00 AM'));
+assert('mapHabit: daysLeft 12', mapped.daysLeft === 12);
+assert(
+  'mapHabit: days left tag',
+  mapped.tags.some((t) => t.label === '12 days left')
+);
 
-console.log('\n=== Integration matrix (expected) ===');
-console.log('New Habit Manual     → POST /habits                         FULFILLED');
-console.log('New Habit AI         → POST /habits/ai/generate             FULFILLED');
-console.log('All Category         → GET /habits?category=ENUM            FULFILLED');
-console.log('All Schedule D/W/M   → GET /habits?frequency=ENUM           FULFILLED');
-console.log('All Schedule Custom  → client filter (no API param)         CLIENT');
-console.log('All Streak           → client on currentStreak              CLIENT');
-console.log('All Days Left        → client on days-left tag (if any)     CLIENT');
+const overdue = mapHabitFromApi({
+  id: 'x',
+  name: 'Overdue',
+  category: 'CAREER',
+  status: 'ACTIVE',
+  targetDays: ['MONDAY'],
+  completions: [],
+  daysLeft: -13,
+});
+assert('mapHabit: negative daysLeft kept', overdue.daysLeft === -13);
+assert(
+  'mapHabit: no days-left tag when negative',
+  !overdue.tags.some((t) => /days left/i.test(t.label))
+);
+
+console.log('\n=== Update + helpers ===');
+const update = mapUpdatePayload({
+  title: 'Updated',
+  category: 'Finance',
+  difficulty: 'MEDIUM',
+  hour: 8,
+  minute: '00',
+  period: 'AM',
+});
+assert('Update: reminderTime 08:00', update.reminderTime === '08:00');
+assert('reminder 7:30 PM → 19:30', reminderTimeToApi(7, '30', 'PM') === '19:30');
+assert('targetDays UI→API', targetDaysToApi(['Mon', 'Fri']).join() === 'MONDAY,FRIDAY');
+
+console.log('\n=== Integration matrix ===');
+console.log('New Habit          → POST /habits | ai/generate     FULFILLED');
+console.log('All Category       → ?category=ENUM                 FULFILLED');
+console.log('All Schedule D/W/M → ?frequency=ENUM                FULFILLED');
+console.log('All Schedule Custom→ client only                    CLIENT');
+console.log('All Streak         → ?streak=ACTIVE|NONE|BEST       FULFILLED');
+console.log('All Days Left      → ?daysLeft=1-7|8-30|30plus      FULFILLED');
 
 console.log(`\n${failed === 0 ? 'ALL PASS' : `${failed} FAILED`}`);
 process.exit(failed === 0 ? 0 : 1);

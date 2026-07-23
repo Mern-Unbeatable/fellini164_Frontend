@@ -39,6 +39,18 @@ const FREQUENCY_FILTER_TO_API = {
   Monthly: 'MONTHLY',
 };
 
+const STREAK_FILTER_TO_API = {
+  'Active streak': 'ACTIVE',
+  'No streak': 'NONE',
+  'Best streak': 'BEST',
+};
+
+const DAYS_LEFT_FILTER_TO_API = {
+  '1-7 days': '1-7',
+  '8-30 days': '8-30',
+  '30+ days': '30plus',
+};
+
 export function categoryToApi(category) {
   const raw = String(category || 'Career').trim().toUpperCase();
   if (raw === 'HEAL') return 'HEALTH';
@@ -176,12 +188,16 @@ export function buildWeekDayStates(habit) {
 }
 
 function daysLeftLabel(habit) {
+  if (typeof habit.daysLeft === 'number' && Number.isFinite(habit.daysLeft)) {
+    if (habit.daysLeft < 0) return null;
+    return `${habit.daysLeft} days left`;
+  }
   const raw =
-    habit.daysLeft ??
     habit.daysRemaining ??
     habit.goal?.daysLeft ??
     habit.goal?.targetDate;
   if (typeof raw === 'number' && Number.isFinite(raw)) {
+    if (raw < 0) return null;
     return `${raw} days left`;
   }
   if (typeof raw === 'string' && /^\d{4}-\d{2}-\d{2}/.test(raw)) {
@@ -237,6 +253,7 @@ export function mapHabitFromApi(apiHabit, preferredSource) {
     streak: Number(apiHabit.currentStreak) || 0,
     longestStreak: Number(apiHabit.longestStreak) || 0,
     totalCompletions: Number(apiHabit.totalCompletions) || 0,
+    daysLeft: typeof apiHabit.daysLeft === 'number' ? apiHabit.daysLeft : null,
     status: statusFromApi(apiHabit.status || (apiHabit.isActive === false ? 'PAUSED' : 'ACTIVE')),
     source: isAi ? 'ai' : 'manual',
     aiSuggested: Boolean(apiHabit.aiSuggested) || isAi,
@@ -339,7 +356,7 @@ export function parseHabitsListResponse(envelope) {
   };
 }
 
-/** Map Habits Board UI filters → GET /habits query params. */
+/** Map Habits Board UI filters → GET /habits query params (Postman contract). */
 export function buildHabitsQueryParams({ filters = {}, search = '', page = 1, limit = 50 } = {}) {
   const params = { page, limit };
 
@@ -352,36 +369,31 @@ export function buildHabitsQueryParams({ filters = {}, search = '', page = 1, li
     if (frequency) params.frequency = frequency;
   }
 
+  if (filters.Streak && filters.Streak !== 'All Streak') {
+    const streak = STREAK_FILTER_TO_API[filters.Streak];
+    if (streak) params.streak = streak;
+  }
+
+  if (filters['Days Left'] && filters['Days Left'] !== 'All Days Left') {
+    const daysLeft = DAYS_LEFT_FILTER_TO_API[filters['Days Left']];
+    if (daysLeft) params.daysLeft = daysLeft;
+  }
+
   const q = String(search || '').trim();
   if (q) params.search = q;
 
   return params;
 }
 
-/** Client-side filters the API does not expose (Streak, Days Left, Custom schedule). */
+/**
+ * Client-only leftover: Schedule "Custom" (API frequency has no Custom enum).
+ * Streak + Days Left are server-filtered via `streak` / `daysLeft` query params.
+ */
 export function habitMatchesClientFilters(habit, filters = {}) {
   if (filters.Schedule === 'Custom') {
     const scheduled = (habit.days || []).filter((d) => d !== 'unscheduled').length;
     if (scheduled === 7) return false;
   }
-
-  if (filters.Streak && filters.Streak !== 'All Streak') {
-    const streak = habit.streak ?? 0;
-    if (filters.Streak === 'No streak' && streak !== 0) return false;
-    if (filters.Streak === 'Best streak' && !(streak >= 7)) return false;
-    if (filters.Streak === 'Active streak' && !(streak > 0)) return false;
-  }
-
-  if (filters['Days Left'] && filters['Days Left'] !== 'All Days Left') {
-    const tag = habit.tags?.find((t) => /\d+\s*days?\s*left/i.test(t.label || ''));
-    if (!tag) return false;
-    const n = parseInt(tag.label, 10);
-    if (Number.isNaN(n)) return false;
-    if (filters['Days Left'] === '1-7 days' && !(n >= 1 && n <= 7)) return false;
-    if (filters['Days Left'] === '8-30 days' && !(n >= 8 && n <= 30)) return false;
-    if (filters['Days Left'] === '30+ days' && !(n > 30)) return false;
-  }
-
   return true;
 }
 

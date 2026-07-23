@@ -605,11 +605,11 @@ Response envelope:
 |----|----------------|--------|
 | **+ New Habit** Manual | `POST /api/v1/habits` | **FULFILLED** |
 | **+ New Habit** AI | `POST /api/v1/habits/ai/generate` | **FULFILLED** |
-| **All Category** | `GET /habits?category=CAREER\|HEALTH\|…` | **FULFILLED** |
+| **All Category** | `GET /habits?category=CAREER\|HEALTH\|FINANCE\|…` | **FULFILLED** |
 | **All Schedule** Daily/Weekly/Monthly | `GET /habits?frequency=DAILY\|WEEKLY\|MONTHLY` | **FULFILLED** |
-| **All Schedule** Custom | Client filter (no API param) | **CLIENT** |
-| **All Streak** | Client on `currentStreak` (no streak query in Postman) | **CLIENT** |
-| **All Days Left** | Client on days-left tag (no daysLeft query in Postman) | **CLIENT** |
+| **All Schedule** Custom | Client filter (no API enum) | **CLIENT** |
+| **All Streak** | `GET /habits?streak=ACTIVE\|NONE\|BEST` | **FULFILLED** |
+| **All Days Left** | `GET /habits?daysLeft=1-7\|8-30\|30plus` | **FULFILLED** |
 | Search | `GET /habits?search=` | **FULFILLED** |
 
 ### C.1 Endpoint Matrix
@@ -643,12 +643,14 @@ Response envelope:
 
 | Param | UI mapping |
 |-------|------------|
-| `category` | Category filter → uppercase enum |
-| `frequency` | Schedule Daily/Weekly/Monthly |
+| `category` | Category → `CAREER` / `HEALTH` / … |
+| `frequency` | Schedule Daily/Weekly/Monthly → `DAILY` / `WEEKLY` / `MONTHLY` |
+| `streak` | Active streak → `ACTIVE`; No streak → `NONE`; Best streak → `BEST` |
+| `daysLeft` | `1-7 days` → `1-7`; `8-30 days` → `8-30`; `30+ days` → `30plus` |
 | `search` | Search input (300ms debounce) |
 | `page` / `limit` | `1` / `50` |
 
-Client-only: Streak, Days Left, Schedule Custom.
+Client-only: Schedule **Custom** (no API enum).
 
 ### C.3 Create body
 
