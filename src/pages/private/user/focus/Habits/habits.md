@@ -1,8 +1,8 @@
 # Habits Board — MVP, Rules, Flow, and Figma (Pixel-Perfect Contract)
 
-Status: Frontend mock in progress; backend integration not started  
+Status: Frontend API integration in progress (`src/features/habits/`); empty-board ghosts still local mock  
 Primary route: `/user/habits`  
-Frontend module: `src/pages/private/user/focus/Habits/`
+Frontend module: `src/pages/private/user/focus/Habits/` + `src/features/habits/`
 
 Same contract style as Tasks (`focus/Tasks/tasks.md`) and Planner (`planng/DailyPlan/planner.md`).
 

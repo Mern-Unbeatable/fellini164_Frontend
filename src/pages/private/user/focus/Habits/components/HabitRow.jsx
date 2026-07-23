@@ -3,17 +3,16 @@ import { useEffect, useRef, useState } from 'react';
 import HabitTagList from './HabitTagList';
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-// Figma Habits Board (1440) — today is Wed (same lock as Habits.jsx). Mon=0.
-const TODAY_INDEX = 2;
 
 // Day states: 'unscheduled' | 'empty' | 'checked' | 'today'
-// Optional progress [done, total] on 'today' → Figma partial fill + "1/2" / "2/3" (node 1234:11963).
-// One click from empty → today (box fill collapses to done/total); click again → empty.
+// MVP: one click per day — no fractional todayProgress product behavior.
 function DayCell({ state, progress, dimmed, interactive, onToggle }) {
   if (state === 'unscheduled') {
-    return <div className="w-10 shrink-0 max-lg:w-9" aria-hidden>
-      <div className="size-10 rounded-[10px] opacity-0 max-lg:size-9" />
-    </div>;
+    return (
+      <div className="w-10 shrink-0 max-lg:w-9" aria-hidden>
+        <div className="size-10 rounded-[10px] opacity-0 max-lg:size-9" />
+      </div>
+    );
   }
 
   const wrapClass = `flex w-10 shrink-0 flex-col items-center max-lg:w-9 ${dimmed ? 'opacity-40' : ''}`;
@@ -75,7 +74,7 @@ function DayCell({ state, progress, dimmed, interactive, onToggle }) {
   );
 }
 
-function HabitRowMenu({ onEdit, onImprove, onComplete, onPause, onDelete }) {
+function HabitRowMenu({ onEdit, onImprove, onComplete, onPause, onDelete, isPaused }) {
   return (
     <div className="flex w-max flex-col overflow-hidden rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
       <button
@@ -108,7 +107,7 @@ function HabitRowMenu({ onEdit, onImprove, onComplete, onPause, onDelete }) {
         className="flex items-center gap-1.5 px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#5d5d5d] hover:bg-[#fcfcfc] dark:text-gray-300 dark:hover:bg-zinc-700"
       >
         <Pause size={10} className="shrink-0" />
-        Pause
+        {isPaused ? 'Activate' : 'Pause'}
       </button>
       <button
         type="button"
@@ -125,7 +124,6 @@ function HabitRowMenu({ onEdit, onImprove, onComplete, onPause, onDelete }) {
 function streakPresentation(habit) {
   const isPaused = habit.status === 'paused';
   const isCompleted = habit.status === 'completed';
-  // Figma Frame 1: only high active streak (Take Breaks / 7 days) gets flame + orange
   const showFlame = habit.status === 'active' && habit.streak >= 7;
   if (showFlame) {
     return { flame: true, className: 'text-[#f97316]' };
@@ -133,7 +131,6 @@ function streakPresentation(habit) {
   if (isPaused || isCompleted) {
     return { flame: false, className: 'text-[#c2c2c2]' };
   }
-  // Active with 0–6 days: black streak text, no flame (Drink Water "4 days")
   return { flame: false, className: 'text-[#181818] dark:text-white' };
 }
 
@@ -141,6 +138,7 @@ export default function HabitRow({
   habit,
   showMenu = true,
   compact = false,
+  todayIndex = 0,
   onToggleDay,
   onEdit,
   onImprove,
@@ -198,9 +196,8 @@ export default function HabitRow({
           </p>
         </div>
         <HabitTagList
-          tags={habit.tags}
-          // Frame 3 AI preview (compact): all tags visible — Health | New Job | 12 days left | 6:30 PM
-          maxVisible={compact ? habit.tags.length : 2}
+          tags={habit.tags || []}
+          maxVisible={compact ? (habit.tags || []).length : 2}
           wrap={compact}
           className={isPaused ? 'opacity-50' : ''}
         />
@@ -219,12 +216,12 @@ export default function HabitRow({
             <div key={day} className="flex items-center justify-center gap-1">
               <p
                 className={`text-xs font-medium ${
-                  i === TODAY_INDEX ? 'text-[#8022fe]' : 'text-[#5d5d5d] dark:text-gray-300'
+                  i === todayIndex ? 'text-[#8022fe]' : 'text-[#5d5d5d] dark:text-gray-300'
                 }`}
               >
                 {day}
               </p>
-              {i === TODAY_INDEX && <span className="size-1 shrink-0 rounded-full bg-[#8022fe]" />}
+              {i === todayIndex && <span className="size-1 shrink-0 rounded-full bg-[#8022fe]" />}
             </div>
           ))}
         </div>
@@ -252,14 +249,12 @@ export default function HabitRow({
           {DAYS.map((day, i) => (
             <DayCell
               key={day}
-              state={habit.days[i]}
+              state={habit.days?.[i] || 'empty'}
               progress={
-                habit.days[i] === 'today' && habit.todayProgress
-                  ? habit.todayProgress
-                  : null
+                habit.days?.[i] === 'today' && habit.todayProgress ? habit.todayProgress : null
               }
               dimmed={isPaused}
-              interactive={Boolean(onToggleDay) && !isCompleted}
+              interactive={Boolean(onToggleDay) && !isCompleted && i === todayIndex}
               onToggle={() => onToggleDay?.(habit.id, i)}
             />
           ))}
@@ -283,6 +278,7 @@ export default function HabitRow({
       {showMenu && menuOpen && (
         <div className="absolute right-3 top-9 z-50">
           <HabitRowMenu
+            isPaused={isPaused}
             onEdit={() => {
               setMenuOpen(false);
               onEdit?.(habit);
