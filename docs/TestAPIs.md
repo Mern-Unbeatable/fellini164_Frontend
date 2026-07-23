@@ -130,7 +130,7 @@ If Postman has no valid response:
 ## Appendix A — Goals Board API Audit (Current Frontend)
 
 **Date:** 2026-07-22  
-**Last automated re-test:** 2026-07-22 (`audit-goals-list.mjs` + `audit-link-pickers.mjs` → ALL PASS)  
+**Last automated re-test:** 2026-07-22 evening — `audit-goals-list.mjs` + `audit-link-pickers.mjs` → **ALL PASS**  
 **Module:** `src/features/goals/` + `src/pages/private/user/focus/Goals/`  
 **Base URL (env):** `VITE_API_BASE_URL` → `https://backendtest.elyxaai.com`  
 **API prefix used in code:** `/api/v1/goals`  
@@ -150,10 +150,10 @@ If Postman has no valid response:
 | Pause | `PATCH /api/v1/goals/:id/pause` | Card / detail menu | Confirmed `status: PAUSED` | **FULFILLED** |
 | Activate | `PATCH /api/v1/goals/:id/activate` | Same toggle | Counterpart of pause | **FULFILLED** |
 | Delete | `DELETE /api/v1/goals/:id` | Card / detail menu | Wired | **FULFILLED** |
-| Update goal | `PATCH` → `PUT` → `POST` `/api/v1/goals/:id` | Edit Goal modal (board + detail) | Method not locked in Postman | **PARTIAL** |
-| Complete goal | `PATCH/POST .../complete` (+ status fallbacks) | Card menu Complete | Exact contract not pasted | **PARTIAL** |
-| Link tasks | `POST .../link-tasks` (+ `/tasks` fallback) | Plus / Spark Find & Attach | Exact path not locked | **PARTIAL** |
-| Link habits | `POST .../link-habits` (+ `/habits` fallback) | Plus / Spark Find & Attach | Exact path not locked | **PARTIAL** |
+| Update goal | `PATCH /api/v1/goals/:id` | Edit Goal modal (board + detail) | Partial body `{ title, priorityLevel?, status?, targetDate?, … }` | **FULFILLED** |
+| Complete goal | `POST /api/v1/goals/:id/complete` | Card menu Complete | No body | **FULFILLED** |
+| Link tasks | `POST /api/v1/goals/:id/link-tasks` | Plus / Spark Find & Attach | Body `{ taskIds: [uuid] }` | **FULFILLED** |
+| Link habits | `POST /api/v1/goals/:id/link-habits` | Plus / Spark Find & Attach | Body `{ habitIds: [uuid] }` | **FULFILLED** |
 | Tasks for link picker | `GET /api/v1/tasks` | **+** `LinkItemsModal`, Spark **Find & Attach**, New Goal linked tasks | Envelope `{ tasks, pagination }`; default `parentOnly=true&page=1&limit=50` (no `goalId`) | **FULFILLED** |
 | Habits for link picker | `GET /api/v1/habits` | **+** `LinkItemsModal`, Spark **Find & Attach**, New Goal linked habits | Envelope `{ habits, pagination }`; default `isActive=true&page=1&limit=50` (no `goalId`) | **FULFILLED** |
 | AI generate task | `POST /api/v1/tasks/ai/generate` | Spark ✨ → **AI Generation** (Linked Tasks) | Body `{ prompt, category, goalId? }`; response `{ task }` | **FULFILLED** |
@@ -247,19 +247,16 @@ Goal fields mapped to UI: `id`, `title`, `description`, `category`, `status`, `p
 
 | Requirement | Result | Notes |
 |-------------|--------|-------|
-| Postman before integrate | **PASS** for list/create/AI/pause; **PARTIAL** for update/link/complete | Exact method/body still needed for PARTIAL rows |
-| Exact method (no guessing) | **PARTIAL** | Update / Complete / Link use fallbacks |
-| Remove mock after connect | **PASS** for list/create/AI/link pickers; **DEFERRED** ghosts + Spark AI generate | See A.1b |
+| Postman before integrate | **PASS** for list/create/AI/pause/update/complete/link | Ghosts still deferred |
+| Exact method (no guessing) | **PASS** for contracted Goals APIs | Update=`PATCH`, Complete=`POST .../complete`, Link=`POST .../link-tasks|link-habits` |
+| Remove mock after connect | **PASS** for list/create/AI/link pickers/detail mutations; **DEFERRED** ghosts | See A.1b |
 | Loading / empty / errors | **PASS** | Soft list reload; empty copy; toasts; 401 → login |
 | Mapper audit | **PASS** | `audit-goals-list.mjs` + `audit-link-pickers.mjs` — ALL PASS (2026-07-22) |
 | Logged-in Network QA | **Manual** | Engineer checklist in Appendix B (Plus + Spark + filters) |
 
 ### A.5 Blockers (need Postman evidence)
 
-1. **Update Goal** — exact method + sample `200` body  
-2. **Complete Goal** — exact URL + method + sample response  
-3. **Link tasks / habits** — exact path + body (`taskIds` / `habitIds`) + response  
-4. **Ghost suggestions** — endpoints when backend ready  
+1. **Ghost suggestions** — endpoints when backend ready (client will provide)
 
 If Postman has no response:
 
@@ -271,6 +268,9 @@ If Postman has no response:
 |------|---------|
 | List + filters + search + summary | **FULFILLED** |
 | Create + AI generate + Get + Pause/Activate + Delete | **FULFILLED** |
+| Update goal (`PATCH /goals/:id`) | **FULFILLED** |
+| Complete goal (`POST /goals/:id/complete`) | **FULFILLED** |
+| Link tasks / habits (`POST .../link-tasks` \| `link-habits`) | **FULFILLED** |
 | Link picker lists (`GET /tasks`, `GET /habits`) | **FULFILLED** |
 | Spark AI generate task (`POST /tasks/ai/generate`) | **FULFILLED** |
 | Spark AI generate habit (`POST /habits/ai/generate`) | **FULFILLED** |
@@ -278,9 +278,8 @@ If Postman has no response:
 | AI suggestion Accept / Dismiss / Undo / History | **FULFILLED** |
 | Linked task Edit / Complete / Delete (`PATCH` / `POST .../complete` / `DELETE /tasks/:id`) | **FULFILLED** |
 | Linked habit Edit / Skip / Delete (`PATCH` / `POST .../skip` / `DELETE /habits/:id`) | **FULFILLED** |
-| Update / Complete goal / Link mutations | **PARTIAL** (wired, contract not locked) |
 | Ghosts | **DEFERRED** |
-| Overall Goals Board | **FULFILLED for contracted APIs**; PARTIAL/DEFERRED only where Postman/backend incomplete |
+| Overall Goals Board | **FULFILLED for contracted APIs**; only ghosts deferred |
 
 ---
 
@@ -320,7 +319,7 @@ node scripts/audit-link-pickers.mjs
 |------|---------------|------------------|
 | 1 | Goal card → right panel → Linked Tasks **+** | `GET /api/v1/tasks?parentOnly=true&page=1&limit=50` → `200` + `{ tasks, pagination }` |
 | 2 | Same panel → Linked Tasks **✨** → **Find & Attach** | Same `GET /api/v1/tasks?...` |
-| 3 | Select + Attach / Create | `POST /api/v1/goals/:id/link-tasks` (or `/tasks` fallback) `{ taskIds: [uuid] }` |
+| 3 | Select + Attach / Create | `POST /api/v1/goals/:id/link-tasks` `{ taskIds: [uuid] }` |
 
 **Do not** send `goalId` on the list call for Add/Attach — `goalId` filters tasks already linked to that goal (often empty).
 
@@ -332,7 +331,7 @@ Empty `tasks: []` → UI shows “No tasks available…” (not stuck Loading).
 |------|---------------|------------------|
 | 1 | Goal → Linked Habits **+** | `GET /api/v1/habits?isActive=true&page=1&limit=50` → `200` + `{ habits, pagination }` |
 | 2 | Goal → Linked Habits **✨** → **Find & Attach** (opens on this tab for habits) | Same `GET /api/v1/habits?...` |
-| 3 | Select + Attach | `POST /api/v1/goals/:id/link-habits` (or `/habits` fallback) `{ habitIds: [uuid] }` |
+| 3 | Select + Attach | `POST /api/v1/goals/:id/link-habits` `{ habitIds: [uuid] }` |
 
 **Do not** send `goalId` on the list call for Add/Attach — `goalId` filters habits already linked (often empty).
 
@@ -427,6 +426,35 @@ Habit Spark **AI Generation** → `POST /api/v1/habits/ai/generate` — see **B.
 **Undo** `POST /api/v1/goals/:goalId/ai/undo`
 
 Accept/dismiss/undo: empty POST body. After mutations, frontend refetches goal + suggestions.
+
+### A.15 Update / Complete / Link goals (locked 2026-07-23)
+
+**Update** `PATCH /api/v1/goals/:goalId`
+
+```json
+{
+  "title": "Improve My Rate & Portfolio",
+  "priorityLevel": "HIGH",
+  "status": "ACTIVE",
+  "targetDate": "2026-08-01"
+}
+```
+
+Partial body allowed (e.g. title only). Mapper: `mapUpdatePayload`.
+
+**Complete** `POST /api/v1/goals/:goalId/complete` — no body.
+
+**Link tasks** `POST /api/v1/goals/:goalId/link-tasks`
+
+```json
+{ "taskIds": ["uuid"] }
+```
+
+**Link habits** `POST /api/v1/goals/:goalId/link-habits`
+
+```json
+{ "habitIds": ["uuid"] }
+```
 
 ### A.12 Linked task mutations (Goal detail card menu)
 
