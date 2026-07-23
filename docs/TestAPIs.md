@@ -596,7 +596,21 @@ Response envelope:
 
 **Date:** 2026-07-23  
 **Module:** `src/features/habits/` + `src/pages/private/user/focus/Habits/`  
-**API prefix:** `/api/v1/habits`
+**API prefix:** `/api/v1/habits`  
+**Contract verifier:** `node scripts/audit-habits-board.mjs` → **ALL PASS** (2026-07-23)
+
+### C.0 Toolbar / New Habit flow
+
+| UI | API / behavior | Status |
+|----|----------------|--------|
+| **+ New Habit** Manual | `POST /api/v1/habits` | **FULFILLED** |
+| **+ New Habit** AI | `POST /api/v1/habits/ai/generate` | **FULFILLED** |
+| **All Category** | `GET /habits?category=CAREER\|HEALTH\|…` | **FULFILLED** |
+| **All Schedule** Daily/Weekly/Monthly | `GET /habits?frequency=DAILY\|WEEKLY\|MONTHLY` | **FULFILLED** |
+| **All Schedule** Custom | Client filter (no API param) | **CLIENT** |
+| **All Streak** | Client on `currentStreak` (no streak query in Postman) | **CLIENT** |
+| **All Days Left** | Client on days-left tag (no daysLeft query in Postman) | **CLIENT** |
+| Search | `GET /habits?search=` | **FULFILLED** |
 
 ### C.1 Endpoint Matrix
 
