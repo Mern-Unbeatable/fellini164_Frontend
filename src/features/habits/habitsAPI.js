@@ -99,23 +99,85 @@ export async function skipHabitApi(habitId, payload = {}) {
 }
 
 /**
- * Pause / Activate toggle — same path style as Goals Postman:
- *   PATCH /habits/:id/pause
- *   PATCH /habits/:id/activate
- * (User listed method PATCH without full path; Goals-confirmed pattern.)
+ * Pause / Activate toggle.
+ * Confirmed: PATCH /habits/:id/pause works (user: "Pause / Activate Toggle").
+ * PATCH /habits/:id/activate does NOT exist → "Route not found".
+ * Activate reuses /pause (toggle). If status stays PAUSED, falls back to PATCH body.
  */
+function isRouteMissing(error) {
+  const status = error?.response?.status;
+  const message = String(error?.response?.data?.message || error?.message || '');
+  return (
+    status === 404 ||
+    status === 405 ||
+    /route not found/i.test(message) ||
+    /cannot (get|post|put|patch|delete)/i.test(message)
+  );
+}
+
+function readHabitStatus(data) {
+  const habit = data?.habit && typeof data.habit === 'object' ? data.habit : data;
+  if (!habit || typeof habit !== 'object') return { status: '', isActive: undefined };
+  return {
+    status: String(habit.status || '').toUpperCase(),
+    isActive: habit.isActive,
+  };
+}
+
 export async function updateHabitStatusApi(habitId, status) {
   const upper = String(status || '').toUpperCase();
-  if (upper === 'PAUSED') {
-    const response = await axiosInstance.patch(`${BASE}/${habitId}/pause`);
-    return unwrapData(response);
+  const wantActive = upper === 'ACTIVE';
+  const wantPaused = upper === 'PAUSED';
+
+  const attempts = [
+    // Canonical toggle (pause + activate)
+    () => axiosInstance.patch(`${BASE}/${habitId}/pause`),
+    () => axiosInstance.post(`${BASE}/${habitId}/pause`),
+    // Body fallback if /pause cannot flip the other way
+    () =>
+      axiosInstance.patch(`${BASE}/${habitId}`, {
+        status: upper,
+        isActive: wantActive,
+      }),
+    ...(wantActive
+      ? [
+          () => axiosInstance.patch(`${BASE}/${habitId}/unpause`),
+          () => axiosInstance.post(`${BASE}/${habitId}/unpause`),
+        ]
+      : []),
+  ];
+
+  let lastError;
+  for (const attempt of attempts) {
+    try {
+      const response = await attempt();
+      const data = unwrapData(response);
+      const { status: next, isActive } = readHabitStatus(data);
+
+      if (wantActive) {
+        const ok = next === 'ACTIVE' || isActive === true || (!next && isActive !== false);
+        if (!ok) {
+          lastError = new Error('Habit still paused');
+          continue;
+        }
+      }
+      if (wantPaused) {
+        const ok = next === 'PAUSED' || isActive === false;
+        // Empty response after /pause — trust success (pause already worked in UI)
+        if (!ok && next) {
+          lastError = new Error('Habit still active');
+          continue;
+        }
+      }
+      return data;
+    } catch (error) {
+      lastError = error;
+      if (isRouteMissing(error)) continue;
+      throw error;
+    }
   }
-  if (upper === 'ACTIVE') {
-    const response = await axiosInstance.patch(`${BASE}/${habitId}/activate`);
-    return unwrapData(response);
-  }
-  const response = await axiosInstance.patch(`${BASE}/${habitId}`, { status: upper });
-  return unwrapData(response);
+
+  throw lastError || new Error('Failed to update habit status');
 }
 
 /**

@@ -611,8 +611,7 @@ Response envelope:
 | Complete today | `POST /api/v1/habits/:id/complete` | Today day-cell click (empty → checked) | **FULFILLED** |
 | Undo today | `DELETE /api/v1/habits/:id/complete` | Today day-cell click (checked → empty) | **FULFILLED** |
 | Skip habit | `POST /api/v1/habits/:id/skip` | Goals detail linked habit (existing) | **FULFILLED** |
-| Pause | `PATCH /api/v1/habits/:id/pause` | Row ⋯ → Pause | **PARTIAL** — path inferred from Goals Postman pattern (user listed PATCH toggle without path) |
-| Activate | `PATCH /api/v1/habits/:id/activate` | Row ⋯ → Activate | **PARTIAL** — same |
+| Pause / Activate | `PATCH /api/v1/habits/:id/pause` | Row ⋯ → Pause / Activate | **FULFILLED** — single toggle (no `/activate` route; that 404s). Fallback: `PATCH /habits/:id` `{ status, isActive }` |
 | Mark status completed | `PATCH /api/v1/habits/:id/complete-status` | Row ⋯ → Complete | **FULFILLED** |
 | History | `GET /api/v1/habits/:id/history?days=30` | API ready (not on board UI yet) | **FULFILLED** |
 | Delete | `DELETE /api/v1/habits/:id` | Row ⋯ → Delete | **FULFILLED** |
@@ -661,6 +660,4 @@ Client-only: Streak, Days Left, Schedule Custom.
 | 2 | New Habit → Manual → Create | `POST /habits` then list refresh |
 | 3 | New Habit → AI → Generate → Add to Board | `POST /habits/ai/generate`; Add refreshes only |
 | 4 | Click today's day cell | `POST .../complete` or `DELETE .../complete` |
-| 5 | ⋯ Edit / Pause / Complete / Delete / Improve | Matching PATCH/DELETE/POST improve |
-
-Confirm pause/activate paths in Postman if board pause returns 404.
+| 5 | ⋯ Edit / Pause / Activate / Complete / Delete / Improve | Pause+Activate both `PATCH .../pause` (toggle). Do **not** call `/activate` |
