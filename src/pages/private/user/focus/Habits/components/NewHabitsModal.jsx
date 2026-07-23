@@ -1,8 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
-import { X, Clock, Sparkles, Bell, Flag, Hourglass } from 'lucide-react';
+import { useDispatch } from 'react-redux';
+import { X, Clock, Sparkles } from 'lucide-react';
 import HabitRow from './HabitRow';
 import TypewriterPlaceholder from '../../../../../../components/ui/TypewriterPlaceholder';
 import { useAiGenerationReveal } from '../../../../../../hooks/useAiGenerationReveal';
+import { generateHabit } from '../../../../../../features/habits/habitsSlice';
+import {
+  reminderTimeFromApi,
+  targetDaysFromApi,
+} from '../../../../../../features/habits/habitsMappers';
+import { fetchGoalsApi } from '../../../../../../features/goals/goalsAPI';
 
 const CATEGORIES = [
   'Career',
@@ -14,7 +21,6 @@ const CATEGORIES = [
   'Personal',
   'Education',
 ];
-const LINKED_GOALS = ['Improve Rate', 'New Job', 'Save $10,000', 'Run 500km'];
 const HOURS = Array.from({ length: 12 }, (_, i) => i + 1);
 const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
 const PERIODS = ['AM', 'PM'];
@@ -32,13 +38,26 @@ const EMPTY_FORM = {
   category: 'Career',
   hour: 8,
   minute: '00',
-  period: 'PM',
-  targetDays: ['Tue', 'Thu'],
-  linkedGoal: 'Improve Rate',
+  period: 'AM',
+  targetDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+  linkedGoal: '__none__',
   description: '',
+  difficulty: 'MEDIUM',
 };
 
 const TIME_TAG_RE = /^(\d{1,2}):(\d{2})\s*(AM|PM)$/i;
+
+function parseReminderParts(reminderTime) {
+  const label = reminderTimeFromApi(reminderTime) || reminderTime;
+  if (!label) return { hour: 8, minute: '00', period: 'AM' };
+  const match = String(label).match(TIME_TAG_RE);
+  if (!match) return { hour: 8, minute: '00', period: 'AM' };
+  return {
+    hour: Number(match[1]),
+    minute: match[2],
+    period: match[3].toUpperCase(),
+  };
+}
 
 function formFromHabit(habit) {
   if (!habit) return EMPTY_FORM;
@@ -46,15 +65,12 @@ function formFromHabit(habit) {
   const tags = Array.isArray(habit.tags) ? habit.tags : [];
   const categoryTag = tags.find((t) => CATEGORIES.includes(t.label));
   const timeTag = tags.find((t) => TIME_TAG_RE.test(t.label || ''));
-  const goalTag =
-    tags.find((t) => t.icon === Flag && LINKED_GOALS.includes(t.label)) ||
-    tags.find((t) => t.icon === Flag) ||
-    tags.find((t) => LINKED_GOALS.includes(t.label));
+  const fromApi = habit.reminderTime ? parseReminderParts(habit.reminderTime) : null;
 
-  let hour = 8;
-  let minute = '00';
-  let period = 'PM';
-  if (timeTag) {
+  let hour = fromApi?.hour ?? 8;
+  let minute = fromApi?.minute ?? '00';
+  let period = fromApi?.period ?? 'AM';
+  if (!fromApi && timeTag) {
     const match = timeTag.label.match(TIME_TAG_RE);
     if (match) {
       hour = Number(match[1]);
@@ -63,8 +79,9 @@ function formFromHabit(habit) {
     }
   }
 
-  const targetDays =
-    Array.isArray(habit.days) && habit.days.length === 7
+  const targetDays = Array.isArray(habit.targetDays) && habit.targetDays.length
+    ? targetDaysFromApi(habit.targetDays)
+    : Array.isArray(habit.days) && habit.days.length === 7
       ? TARGET_DAYS.filter((_, i) => habit.days[i] !== 'unscheduled')
       : [...EMPTY_FORM.targetDays];
 
@@ -75,77 +92,9 @@ function formFromHabit(habit) {
     minute,
     period,
     targetDays: targetDays.length ? targetDays : [...EMPTY_FORM.targetDays],
-    linkedGoal: goalTag?.label || EMPTY_FORM.linkedGoal,
+    linkedGoal: habit.goalId || '__none__',
     description: habit.description || '',
-  };
-}
-
-function mockGenerateHabit(prompt) {
-  const lower = prompt.toLowerCase();
-  if (lower.includes('water') || lower.includes('hydrat')) {
-    return {
-      title: 'Drink Water',
-      description: 'Stay hydrated throughout the day',
-      category: 'Health',
-      tags: [
-        { label: 'Health' },
-        { label: 'New Job', icon: Flag },
-        { label: '12 days left', icon: Hourglass },
-        { label: '6:30 PM', icon: Bell },
-      ],
-    };
-  }
-  if (lower.includes('meditat') || lower.includes('mindful')) {
-    return {
-      title: 'Meditate',
-      description: 'Practice mindfulness for mental clarity',
-      category: 'Wellness',
-      tags: [
-        { label: 'Wellness' },
-        { label: 'New Goal', icon: Flag },
-        { label: '12 days left', icon: Hourglass },
-        { label: '7:00 AM', icon: Bell },
-      ],
-    };
-  }
-  if (lower.includes('read')) {
-    return {
-      title: 'Read Before Bed',
-      description: 'Wind down with a few pages each night',
-      category: 'Personal',
-      tags: [
-        { label: 'Personal' },
-        { label: 'New Goal', icon: Flag },
-        { label: '12 days left', icon: Hourglass },
-        { label: '9:30 PM', icon: Bell },
-      ],
-    };
-  }
-  if (lower.includes('linkedin') || lower.includes('portfolio') || lower.includes('career')) {
-    return {
-      title: 'Update LinkedIn Profile',
-      description: 'Refresh headline, summary, and recent projects',
-      category: 'Career',
-      tags: [
-        { label: 'Career' },
-        { label: 'New Job', icon: Flag },
-        { label: '12 days left', icon: Hourglass },
-        { label: '8:00 PM', icon: Bell },
-      ],
-    };
-  }
-  // Default — the canonical Figma example, so an unmatched prompt still renders the
-  // exact reference row instead of a sparser one.
-  return {
-    title: 'Drink Water',
-    description: 'Stay hydrated throughout the day',
-    category: 'Health',
-    tags: [
-      { label: 'Health' },
-      { label: 'New Job', icon: Flag },
-      { label: '12 days left', icon: Hourglass },
-      { label: '6:30 PM', icon: Bell },
-    ],
+    difficulty: habit.difficulty || 'MEDIUM',
   };
 }
 
@@ -266,7 +215,7 @@ function TabToggle({ activeTab, onChange, disabled }) {
   );
 }
 
-function ManualFormFields({ form, update }) {
+function ManualFormFields({ form, update, goalOptions }) {
   const toggleDay = (day) => {
     update(
       'targetDays',
@@ -340,12 +289,12 @@ function ManualFormFields({ form, update }) {
           onChange={(e) => update('linkedGoal', e.target.value)}
           className={inputClasses}
         >
-          {LINKED_GOALS.map((g, i) => (
-            <option key={g} value={g}>
-              {i === 0 ? `✦ ${g} (AI recommended)` : g}
+          <option value="__none__">No linked goal</option>
+          {goalOptions.map((g) => (
+            <option key={g.id} value={g.id}>
+              {g.title}
             </option>
           ))}
-          <option value="__create_new__">+ Create new goal</option>
         </select>
       </Field>
 
@@ -369,16 +318,45 @@ export default function NewHabitsModal({
   mode = 'create',
   initialHabit = null,
 }) {
+  const dispatch = useDispatch();
   const isEdit = mode === 'edit';
   const [activeTab, setActiveTab] = useState(isEdit ? 'manual' : 'ai');
   const [aiPhase, setAiPhase] = useState('input');
   const [aiPrompt, setAiPrompt] = useState('');
   const [changeRequest, setChangeRequest] = useState('');
   const [generatedHabit, setGeneratedHabit] = useState(null);
+  const [goalOptions, setGoalOptions] = useState([]);
   const { isRevealing, startReveal } = useAiGenerationReveal();
   const [form, setForm] = useState(() =>
     isEdit && initialHabit ? formFromHabit(initialHabit) : EMPTY_FORM,
   );
+
+  useEffect(() => {
+    if (!open) return undefined;
+    let cancelled = false;
+    (async () => {
+      try {
+        const envelope = await fetchGoalsApi({ page: 1, limit: 50, status: 'ACTIVE' });
+        const list = Array.isArray(envelope?.data)
+          ? envelope.data
+          : Array.isArray(envelope?.goals)
+            ? envelope.goals
+            : [];
+        if (!cancelled) {
+          setGoalOptions(
+            list
+              .filter((g) => g?.id)
+              .map((g) => ({ id: g.id, title: g.title || 'Untitled goal' }))
+          );
+        }
+      } catch {
+        if (!cancelled) setGoalOptions([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [open]);
 
   if (!open) return null;
 
@@ -387,9 +365,21 @@ export default function NewHabitsModal({
   const runAiGeneration = async (prompt) => {
     setAiPhase('generating');
     setChangeRequest('');
-    await startReveal();
-    setGeneratedHabit(mockGenerateHabit(prompt));
-    setAiPhase('preview');
+    const revealPromise = startReveal();
+    const result = await dispatch(
+      generateHabit({
+        prompt,
+        category: form.category || 'Career',
+        goalId: form.linkedGoal !== '__none__' ? form.linkedGoal : undefined,
+      })
+    );
+    await revealPromise;
+    if (generateHabit.fulfilled.match(result)) {
+      setGeneratedHabit(result.payload);
+      setAiPhase('preview');
+      return;
+    }
+    setAiPhase('input');
   };
 
   const handleGenerate = () => {
@@ -399,7 +389,7 @@ export default function NewHabitsModal({
 
   const handleRegenerate = () => {
     if (isRevealing) return;
-    runAiGeneration(`${aiPrompt}${Date.now()}`);
+    runAiGeneration(aiPrompt);
   };
 
   const handleUpdatePreview = () => {
@@ -428,15 +418,9 @@ export default function NewHabitsModal({
           minute: form.minute,
           period: form.period,
           difficulty: form.difficulty || 'MEDIUM',
-          // MVP: one reminder time (12h) + target days for schedule — no multi-time / times-per-day.
-          tags: [
-            { label: form.category },
-            { label: `${form.hour}:${form.minute} ${form.period}`, icon: Bell },
-            ...(form.linkedGoal && form.linkedGoal !== '__create_new__'
-              ? [{ label: form.linkedGoal, icon: Flag }]
-              : []),
-          ],
           targetDays: form.targetDays,
+          linkedGoal: form.linkedGoal,
+          goalId: form.linkedGoal !== '__none__' ? form.linkedGoal : undefined,
           source: 'manual',
         }),
       );
@@ -448,7 +432,7 @@ export default function NewHabitsModal({
 
   const handleAddGeneratedToBoard = () => {
     if (!generatedHabit) return;
-    onSave({ ...generatedHabit, source: 'ai' });
+    onSave({ ...generatedHabit, alreadyPersisted: true, source: 'ai' });
     handleClose();
   };
 
@@ -463,22 +447,25 @@ export default function NewHabitsModal({
   const showAiPreview = !isEdit && activeTab === 'ai' && aiPhase === 'preview';
   const showAiGenerating = !isEdit && activeTab === 'ai' && aiPhase === 'generating';
 
-  // State 3 (AI result preview) widens to fit the real board-row preview; states 1/2 stay compact.
   const modalWidthClass = showAiPreview ? 'max-w-[920px]' : 'max-w-[450px]';
 
-  // Mon, Tue, Wed, Fri, Sun visible; Thu, Sat hidden — matches the actual Figma render for
-  // this preview row exactly (confirmed via get_screenshot; get_metadata's layout geometry
-  // alone doesn't reveal that those two cells are set invisible in the design).
   const PREVIEW_SCHEDULE = ['empty', 'empty', 'empty', 'unscheduled', 'empty', 'unscheduled', 'empty'];
 
   const previewHabit = generatedHabit && {
-    id: 'preview',
+    id: generatedHabit.id || 'preview',
     title: generatedHabit.title,
     description: generatedHabit.description,
-    tags: generatedHabit.tags,
+    tags: generatedHabit.tags?.length
+      ? generatedHabit.tags
+      : [
+          { label: generatedHabit.category || 'Career' },
+          ...(generatedHabit.reminderTime
+            ? [{ label: reminderTimeFromApi(generatedHabit.reminderTime), iconKey: 'bell' }]
+            : []),
+        ],
     status: 'active',
-    streak: 0,
-    days: PREVIEW_SCHEDULE,
+    streak: generatedHabit.streak || 0,
+    days: generatedHabit.days?.length === 7 ? generatedHabit.days : PREVIEW_SCHEDULE,
   };
 
   return (
@@ -503,7 +490,7 @@ export default function NewHabitsModal({
           )}
 
           {isEdit || activeTab === 'manual' ? (
-            <ManualFormFields form={form} update={update} />
+            <ManualFormFields form={form} update={update} goalOptions={goalOptions} />
           ) : showAiGenerating ? (
             <div className="flex flex-col gap-2">
               <div className="h-5 w-1/2 animate-pulse rounded-md bg-[#f2f2f2] dark:bg-zinc-700" />

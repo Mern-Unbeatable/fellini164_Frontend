@@ -1,4 +1,5 @@
-import { useRef, useState, useEffect, useMemo } from 'react';
+import { useRef, useState, useEffect, useMemo, useLayoutEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useParams, Navigate, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -363,11 +364,14 @@ function HabitDayCell({ state, todayProgress, onToggle }) {
   );
 }
 
-function HabitRowMenu({ onEdit, onSkip, onDelete, onClose }) {
+function HabitRowMenu({ onEdit, onSkip, onDelete, onClose, style }) {
   const itemBase =
     'flex w-full items-center gap-1.5 px-2.5 py-1.5 text-left text-[12px] font-medium whitespace-nowrap hover:bg-[#fcfcfc] dark:hover:bg-zinc-700';
   return (
-    <div className="flex w-max flex-col overflow-hidden rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
+    <div
+      style={style}
+      className="fixed z-[100] flex w-max flex-col overflow-hidden rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800"
+    >
       <button
         type="button"
         onClick={() => {
@@ -475,12 +479,14 @@ function SkipHabitModal({ habitTitle, reason, onChangeReason, onClose, onConfirm
 function PageHabitRow({ habit, onEdit, onSkip, onDelete }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [menuPos, setMenuPos] = useState(null);
   const initialDays =
     Array.isArray(habit.days) && habit.days.length === 7
       ? habit.days
       : Array(7).fill('empty');
   const [days, setDays] = useState(initialDays);
   const cardRef = useRef(null);
+  const menuBtnRef = useRef(null);
 
   useEffect(() => {
     setDays(
@@ -490,13 +496,41 @@ function PageHabitRow({ habit, onEdit, onSkip, onDelete }) {
     );
   }, [habit]);
 
+  useLayoutEffect(() => {
+    if (!menuOpen || !menuBtnRef.current) {
+      setMenuPos(null);
+      return undefined;
+    }
+    const updatePos = () => {
+      const rect = menuBtnRef.current.getBoundingClientRect();
+      setMenuPos({
+        top: rect.bottom + 4,
+        left: rect.right,
+      });
+    };
+    updatePos();
+    window.addEventListener('scroll', updatePos, true);
+    window.addEventListener('resize', updatePos);
+    return () => {
+      window.removeEventListener('scroll', updatePos, true);
+      window.removeEventListener('resize', updatePos);
+    };
+  }, [menuOpen]);
+
   useEffect(() => {
+    if (!menuOpen) return undefined;
     const handleClickOutside = (e) => {
-      if (cardRef.current && !cardRef.current.contains(e.target)) setMenuOpen(false);
+      if (
+        cardRef.current?.contains(e.target) ||
+        e.target.closest?.('[data-habit-row-menu]')
+      ) {
+        return;
+      }
+      setMenuOpen(false);
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [menuOpen]);
 
   // Match Habits board: fractional habits stay on today (1/2, 2/3); others empty ↔ checked.
   const handleToggleDay = (dayIndex) => {
@@ -594,26 +628,37 @@ function PageHabitRow({ habit, onEdit, onSkip, onDelete }) {
         </div>
       </div>
       {(isHovered || menuOpen) && (
-        <button
-          type="button"
-          onClick={() => setMenuOpen((o) => !o)}
-          aria-label="Habit options"
-          aria-expanded={menuOpen}
-          className={`absolute right-3 top-3 z-20 rounded-md p-1 text-[#a3a3a3] ${menuOpen ? 'bg-[#f2f2f2]' : 'hover:bg-[#f2f2f2]'}`}
-        >
-          <MoreHorizontal size={14} />
-        </button>
-      )}
-      {menuOpen && (
-        <div className="absolute right-3 top-9 z-50">
-          <HabitRowMenu
-            onClose={() => setMenuOpen(false)}
-            onEdit={() => onEdit?.(habit)}
-            onSkip={() => onSkip?.(habit)}
-            onDelete={() => onDelete?.(habit)}
-          />
+        <div className="absolute right-3 top-3 z-20">
+          <button
+            ref={menuBtnRef}
+            type="button"
+            onClick={() => setMenuOpen((o) => !o)}
+            aria-label="Habit options"
+            aria-expanded={menuOpen}
+            className={`rounded-md p-1 text-[#a3a3a3] ${menuOpen ? 'bg-[#f2f2f2]' : 'hover:bg-[#f2f2f2]'}`}
+          >
+            <MoreHorizontal size={14} />
+          </button>
         </div>
       )}
+      {menuOpen &&
+        menuPos &&
+        createPortal(
+          <div data-habit-row-menu>
+            <HabitRowMenu
+              style={{
+                top: menuPos.top,
+                left: menuPos.left,
+                transform: 'translateX(-100%)',
+              }}
+              onClose={() => setMenuOpen(false)}
+              onEdit={() => onEdit?.(habit)}
+              onSkip={() => onSkip?.(habit)}
+              onDelete={() => onDelete?.(habit)}
+            />
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

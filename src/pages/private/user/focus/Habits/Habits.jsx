@@ -4,11 +4,10 @@ import {
   Sparkles,
   RotateCw,
   Flame,
-  Bell,
-  Flag,
-  Hourglass,
+  X,
 } from 'lucide-react';
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import NewHabitsModal from './components/NewHabitsModal';
 import HabitRow from './components/HabitRow';
 import GhostHabitRow from './components/GhostHabitRow';
@@ -16,9 +15,28 @@ import {
   FILTER_CONFIG,
   DEFAULT_FILTERS,
   FilterDropdown,
-  habitMatchesFilters,
 } from './components/HabitFilters';
 import TypewriterText from '../../../../../components/ui/TypewriterText';
+import {
+  completeHabitToday,
+  createHabit,
+  deleteHabit,
+  fetchHabits,
+  fetchHabitsStatsOverview,
+  fetchHabitsSummary,
+  improveHabit,
+  markHabitCompleted,
+  selectHabits,
+  selectHabitsBoardStats,
+  selectHabitsLoading,
+  undoHabitCompletion,
+  updateHabit,
+  updateHabitStatus,
+} from '../../../../../features/habits/habitsSlice';
+import {
+  getTodayIndex,
+  habitMatchesClientFilters,
+} from '../../../../../features/habits/habitsMappers';
 
 const HABITS_SUBTITLE_PHRASES = [
   'Build daily habits and keep your streaks alive...',
@@ -27,304 +45,280 @@ const HABITS_SUBTITLE_PHRASES = [
 ];
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-// Figma Habits Board (1440) frames are locked to Wed (May 13, 2026) — not the live calendar.
-// Sample day cells also use index 2 as `today`. Mon=0 ... Sun=6.
-const TODAY_INDEX = 2;
+const TODAY_INDEX = getTodayIndex();
 
 // AI-suggested ghost habits — shown only when the board has no real habits yet.
-// scheduledDays follows DAYS order (Mon..Sun); unscheduled days render as invisible
-// spacers (opacity-0) so Mon–Sun columns stay aligned. Figma empty frame 1243:7175:
-// Drink Water hides Thu/Sat; Take Breaks shows all 7; Meditate hides Tue/Thu/Sun.
 const GHOST_HABITS = [
   {
     id: 'ghost-1',
     title: 'Drink Water',
     description: 'Stay hydrated throughout the day',
-    // Figma empty 1243:7175 — only category + single reminder time (no overflow +N on ghosts)
-    tags: [{ label: 'Health' }, { label: '7:00 AM', icon: Bell }],
+    tags: [{ label: 'Health' }, { label: '7:00 AM', iconKey: 'bell' }],
     scheduledDays: [true, true, true, false, true, false, true],
+    category: 'Health',
   },
   {
     id: 'ghost-2',
     title: 'Take Breaks',
     description: 'Step away from your screen regularly',
-    tags: [{ label: 'Productivity' }, { label: '6:30 PM', icon: Bell }, { label: 'New Job', icon: Flag }],
+    tags: [
+      { label: 'Productivity' },
+      { label: '6:30 PM', iconKey: 'bell' },
+      { label: 'New Job', iconKey: 'flag' },
+    ],
     scheduledDays: [true, true, true, true, true, true, true],
+    category: 'Productivity',
   },
   {
     id: 'ghost-3',
     title: 'Meditate',
     description: 'Practice mindfulness for mental clarity',
-    tags: [{ label: 'Wellness' }, { label: '12 days left', icon: Hourglass }],
+    tags: [{ label: 'Wellness' }, { label: '12 days left', iconKey: 'hourglass' }],
     scheduledDays: [true, false, true, false, true, true, false],
+    category: 'Wellness',
   },
 ];
 
-// Step 2 — populated board sample data (Figma node 1234-11897).
-// Unscheduled days = opacity-0 spacers. todayProgress = Figma partial Wed cell (1/2, 2/3).
-const REAL_HABITS = [
-  {
-    id: 'habit-1',
-    title: 'Drink Water',
-    description: 'Stay hydrated throughout the day',
-    tags: [
-      { label: 'Health' },
-      { label: '7:00 AM', icon: Bell },
-      { label: 'New Job', icon: Flag },
-      { label: 'Improve Rate', icon: Flag },
-      { label: '12 days left', icon: Hourglass },
-    ],
-    status: 'active',
-    streak: 4,
-    todayProgress: [1, 2],
-    // Mon empty, Tue checked, Wed 1/2, Thu/Sat hidden, Fri/Sun empty
-    days: ['empty', 'checked', 'today', 'unscheduled', 'empty', 'unscheduled', 'empty'],
-  },
-  {
-    id: 'habit-2',
-    title: 'Take Breaks',
-    description: 'Step away from your screen regularly',
-    tags: [{ label: 'Productivity' }, { label: '6:30 PM', icon: Bell }, { label: 'New Job', icon: Flag }],
-    status: 'active',
-    streak: 7,
-    days: ['checked', 'checked', 'checked', 'empty', 'empty', 'empty', 'empty'],
-  },
-  {
-    id: 'habit-3',
-    title: 'Meditate',
-    description: 'Practice mindfulness for mental clarity',
-    tags: [{ label: 'Wellness' }, { label: '12 days left', icon: Hourglass }],
-    status: 'paused',
-    streak: 3,
-    // Figma: Tue/Thu/Sun hidden; Mon+Wed checked (dimmed); Fri/Sat empty dimmed
-    days: ['checked', 'unscheduled', 'checked', 'unscheduled', 'empty', 'empty', 'unscheduled'],
-  },
-  {
-    id: 'habit-4',
-    title: 'Exercise',
-    description: 'Engage in physical activity',
-    tags: [{ label: 'Fitness' }, { label: '7:00 AM', icon: Bell }, { label: 'New Job', icon: Flag }],
-    status: 'active',
-    streak: 0,
-    todayProgress: [2, 3],
-    // Mon empty, Tue/Thu/Sat hidden, Wed 2/3, Fri/Sun empty
-    days: ['empty', 'unscheduled', 'today', 'unscheduled', 'empty', 'unscheduled', 'empty'],
-  },
-  {
-    id: 'habit-5',
-    title: 'Drink Water',
-    description: 'Stay hydrated throughout the day',
-    tags: [{ label: 'Health' }, { label: 'Improve Rate', icon: Sparkles }],
-    status: 'completed',
-    streak: 21,
-    days: Array(7).fill('checked'),
-  },
-  {
-    id: 'habit-6',
-    title: 'Drink Water',
-    description: 'Stay hydrated throughout the day',
-    tags: [
-      { label: 'Health' },
-      { label: '7:00 AM', icon: Bell },
-      { label: 'New Job', icon: Flag },
-      { label: 'Improve Rate', icon: Flag },
-      { label: '12 days left', icon: Hourglass },
-    ],
-    status: 'active',
-    streak: 4,
-    todayProgress: [1, 2],
-    days: ['empty', 'checked', 'today', 'unscheduled', 'empty', 'unscheduled', 'empty'],
-  },
-];
-
-// Dev: `/user/habits?empty=1` forces Step 1 empty/ghost board (same pattern as Tasks).
-function resolveInitialHabits() {
-  if (import.meta.env.DEV && new URLSearchParams(window.location.search).get('empty') === '1') {
-    return [];
-  }
-  return REAL_HABITS;
+function resolveForceEmptyBoard() {
+  return import.meta.env.DEV && new URLSearchParams(window.location.search).get('empty') === '1';
 }
-
-// FILTER_CONFIG and DEFAULT_FILTERS imported from HabitFilters
-
-// GhostHabitMenu and GhostHabitRow component definition removed (refactored to components/GhostHabitRow.jsx)
 
 function habitMatchesSearch(habit, query) {
   const q = query.trim().toLowerCase();
   if (!q) return true;
-  const haystack = [habit.title, habit.description, ...habit.tags.map((t) => t.label)]
+  const haystack = [
+    habit.title,
+    habit.description,
+    ...(habit.tags || []).map((t) => t.label),
+  ]
     .join(' ')
     .toLowerCase();
   return haystack.includes(q);
 }
 
+function ImproveHabitModal({ open, habit, onClose, onSubmit, submitting }) {
+  const [instructions, setInstructions] = useState('');
+
+  if (!open || !habit) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="flex w-full max-w-[450px] flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-900">
+        <div className="flex items-center justify-between border-b border-[#f2f2f2] px-3 py-2.5 dark:border-zinc-700">
+          <p className="text-[12px] font-medium text-[#5d5d5d] dark:text-gray-300">Improve habit</p>
+          <button type="button" onClick={onClose} className="text-[#5d5d5d] dark:text-gray-300">
+            <X size={14} />
+          </button>
+        </div>
+        <div className="flex flex-col gap-4 p-3">
+          <p className="text-[12px] font-medium text-[#181818] dark:text-white">{habit.title}</p>
+          <textarea
+            rows={4}
+            value={instructions}
+            onChange={(e) => setInstructions(e.target.value)}
+            placeholder="e.g. Make it easier to follow every weekday morning"
+            className="w-full resize-none rounded-xl border border-[#f2f2f2] bg-white px-3 py-2 text-[12px] text-[#181818] outline-none focus:border-[#8022fe] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
+          />
+          <div className="flex gap-2.5">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex flex-1 items-center justify-center rounded-lg bg-[#f2f2f2] px-3 py-2 text-[12px] font-medium text-[#5d5d5d] dark:bg-zinc-700 dark:text-gray-300"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              disabled={!instructions.trim() || submitting}
+              onClick={() => onSubmit(instructions.trim())}
+              className={`flex flex-1 items-center justify-center rounded-lg px-3 py-2 text-[12px] font-semibold ${
+                instructions.trim() && !submitting
+                  ? 'bg-[#8022fe] text-white'
+                  : 'cursor-not-allowed bg-[#f1f1f1] text-[#dedede]'
+              }`}
+            >
+              {submitting ? 'Improving...' : 'Improve'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Habits() {
+  const dispatch = useDispatch();
+  const habits = useSelector(selectHabits);
+  const boardStats = useSelector(selectHabitsBoardStats);
+  const loadingList = useSelector(selectHabitsLoading);
+
   const [habitModal, setHabitModal] = useState({
     open: false,
     mode: 'create',
     habit: null,
   });
+  const [improveModal, setImproveModal] = useState({ open: false, habit: null });
+  const [improveSubmitting, setImproveSubmitting] = useState(false);
   const [ghostHabits, setGhostHabits] = useState(GHOST_HABITS);
-  const [habits, setHabits] = useState(resolveInitialHabits);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilters, setActiveFilters] = useState(DEFAULT_FILTERS);
 
+  const forceEmpty = resolveForceEmptyBoard();
+
+  const loadHabits = useCallback(() => {
+    if (forceEmpty) return Promise.resolve();
+    return dispatch(
+      fetchHabits({
+        filters: activeFilters,
+        search: searchQuery,
+        page: 1,
+        limit: 50,
+      })
+    );
+  }, [dispatch, activeFilters, searchQuery, forceEmpty]);
+
+  useEffect(() => {
+    if (forceEmpty) return undefined;
+    const delay = searchQuery.trim() ? 300 : 0;
+    const timer = setTimeout(() => {
+      loadHabits();
+      dispatch(fetchHabitsSummary());
+      dispatch(fetchHabitsStatsOverview());
+    }, delay);
+    return () => clearTimeout(timer);
+  }, [loadHabits, searchQuery, dispatch, forceEmpty]);
+
   const updateFilter = (key, value) => setActiveFilters((prev) => ({ ...prev, [key]: value }));
 
-  const handleOpenModal = () =>
-    setHabitModal({ open: true, mode: 'create', habit: null });
-  const handleCloseModal = () =>
-    setHabitModal({ open: false, mode: 'create', habit: null });
-  const handleSaveHabit = (data) => {
-    if (habitModal.mode === 'edit' && habitModal.habit) {
-      setHabits((prev) =>
-        prev.map((h) => {
-          if (h.id !== habitModal.habit.id) return h;
+  const handleOpenModal = () => setHabitModal({ open: true, mode: 'create', habit: null });
+  const handleCloseModal = () => setHabitModal({ open: false, mode: 'create', habit: null });
 
-          const nextDays =
-            Array.isArray(data.targetDays) && data.targetDays.length > 0
-              ? DAYS.map((day) => (data.targetDays.includes(day) ? 'empty' : 'unscheduled'))
-              : h.days;
-          const mergedDays = nextDays.map((state, i) => {
-            if (state === 'unscheduled') return 'unscheduled';
-            if (h.days?.[i] === 'checked' || h.days?.[i] === 'today') return h.days[i];
-            return state;
-          });
-
-          return {
-            ...h,
-            title: data.title,
-            description: data.description,
-            tags: data.tags,
-            days: mergedDays,
-            todayProgress:
-              mergedDays[TODAY_INDEX] === 'today' ? h.todayProgress : undefined,
-          };
-        }),
-      );
+  const handleSaveHabit = async (data) => {
+    if (!data?.title && !data?.alreadyPersisted) return;
+    if (data.alreadyPersisted) {
+      await loadHabits();
+      await dispatch(fetchHabitsSummary());
       return;
     }
-
-    const days = Array(7).fill('empty');
-    // Manual target days (if provided) mark unscheduled slots; default all empty/scheduled.
-    if (Array.isArray(data.targetDays) && data.targetDays.length > 0) {
-      for (let i = 0; i < 7; i++) {
-        if (!data.targetDays.includes(DAYS[i])) days[i] = 'unscheduled';
-      }
+    if (habitModal.mode === 'edit' && habitModal.habit?.id) {
+      await dispatch(updateHabit({ habitId: habitModal.habit.id, formData: data }));
+    } else {
+      await dispatch(createHabit(data));
     }
-    setHabits((prev) => [
-      {
-        id: `habit-${Date.now()}`,
-        title: data.title,
-        description: data.description,
-        tags: data.tags,
-        status: 'active',
-        streak: 0,
-        days,
-      },
-      ...prev,
-    ]);
+    await loadHabits();
+    await dispatch(fetchHabitsSummary());
   };
 
-  const handleAcceptGhost = (ghost) => {
-    const days = ghost.scheduledDays.map((scheduled) => (scheduled ? 'empty' : 'unscheduled'));
-    setGhostHabits((prev) => prev.filter((h) => h.id !== ghost.id));
-    setHabits((prev) => [
-      {
-        id: `habit-${Date.now()}`,
+  const handleAcceptGhost = async (ghost) => {
+    await dispatch(
+      createHabit({
         title: ghost.title,
         description: ghost.description,
-        tags: ghost.tags,
-        status: 'active',
-        streak: 0,
-        days,
+        category: ghost.category || 'Health',
+        targetDays: DAYS.filter((_, i) => ghost.scheduledDays?.[i]),
+        hour: 8,
+        minute: '00',
+        period: 'AM',
+        difficulty: 'MEDIUM',
         source: 'ai',
-      },
-      ...prev,
-    ]);
-  };
-
-  const handleToggleDay = (habitId, dayIndex) => {
-    setHabits((prev) =>
-      prev.map((h) => {
-        if (h.id !== habitId || h.status === 'completed' || h.status === 'paused') return h;
-        const current = h.days[dayIndex];
-        if (current === 'unscheduled') return h;
-        const next = [...h.days];
-
-        // Fractional habits (1/2, 2/3): one click collapses empty → partial fill; click again → empty.
-        // Fill ratio comes from habit.todayProgress (the label under the cell).
-        if (h.todayProgress && dayIndex === TODAY_INDEX) {
-          next[dayIndex] = current === 'today' ? 'empty' : 'today';
-          return { ...h, days: next };
-        }
-
-        if (current === 'checked') {
-          next[dayIndex] = dayIndex === TODAY_INDEX ? 'today' : 'empty';
-        } else {
-          // 'empty' | 'today' → checked
-          next[dayIndex] = 'checked';
-        }
-        return { ...h, days: next };
-      }),
+      })
     );
+    setGhostHabits((prev) => prev.filter((h) => h.id !== ghost.id));
+    await loadHabits();
+    await dispatch(fetchHabitsSummary());
   };
 
-  const boardIsEmpty = habits.length === 0;
+  const handleToggleDay = async (habitId, dayIndex) => {
+    if (dayIndex !== TODAY_INDEX) return;
+    const habit = habits.find((h) => h.id === habitId);
+    if (!habit || habit.status === 'completed' || habit.status === 'paused') return;
+    const current = habit.days?.[dayIndex];
+    if (current === 'unscheduled') return;
+
+    if (current === 'checked') {
+      await dispatch(undoHabitCompletion(habitId));
+    } else {
+      await dispatch(completeHabitToday({ habitId }));
+    }
+    await loadHabits();
+    await dispatch(fetchHabitsSummary());
+  };
+
+  const boardHabits = useMemo(() => (forceEmpty ? [] : habits), [forceEmpty, habits]);
+  const boardIsEmpty = boardHabits.length === 0;
 
   const filteredGhostHabits = useMemo(
     () =>
       ghostHabits.filter(
-        (h) => habitMatchesSearch(h, searchQuery) && habitMatchesFilters(h, activeFilters)
+        (h) => habitMatchesSearch(h, searchQuery) && habitMatchesClientFilters(h, activeFilters)
       ),
     [ghostHabits, searchQuery, activeFilters]
   );
 
   const filteredHabits = useMemo(
     () =>
-      habits.filter(
-        (h) => habitMatchesSearch(h, searchQuery) && habitMatchesFilters(h, activeFilters)
+      boardHabits.filter(
+        (h) => habitMatchesSearch(h, searchQuery) && habitMatchesClientFilters(h, activeFilters)
       ),
-    [habits, searchQuery, activeFilters]
+    [boardHabits, searchQuery, activeFilters]
   );
 
-  const activeCount = habits.filter((h) => h.status === 'active').length;
-  const pausedCount = habits.filter((h) => h.status === 'paused').length;
-  const completedCount = habits.filter((h) => h.status === 'completed').length;
+  const activeCount = boardStats.active;
+  const pausedCount = boardStats.paused;
+  const completedCount = boardStats.completed;
 
   const handleDismissGhost = (id) => {
     setGhostHabits((prev) => prev.filter((h) => h.id !== id));
   };
 
   const handleRegenerateGhost = () => {
-    // Visual-only for Step 1 — AI regeneration wired in a later step.
+    // Visual-only until empty-board suggestions API exists
   };
 
   const handleEditHabit = (habit) => {
     setHabitModal({ open: true, mode: 'edit', habit });
   };
 
-  const handleImproveHabit = () => {
-    // AI "Improve habit" action — visual-only for now.
+  const handleImproveHabit = (habit) => {
+    setImproveModal({ open: true, habit });
   };
 
-  const handleCompleteHabit = (habit) => {
-    setHabits((prev) => prev.map((h) => (h.id === habit.id ? { ...h, status: 'completed' } : h)));
+  const handleImproveSubmit = async (instructions) => {
+    if (!improveModal.habit?.id) return;
+    setImproveSubmitting(true);
+    try {
+      const result = await dispatch(
+        improveHabit({ habitId: improveModal.habit.id, instructions })
+      );
+      if (improveHabit.fulfilled.match(result)) {
+        setImproveModal({ open: false, habit: null });
+        await loadHabits();
+      }
+    } finally {
+      setImproveSubmitting(false);
+    }
   };
 
-  const handlePauseHabit = (habit) => {
-    setHabits((prev) =>
-      prev.map((h) => (h.id === habit.id ? { ...h, status: h.status === 'paused' ? 'active' : 'paused' } : h))
-    );
+  const handleCompleteHabit = async (habit) => {
+    await dispatch(markHabitCompleted(habit.id));
+    await loadHabits();
+    await dispatch(fetchHabitsSummary());
   };
 
-  const handleDeleteHabit = (habit) => {
-    setHabits((prev) => prev.filter((h) => h.id !== habit.id));
+  const handlePauseHabit = async (habit) => {
+    const nextStatus = habit.status === 'paused' ? 'active' : 'paused';
+    await dispatch(updateHabitStatus({ habitId: habit.id, status: nextStatus }));
+    await loadHabits();
+    await dispatch(fetchHabitsSummary());
+  };
+
+  const handleDeleteHabit = async (habit) => {
+    await dispatch(deleteHabit(habit.id));
+    await dispatch(fetchHabitsSummary());
   };
 
   return (
     <div className="relative flex min-h-full flex-col py-7.5 max-lg:min-h-0 max-lg:py-4 max-lg:sm:py-6">
-      {/* Header */}
       <div className="mb-5 flex w-full items-start justify-between max-lg:mb-4 max-lg:flex-col max-lg:gap-4">
         <div className="flex flex-col items-start gap-2">
           <p className="text-[20px] font-medium text-[#181818] dark:text-white">Habits Board</p>
@@ -346,9 +340,9 @@ export default function Habits() {
         </label>
       </div>
 
-      {/* Action row */}
       <div className="mb-5 flex w-full items-center justify-between max-lg:mb-4 max-lg:flex-col max-lg:items-stretch max-lg:gap-4">
         <button
+          type="button"
           onClick={handleOpenModal}
           className="flex items-center gap-2 rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] font-semibold text-white max-lg:w-full max-lg:justify-center max-lg:py-2.5 max-lg:text-base"
         >
@@ -369,7 +363,6 @@ export default function Habits() {
         </div>
       </div>
 
-      {/* Board panel */}
       <div className="relative flex min-h-0 w-full flex-1 flex-col gap-2.5 overflow-hidden rounded-2xl border border-[#f2f2f2] bg-white p-3 max-lg:h-auto max-lg:flex-none dark:border-zinc-700 dark:bg-zinc-800">
         <div className="flex items-center max-lg:flex-wrap max-lg:gap-2 lg:px-3.25">
           {boardIsEmpty ? (
@@ -385,7 +378,11 @@ export default function Habits() {
               <RotateCw size={16} className="shrink-0 text-[#c2c2c2]" />
               <p className="text-sm font-medium text-[#5d5d5d] dark:text-gray-300">{activeCount} active</p>
               <span className="rounded-[6px] bg-[#f2f2f2] px-[6px] py-[2px] text-xs font-medium text-[#5d5d5d] dark:bg-zinc-700 dark:text-gray-300">
-                {pausedCount} paused<span className="max-xl:hidden"> <span className="text-[#c2c2c2]">•</span> {completedCount} completed this month</span>
+                {pausedCount} paused
+                <span className="max-xl:hidden">
+                  {' '}
+                  <span className="text-[#c2c2c2]">•</span> {completedCount} completed
+                </span>
               </span>
             </div>
           )}
@@ -410,7 +407,11 @@ export default function Habits() {
         </div>
 
         <div className="scrollbar-hidden relative -mx-3 flex flex-1 flex-col gap-2.5 overflow-y-auto px-3 lg:min-h-0 max-lg:max-h-[min(70vh,560px)]">
-          {boardIsEmpty ? (
+          {loadingList && boardIsEmpty ? (
+            <p className="py-10 text-center text-sm font-medium text-[#c2c2c2] dark:text-gray-500">
+              Loading habits...
+            </p>
+          ) : boardIsEmpty ? (
             filteredGhostHabits.length === 0 ? (
               <p className="py-10 text-center text-sm font-medium text-[#c2c2c2] dark:text-gray-500">
                 No habits to show yet.
@@ -435,6 +436,7 @@ export default function Habits() {
               <HabitRow
                 key={habit.id}
                 habit={habit}
+                todayIndex={TODAY_INDEX}
                 onToggleDay={handleToggleDay}
                 onEdit={handleEditHabit}
                 onImprove={handleImproveHabit}
@@ -462,6 +464,15 @@ export default function Habits() {
         initialHabit={habitModal.habit}
         onClose={handleCloseModal}
         onSave={handleSaveHabit}
+      />
+
+      <ImproveHabitModal
+        key={improveModal.open ? improveModal.habit?.id ?? 'improve' : 'closed'}
+        open={improveModal.open}
+        habit={improveModal.habit}
+        submitting={improveSubmitting}
+        onClose={() => setImproveModal({ open: false, habit: null })}
+        onSubmit={handleImproveSubmit}
       />
     </div>
   );

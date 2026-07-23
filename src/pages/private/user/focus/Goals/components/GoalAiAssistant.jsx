@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Sparkles, X, Maximize2, Minimize2, Send, ListTodo, Pencil, Repeat } from 'lucide-react';
 import { toast } from 'react-toastify';
 import {
@@ -116,7 +116,7 @@ export default function GoalAiAssistant({
   const [busyId, setBusyId] = useState(null);
   const [sessionStamp] = useState(formatSessionStamp);
   const textareaRef = useRef(null);
-  const bottomRef = useRef(null);
+  const scrollRef = useRef(null);
 
   const reloadHistory = useCallback(async () => {
     if (!goalId) {
@@ -147,8 +147,12 @@ export default function GoalAiAssistant({
     el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
   }, [prompt]);
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  // Jump to latest message instantly (no first→last scroll animation on refresh).
+  useLayoutEffect(() => {
+    if (historyLoading) return;
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
   }, [messages, loading, historyLoading]);
 
   const runSuggest = async (action, message) => {
@@ -294,7 +298,10 @@ export default function GoalAiAssistant({
         </div>
       </div>
 
-      <div className="scrollbar-white flex min-h-0 flex-1 flex-col overflow-y-auto py-3 pl-3 pr-4.5">
+      <div
+        ref={scrollRef}
+        className="scrollbar-white flex min-h-0 flex-1 flex-col overflow-y-auto py-3 pl-3 pr-4.5"
+      >
         <p className="mb-2.5 text-center text-[12px] font-medium text-[#c2c2c2]">{sessionStamp}</p>
         <div className="flex flex-col gap-5">
           {historyLoading && <AiBubble>Loading conversation…</AiBubble>}
@@ -342,7 +349,6 @@ export default function GoalAiAssistant({
               </div>
             ))}
           {loading && <AiBubble>Thinking…</AiBubble>}
-          <div ref={bottomRef} />
         </div>
       </div>
 

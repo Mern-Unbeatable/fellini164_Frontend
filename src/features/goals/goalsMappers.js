@@ -264,9 +264,21 @@ export function mapAiGeneratedGoalForPreview(apiGoal) {
   };
 }
 
+/** PATCH /goals/:id body — partial fields only (no create-only keys). */
 export function mapUpdatePayload(formData) {
-  const payload = mapCreatePayload(formData);
-  delete payload.isMainFocus;
+  const payload = {};
+  if (formData.title != null && String(formData.title).trim() !== '') {
+    payload.title = String(formData.title).trim();
+  }
+  if (formData.description != null) payload.description = formData.description;
+  if (formData.category) payload.category = categoryToApi(formData.category);
+  if (formData.priority) payload.priorityLevel = priorityToApi(formData.priority);
+  const targetDate = parseDueToIso(formData.dueDate, formData.due);
+  if (targetDate) payload.targetDate = targetDate;
+  if (formData.status) {
+    const status = statusToApi(formData.status);
+    if (status) payload.status = status;
+  }
   return payload;
 }
 

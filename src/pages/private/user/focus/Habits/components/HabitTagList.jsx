@@ -1,4 +1,17 @@
 import { useState } from 'react';
+import { Bell, Flag, Hourglass } from 'lucide-react';
+
+const ICON_BY_KEY = {
+  bell: Bell,
+  flag: Flag,
+  hourglass: Hourglass,
+};
+
+function TagIcon({ tag }) {
+  const Icon = tag.icon || (tag.iconKey ? ICON_BY_KEY[tag.iconKey] : null);
+  if (!Icon) return null;
+  return <Icon size={12} className="shrink-0" />;
+}
 
 /**
  * Habit card tags with overflow (+N). Extra tags hide behind +N;
@@ -21,7 +34,7 @@ export default function HabitTagList({ tags = [], maxVisible = 2, wrap = false, 
           key={tag.label}
           className="flex shrink-0 items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-xs font-medium whitespace-nowrap text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300"
         >
-          {tag.icon && <tag.icon size={12} className="shrink-0" />}
+          <TagIcon tag={tag} />
           {tag.label}
         </span>
       ))}
@@ -42,7 +55,7 @@ export default function HabitTagList({ tags = [], maxVisible = 2, wrap = false, 
                   key={tag.label}
                   className="flex items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-xs font-medium whitespace-nowrap text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300"
                 >
-                  {tag.icon && <tag.icon size={12} className="shrink-0" />}
+                  <TagIcon tag={tag} />
                   {tag.label}
                 </span>
               ))}

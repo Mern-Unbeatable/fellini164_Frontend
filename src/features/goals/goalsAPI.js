@@ -53,27 +53,13 @@ export async function generateGoalApi(payload) {
   return unwrapData(response);
 }
 
+/**
+ * PATCH /api/v1/goals/:goalId
+ * Body (partial ok): { title, priorityLevel?, status?, targetDate?, description?, category? }
+ */
 export async function updateGoalApi(id, payload) {
-  const url = `${BASE}/${id}`;
-  const attempts = [
-    () => axiosInstance.patch(url, payload),
-    () => axiosInstance.put(url, payload),
-    () => axiosInstance.post(url, payload),
-  ];
-
-  let lastError;
-  for (const attempt of attempts) {
-    try {
-      const response = await attempt();
-      return unwrapData(response);
-    } catch (error) {
-      lastError = error;
-      const status = error?.response?.status;
-      if (status === 404 || status === 405) continue;
-      throw error;
-    }
-  }
-  throw lastError;
+  const response = await axiosInstance.patch(`${BASE}/${id}`, payload);
+  return unwrapData(response);
 }
 
 /** True when backend has no matching route for this method/path. */
@@ -88,30 +74,13 @@ function isRouteMissing(error) {
   );
 }
 
-/** PATCH complete — tries /complete then status COMPLETED */
+/**
+ * POST /api/v1/goals/:goalId/complete
+ * Marks goal completed (same action style as POST /tasks/:id/complete).
+ */
 export async function completeGoalApi(id) {
-  const attempts = [
-    () => axiosInstance.patch(`${BASE}/${id}/complete`),
-    () => axiosInstance.post(`${BASE}/${id}/complete`),
-  ];
-
-  let lastError;
-  for (const attempt of attempts) {
-    try {
-      const response = await attempt();
-      return unwrapData(response);
-    } catch (error) {
-      lastError = error;
-      if (isRouteMissing(error)) continue;
-      throw error;
-    }
-  }
-
-  try {
-    return await updateGoalStatusApi(id, 'COMPLETED');
-  } catch (error) {
-    throw lastError || error;
-  }
+  const response = await axiosInstance.post(`${BASE}/${id}/complete`);
+  return unwrapData(response);
 }
 
 /**
@@ -144,17 +113,13 @@ export async function updateGoalStatusApi(id, status) {
         ]
       : []),
     ...(isCompleted
-      ? [
-          () => axiosInstance.patch(`${BASE}/${id}/complete`),
-          () => axiosInstance.post(`${BASE}/${id}/complete`),
-        ]
+      ? [() => axiosInstance.post(`${BASE}/${id}/complete`)]
       : []),
     // Legacy /status (often 404 Route not found on this backend)
     () => axiosInstance.patch(`${BASE}/${id}/status`, { status: upper }),
     () => axiosInstance.post(`${BASE}/${id}/status`, { status: upper }),
     // Last resort: Update Goal body
     () => axiosInstance.patch(`${BASE}/${id}`, { status: upper }),
-    () => axiosInstance.put(`${BASE}/${id}`, { status: upper }),
   ];
 
   let lastError;
@@ -176,44 +141,22 @@ export async function deleteGoalApi(id) {
   return id;
 }
 
+/**
+ * POST /api/v1/goals/:goalId/link-tasks
+ * Body: { taskIds: [uuid, ...] }
+ */
 export async function linkTasksToGoalApi(goalId, taskIds) {
-  const attempts = [
-    () => axiosInstance.post(`${BASE}/${goalId}/link-tasks`, { taskIds }),
-    () => axiosInstance.post(`${BASE}/${goalId}/tasks`, { taskIds }),
-  ];
-
-  let lastError;
-  for (const attempt of attempts) {
-    try {
-      const response = await attempt();
-      return unwrapData(response);
-    } catch (error) {
-      lastError = error;
-      if (error?.response?.status === 404) continue;
-      throw error;
-    }
-  }
-  throw lastError;
+  const response = await axiosInstance.post(`${BASE}/${goalId}/link-tasks`, { taskIds });
+  return unwrapData(response);
 }
 
+/**
+ * POST /api/v1/goals/:goalId/link-habits
+ * Body: { habitIds: [uuid, ...] }
+ */
 export async function linkHabitsToGoalApi(goalId, habitIds) {
-  const attempts = [
-    () => axiosInstance.post(`${BASE}/${goalId}/link-habits`, { habitIds }),
-    () => axiosInstance.post(`${BASE}/${goalId}/habits`, { habitIds }),
-  ];
-
-  let lastError;
-  for (const attempt of attempts) {
-    try {
-      const response = await attempt();
-      return unwrapData(response);
-    } catch (error) {
-      lastError = error;
-      if (error?.response?.status === 404) continue;
-      throw error;
-    }
-  }
-  throw lastError;
+  const response = await axiosInstance.post(`${BASE}/${goalId}/link-habits`, { habitIds });
+  return unwrapData(response);
 }
 
 /**
