@@ -112,14 +112,15 @@ Confirm all of the following:
 
 **Rule:** After every API wire-up, do **not** mark done until this section is followed against `docs/TestAPIs.md`.
 
-1. **Contract** — Confirm endpoint, method, query/body, and sample response exist in Appendix A (or paste Postman evidence first).
+1. **Contract** — Confirm endpoint, method, query/body, and sample response exist in Appendix A / C (or paste Postman evidence first).
 2. **Code match** — Frontend request must match Postman (path, params, body keys). No invented fields.
 3. **Automated audits** (no auth):
    - `node scripts/audit-goals-list.mjs` — GET `/goals` filters/search
    - `node scripts/audit-link-pickers.mjs` — GET `/tasks` + `/habits` link pickers
+   - `node scripts/audit-habits-board.mjs` — Habits Board create + filter query mapping
 4. **QA §6 / Final §7** — Tick what was verified; leave unchecked if only Network QA remains.
-5. **Update Appendix A** — Set row to **FULFILLED** / **PARTIAL** / **DEFERRED** with date + evidence notes.
-6. **Logged-in Network** — Run Appendix B smoke steps in browser; compare Network tab to Postman.
+5. **Update Appendix A / C** — Set row to **FULFILLED** / **PARTIAL** / **DEFERRED** / **CLIENT** with date + evidence notes.
+6. **Logged-in Network** — Run Appendix B (Goals) or Appendix C §C.6 (Habits) smoke steps; compare Network tab to Postman.
 
 If Postman has no valid response:
 
@@ -579,6 +580,8 @@ Response envelope:
 | `isActive` | true / false | **Default `true`** |
 | `aiSuggested` | true / false | Optional |
 | `search` | string | Optional |
+| `streak` | ACTIVE / NONE / BEST | Used on **Habits Board** (see Appendix C) |
+| `daysLeft` | `1-7` / `8-30` / `30plus` / `ALL` | Used on **Habits Board** (see Appendix C) |
 | `page` / `limit` | page size max 100 | Always sent (`1` / `50`) |
 
 Response envelope:
@@ -592,88 +595,205 @@ Response envelope:
 }
 ```
 
-## Appendix C — Habits Board API Audit
+---
+
+## Appendix C — Habits Board API Audit (Current Frontend)
 
 **Date:** 2026-07-23  
+**Last automated re-test:** 2026-07-23 — `audit-habits-board.mjs` → **ALL PASS**  
 **Module:** `src/features/habits/` + `src/pages/private/user/focus/Habits/`  
-**API prefix:** `/api/v1/habits`  
-**Contract verifier:** `node scripts/audit-habits-board.mjs` → **ALL PASS** (2026-07-23)
+**Base URL (env):** `VITE_API_BASE_URL` → `https://backendtest.elyxaai.com`  
+**API prefix used in code:** `/api/v1/habits`  
+**Contract verifier:** `node scripts/audit-habits-board.mjs`
 
-### C.0 Toolbar / New Habit flow
+---
 
-| UI | API / behavior | Status |
-|----|----------------|--------|
-| **+ New Habit** Manual | `POST /api/v1/habits` | **FULFILLED** |
-| **+ New Habit** AI | `POST /api/v1/habits/ai/generate` | **FULFILLED** |
-| **All Category** | `GET /habits?category=CAREER\|HEALTH\|FINANCE\|…` | **FULFILLED** |
-| **All Schedule** Daily/Weekly/Monthly | `GET /habits?frequency=DAILY\|WEEKLY\|MONTHLY` | **FULFILLED** |
-| **All Schedule** Custom | Client filter (no API enum) | **CLIENT** |
-| **All Streak** | `GET /habits?streak=ACTIVE\|NONE\|BEST` | **FULFILLED** |
-| **All Days Left** | `GET /habits?daysLeft=1-7\|8-30\|30plus` | **FULFILLED** |
-| Search | `GET /habits?search=` | **FULFILLED** |
+### C.1 Endpoint Matrix (as coded)
 
-### C.1 Endpoint Matrix
-
-| Action | Method + Path | Frontend entry | Status |
-|--------|---------------|----------------|--------|
-| Board summary | `GET /api/v1/habits/summary` | Stats bar on Habits Board | **FULFILLED** |
-| Stats overview | `GET /api/v1/habits/stats/overview` | Loaded with board (store `statsOverview`) | **FULFILLED** |
-| List + filters + search | `GET /api/v1/habits` | Board filters/search → `buildHabitsQueryParams` | **FULFILLED** |
-| Create habit | `POST /api/v1/habits` | New Habit → Manual | **FULFILLED** |
-| Get habit by ID | `GET /api/v1/habits/:id` | API ready (detail page not in MVP board) | **FULFILLED** |
-| Update habit | `PATCH /api/v1/habits/:id` | Row ⋯ → Edit | **FULFILLED** |
-| Complete today | `POST /api/v1/habits/:id/complete` | Today day-cell click (empty → checked) | **FULFILLED** |
-| Undo today | `DELETE /api/v1/habits/:id/complete` | Today day-cell click (checked → empty) | **FULFILLED** |
-| Skip habit | `POST /api/v1/habits/:id/skip` | Goals detail linked habit (existing) | **FULFILLED** |
-| Pause / Activate | `PATCH /api/v1/habits/:id/pause` | Row ⋯ → Pause / Activate | **FULFILLED** — single toggle (no `/activate` route; that 404s). Fallback: `PATCH /habits/:id` `{ status, isActive }` |
-| Mark status completed | `PATCH /api/v1/habits/:id/complete-status` | Row ⋯ → Complete | **FULFILLED** |
-| History | `GET /api/v1/habits/:id/history?days=30` | API ready (not on board UI yet) | **FULFILLED** |
-| Delete | `DELETE /api/v1/habits/:id` | Row ⋯ → Delete | **FULFILLED** |
-| AI generate | `POST /api/v1/habits/ai/generate` | New Habit → AI Generation | **FULFILLED** |
-| AI improve | `POST /api/v1/habits/:id/ai/improve` | Row ⋯ → Improve habit | **FULFILLED** |
-| Test email | `/habits/test/email` | Not wired (dev/test only) | **DEFERRED** |
+| Action | Method + Path | Frontend entry | Contract evidence | Status |
+|--------|---------------|----------------|-------------------|--------|
+| List + filters + search | `GET /api/v1/habits` | Board filters/search → `buildHabitsQueryParams` → `fetchHabits` | Postman 2026-07-23: category, frequency, streak, daysLeft, search, combined | **FULFILLED** |
+| Board summary | `GET /api/v1/habits/summary` | Stats bar (`active` / `paused` / `completed`) | `{ success, summary }` | **FULFILLED** |
+| Stats overview | `GET /api/v1/habits/stats/overview` | Loaded with board → store `statsOverview` | `{ success, stats }` | **FULFILLED** |
+| Create habit | `POST /api/v1/habits` | **+ New Habit** → Manual | Body below §C.3 | **FULFILLED** |
+| AI generate habit | `POST /api/v1/habits/ai/generate` | **+ New Habit** → AI Generation | `{ prompt, category, goalId? }`; server persists; Add to Board refreshes only | **FULFILLED** |
+| Get habit by ID | `GET /api/v1/habits/:id` | API wired (no habit detail page on board MVP) | Ready | **FULFILLED** (API) / board UI N/A |
+| Update habit | `PATCH /api/v1/habits/:id` | Row ⋯ → **Edit** | Partial `{ name, description, category, difficulty, reminderTime, targetDays?, goalId? }` | **FULFILLED** |
+| Complete today | `POST /api/v1/habits/:id/complete` | Today day-cell (empty → checked) | Optional `{ notes }` | **FULFILLED** |
+| Undo today | `DELETE /api/v1/habits/:id/complete` | Today day-cell (checked → empty) | No body | **FULFILLED** |
+| Skip habit | `POST /api/v1/habits/:id/skip` | Goals detail Linked Habits ⋯ → Skip | `{ reason }` | **FULFILLED** (Goals) |
+| Pause / Activate toggle | `PATCH /api/v1/habits/:id/pause` | Row ⋯ → Pause / Activate | Postman name “Pause / Activate Toggle”. **No** `/activate` route (404). Fallback: `PATCH /habits/:id` `{ status, isActive }` | **FULFILLED** |
+| Mark status completed | `PATCH /api/v1/habits/:id/complete-status` | Row ⋯ → **Complete** | Lifetime COMPLETED (not today’s check-in) | **FULFILLED** |
+| AI improve | `POST /api/v1/habits/:id/ai/improve` | Row ⋯ → **Improve habit** | `{ instructions }` | **FULFILLED** |
+| History | `GET /api/v1/habits/:id/history?days=30` | API wired (not on board UI yet) | Ready | **FULFILLED** (API) / board UI N/A |
+| Delete | `DELETE /api/v1/habits/:id` | Row ⋯ → **Delete** | No body | **FULFILLED** |
+| Test email | `/habits/test/email` | Not used on board | Dev/test only | **DEFERRED** |
 
 ### C.1b Deferred / still mock
 
 | UI | Notes | Status |
 |----|-------|--------|
-| Empty-board ghost habits | Local `GHOST_HABITS` until suggestions API exists | **DEFERRED** |
+| Empty-board ghost habits | Local `GHOST_HABITS` (`?empty=1` in DEV) until suggestions API exists | **DEFERRED** |
+| Schedule → **Custom** | No `frequency=CUSTOM` in Postman; client filters partial week after list load | **CLIENT** |
 
-### C.2 List query params (board)
+### C.1c Toolbar mapping (New Habit + filters)
 
-| Param | UI mapping |
-|-------|------------|
-| `category` | Category → `CAREER` / `HEALTH` / … |
-| `frequency` | Schedule Daily/Weekly/Monthly → `DAILY` / `WEEKLY` / `MONTHLY` |
-| `streak` | Active streak → `ACTIVE`; No streak → `NONE`; Best streak → `BEST` |
-| `daysLeft` | `1-7 days` → `1-7`; `8-30 days` → `8-30`; `30+ days` → `30plus` |
-| `search` | Search input (300ms debounce) |
-| `page` / `limit` | `1` / `50` |
+| UI control | Request | Status |
+|------------|---------|--------|
+| **+ New Habit** Manual | `POST /habits` | **FULFILLED** |
+| **+ New Habit** AI | `POST /habits/ai/generate` | **FULFILLED** |
+| **All Category** | `GET /habits?category=CAREER\|HEALTH\|FINANCE\|FITNESS\|WELLNESS\|PRODUCTIVITY\|PERSONAL\|EDUCATION` | **FULFILLED** |
+| **All Schedule** Daily / Weekly / Monthly | `GET /habits?frequency=DAILY\|WEEKLY\|MONTHLY` | **FULFILLED** |
+| **All Schedule** Custom | Client only | **CLIENT** |
+| **All Streak** Active / No / Best | `GET /habits?streak=ACTIVE\|NONE\|BEST` | **FULFILLED** |
+| **All Days Left** 1-7 / 8-30 / 30+ | `GET /habits?daysLeft=1-7\|8-30\|30plus` | **FULFILLED** |
+| Search | `GET /habits?search=` (300ms debounce) | **FULFILLED** |
 
-Client-only: Schedule **Custom** (no API enum).
+---
 
-### C.3 Create body
+### C.2 GET /habits — Query Parameters (Habits Board)
 
-`json
+| Param | Allowed values | Frontend mapping |
+|-------|----------------|------------------|
+| `status` | ACTIVE / PAUSED / COMPLETED | Not on board toolbar (available in API) |
+| `category` | CAREER / HEALTH / FINANCE / FITNESS / WELLNESS / PRODUCTIVITY / PERSONAL / EDUCATION | Category filter → `categoryToApi` |
+| `frequency` | DAILY / WEEKLY / MONTHLY | Schedule Daily/Weekly/Monthly |
+| `difficulty` | EASY / MEDIUM / HARD | Not on board toolbar |
+| `goalId` | UUID | Optional (create/link); not a board filter chip |
+| `isActive` | true / false | Not sent on board list by default |
+| `aiSuggested` | true / false | Not on board toolbar |
+| `streak` | ACTIVE / NONE / BEST | Active streak / No streak / Best streak |
+| `daysLeft` | `1-7` / `8-30` / `30plus` / `ALL` | `1-7 days` / `8-30 days` / `30+ days` (All Days Left = omit param) |
+| `search` | string | Search input |
+| `page` / `limit` | default `1` / `50` (max 100) | Always sent |
+
+**Combined example (Postman):**  
+`GET /habits?status=ACTIVE&streak=ACTIVE&category=HEALTH`
+
+**List response fields used on board:**  
+`id`, `name`→title, `description`, `category`, `frequency`, `difficulty`, `targetDays`, `reminderTime`, `currentStreak`, `status` / `isActive`, `source` / `aiSuggested`, `goal` / `goalId`, `completions`, `daysLeft`, `_count`.
+
+---
+
+### C.3 Create — Request / Response
+
+**POST** `/api/v1/habits`
+
+```json
 {
   "name": "Morning walk",
-  "description": "...",
+  "description": "Walk for 20 minutes after waking up.",
   "category": "HEALTH",
   "frequency": "DAILY",
   "difficulty": "EASY",
   "targetDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"],
   "targetTimesPerDay": 1,
-  "reminderTime": "07:30",
-  "goalId": "uuid-optional"
+  "reminderTime": "07:30"
 }
-`
+```
 
-### C.4 Board smoke (Network)
+Optional: `"goalId": "<uuid>"`.
 
-| Step | Action | Expected |
-|------|--------|----------|
-| 1 | Open `/user/habits` | `GET /habits` + `GET /habits/summary` (+ stats/overview) |
-| 2 | New Habit → Manual → Create | `POST /habits` then list refresh |
-| 3 | New Habit → AI → Generate → Add to Board | `POST /habits/ai/generate`; Add refreshes only |
-| 4 | Click today's day cell | `POST .../complete` or `DELETE .../complete` |
-| 5 | ⋯ Edit / Pause / Activate / Complete / Delete / Improve | Pause+Activate both `PATCH .../pause` (toggle). Do **not** call `/activate` |
+Categories: `CAREER` | `HEALTH` | `FINANCE` | `FITNESS` | `WELLNESS` | `PRODUCTIVITY` | `PERSONAL` | `EDUCATION`.
+
+MVP UI: one reminder (12h → `HH:mm`), `targetTimesPerDay: 1` only.
+
+---
+
+### C.4 AI Generate — Request / Response
+
+**POST** `/api/v1/habits/ai/generate`
+
+```json
+{
+  "prompt": "Help me build a consistent reading habit",
+  "category": "CAREER"
+}
+```
+
+```json
+{
+  "success": true,
+  "message": "Habit generated successfully",
+  "habit": { "id": "uuid", "name": "...", "source": "AI", "aiSuggested": true },
+  "tokensUsed": 707
+}
+```
+
+Server persists immediately — **Add to Board** only refreshes the list (no second `POST /habits`).
+
+---
+
+### C.5 Other board mutations (quick reference)
+
+| Action | Method + Path | Body |
+|--------|---------------|------|
+| Update | `PATCH /habits/:id` | e.g. `{ "difficulty": "MEDIUM", "reminderTime": "08:00" }` or `{ "goalId": "uuid" }` |
+| Complete today | `POST /habits/:id/complete` | `{ "notes": "…" }` optional |
+| Undo today | `DELETE /habits/:id/complete` | — |
+| Pause / Activate | `PATCH /habits/:id/pause` | toggle (do **not** call `/activate`) |
+| Mark completed | `PATCH /habits/:id/complete-status` | — |
+| Improve | `POST /habits/:id/ai/improve` | `{ "instructions": "…" }` |
+| Delete | `DELETE /habits/:id` | — |
+| Summary | `GET /habits/summary` | → `{ active, paused, completed, total, completedToday, remainingToday }` |
+
+---
+
+### C.6 Board smoke (logged-in Network)
+
+| Step | Action in app | Expected Network |
+|------|---------------|------------------|
+| 1 | Open `/user/habits` | `GET /habits?page=1&limit=50` + `GET /habits/summary` (+ `GET /habits/stats/overview`) |
+| 2 | Category → Finance | `...&category=FINANCE` |
+| 3 | Schedule → Daily | `...&frequency=DAILY` |
+| 4 | Streak → Active streak | `...&streak=ACTIVE` |
+| 5 | Streak → No streak | `...&streak=NONE` |
+| 6 | Streak → Best streak | `...&streak=BEST` |
+| 7 | Days Left → 1-7 days | `...&daysLeft=1-7` |
+| 8 | Days Left → 8-30 / 30+ | `...&daysLeft=8-30` / `30plus` |
+| 9 | Search `reading` | `...&search=reading` (after debounce) |
+| 10 | **+ New Habit** → Manual → Create | `POST /habits` then list + summary refresh |
+| 11 | **+ New Habit** → AI → Generate → Add to Board | `POST /habits/ai/generate`; Add = refresh only |
+| 12 | Click **today** day cell | `POST .../complete` or `DELETE .../complete` |
+| 13 | ⋯ Pause / Activate | Both `PATCH .../pause` (toggle) |
+| 14 | ⋯ Edit / Complete / Improve / Delete | `PATCH` / `PATCH .../complete-status` / `POST .../ai/improve` / `DELETE` |
+
+```bash
+node scripts/audit-habits-board.mjs
+```
+
+---
+
+### C.7 TestAPIs.md compliance checklist
+
+| Rule | Result | Notes |
+|------|--------|-------|
+| Postman before integrate | **PASS** | List filters (streak/daysLeft), create, complete, pause toggle, AI generate/improve |
+| Exact method (no guessing) | **PASS** | Pause/Activate = `/pause` toggle only after `/activate` 404 confirmed |
+| Remove mock after connect | **PASS** for list/filters/create/AI/row actions; **DEFERRED** ghosts | See C.1b |
+| Loading / empty / errors | **PASS** | Soft list reload; empty copy; toasts |
+| Mapper audit | **PASS** | `audit-habits-board.mjs` — ALL PASS (2026-07-23) |
+| Logged-in Network QA | **Manual** | Engineer checklist §C.6 |
+
+### C.8 Blockers
+
+1. **Ghost suggestions** — empty-board AI rows stay local until a suggestions API exists.
+2. **Schedule Custom** — no Postman enum; remains client-side.
+
+If Postman has no response:
+
+> This API is not returning a response in Postman. A valid backend response is required before frontend integration can be completed.
+
+### C.9 Verdict
+
+| Area | Verdict |
+|------|---------|
+| List + Category / Schedule / Streak / Days Left / search | **FULFILLED** |
+| Summary + stats overview | **FULFILLED** |
+| Create + AI generate + Update + Delete | **FULFILLED** |
+| Today complete / undo | **FULFILLED** |
+| Pause / Activate toggle (`/pause`) | **FULFILLED** |
+| Complete-status + AI improve | **FULFILLED** |
+| Schedule Custom | **CLIENT** |
+| Ghosts / test email | **DEFERRED** |
+| **Overall Habits Board** | **FULFILLED for contracted APIs**; ghosts + Custom schedule deferred/client |
