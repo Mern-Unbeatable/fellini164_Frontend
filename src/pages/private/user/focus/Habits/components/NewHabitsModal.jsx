@@ -4,7 +4,7 @@ import { X, Clock, Sparkles } from 'lucide-react';
 import HabitRow from './HabitRow';
 import TypewriterPlaceholder from '../../../../../../components/ui/TypewriterPlaceholder';
 import { useAiGenerationReveal } from '../../../../../../hooks/useAiGenerationReveal';
-import { generateHabit } from '../../../../../../features/habits/habitsSlice';
+import { generateHabit, updateHabit } from '../../../../../../features/habits/habitsSlice';
 import {
   reminderTimeFromApi,
   targetDaysFromApi,
@@ -25,6 +25,12 @@ const HOURS = Array.from({ length: 12 }, (_, i) => i + 1);
 const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
 const PERIODS = ['AM', 'PM'];
 const TARGET_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+/** UI target days → Mon–Sun cell states for HabitRow preview. */
+function daysFromTargetDays(uiDays) {
+  const set = new Set(uiDays || []);
+  return TARGET_DAYS.map((day) => (set.has(day) ? 'empty' : 'unscheduled'));
+}
 
 const AI_PROMPT_PHRASES = [
   'Create a habit for updating my portfolio...',
@@ -325,11 +331,13 @@ export default function NewHabitsModal({
   const [aiPrompt, setAiPrompt] = useState('');
   const [changeRequest, setChangeRequest] = useState('');
   const [generatedHabit, setGeneratedHabit] = useState(null);
+  const [previewTargetDays, setPreviewTargetDays] = useState(['Mon', 'Tue', 'Wed', 'Thu', 'Fri']);
   const [goalOptions, setGoalOptions] = useState([]);
   const { isRevealing, startReveal } = useAiGenerationReveal();
   const [form, setForm] = useState(() =>
     isEdit && initialHabit ? formFromHabit(initialHabit) : EMPTY_FORM,
   );
+  const [addingToBoard, setAddingToBoard] = useState(false);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -375,11 +383,20 @@ export default function NewHabitsModal({
     );
     await revealPromise;
     if (generateHabit.fulfilled.match(result)) {
-      setGeneratedHabit(result.payload);
+      const habit = result.payload;
+      setGeneratedHabit(habit);
+      const fromApi = targetDaysFromApi(habit.targetDays);
+      setPreviewTargetDays(fromApi.length ? fromApi : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']);
       setAiPhase('preview');
       return;
     }
     setAiPhase('input');
+  };
+
+  const togglePreviewDay = (day) => {
+    setPreviewTargetDays((prev) =>
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
+    );
   };
 
   const handleGenerate = () => {
@@ -403,6 +420,8 @@ export default function NewHabitsModal({
     setAiPrompt('');
     setChangeRequest('');
     setGeneratedHabit(null);
+    setPreviewTargetDays(['Mon', 'Tue', 'Wed', 'Thu', 'Fri']);
+    setAddingToBoard(false);
     setForm(isEdit && initialHabit ? formFromHabit(initialHabit) : EMPTY_FORM);
     onClose();
   };
@@ -430,10 +449,34 @@ export default function NewHabitsModal({
     }
   };
 
-  const handleAddGeneratedToBoard = () => {
-    if (!generatedHabit) return;
-    onSave({ ...generatedHabit, alreadyPersisted: true, source: 'ai' });
-    handleClose();
+  const handleAddGeneratedToBoard = async () => {
+    if (!generatedHabit?.id || addingToBoard) return;
+    setAddingToBoard(true);
+    try {
+      const original = targetDaysFromApi(generatedHabit.targetDays || []);
+      const daysChanged =
+        previewTargetDays.length !== original.length ||
+        previewTargetDays.some((d) => !original.includes(d)) ||
+        original.some((d) => !previewTargetDays.includes(d));
+
+      // AI often returns Mon–Fri only — user can add Sat/Sun here before board.
+      if (daysChanged && previewTargetDays.length > 0) {
+        const result = await dispatch(
+          updateHabit({
+            habitId: generatedHabit.id,
+            formData: { targetDays: previewTargetDays },
+          })
+        );
+        if (!updateHabit.fulfilled.match(result)) return;
+      }
+
+      await Promise.resolve(
+        onSave({ ...generatedHabit, alreadyPersisted: true, source: 'ai' })
+      );
+      handleClose();
+    } finally {
+      setAddingToBoard(false);
+    }
   };
 
   const handleTabChange = (tab) => {
@@ -449,8 +492,6 @@ export default function NewHabitsModal({
 
   const modalWidthClass = showAiPreview ? 'max-w-[920px]' : 'max-w-[450px]';
 
-  const PREVIEW_SCHEDULE = ['empty', 'empty', 'empty', 'unscheduled', 'empty', 'unscheduled', 'empty'];
-
   const previewHabit = generatedHabit && {
     id: generatedHabit.id || 'preview',
     title: generatedHabit.title,
@@ -465,7 +506,7 @@ export default function NewHabitsModal({
         ],
     status: 'active',
     streak: generatedHabit.streak || 0,
-    days: generatedHabit.days?.length === 7 ? generatedHabit.days : PREVIEW_SCHEDULE,
+    days: daysFromTargetDays(previewTargetDays),
   };
 
   return (
@@ -523,6 +564,33 @@ export default function NewHabitsModal({
                   ))}
                 </div>
                 <HabitRow habit={previewHabit} showMenu={false} compact />
+              </div>
+              <div className="mx-auto flex w-full max-w-[430px] flex-col gap-2">
+                <p className="text-[12px] font-medium text-[#c2c2c2] dark:text-zinc-500">
+                  Target Days
+                </p>
+                <div className="grid w-full grid-cols-7 gap-1 sm:gap-1.5">
+                  {TARGET_DAYS.map((day) => {
+                    const selected = previewTargetDays.includes(day);
+                    return (
+                      <button
+                        key={day}
+                        type="button"
+                        onClick={() => togglePreviewDay(day)}
+                        className={`flex items-center justify-center rounded-lg px-1 py-2 text-[11px] font-medium sm:text-[12px] ${
+                          selected
+                            ? 'border-2 border-transparent bg-[#f9f4ff] text-[#8022fe]'
+                            : 'border-2 border-[#f2f2f2] text-[#181818] dark:border-zinc-700 dark:text-white'
+                        }`}
+                      >
+                        {day}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="text-[11px] font-medium text-[#c2c2c2]">
+                  AI often schedules weekdays only — tap Sat / Sun to include weekends.
+                </p>
               </div>
               <div className="mx-auto flex w-full max-w-[430px] flex-col gap-2">
                 <div className="flex items-center justify-between">
@@ -584,10 +652,10 @@ export default function NewHabitsModal({
                 <button
                   type="button"
                   onClick={handleAddGeneratedToBoard}
-                  disabled={isRevealing}
+                  disabled={isRevealing || addingToBoard || previewTargetDays.length === 0}
                   className="flex flex-1 items-center justify-center rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] font-semibold text-white disabled:opacity-60"
                 >
-                  Add to Board
+                  {addingToBoard ? 'Adding...' : 'Add to Board'}
                 </button>
               </>
             ) : showAiGenerating ? (
