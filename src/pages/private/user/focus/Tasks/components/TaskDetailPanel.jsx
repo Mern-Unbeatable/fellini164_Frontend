@@ -156,7 +156,13 @@ function SubtasksSection({ task, isApplyingAiEdit = false, onRequestBreakdown })
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <button type="button" aria-label="Add subtask manually" className="text-[#a3a3a3]">
+          <button
+            type="button"
+            onClick={() => onRequestBreakdown?.()}
+            disabled={isApplyingAiEdit}
+            aria-label="Break into subtasks"
+            className="rounded-md p-0.5 text-[#a3a3a3] hover:text-[#8022fe] disabled:opacity-50"
+          >
             <Plus size={16} />
           </button>
           <button
