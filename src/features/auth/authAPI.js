@@ -1,5 +1,8 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { POST, GET } from '../../services/httpMethods';
+import { getGoogleIdToken } from '../../services/googleAuth';
+import { logGoogleAuth, logGoogleAuthBody } from '../../services/googleAuthDebug';
+import { ENV } from '../../config/env';
 
 // Login API
 export const loginUser = createAsyncThunk(
@@ -22,6 +25,79 @@ export const loginUser = createAsyncThunk(
       }
       return rejectWithValue(
         error.response?.data?.message || error.message || 'An error occurred during login'
+      );
+    }
+  }
+);
+
+/**
+ * Google login — Firebase popup → idToken → backend.
+ * Backend: POST /api/v1/auth/google  body: { idToken }
+ */
+export const loginWithGoogle = createAsyncThunk(
+  'auth/loginWithGoogle',
+  async (_, { rejectWithValue }) => {
+    try {
+      logGoogleAuth(1, 'Started — fetching idToken from Firebase...');
+
+      const idToken = await getGoogleIdToken();
+
+      logGoogleAuthBody(idToken);
+
+      const url = '/api/v1/auth/google';
+      const body = { idToken };
+      logGoogleAuth(5, `Sending POST ${ENV.API_BASE_URL}${url}`, body);
+
+      const response = await POST(url, body);
+
+      logGoogleAuth(6, 'Backend response', response);
+
+      if (response.success) {
+        logGoogleAuth(7, 'Login success — app token saved', {
+          userEmail: response.data?.user?.email,
+          hasToken: Boolean(response.data?.token),
+        });
+        return {
+          user: response.data.user,
+          token: response.data.token,
+        };
+      }
+
+      logGoogleAuth(6, 'Backend returned success: false', response);
+      return rejectWithValue(response.message || 'Google login failed');
+    } catch (error) {
+      logGoogleAuth('ERR', 'Request failed', {
+        message: error.message,
+        status: error.response?.status,
+        backendBody: error.response?.data,
+        firebaseCode: error?.code,
+      });
+
+      const firebaseCode = error?.code;
+      if (
+        firebaseCode === 'auth/popup-closed-by-user' ||
+        firebaseCode === 'auth/cancelled-popup-request'
+      ) {
+        return rejectWithValue(null);
+      }
+
+      if (error.response?.status === 404) {
+        return rejectWithValue(
+          'Google sign-in API is not available on the server yet. Ask the backend team to enable POST /api/v1/auth/google.'
+        );
+      }
+
+      if (error.response?.status === 401) {
+        return rejectWithValue(
+          error.response?.data?.message ||
+            'Google sign-in failed: server could not verify your Google token. Ask backend to check Firebase Admin setup for project fellini-82332.'
+        );
+      }
+
+      return rejectWithValue(
+        error.response?.data?.message ||
+          error.message ||
+          'An error occurred during Google sign-in'
       );
     }
   }

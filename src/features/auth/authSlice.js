@@ -265,6 +265,7 @@ import { AUTH_CONFIG } from '../../config/constants';
 
 import {
   loginUser as loginUserAPI,
+  loginWithGoogle,
   registerUser as registerUserAPI,
   getCurrentUser as getCurrentUserAPI,
   logoutUser as logoutUserAPI,
@@ -453,6 +454,24 @@ const authSlice = createSlice({
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+
+      /* ===== Google Login ===== */
+      .addCase(loginWithGoogle.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(loginWithGoogle.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload.user;
+        state.token = action.payload.token;
+        state.isAuthenticated = true;
+        setStorage(AUTH_CONFIG.USER_KEY, action.payload.user);
+        setStorage(AUTH_CONFIG.TOKEN_KEY, action.payload.token);
+      })
+      .addCase(loginWithGoogle.rejected, (state, action) => {
+        state.loading = false;
+        if (action.payload) state.error = action.payload;
       })
 
       /* ===== Register ===== */

@@ -7,6 +7,7 @@ import { clearError, selectAuth } from '../../features/auth/authSlice';
 import { FcGoogle } from 'react-icons/fc';
 import { FaApple } from 'react-icons/fa';
 import gsap from 'gsap';
+import { useGoogleAuth } from '../../hooks/useGoogleAuth';
 
 const RegisterView = () => {
   const [searchParams] = useSearchParams();
@@ -18,7 +19,8 @@ const RegisterView = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { loading, error } = useSelector(selectAuth);
+  const { loading, error, isAuthenticated, user } = useSelector(selectAuth);
+  const { handleGoogleSignIn } = useGoogleAuth();
 
   const pageRef = useRef(null);
   const visualRef = useRef(null);
@@ -51,6 +53,16 @@ const RegisterView = () => {
       dispatch(clearError());
     };
   }, [dispatch]);
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      if (user.role === 'ADMIN') {
+        navigate('/admin/dashboard', { replace: true });
+      } else {
+        navigate('/dashboard', { replace: true });
+      }
+    }
+  }, [isAuthenticated, user, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -125,7 +137,9 @@ const RegisterView = () => {
             <div className="flex flex-col gap-2.5 md:gap-3">
               <button
                 type="button"
-                className="flex items-center justify-center gap-2 rounded-[10px] border border-[#f2f2f2] bg-[#fcfcfc] px-3 py-2.5 font-['Inter',sans-serif] text-[14px] leading-normal font-medium text-[#5d5d5d] transition-colors hover:bg-[#f5f5f5] md:text-[16px]"
+                disabled={loading}
+                onClick={handleGoogleSignIn}
+                className="flex items-center justify-center gap-2 rounded-[10px] border border-[#f2f2f2] bg-[#fcfcfc] px-3 py-2.5 font-['Inter',sans-serif] text-[14px] leading-normal font-medium text-[#5d5d5d] transition-colors hover:bg-[#f5f5f5] disabled:cursor-not-allowed disabled:opacity-60 md:text-[16px]"
               >
                 <FcGoogle className="h-3.75 w-3.75 shrink-0 md:h-4.5 md:w-4.5" />
                 Continue with Google

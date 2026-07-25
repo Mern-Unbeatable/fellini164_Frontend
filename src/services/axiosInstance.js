@@ -12,6 +12,26 @@ const getToken = () => {
   return getStorage(AUTH_CONFIG.TOKEN_KEY) || null;
 };
 
+/** Do not attach app JWT on public auth routes (stale token can cause 401 on Google login). */
+const PUBLIC_AUTH_PATHS = [
+  '/api/v1/auth/login',
+  '/api/v1/auth/register',
+  '/api/v1/auth/google',
+  '/api/v1/auth/forgot-password',
+  '/api/v1/auth/verify-otp',
+  '/api/v1/auth/verify-reset-otp',
+  '/api/v1/auth/resend-otp',
+  '/api/v1/auth/set-new-password',
+];
+
+function isPublicAuthRequest(url = '') {
+  return PUBLIC_AUTH_PATHS.some((path) => url.includes(path));
+}
+
+function shouldClearSessionOn401(url = '') {
+  return !isPublicAuthRequest(url);
+}
+
 // Create axios instance with backend URL
 const axiosInstance = axios.create({
   baseURL: API_CONFIG.BASE_URL,
@@ -25,7 +45,7 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = getToken();
-    if (token) {
+    if (token && !isPublicAuthRequest(config.url)) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
@@ -45,12 +65,13 @@ axiosInstance.interceptors.response.use(
 
     // Handle specific error statuses
     if (response?.status === 401) {
-      // Handle unauthorized - clear tokens and redirect to login
-      removeStorage(AUTH_CONFIG.TOKEN_KEY);
-      removeStorage(AUTH_CONFIG.USER_KEY);
+      if (shouldClearSessionOn401(error.config?.url)) {
+        removeStorage(AUTH_CONFIG.TOKEN_KEY);
+        removeStorage(AUTH_CONFIG.USER_KEY);
 
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
       }
     }
 
