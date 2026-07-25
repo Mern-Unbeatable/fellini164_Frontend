@@ -13,6 +13,7 @@ import adminActivityLogReducer from './aiChat/adminActivityLog/adminActivityLogS
 import notificationsReducer from './notifications/notificationsSlice';
 import goalsReducer from './goals/goalsSlice';
 import habitsReducer from './habits/habitsSlice';
+import tasksReducer from './tasks/tasksSlice';
 
 const store = configureStore({
   reducer: {
@@ -30,6 +31,7 @@ const store = configureStore({
     notifications: notificationsReducer,
     goals: goalsReducer,
     habits: habitsReducer,
+    tasks: tasksReducer,
   },
 });
 

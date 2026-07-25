@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
+import { useDispatch } from 'react-redux';
 import { X, Calendar, Sparkles, Clock, Watch } from 'lucide-react';
 import TypewriterPlaceholder from '../../../../../../components/ui/TypewriterPlaceholder';
 import SkeletonBar from '../../../../../../components/ui/SkeletonBar';
 import { useAiGenerationReveal } from '../../../../../../hooks/useAiGenerationReveal';
+import { generateTask } from '../../../../../../features/tasks/tasksSlice';
+import { fetchGoalsApi } from '../../../../../../features/goals/goalsAPI';
 
 const PRIORITIES = ['Low', 'Medium', 'High', 'Urgent'];
 const CATEGORIES = ['Career', 'Health', 'Finance', 'Personal', 'Education'];
@@ -10,7 +13,6 @@ const STATUSES = ['To Do', 'In Progress', 'Done'];
 const HOURS = Array.from({ length: 12 }, (_, i) => i + 1);
 const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
 const PERIODS = ['AM', 'PM'];
-const LINKED_GOALS = ['Improve Rate', 'Save $10,000', 'Run 500km'];
 
 const AI_PROMPT_PHRASES = [
   'Create a task for updating my portfolio...',
@@ -43,7 +45,7 @@ const EMPTY_FORM = {
   duePeriod: 'PM',
   estMinutes: '',
   status: 'To Do',
-  linkedGoal: 'Improve Rate',
+  linkedGoal: '__none__',
   description: '',
 };
 
@@ -89,10 +91,10 @@ function formFromTask(task) {
   );
 
   const linkedGoal =
+    task.goalId ||
     tags.find((t) => t.linkedGoal)?.label ||
-    tags.find((t) => LINKED_GOALS.includes(t.label) && t.icon)?.label ||
     task.linkedGoal ||
-    EMPTY_FORM.linkedGoal;
+    '__none__';
 
   const statusKey = String(task.status || '').toLowerCase();
   const statusMap = {
@@ -114,56 +116,15 @@ function formFromTask(task) {
     description: task.description || '',
     estMinutes:
       minTag?.label?.replace(/\D/g, '') ||
+      (task.estimatedMinutes != null ? String(task.estimatedMinutes) : '') ||
       (task.estMinutes != null ? String(task.estMinutes) : '') ||
       '',
     linkedGoal,
     status: statusMap[statusKey] || (STATUSES.includes(task.status) ? task.status : 'To Do'),
-    dueDate: dueLabelToIso(task.due || task.dueLabel),
+    dueDate: task.dueDate || dueLabelToIso(task.due || task.dueLabel),
     dueHour: task.dueHour ?? EMPTY_FORM.dueHour,
     dueMinute: task.dueMinute ?? EMPTY_FORM.dueMinute,
     duePeriod: task.duePeriod ?? EMPTY_FORM.duePeriod,
-  };
-}
-
-function mockGenerateTask(prompt) {
-  const lower = prompt.toLowerCase();
-  if (lower.includes('workout') || lower.includes('exercise')) {
-    return {
-      priority: 'MEDIUM',
-      title: 'Exercise Routine',
-      description: 'Follow your fitness routine or do a workout session.',
-      category: 'Health',
-      estMinutes: 60,
-      due: 'Today',
-    };
-  }
-  if (lower.includes('portfolio') || lower.includes('linkedin')) {
-    return {
-      priority: 'HIGH',
-      title: 'Update LinkedIn profile',
-      description: 'Refresh headline, summary, and recent projects on your profile.',
-      category: 'Career',
-      estMinutes: 45,
-      due: 'Tomorrow',
-    };
-  }
-  if (lower.includes('interview')) {
-    return {
-      priority: 'URGENT',
-      title: 'Prepare for job interview',
-      description: 'Research the company and rehearse answers to common questions.',
-      category: 'Career',
-      estMinutes: 90,
-      due: 'Tomorrow',
-    };
-  }
-  return {
-    priority: 'LOW',
-    title: 'Finish the assigned work task.',
-    description: 'Focus on the primary job task scheduled for today.',
-    category: 'Finance',
-    estMinutes: 45,
-    due: 'Tomorrow',
   };
 }
 
@@ -343,7 +304,7 @@ function TimePickerField({ hour, minute, period, onChangeHour, onChangeMinute, o
   );
 }
 
-function ManualFormFields({ form, update }) {
+function ManualFormFields({ form, update, goalOptions = [] }) {
   const dateInputRef = useRef(null);
 
   return (
@@ -443,12 +404,12 @@ function ManualFormFields({ form, update }) {
           onChange={(e) => update('linkedGoal', e.target.value)}
           className={inputClasses}
         >
-          {LINKED_GOALS.map((g, i) => (
-            <option key={g} value={g}>
-              {i === 0 ? `✦ ${g} (AI recommended)` : g}
+          <option value="__none__">No linked goal</option>
+          {goalOptions.map((g) => (
+            <option key={g.id} value={g.id}>
+              {g.title}
             </option>
           ))}
-          <option value="__create_new__">+ Create new goal</option>
         </select>
       </Field>
 
@@ -466,33 +427,96 @@ function ManualFormFields({ form, update }) {
 }
 
 export default function TaskFormModal({ mode = 'create', initialTask, onClose, onSubmit }) {
+  const dispatch = useDispatch();
   const isEdit = mode === 'edit';
-  const [activeTab, setActiveTab] = useState('ai');
+  const [activeTab, setActiveTab] = useState(isEdit ? 'manual' : 'ai');
   const [aiPhase, setAiPhase] = useState('input');
   const [aiPrompt, setAiPrompt] = useState('');
   const [changeRequest, setChangeRequest] = useState('');
   const [generatedTask, setGeneratedTask] = useState(null);
   const [pendingTask, setPendingTask] = useState(null);
+  const [goalOptions, setGoalOptions] = useState([]);
+  const [addingToBoard, setAddingToBoard] = useState(false);
   const { revealStep, isRevealing, startReveal } = useAiGenerationReveal();
 
   const [form, setForm] = useState(() => (isEdit && initialTask ? formFromTask(initialTask) : EMPTY_FORM));
 
   const update = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
 
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const envelope = await fetchGoalsApi({ page: 1, limit: 50, status: 'ACTIVE' });
+        const list = Array.isArray(envelope?.goals)
+          ? envelope.goals
+          : Array.isArray(envelope?.data)
+            ? envelope.data
+            : Array.isArray(envelope)
+              ? envelope
+              : [];
+        if (!cancelled) {
+          setGoalOptions(
+            list
+              .filter((g) => g?.id)
+              .map((g) => ({ id: g.id, title: g.title || 'Untitled goal' }))
+          );
+        }
+      } catch {
+        if (!cancelled) setGoalOptions([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const runAiGeneration = async (prompt) => {
-    const task = mockGenerateTask(prompt);
-    setPendingTask(task);
+    setPendingTask({
+      priority: 'MEDIUM',
+      title: '',
+      description: '',
+      category: form.category || 'Career',
+      estMinutes: 30,
+      due: 'Today',
+    });
     setAiPhase('generating');
     setChangeRequest('');
-    await startReveal();
-    setGeneratedTask(task);
+    const revealPromise = startReveal();
+    const result = await dispatch(
+      generateTask({
+        prompt,
+        category: form.category || 'Career',
+        goalId: form.linkedGoal !== '__none__' ? form.linkedGoal : undefined,
+      })
+    );
+    await revealPromise;
+    if (generateTask.fulfilled.match(result)) {
+      const task = result.payload;
+      setGeneratedTask({
+        ...task,
+        priority: task.priority || 'MEDIUM',
+        category: task.category || form.category || 'Career',
+        estMinutes: task.estimatedMinutes ?? task.estMinutes ?? 30,
+        due: task.due || 'Today',
+      });
+      setPendingTask(null);
+      setAiPhase('preview');
+      return;
+    }
     setPendingTask(null);
-    setAiPhase('preview');
+    setAiPhase('input');
   };
 
   const handleManualSubmit = async () => {
     try {
-      await Promise.resolve(onSubmit(form));
+      await Promise.resolve(
+        onSubmit({
+          ...form,
+          goalId: form.linkedGoal !== '__none__' ? form.linkedGoal : null,
+          source: 'manual',
+        })
+      );
       onClose();
     } catch {
       // Parent handles error UI; keep modal open
@@ -506,7 +530,7 @@ export default function TaskFormModal({ mode = 'create', initialTask, onClose, o
 
   const handleRegenerate = () => {
     if (isRevealing) return;
-    runAiGeneration(`${aiPrompt}${Date.now()}`);
+    runAiGeneration(aiPrompt);
   };
 
   const handleUpdatePreview = () => {
@@ -514,26 +538,24 @@ export default function TaskFormModal({ mode = 'create', initialTask, onClose, o
     runAiGeneration(`${aiPrompt} ${changeRequest}`);
   };
 
-  const handleAddGeneratedToBoard = () => {
-    if (!generatedTask) return;
-    onSubmit({
-      title: generatedTask.title,
-      description: generatedTask.description,
-      priority: generatedTask.priority[0] + generatedTask.priority.slice(1).toLowerCase(),
-      category: generatedTask.category,
-      status: 'To Do',
-      estMinutes: String(generatedTask.estMinutes ?? ''),
-      dueLabel: generatedTask.due,
-      source: 'ai',
-    });
-    onClose();
+  const handleAddGeneratedToBoard = async () => {
+    if (!generatedTask?.id || addingToBoard) return;
+    setAddingToBoard(true);
+    try {
+      await Promise.resolve(
+        onSubmit({ ...generatedTask, alreadyPersisted: true, source: 'ai' })
+      );
+      onClose();
+    } finally {
+      setAddingToBoard(false);
+    }
   };
 
   const canSubmitManual = form.title.trim().length > 0;
   const canGenerate = aiPrompt.trim().length > 0 && !isRevealing;
   const showAiPreview = !isEdit && activeTab === 'ai' && aiPhase === 'preview';
   const showAiGenerating = !isEdit && activeTab === 'ai' && aiPhase === 'generating';
-  const aiBusy = isRevealing;
+  const aiBusy = isRevealing || addingToBoard;
 
   const handleTabChange = (tab) => {
     if (aiBusy) return;
@@ -571,7 +593,7 @@ export default function TaskFormModal({ mode = 'create', initialTask, onClose, o
           )}
 
           {isEdit || activeTab === 'manual' ? (
-            <ManualFormFields form={form} update={update} />
+            <ManualFormFields form={form} update={update} goalOptions={goalOptions} />
           ) : showAiGenerating ? (
             <AIGeneratedPreviewCard task={pendingTask} revealStep={revealStep} />
           ) : showAiPreview ? (
@@ -635,7 +657,7 @@ export default function TaskFormModal({ mode = 'create', initialTask, onClose, o
                 <button
                   type="button"
                   onClick={handleAddGeneratedToBoard}
-                  disabled={aiBusy}
+                  disabled={aiBusy || addingToBoard}
                   className="flex flex-1 items-center justify-center rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] font-semibold text-white disabled:opacity-60"
                 >
                   Add to Board

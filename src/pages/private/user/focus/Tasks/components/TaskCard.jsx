@@ -6,9 +6,24 @@ import {
   Check,
   Pencil,
   Trash2,
-  AlertCircle
+  AlertCircle,
+  Clock,
+  TrendingUp,
+  Target,
 } from 'lucide-react';
 import { PRIORITY_LABELS } from './TaskFilters';
+
+const TAG_ICONS = {
+  clock: Clock,
+  goal: TrendingUp,
+  target: Target,
+};
+
+function TagIcon({ tag }) {
+  const Icon = tag.icon || TAG_ICONS[tag.iconKey];
+  if (!Icon) return null;
+  return <Icon size={12} className="shrink-0" />;
+}
 
 export const PRIORITY_STYLES = {
   URGENT: 'bg-[rgba(220,38,38,0.05)] text-[#dc2626]',
@@ -143,7 +158,7 @@ export function GhostTaskCard({ task, onDismiss, onRegenerate, onAccept }) {
                 key={tag.label}
                 className="flex shrink-0 items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] font-medium leading-normal text-[#5d5d5d]"
               >
-                {tag.icon && <tag.icon size={12} className="shrink-0" />}
+                <TagIcon tag={tag} />
                 {tag.label}
               </span>
             ))}
@@ -231,7 +246,7 @@ export function GhostTaskCard({ task, onDismiss, onRegenerate, onAccept }) {
               key={tag.label}
               className="flex shrink-0 items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] font-medium leading-normal text-[#5d5d5d]"
             >
-              {tag.icon && <tag.icon size={12} className="shrink-0" />}
+              <TagIcon tag={tag} />
               {tag.label}
             </span>
           ))}
@@ -385,7 +400,7 @@ export function TaskCard({
                 key={tag.label}
                 className="flex items-center gap-[6px] rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-xs font-medium leading-normal text-[#5d5d5d] lg:text-[12px] dark:border-zinc-700 dark:text-gray-300"
               >
-                {tag.icon && <tag.icon size={12} className="shrink-0" />}
+                <TagIcon tag={tag} />
                 {tag.label}
               </span>
             ))}

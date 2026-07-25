@@ -34,6 +34,7 @@ import DailyPlanner from '../pages/private/user/planng/DailyPlan/DailyPlanner';
 import WeeklyPlanner from '../pages/private/user/planng/WeeklyPlan/WeeklyPlanner';
 import MonthlyPlanner from '../pages/private/user/planng/MonthlyPlan/MonthlyPlanner';
 import TasksBoard from '../pages/private/user/focus/Tasks/TasksBoard';
+import TaskDetailPage from '../pages/private/user/focus/Tasks/TaskDetailPage';
 import Habits from '../pages/private/user/focus/Habits/Habits';
 import ActiveGoals from '../pages/private/user/focus/Goals/ActiveGoals';
 import GoalDetailPage from '../pages/private/user/focus/Goals/GoalDetailPage';
@@ -107,6 +108,7 @@ const router = createBrowserRouter(
         {/* <Route path="/user/weekly-plan" element={<WeeklyPlanner />} />
         <Route path="/user/monthly-plan" element={<MonthlyPlanner />} /> */}
         <Route path="/user/tasks" element={<TasksBoard />} />
+        <Route path="/user/tasks/:taskId" element={<TaskDetailPage />} />
         <Route path="/user/habits" element={<Habits />} />
         <Route path="/user/goals" element={<ActiveGoals />} />
         <Route path="/user/goals/:goalId" element={<GoalDetailPage />} />

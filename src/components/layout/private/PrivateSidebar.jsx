@@ -152,7 +152,7 @@ function NavItem({ item, isActive, collapsed, onNavigate }) {
   return (
     <Link
       to={item.path}
-      onClick={onNavigate}
+      onClick={() => onNavigate?.(item)}
       className={`relative flex h-[33px] w-full items-center gap-2 rounded-[10px] px-2.5 py-1.5 no-underline ${
         isActive
           ? 'bg-[#f9f4ff] text-[#8022fe] dark:bg-purple-950 dark:text-purple-300'
@@ -195,11 +195,28 @@ function InertNavItem({ item, collapsed }) {
   );
 }
 
-export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }) {
+export default function PrivateSidebar({
+  pathname,
+  isMobileOpen,
+  onCloseMobile,
+  onBackToTasksBoard,
+  hasTaskDetail = false,
+}) {
   const [collapsed, setCollapsed] = useState(false);
   const showExpanded = !collapsed || isMobileOpen;
 
   const isItemActive = (item) => item.match.some((p) => pathname.startsWith(p));
+
+  const handleNavigate = (item) => {
+    if (
+      item?.path === '/user/tasks' &&
+      pathname.startsWith('/user/tasks') &&
+      hasTaskDetail
+    ) {
+      onBackToTasksBoard?.();
+    }
+    onCloseMobile?.();
+  };
 
   return (
     <>
@@ -280,7 +297,7 @@ export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }
                   item={item}
                   collapsed={!showExpanded}
                   isActive={isItemActive(item)}
-                  onNavigate={onCloseMobile}
+                  onNavigate={handleNavigate}
                 />
               ) : (
                 <InertNavItem key={item.label} item={item} collapsed={!showExpanded} />
@@ -297,7 +314,7 @@ export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }
               item={item}
               collapsed={!showExpanded}
               isActive={isItemActive(item)}
-              onNavigate={onCloseMobile}
+              onNavigate={handleNavigate}
             />
           ))}
         </div>
@@ -311,7 +328,7 @@ export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }
                 item={item}
                 collapsed={!showExpanded}
                 isActive={isItemActive(item)}
-                onNavigate={onCloseMobile}
+                onNavigate={handleNavigate}
               />
             ))}
           </div>
@@ -327,7 +344,7 @@ export default function PrivateSidebar({ pathname, isMobileOpen, onCloseMobile }
                   item={item}
                   collapsed={!showExpanded}
                   isActive={isItemActive(item)}
-                  onNavigate={onCloseMobile}
+                  onNavigate={handleNavigate}
                 />
               ) : (
                 <InertNavItem key={item.label} item={item} collapsed={!showExpanded} />

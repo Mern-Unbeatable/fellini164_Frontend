@@ -1,0 +1,155 @@
+import { useCallback, useEffect, useState } from 'react';
+import { Navigate, useNavigate, useOutletContext, useParams } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import TaskDetailPanel from './components/TaskDetailPanel';
+import TaskFormModal from './components/TaskFormModal';
+import {
+  clearCurrentTask,
+  deleteTask,
+  fetchSubtasks,
+  fetchTaskById,
+  fetchTasksSummary,
+  selectCurrentSubtasks,
+  selectCurrentTask,
+  selectTasksLoadingTask,
+  updateTask,
+} from '../../../../../features/tasks/tasksSlice';
+import { mapTaskFromApi } from '../../../../../features/tasks/tasksMappers';
+
+/**
+ * Full-page task detail at /user/tasks/:taskId
+ * Refresh-safe (URL holds the task id) — same pattern as GoalDetailPage.
+ */
+export default function TaskDetailPage() {
+  const { taskId } = useParams();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { setTaskDetail, setBackToTasksBoard } = useOutletContext() || {};
+  const currentTask = useSelector(selectCurrentTask);
+  const currentSubtasks = useSelector(selectCurrentSubtasks);
+  const loadingTask = useSelector(selectTasksLoadingTask);
+  const [detailFetchDone, setDetailFetchDone] = useState(false);
+  const [triggerSubtasksAi, setTriggerSubtasksAi] = useState(false);
+  const [triggerImproveAi, setTriggerImproveAi] = useState(false);
+  const [taskModal, setTaskModal] = useState({ open: false, task: null });
+
+  const task =
+    currentTask && String(currentTask.id) === String(taskId)
+      ? {
+          ...currentTask,
+          subtasks: currentSubtasks ?? currentTask.subtasks ?? [],
+        }
+      : null;
+
+  useEffect(() => {
+    if (!taskId) {
+      setDetailFetchDone(true);
+      return undefined;
+    }
+    let cancelled = false;
+    setDetailFetchDone(false);
+    Promise.all([
+      dispatch(fetchTaskById(taskId)),
+      dispatch(fetchSubtasks(taskId)),
+    ]).finally(() => {
+      if (!cancelled) setDetailFetchDone(true);
+    });
+    return () => {
+      cancelled = true;
+      dispatch(clearCurrentTask());
+    };
+  }, [dispatch, taskId]);
+
+  useEffect(() => {
+    setTaskDetail?.(task?.title ?? null);
+    return () => setTaskDetail?.(null);
+  }, [task?.title, setTaskDetail]);
+
+  const goToBoard = useCallback(() => {
+    navigate('/user/tasks');
+  }, [navigate]);
+
+  useEffect(() => {
+    setBackToTasksBoard?.(goToBoard);
+    return () => setBackToTasksBoard?.(null);
+  }, [setBackToTasksBoard, goToBoard]);
+
+  const refreshTask = useCallback(async () => {
+    if (!taskId) return null;
+    const byId = await dispatch(fetchTaskById(taskId));
+    const subs = await dispatch(fetchSubtasks(taskId));
+    if (!fetchTaskById.fulfilled.match(byId)) return null;
+    const mapped = mapTaskFromApi(byId.payload);
+    const subtasks = fetchSubtasks.fulfilled.match(subs)
+      ? subs.payload.subtasks
+      : mapped.subtasks || [];
+    return { ...mapped, subtasks };
+  }, [dispatch, taskId]);
+
+  const handleUpdateTaskFields = async (id, fields) => {
+    const ALLOWED_KEYS = new Set([
+      'title',
+      'description',
+      'category',
+      'linkedGoal',
+      'goalId',
+      'tags',
+    ]);
+    const safeFields = Object.fromEntries(
+      Object.entries(fields).filter(([key]) => ALLOWED_KEYS.has(key))
+    );
+    if (Object.keys(safeFields).length === 0) return;
+    const formData = { ...safeFields };
+    if (safeFields.linkedGoal && !safeFields.goalId) {
+      formData.goalId = safeFields.linkedGoal;
+    }
+    await dispatch(updateTask({ taskId: id, formData }));
+    await refreshTask();
+  };
+
+  const handleDelete = async (t) => {
+    await dispatch(deleteTask(t.id));
+    await dispatch(fetchTasksSummary());
+    navigate('/user/tasks');
+  };
+
+  const autoAiAction = triggerImproveAi ? 'improve' : triggerSubtasksAi ? 'breakdown' : null;
+
+  if (!detailFetchDone || (loadingTask && !task)) return null;
+  if (detailFetchDone && !task) {
+    return <Navigate to="/user/tasks" replace />;
+  }
+
+  return (
+    <div className="relative flex min-h-full flex-col py-7.5 max-lg:min-h-0 max-lg:py-4 max-lg:sm:py-6">
+      <TaskDetailPanel
+        task={task}
+        onUpdateTaskFields={(fields) => handleUpdateTaskFields(task.id, fields)}
+        onEdit={(t) => setTaskModal({ open: true, task: t })}
+        onDelete={handleDelete}
+        onRefreshTask={refreshTask}
+        autoAiAction={autoAiAction}
+        onAutoAiActionConsumed={() => {
+          setTriggerSubtasksAi(false);
+          setTriggerImproveAi(false);
+        }}
+        onTriggerSubtasksAi={() => setTriggerSubtasksAi(true)}
+        onTriggerImproveAi={() => setTriggerImproveAi(true)}
+      />
+
+      {taskModal.open && (
+        <TaskFormModal
+          key={taskModal.task?.id ?? 'edit'}
+          mode="edit"
+          initialTask={taskModal.task}
+          onClose={() => setTaskModal({ open: false, task: null })}
+          onSubmit={async (form) => {
+            if (!taskModal.task?.id) return;
+            await dispatch(updateTask({ taskId: taskModal.task.id, formData: form }));
+            await refreshTask();
+          }}
+        />
+      )}
+    </div>
+  );
+}
