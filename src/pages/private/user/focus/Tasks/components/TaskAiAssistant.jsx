@@ -11,6 +11,7 @@ import {
 import {
   formatTaskSuggestionBody,
   mapTaskAiSuggestionsToMessages,
+  mapTaskFromApi,
 } from '../../../../../../features/tasks/tasksMappers';
 
 const QUICK_ACTIONS = [
@@ -95,6 +96,7 @@ export default function TaskAiAssistant({
   onToggleExpand,
   isExpanded = false,
   onRefreshTask,
+  onTaskUpdated,
   onApplyingChange,
   autoAction = null,
   onAutoActionConsumed,
@@ -322,6 +324,9 @@ export default function TaskAiAssistant({
         throw new Error(data?.message || 'Failed to apply suggestion');
       }
       toast.success(data?.message || 'Changes applied');
+      if (data?.task) {
+        onTaskUpdated?.(mapTaskFromApi(data.task));
+      }
       await onRefreshTask?.();
       await reloadHistory();
     } catch (err) {
@@ -361,6 +366,9 @@ export default function TaskAiAssistant({
         throw new Error(data?.message || 'Failed to undo');
       }
       toast.success(data?.message || 'Changes undone');
+      if (data?.task) {
+        onTaskUpdated?.(mapTaskFromApi(data.task));
+      }
       await onRefreshTask?.();
       await reloadHistory();
     } catch (err) {

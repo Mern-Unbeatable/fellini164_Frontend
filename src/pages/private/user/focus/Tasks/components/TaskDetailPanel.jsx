@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import {
   Sparkles,
   ChevronDown,
@@ -16,6 +16,43 @@ import {
 import SkeletonBar from '../../../../../../components/ui/SkeletonBar';
 import TaskAiAssistant from './TaskAiAssistant';
 import { fetchGoalsApi } from '../../../../../../features/goals/goalsAPI';
+import { mapTaskFromApi } from '../../../../../../features/tasks/tasksMappers';
+
+/** Keep detail view on local state so AI apply updates the left panel immediately. */
+function useLocalTask(task) {
+  const [localTask, setLocalTask] = useState(task);
+
+  useEffect(() => {
+    if (!task) {
+      setLocalTask(null);
+      return;
+    }
+    setLocalTask((prev) => {
+      if (!prev || String(prev.id) !== String(task.id)) return task;
+      // Prefer fresher prop data (title/description/subtasks) from parent refresh
+      return {
+        ...prev,
+        ...task,
+        subtasks: Array.isArray(task.subtasks) ? task.subtasks : prev.subtasks || [],
+      };
+    });
+  }, [task]);
+
+  const applyTaskUpdate = useCallback((next) => {
+    if (!next) return;
+    const mapped = next.id ? next : mapTaskFromApi(next);
+    if (!mapped) return;
+    setLocalTask((prev) => ({
+      ...(prev || {}),
+      ...mapped,
+      subtasks: Array.isArray(mapped.subtasks)
+        ? mapped.subtasks
+        : prev?.subtasks || [],
+    }));
+  }, []);
+
+  return [localTask, setLocalTask, applyTaskUpdate];
+}
 
 const PRIORITY_STYLES = {
   URGENT: 'bg-[rgba(220,38,38,0.05)] text-[#dc2626]',
@@ -456,6 +493,39 @@ export function TaskDetailDrawer({
   autoAiAction = null,
   onAutoAiActionConsumed,
 }) {
+  if (!task) return null;
+
+  return (
+    <TaskDetailDrawerInner
+      task={task}
+      onClose={onClose}
+      onOpenFullPage={onOpenFullPage}
+      onUpdateTaskFields={onUpdateTaskFields}
+      onEdit={onEdit}
+      onDelete={onDelete}
+      onRefreshTask={onRefreshTask}
+      onTriggerSubtasksAi={onTriggerSubtasksAi}
+      onTriggerImproveAi={onTriggerImproveAi}
+      autoAiAction={autoAiAction}
+      onAutoAiActionConsumed={onAutoAiActionConsumed}
+    />
+  );
+}
+
+function TaskDetailDrawerInner({
+  task: taskProp,
+  onClose,
+  onOpenFullPage,
+  onUpdateTaskFields,
+  onEdit,
+  onDelete,
+  onRefreshTask,
+  onTriggerSubtasksAi,
+  onTriggerImproveAi,
+  autoAiAction = null,
+  onAutoAiActionConsumed,
+}) {
+  const [localTask, , applyTaskUpdate] = useLocalTask(taskProp);
   const [width, setWidth] = useState(DRAWER_DEFAULT_WIDTH);
   const isResizing = useRef(false);
   const [isDesktop, setIsDesktop] = useState(
@@ -463,6 +533,14 @@ export function TaskDetailDrawer({
   );
   const [isApplyingAiEdit, setIsApplyingAiEdit] = useState(false);
   const [isAssistantOpen, setIsAssistantOpen] = useState(Boolean(autoAiAction));
+
+  const task = localTask || taskProp;
+
+  const handleRefreshTask = useCallback(async () => {
+    const updated = await onRefreshTask?.();
+    if (updated) applyTaskUpdate(updated);
+    return updated;
+  }, [onRefreshTask, applyTaskUpdate]);
 
   useEffect(() => {
     if (autoAiAction) setIsAssistantOpen(true);
@@ -575,7 +653,8 @@ export function TaskDetailDrawer({
                 taskId={task.id}
                 hasSubtasks={Array.isArray(task.subtasks) && task.subtasks.length > 0}
                 onClose={() => setIsAssistantOpen(false)}
-                onRefreshTask={onRefreshTask}
+                onRefreshTask={handleRefreshTask}
+                onTaskUpdated={applyTaskUpdate}
                 onApplyingChange={setIsApplyingAiEdit}
                 autoAction={autoAiAction}
                 onAutoActionConsumed={onAutoAiActionConsumed}
@@ -589,7 +668,7 @@ export function TaskDetailDrawer({
 }
 
 export default function TaskDetailPanel({
-  task,
+  task: taskProp,
   onUpdateTaskFields,
   onEdit,
   onDelete,
@@ -599,9 +678,18 @@ export default function TaskDetailPanel({
   autoAiAction = null,
   onAutoAiActionConsumed,
 }) {
+  const [localTask, , applyTaskUpdate] = useLocalTask(taskProp);
   const [isApplyingAiEdit, setIsApplyingAiEdit] = useState(false);
   const [isAssistantOpen, setIsAssistantOpen] = useState(true);
   const [isAssistantExpanded, setIsAssistantExpanded] = useState(false);
+
+  const task = localTask || taskProp;
+
+  const handleRefreshTask = useCallback(async () => {
+    const updated = await onRefreshTask?.();
+    if (updated) applyTaskUpdate(updated);
+    return updated;
+  }, [onRefreshTask, applyTaskUpdate]);
 
   if (!task) return null;
 
@@ -651,7 +739,8 @@ export default function TaskDetailPanel({
             onClose={closeAssistant}
             onToggleExpand={toggleExpandAssistant}
             isExpanded={false}
-            onRefreshTask={onRefreshTask}
+            onRefreshTask={handleRefreshTask}
+            onTaskUpdated={applyTaskUpdate}
             onApplyingChange={setIsApplyingAiEdit}
             autoAction={autoAiAction}
             onAutoActionConsumed={onAutoAiActionConsumed}
@@ -668,7 +757,8 @@ export default function TaskDetailPanel({
               onClose={closeAssistant}
               onToggleExpand={toggleExpandAssistant}
               isExpanded
-              onRefreshTask={onRefreshTask}
+              onRefreshTask={handleRefreshTask}
+              onTaskUpdated={applyTaskUpdate}
               onApplyingChange={setIsApplyingAiEdit}
               autoAction={autoAiAction}
               onAutoActionConsumed={onAutoAiActionConsumed}

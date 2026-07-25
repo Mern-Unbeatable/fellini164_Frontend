@@ -31,7 +31,7 @@ import {
   selectTasksLoading,
   updateTask,
 } from '../../../../../features/tasks/tasksSlice';
-import { taskMatchesClientFilters } from '../../../../../features/tasks/tasksMappers';
+import { mapTaskFromApi, taskMatchesClientFilters } from '../../../../../features/tasks/tasksMappers';
 
 const TASKS_SUBTITLE_PHRASES = [
   'Plan, prioritize, and complete your tasks in one place...',
@@ -212,9 +212,9 @@ export default function TasksBoard() {
         ...boardTask,
         ...(currentTask && String(currentTask.id) === String(selectedTaskId) ? currentTask : {}),
         subtasks:
-          currentTask && String(currentTask.id) === String(selectedTaskId) && currentSubtasks?.length
-            ? currentSubtasks
-            : boardTask.subtasks || currentSubtasks || [],
+          currentTask && String(currentTask.id) === String(selectedTaskId)
+            ? currentSubtasks ?? currentTask.subtasks ?? []
+            : boardTask.subtasks || [],
       }
     : null;
 
@@ -224,11 +224,15 @@ export default function TasksBoard() {
   }, [selectedTask, isTaskExpanded, setTaskDetail]);
 
   const refreshSelectedTask = useCallback(async () => {
-    if (!selectedTaskId) return;
-    await dispatch(fetchTaskById(selectedTaskId));
+    if (!selectedTaskId) return null;
+    const byId = await dispatch(fetchTaskById(selectedTaskId));
     await dispatch(fetchSubtasks(selectedTaskId));
     await loadTasks();
     await dispatch(fetchTasksSummary());
+    if (fetchTaskById.fulfilled.match(byId)) {
+      return mapTaskFromApi(byId.payload);
+    }
+    return null;
   }, [dispatch, selectedTaskId, loadTasks]);
 
   useEffect(() => {
