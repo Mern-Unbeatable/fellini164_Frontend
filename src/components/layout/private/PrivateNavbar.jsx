@@ -54,11 +54,19 @@ function getInitials(user) {
   return initials.toUpperCase();
 }
 
-export default function PrivateNavbar({ pathname, user, onOpenMobileSidebar, onLogout, taskDetail }) {
+export default function PrivateNavbar({
+  pathname,
+  user,
+  onOpenMobileSidebar,
+  onLogout,
+  taskDetail,
+  onBackToTasksBoard,
+}) {
   const goals = useSelector(selectGoals);
   const currentGoal = useSelector(selectCurrentGoal);
   const { section, page, detail: routeDetail } = getBreadcrumb(pathname, goals, currentGoal);
   const detail = pathname.startsWith('/user/tasks') ? taskDetail : routeDetail;
+  const canBackToTasks = pathname.startsWith('/user/tasks') && Boolean(detail);
   const dispatch = useDispatch();
   const notifications = useSelector(selectNotifications);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -105,13 +113,23 @@ export default function PrivateNavbar({ pathname, user, onOpenMobileSidebar, onL
               </span>
             </>
           )}
-          <p
-            className={`truncate text-[12px] font-medium whitespace-nowrap ${
-              detail ? 'text-[#5d5d5d] dark:text-gray-300' : 'text-[#c2c2c2] dark:text-zinc-500'
-            }`}
-          >
-            {page}
-          </p>
+          {canBackToTasks ? (
+            <button
+              type="button"
+              onClick={onBackToTasksBoard}
+              className="truncate text-[12px] font-medium whitespace-nowrap text-[#5d5d5d] hover:text-[#8022fe] dark:text-gray-300"
+            >
+              {page}
+            </button>
+          ) : (
+            <p
+              className={`truncate text-[12px] font-medium whitespace-nowrap ${
+                detail ? 'text-[#5d5d5d] dark:text-gray-300' : 'text-[#c2c2c2] dark:text-zinc-500'
+              }`}
+            >
+              {page}
+            </p>
+          )}
           {detail && (
             <>
               <span className="shrink-0 text-[12px] font-medium text-[#c2c2c2] dark:text-zinc-600">

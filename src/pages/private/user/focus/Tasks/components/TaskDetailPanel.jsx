@@ -12,6 +12,7 @@ import {
   MoreHorizontal,
   Pencil,
   Trash2,
+  ArrowLeft,
 } from 'lucide-react';
 import SkeletonBar from '../../../../../../components/ui/SkeletonBar';
 import TaskAiAssistant from './TaskAiAssistant';
@@ -589,6 +590,7 @@ export function TaskDetailDrawer({
 
 export default function TaskDetailPanel({
   task,
+  onBack,
   onUpdateTaskFields,
   onEdit,
   onDelete,
@@ -611,7 +613,18 @@ export default function TaskDetailPanel({
   const toggleExpandAssistant = () => setIsAssistantExpanded((e) => !e);
 
   return (
-    <div className="flex min-h-0 flex-1 w-full flex-col gap-7.5 xl:flex-row xl:items-stretch">
+    <div className="flex min-h-0 flex-1 w-full flex-col gap-4">
+      {onBack && (
+        <button
+          type="button"
+          onClick={onBack}
+          className="flex w-fit items-center gap-1.5 text-[12px] font-medium text-[#5d5d5d] hover:text-[#8022fe] dark:text-gray-300"
+        >
+          <ArrowLeft size={14} />
+          Back to Tasks Board
+        </button>
+      )}
+      <div className="flex min-h-0 flex-1 w-full flex-col gap-7.5 xl:flex-row xl:items-stretch">
       <div className="relative flex min-h-[min(60vh,520px)] min-w-0 flex-1 flex-col overflow-y-auto rounded-2xl border border-[#f2f2f2] bg-white p-5 scrollbar-hidden xl:min-h-0 dark:border-zinc-700 dark:bg-zinc-900">
         {!isAssistantOpen && (
           <button
@@ -673,6 +686,7 @@ export default function TaskDetailPanel({
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

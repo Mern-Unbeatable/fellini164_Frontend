@@ -136,7 +136,7 @@ function isPixelPassMode() {
 
 export default function TasksBoard() {
   const dispatch = useDispatch();
-  const { setTaskDetail } = useOutletContext();
+  const { setTaskDetail, setBackToTasksBoard } = useOutletContext();
   const reduxColumns = useSelector(selectTaskColumns);
   const loadingList = useSelector(selectTasksLoading);
   const currentTask = useSelector(selectCurrentTask);
@@ -244,12 +244,26 @@ export default function TasksBoard() {
     setIsTaskExpanded(false);
   };
 
-  const closeTaskDetail = () => {
+  const closeTaskDetail = useCallback(() => {
     setSelectedTaskId(null);
     setTriggerSubtasksAi(false);
     setTriggerImproveAi(false);
     setIsTaskExpanded(false);
-  };
+  }, []);
+
+  useEffect(() => {
+    setBackToTasksBoard?.(closeTaskDetail);
+    return () => setBackToTasksBoard?.(null);
+  }, [setBackToTasksBoard, closeTaskDetail]);
+
+  useEffect(() => {
+    if (!isTaskExpanded) return undefined;
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') closeTaskDetail();
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [isTaskExpanded, closeTaskDetail]);
 
   const handleUpdateTaskFields = async (taskId, fields) => {
     const ALLOWED_KEYS = new Set([
@@ -460,6 +474,7 @@ export default function TasksBoard() {
         <div className="flex min-h-0 flex-1 flex-col">
           <TaskDetailPanel
             task={selectedTask}
+            onBack={closeTaskDetail}
             onUpdateTaskFields={(fields) => handleUpdateTaskFields(selectedTask.id, fields)}
             onEdit={openEditTaskModal}
             onDelete={(t) => {
