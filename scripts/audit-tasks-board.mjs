@@ -2,17 +2,28 @@
  * Tasks Board — filter + create/AI contract audit (TestAPIs.md Appendix D).
  * Run: node scripts/audit-tasks-board.mjs
  */
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   buildTasksQueryParams,
   categoryToApi,
   dueTimeToApi,
+  formatTaskSuggestionBody,
   mapCreatePayload,
+  mapTaskAiSuggestionsToMessages,
   mapTaskFromApi,
   mapUpdatePayload,
   priorityToApi,
   statusApiFromUi,
   taskMatchesClientFilters,
 } from '../src/features/tasks/tasksMappers.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const apiSource = fs.readFileSync(
+  path.join(__dirname, '../src/features/tasks/tasksAPI.js'),
+  'utf8'
+);
 
 let failed = 0;
 function assert(name, condition, detail = '') {
@@ -168,6 +179,116 @@ assert('Mapped linkedGoal', mapped.linkedGoal === 'Retirement');
 console.log('\n=== Update payload goal unlink ===');
 const unlink = mapUpdatePayload({ linkedGoal: '__none__' });
 assert('Unlink goalId null', unlink.goalId === null);
+
+console.log('\n=== API paths (tasksAPI.js vs Appendix D) ===');
+const pathChecks = [
+  ['GET summary', /get\(`\$\{BASE\}\/summary`\)/],
+  ['POST create', /post\(BASE,/],
+  ['POST ai/generate', /post\(`\$\{BASE\}\/ai\/generate`/],
+  ['POST ai/suggest', /post\(`\$\{BASE\}\/\$\{taskId\}\/ai\/suggest`/],
+  ['GET ai/suggestions', /get\(`\$\{BASE\}\/\$\{taskId\}\/ai\/suggestions`/],
+  ['POST accept', /post\(`\$\{BASE\}\/ai\/suggestions\/\$\{suggestionId\}\/accept`\)/],
+  ['POST dismiss', /post\(`\$\{BASE\}\/ai\/suggestions\/\$\{suggestionId\}\/dismiss`\)/],
+  ['POST undo', /post\(`\$\{BASE\}\/\$\{taskId\}\/ai\/undo`\)/],
+  ['GET subtasks', /get\(`\$\{BASE\}\/\$\{taskId\}\/subtasks`\)/],
+  ['PATCH task', /patch\(`\$\{BASE\}\/\$\{taskId\}`,/],
+  ['PATCH status', /patch\(`\$\{BASE\}\/\$\{taskId\}\/status`/],
+  ['POST complete', /post\(`\$\{BASE\}\/\$\{taskId\}\/complete`/],
+  ['POST skip', /post\(`\$\{BASE\}\/\$\{taskId\}\/skip`/],
+  ['DELETE task', /delete\(`\$\{BASE\}\/\$\{taskId\}`\)/],
+];
+for (const [name, re] of pathChecks) {
+  assert(name, re.test(apiSource));
+}
+assert('BASE /api/v1/tasks', apiSource.includes("const BASE = '/api/v1/tasks'"));
+
+console.log('\n=== AI suggest body formatting (IMPROVE / BREAKDOWN) ===');
+const improveBody = formatTaskSuggestionBody({
+  message: 'Sure, I can update this task. This will:\n• improve the title and description',
+  proposedTask: {
+    title: 'Create Daily Expense Report',
+    description: "Compile a detailed report of today's expenses.",
+  },
+  proposedSubtasks: [],
+});
+assert('Improve shows proposed title', improveBody.includes('Create Daily Expense Report'));
+assert('Improve shows proposed description', improveBody.includes('Compile a detailed report'));
+
+const breakdownBody = formatTaskSuggestionBody({
+  message: 'Sure, I can update this task. This will:\n• add subtasks',
+  proposedSubtasks: [
+    { title: 'Prepare Yoga Space' },
+    { title: 'Warm-Up' },
+    { title: 'Follow Yoga Routine' },
+  ],
+});
+assert('Breakdown lists proposed subtasks', breakdownBody.includes('Proposed subtasks (3)'));
+assert('Breakdown includes Warm-Up', breakdownBody.includes('Warm-Up'));
+
+console.log('\n=== AI suggestions history → chat (Yes apply / Undo) ===');
+const pendingId = 'sug-pending-1';
+const acceptedId = 'sug-accepted-1';
+const historyMsgs = mapTaskAiSuggestionsToMessages([
+  {
+    id: pendingId,
+    status: 'PENDING',
+    action: 'BREAKDOWN',
+    message: 'Sure, I can update this task.',
+    proposedSubtasks: [{ title: 'A' }, { title: 'B' }],
+    createdAt: '2026-07-25T10:00:00.000Z',
+  },
+  {
+    id: acceptedId,
+    status: 'ACCEPTED',
+    action: 'BREAKDOWN',
+    message: 'Sure, I can update this task.',
+    proposedSubtasks: [{ title: 'X' }],
+    createdAt: '2026-07-25T11:00:00.000Z',
+  },
+]);
+assert(
+  'Pending keeps Yes/No suggestion payload',
+  historyMsgs.some((m) => m.suggestionId === pendingId && m.suggestion)
+);
+assert(
+  'Accepted synthesizes Yes, apply bubble',
+  historyMsgs.some((m) => m.role === 'user' && m.text === 'Yes, apply' && m.id.includes(acceptedId))
+);
+assert(
+  'Accepted Done message exists',
+  historyMsgs.some((m) => m.id === `done-${acceptedId}`)
+);
+assert(
+  'Latest accepted gets Undo',
+  historyMsgs.some((m) => m.id === `done-${acceptedId}` && m.canUndo === true)
+);
+assert(
+  'Array envelope parse (Goals-style)',
+  mapTaskAiSuggestionsToMessages([{ id: 'x', status: 'PENDING', message: 'hi' }]).length >= 1
+);
+assert(
+  'Nested { suggestions } envelope',
+  mapTaskAiSuggestionsToMessages({
+    suggestions: [{ id: 'y', status: 'PENDING', message: 'hi' }],
+  }).some((m) => m.suggestionId === 'y')
+);
+assert(
+  'Nested { data: { suggestions } } envelope',
+  mapTaskAiSuggestionsToMessages({
+    data: { suggestions: [{ id: 'z', status: 'PENDING', message: 'hi' }] },
+  }).some((m) => m.suggestionId === 'z')
+);
+
+console.log('\n=== Detail route (refresh-safe) ===');
+const routerSource = fs.readFileSync(
+  path.join(__dirname, '../src/router/router.jsx'),
+  'utf8'
+);
+assert(
+  'Route /user/tasks/:taskId',
+  routerSource.includes('path="/user/tasks/:taskId"')
+);
+assert('TaskDetailPage import', routerSource.includes('TaskDetailPage'));
 
 console.log('\n=== Summary ===');
 if (failed === 0) {

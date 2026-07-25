@@ -804,7 +804,7 @@ If Postman has no response:
 ## Appendix D — Tasks Board API Audit (Current Frontend)
 
 **Date:** 2026-07-25  
-**Last automated re-test:** 2026-07-25 — `audit-tasks-board.mjs` → **ALL PASS**  
+**Last automated re-test:** 2026-07-25 (PM) — `audit-tasks-board.mjs` → **ALL PASS** (mappers + Appendix D paths + AI history/chat + `/user/tasks/:taskId`)  
 **Module:** `src/features/tasks/` + `src/pages/private/user/focus/Tasks/`  
 **Base URL (env):** `VITE_API_BASE_URL` → `https://backendtest.elyxaai.com`  
 **API prefix used in code:** `/api/v1/tasks`  
@@ -937,9 +937,10 @@ Server persists immediately — **Add to Board** only refreshes the list (no sec
 | 7 | Search `report` | `...&search=report` (after debounce) |
 | 8 | **+ New Task** → Manual → Create | `POST /tasks` then list + summary refresh |
 | 9 | **+ New Task** → AI → Generate → Add to Board | `POST /tasks/ai/generate`; Add = refresh only |
-| 10 | Open task detail | `GET /tasks/:id` + `GET /tasks/:id/subtasks` (+ pending suggestions) |
-| 11 | AI → Break into subtasks → Yes, apply | `POST .../ai/suggest` `{ "action": "BREAKDOWN", … }` then accept |
-| 11b | AI → Improve description → Yes, apply | `POST .../ai/suggest` `{ "action": "IMPROVE_DESCRIPTION" }` (optional `message`); left panel title/description update from `proposedTask` + accept |
+| 10 | Open task detail (full page) | Navigate `/user/tasks/:taskId` — refresh-safe; `GET /tasks/:id` + `GET /tasks/:id/subtasks` + `GET .../ai/suggestions` |
+| 11 | AI → Break into subtasks → Yes, apply | `POST .../ai/suggest` `{ "action": "BREAKDOWN", … }` then `POST .../ai/suggestions/:id/accept`; chat keeps Yes, apply + Done + Undo; left panel shows subtasks |
+| 11b | AI → Improve description → Yes, apply | `POST .../ai/suggest` `{ "action": "IMPROVE_DESCRIPTION" }` (± `message`); title/description from `proposedTask` + accept |
+| 11c | No, cancel / Undo | `POST .../dismiss` / `POST /tasks/:taskId/ai/undo` |
 | 12 | ⋯ Edit / Delete | `PATCH` / `DELETE` |
 
 ```bash
@@ -956,7 +957,7 @@ node scripts/audit-tasks-board.mjs
 | Exact method (no guessing) | **PASS** | Paths match user Postman contract |
 | Remove mock after connect | **PASS** for list/filters/create/AI/detail AI; **DEFERRED** ghosts | See D.1b |
 | Loading / empty / errors | **PASS** | Soft list reload; empty columns; toasts |
-| Mapper audit | **PASS** | `audit-tasks-board.mjs` — ALL PASS (2026-07-25) |
+| Mapper audit | **PASS** | `audit-tasks-board.mjs` — ALL PASS (2026-07-25 PM; includes AI paths + history chat) |
 | Logged-in Network QA | **Manual** | Engineer checklist §D.6 |
 
 ### D.8 Blockers
