@@ -111,11 +111,21 @@ function ActionPill({ children, onClick, disabled }) {
   );
 }
 
+function doneMessageForAction(action) {
+  const key = String(action || '').toUpperCase();
+  if (key === 'BREAKDOWN') return 'Done. The subtasks were successfully added.';
+  if (key === 'IMPROVE_DESCRIPTION') return 'Done. The title and description were updated.';
+  return 'Done. The task has been updated.';
+}
+
 /**
  * Task detail AI Assistant
  * Suggest: POST /tasks/:id/ai/suggest
  * History: GET /tasks/:id/ai/suggestions (full list — keep chat after apply/refresh)
  * Accept / Dismiss / Undo: suggestion action endpoints
+ *
+ * Figma chat flow after Yes, apply:
+ *   pills → purple "Yes, apply" bubble → Done → Undo changes
  */
 export default function TaskAiAssistant({
   taskId,
@@ -143,6 +153,27 @@ export default function TaskAiAssistant({
   hasSubtasksRef.current = hasSubtasks;
   messagesRef.current = messages;
 
+  const syncHistory = useCallback(
+    async ({ requireSuggestionId } = {}) => {
+      if (!taskId) return;
+      try {
+        const data = await fetchTaskAiSuggestionsApi(taskId);
+        const next = mapTaskAiSuggestionsToMessages(data);
+        if (requireSuggestionId) {
+          const found = next.some(
+            (m) => String(m.suggestionId) === String(requireSuggestionId)
+          );
+          // Server list can lag right after suggest — don't wipe the live Yes/No card
+          if (!found) return;
+        }
+        setMessages(next);
+      } catch {
+        // keep on-screen messages
+      }
+    },
+    [taskId]
+  );
+
   const reloadHistory = useCallback(async () => {
     if (!taskId) {
       setMessages([]);
@@ -151,12 +182,9 @@ export default function TaskAiAssistant({
     }
     setHistoryLoading(true);
     try {
-      // Full history (no status filter) so applied/dismissed bubbles stay after refresh
       const data = await fetchTaskAiSuggestionsApi(taskId);
-      const next = mapTaskAiSuggestionsToMessages(data);
-      setMessages(next);
+      setMessages(mapTaskAiSuggestionsToMessages(data));
     } catch {
-      // Keep whatever is already on screen — do not wipe chat on network blip
       if (messagesRef.current.length === 0) setMessages([]);
     } finally {
       setHistoryLoading(false);
@@ -181,6 +209,22 @@ export default function TaskAiAssistant({
     el.scrollTop = el.scrollHeight;
   }, [messages, loading, historyLoading]);
 
+  const appendAssistantSuggestion = useCallback((data, action) => {
+    const suggestionId = data?.suggestionId || data?.id || null;
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: `a-${suggestionId || Date.now()}`,
+        role: 'assistant',
+        text: formatTaskSuggestionBody(data),
+        suggestion: data,
+        suggestionId,
+        action: data?.action || action,
+      },
+    ]);
+    return suggestionId;
+  }, []);
+
   const runSuggest = useCallback(
     async (action, message, options = {}) => {
       if (!taskId || loading) return;
@@ -195,7 +239,6 @@ export default function TaskAiAssistant({
       try {
         const body = { action };
         if (userText) body.message = userText;
-        // API requires regenerate=true when BREAKDOWN and task already has subtasks
         const shouldRegenerate =
           options.regenerate === true ||
           (action === 'BREAKDOWN' && hasSubtasksRef.current);
@@ -205,7 +248,6 @@ export default function TaskAiAssistant({
         const data = unwrapSuggestResponse(raw);
         if (!data?.success && data?.success !== undefined) {
           const errMsg = data?.message || 'Suggestion failed';
-          // Auto-retry once if backend asks for regenerate
           if (
             action === 'BREAKDOWN' &&
             !body.regenerate &&
@@ -217,57 +259,17 @@ export default function TaskAiAssistant({
             if (!retry?.success && retry?.success !== undefined) {
               throw new Error(retry?.message || errMsg);
             }
-            const suggestionId = retry?.suggestionId || retry?.id || null;
-            setMessages((prev) => [
-              ...prev,
-              {
-                id: `a-${suggestionId || Date.now()}`,
-                role: 'assistant',
-                text: formatTaskSuggestionBody(retry),
-                suggestion: retry,
-                suggestionId,
-                action: retry?.action || action,
-              },
-            ]);
-            if (suggestionId) {
-              try {
-                const suggestions = await fetchTaskAiSuggestionsApi(taskId);
-                setMessages(mapTaskAiSuggestionsToMessages(suggestions));
-              } catch {
-                // keep optimistic local message
-              }
-            }
+            const suggestionId = appendAssistantSuggestion(retry, action);
+            if (suggestionId) await syncHistory({ requireSuggestionId: suggestionId });
             return;
           }
           throw new Error(errMsg);
         }
-        const suggestionId = data?.suggestionId || data?.id || null;
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `a-${suggestionId || Date.now()}`,
-            role: 'assistant',
-            text: formatTaskSuggestionBody(data),
-            suggestion: data,
-            suggestionId,
-            action: data?.action || action,
-          },
-        ]);
-        if (suggestionId) {
-          try {
-            const suggestions = await fetchTaskAiSuggestionsApi(taskId);
-            setMessages(mapTaskAiSuggestionsToMessages(suggestions));
-          } catch {
-            // keep optimistic local message
-          }
-        }
+        const suggestionId = appendAssistantSuggestion(data, action);
+        if (suggestionId) await syncHistory({ requireSuggestionId: suggestionId });
       } catch (err) {
         const msg = err?.response?.data?.message || err?.message || 'Failed to get AI suggestion';
-        // HTTP error path: retry BREAKDOWN once with regenerate if backend requires it
-        if (
-          action === 'BREAKDOWN' &&
-          /regenerate\s*=\s*true/i.test(msg)
-        ) {
+        if (action === 'BREAKDOWN' && /regenerate\s*=\s*true/i.test(msg)) {
           try {
             const body = { action, regenerate: true };
             if (userText) body.message = userText;
@@ -275,26 +277,8 @@ export default function TaskAiAssistant({
             if (!retry?.success && retry?.success !== undefined) {
               throw new Error(retry?.message || msg);
             }
-            const suggestionId = retry?.suggestionId || retry?.id || null;
-            setMessages((prev) => [
-              ...prev,
-              {
-                id: `a-${suggestionId || Date.now()}`,
-                role: 'assistant',
-                text: formatTaskSuggestionBody(retry),
-                suggestion: retry,
-                suggestionId,
-                action: retry?.action || action,
-              },
-            ]);
-            if (suggestionId) {
-              try {
-                const suggestions = await fetchTaskAiSuggestionsApi(taskId);
-                setMessages(mapTaskAiSuggestionsToMessages(suggestions));
-              } catch {
-                // keep optimistic
-              }
-            }
+            const suggestionId = appendAssistantSuggestion(retry, action);
+            if (suggestionId) await syncHistory({ requireSuggestionId: suggestionId });
             return;
           } catch (retryErr) {
             const retryMsg =
@@ -317,7 +301,7 @@ export default function TaskAiAssistant({
         onApplyingChange?.(false);
       }
     },
-    [taskId, loading, onApplyingChange]
+    [taskId, loading, onApplyingChange, appendAssistantSuggestion, syncHistory]
   );
 
   useEffect(() => {
@@ -354,11 +338,31 @@ export default function TaskAiAssistant({
     setPrompt('');
     onApplyingChange?.(true);
 
-    // IMPROVE_DESCRIPTION: paint title/description immediately from proposedTask
+    const action = msg.action || msg.suggestion?.action;
+    const doneText = doneMessageForAction(action);
+
+    // Figma: show purple "Yes, apply" bubble immediately (not only after history reload)
+    setMessages((prev) => {
+      const withoutPills = prev.map((m) =>
+        m.id === msg.id || String(m.suggestionId) === String(suggestionId)
+          ? { ...m, suggestion: null }
+          : m
+      );
+      return [
+        ...withoutPills,
+        { id: `u-apply-${suggestionId}-${Date.now()}`, role: 'user', text: 'Yes, apply' },
+        {
+          id: `done-${suggestionId}`,
+          role: 'assistant',
+          text: doneText,
+          canUndo: true,
+          suggestionId,
+        },
+      ];
+    });
+
     const optimistic = allowlistedFromProposedTask(msg.suggestion?.proposedTask);
-    if (optimistic) {
-      onTaskUpdated?.(optimistic);
-    }
+    if (optimistic) onTaskUpdated?.(optimistic);
 
     try {
       const data = await acceptTaskSuggestionApi(suggestionId);
@@ -371,10 +375,35 @@ export default function TaskAiAssistant({
         onTaskUpdated?.(mapTaskFromApi(acceptedTask));
       }
       await onRefreshTask?.();
-      await reloadHistory();
+      // Only replace chat once history shows this suggestion as applied
+      // (avoids wiping the Figma "Yes, apply" bubble if GET still returns PENDING)
+      try {
+        const history = await fetchTaskAiSuggestionsApi(taskId);
+        const next = mapTaskAiSuggestionsToMessages(history);
+        const stillPending = next.some(
+          (m) => m.suggestion && String(m.suggestionId) === String(suggestionId)
+        );
+        if (!stillPending) setMessages(next);
+      } catch {
+        // keep optimistic Yes, apply + Done + Undo
+      }
     } catch (err) {
       const message = err?.response?.data?.message || err?.message || 'Failed to apply changes';
       toast.error(message);
+      // Restore Yes/No pills; remove optimistic Yes, apply + Done bubbles
+      setMessages((prev) =>
+        prev
+          .filter(
+            (m) =>
+              m.id !== `done-${suggestionId}` &&
+              !(m.role === 'user' && m.id.startsWith(`u-apply-${suggestionId}`))
+          )
+          .map((m) =>
+            String(m.suggestionId) === String(suggestionId)
+              ? { ...m, suggestion: msg.suggestion }
+              : m
+          )
+      );
       await onRefreshTask?.();
     } finally {
       setBusyId(null);
@@ -387,15 +416,46 @@ export default function TaskAiAssistant({
     if (!suggestionId || busyId) return;
     setBusyId(msg.id);
 
+    setMessages((prev) => {
+      const withoutPills = prev.map((m) =>
+        m.id === msg.id || String(m.suggestionId) === String(suggestionId)
+          ? { ...m, suggestion: null }
+          : m
+      );
+      return [
+        ...withoutPills,
+        { id: `u-cancel-${suggestionId}-${Date.now()}`, role: 'user', text: 'No, cancel' },
+        {
+          id: `c-${suggestionId}`,
+          role: 'assistant',
+          text: 'Okay, I discarded that suggestion.',
+          suggestionId,
+        },
+      ];
+    });
+
     try {
       const data = await dismissTaskSuggestionApi(suggestionId);
       if (!data?.success && data?.success !== undefined) {
         throw new Error(data?.message || 'Failed to dismiss suggestion');
       }
-      await reloadHistory();
+      await syncHistory({ requireSuggestionId: suggestionId });
     } catch (err) {
       const message = err?.response?.data?.message || err?.message || 'Failed to cancel suggestion';
       toast.error(message);
+      setMessages((prev) =>
+        prev
+          .filter(
+            (m) =>
+              m.id !== `c-${suggestionId}` &&
+              !(m.role === 'user' && m.text === 'No, cancel' && m.id.startsWith(`u-cancel-${suggestionId}`))
+          )
+          .map((m) =>
+            String(m.suggestionId) === String(suggestionId)
+              ? { ...m, suggestion: msg.suggestion || m.suggestion }
+              : m
+          )
+      );
     } finally {
       setBusyId(null);
     }
@@ -471,7 +531,7 @@ export default function TaskAiAssistant({
                     {m.suggestion && !m.dismissed && (
                       <div className="flex items-center gap-2">
                         <ActionPill disabled={Boolean(busyId)} onClick={() => handleApply(m)}>
-                          Yes, apply
+                          {busyId === m.id ? 'Applying…' : 'Yes, apply'}
                         </ActionPill>
                         <ActionPill disabled={Boolean(busyId)} onClick={() => handleDismiss(m)}>
                           No, cancel
@@ -480,7 +540,7 @@ export default function TaskAiAssistant({
                     )}
                     {m.canUndo && !m.undone && (
                       <ActionPill disabled={Boolean(busyId)} onClick={() => handleUndo(m)}>
-                        Undo changes
+                        {busyId === m.id ? 'Undoing…' : 'Undo changes'}
                       </ActionPill>
                     )}
                   </>

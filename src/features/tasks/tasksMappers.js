@@ -385,7 +385,15 @@ function suggestionStatus(item) {
 }
 
 function isPendingSuggestion(status) {
-  return ['PENDING', 'OPEN', 'ACTIVE', 'AWAITING', 'AWAITING_CONFIRMATION'].includes(status);
+  return [
+    'PENDING',
+    'OPEN',
+    'ACTIVE',
+    'AWAITING',
+    'AWAITING_CONFIRMATION',
+    'SUGGESTED',
+    'PROPOSED',
+  ].includes(status);
 }
 
 function isAcceptedSuggestion(status) {
@@ -401,6 +409,13 @@ function defaultUserMessageForAction(action) {
   if (key === 'BREAKDOWN') return 'Break this task into subtasks';
   if (key === 'IMPROVE_DESCRIPTION') return 'Make it more specific';
   return null;
+}
+
+function doneMessageForHistoryAction(action) {
+  const key = String(action || '').toUpperCase();
+  if (key === 'BREAKDOWN') return 'Done. The subtasks were successfully added.';
+  if (key === 'IMPROVE_DESCRIPTION') return 'Done. The title and description were updated.';
+  return 'Done. The task has been updated.';
 }
 
 /** Map GET /tasks/:id/ai/suggestions → chat messages (Goals AI pattern). */
@@ -468,7 +483,7 @@ export function mapTaskAiSuggestionsToMessages(envelope) {
       messages.push({
         id: doneId,
         role: 'assistant',
-        text: item.applyMessage || 'Done. The task has been updated.',
+        text: item.applyMessage || doneMessageForHistoryAction(item.action),
         canUndo: false,
         suggestionId,
         fromHistory: true,
