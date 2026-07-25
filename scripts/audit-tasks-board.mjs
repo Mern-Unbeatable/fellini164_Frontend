@@ -16,7 +16,6 @@ import {
   mapUpdatePayload,
   priorityToApi,
   statusApiFromUi,
-  taskMatchesClientFilters,
 } from '../src/features/tasks/tasksMappers.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -137,20 +136,23 @@ assert(
   buildTasksQueryParams({ search: 'report' }).search === 'report'
 );
 
-console.log('\n=== Source filter is CLIENT-only ===');
+console.log('\n=== Source filter → GET /tasks?source= ===');
+assert(
+  'All Sources: no source',
+  buildTasksQueryParams({ filters: { Source: 'All Sources' } }).source === undefined
+);
+assert(
+  'Created by AI → AI_GENERATED',
+  buildTasksQueryParams({ filters: { Source: 'Created by AI' } }).source === 'AI_GENERATED'
+);
+assert(
+  'Created manually → MANUAL',
+  buildTasksQueryParams({ filters: { Source: 'Created manually' } }).source === 'MANUAL'
+);
 const withSource = buildTasksQueryParams({
   filters: { Source: 'Created by AI', Status: 'To Do' },
 });
-assert('Source not sent to API', withSource.source === undefined);
-assert('Status still sent', withSource.status === 'TODO');
-assert(
-  'Client AI match',
-  taskMatchesClientFilters({ source: 'ai' }, { Source: 'Created by AI' }) === true
-);
-assert(
-  'Client manual reject AI filter',
-  taskMatchesClientFilters({ source: 'manual' }, { Source: 'Created by AI' }) === false
-);
+assert('Source + Status both sent', withSource.source === 'AI_GENERATED' && withSource.status === 'TODO');
 
 console.log('\n=== mapTaskFromApi ===');
 const mapped = mapTaskFromApi({

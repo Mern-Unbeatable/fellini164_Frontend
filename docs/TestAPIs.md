@@ -837,7 +837,7 @@ If Postman has no response:
 | UI | Notes | Status |
 |----|-------|--------|
 | Empty-board ghost tasks | Local `GHOST_TASKS` (`?empty=1` in DEV) until suggestions API exists | **DEFERRED** |
-| Source filter | Not in Postman list query; filtered client-side after load | **CLIENT** |
+| Source filter | `GET /tasks?source=AI_GENERATED\|MANUAL` | **FULFILLED** |
 | Board ↔ List toggle | List non-functional in MVP | **DEFERRED** |
 
 ### D.1c Toolbar mapping
@@ -849,7 +849,7 @@ If Postman has no response:
 | **All Status** To Do / In Progress / Done | `GET /tasks?status=TODO\|IN_PROGRESS\|COMPLETED` | **FULFILLED** |
 | **All Priority** | `GET /tasks?priority=URGENT\|HIGH\|MEDIUM\|LOW` | **FULFILLED** |
 | **All Category** | `GET /tasks?category=CAREER\|HEALTH\|FINANCE\|PERSONAL\|EDUCATION` | **FULFILLED** |
-| **All Source** | Client only | **CLIENT** |
+| **All Source** | `GET /tasks?source=AI_GENERATED\|MANUAL` | **FULFILLED** |
 | **All Date** | `GET /tasks?dueFilter=today\|tomorrow\|this_week\|this_month\|overdue` | **FULFILLED** |
 | Search | `GET /tasks?search=` (300ms debounce) | **FULFILLED** |
 
@@ -865,6 +865,7 @@ If Postman has no response:
 | `goalId` | UUID | Not a board toolbar chip |
 | `search` | string | Search input |
 | `dueFilter` | today / tomorrow / this_week / this_month / overdue | Date filter |
+| `source` | AI_GENERATED / MANUAL | Source filter: Created by AI / Created manually |
 | `parentOnly` | true | Always `true` on board list |
 | `page` / `limit` | default `1` / `50` (max 100) | Always sent |
 
@@ -933,7 +934,8 @@ Server persists immediately — **Add to Board** only refreshes the list (no sec
 | 3 | Priority → High | `...&priority=HIGH` |
 | 4 | Category → Finance | `...&category=FINANCE` |
 | 5 | Date → This month | `...&dueFilter=this_month` |
-| 6 | Source → Created by AI | List reload (no `source` query); client filter |
+| 6 | Source → Created by AI | `...&source=AI_GENERATED` |
+| 6b | Source → Created manually | `...&source=MANUAL` |
 | 7 | Search `report` | `...&search=report` (after debounce) |
 | 8 | **+ New Task** → Manual → Create | `POST /tasks` then list + summary refresh |
 | 9 | **+ New Task** → AI → Generate → Add to Board | `POST /tasks/ai/generate`; Add = refresh only |
@@ -963,16 +965,15 @@ node scripts/audit-tasks-board.mjs
 ### D.8 Blockers
 
 1. **Ghost suggestions** — empty-board AI cards stay local until a suggestions API exists.
-2. **Source filter** — no Postman query param; remains client-side.
+2. **List toggle** — Board/List List view remains non-functional in MVP.
 
 ### D.9 Verdict
 
 | Area | Verdict |
 |------|---------|
-| List + Status / Priority / Category / Date / search | **FULFILLED** |
+| List + Status / Priority / Category / Date / Source / search | **FULFILLED** |
 | Summary | **FULFILLED** |
 | Create + AI generate + Update + Delete | **FULFILLED** |
 | Detail AI suggest / accept / dismiss / undo | **FULFILLED** |
-| Source filter | **CLIENT** |
 | Ghosts / List view | **DEFERRED** |
-| **Overall Tasks Board** | **FULFILLED for contracted APIs**; ghosts + Source deferred/client |
+| **Overall Tasks Board** | **FULFILLED for contracted APIs**; ghosts + List deferred |

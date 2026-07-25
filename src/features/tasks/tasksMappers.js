@@ -50,6 +50,11 @@ const DATE_FILTER_TO_API = {
   Overdue: 'overdue',
 };
 
+const SOURCE_FILTER_TO_API = {
+  'Created by AI': 'AI_GENERATED',
+  'Created manually': 'MANUAL',
+};
+
 export function categoryToApi(category) {
   return String(category || 'Career').trim().toUpperCase();
 }
@@ -339,18 +344,18 @@ export function buildTasksQueryParams({ filters = {}, search = '', page = 1, lim
     params.dueFilter = DATE_FILTER_TO_API[filters.Date];
   }
 
+  if (filters.Source && filters.Source !== 'All Sources' && SOURCE_FILTER_TO_API[filters.Source]) {
+    params.source = SOURCE_FILTER_TO_API[filters.Source];
+  }
+
   const q = String(search || '').trim();
   if (q) params.search = q;
 
   return params;
 }
 
-/** Client-only: Source (API list has no source query in Postman contract). */
-export function taskMatchesClientFilters(task, filters = {}) {
-  if (filters.Source && filters.Source !== 'All Sources') {
-    const wantsAi = filters.Source === 'Created by AI';
-    if ((task.source === 'ai') !== wantsAi) return false;
-  }
+/** Reserved for any remaining client-only filters (Source is now API-backed). */
+export function taskMatchesClientFilters(_task, _filters = {}) {
   return true;
 }
 

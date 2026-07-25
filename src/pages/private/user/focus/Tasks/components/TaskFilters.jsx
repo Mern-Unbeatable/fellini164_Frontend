@@ -41,7 +41,7 @@ export const DEFAULT_FILTERS = FILTER_CONFIG.reduce(
   {}
 );
 
-/** @deprecated Prefer API filters + taskMatchesClientFilters for Source. */
+/** @deprecated Prefer buildTasksQueryParams (API filters including source). */
 export function taskMatchesFilters(task, filters) {
   if (filters.Status !== 'All Statuses' && task.status && task.status !== filters.Status) {
     return false;
