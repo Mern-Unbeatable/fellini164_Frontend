@@ -29,7 +29,6 @@ function useLocalTask(task) {
     }
     setLocalTask((prev) => {
       if (!prev || String(prev.id) !== String(task.id)) return task;
-      // Prefer fresher prop data (title/description/subtasks) from parent refresh
       return {
         ...prev,
         ...task,
@@ -47,15 +46,15 @@ function useLocalTask(task) {
       next.status === 'In Progress' ||
       next.status === 'Done' ||
       next.columnKey ||
-      Array.isArray(next.tags);
+      Array.isArray(next.tags) ||
+      Array.isArray(next.subtasks);
     const mapped = looksMapped ? next : mapTaskFromApi(next);
     if (!mapped) return;
     setLocalTask((prev) => ({
       ...(prev || {}),
       ...mapped,
-      subtasks: Array.isArray(mapped.subtasks)
-        ? mapped.subtasks
-        : prev?.subtasks || [],
+      // Prefer explicit subtasks on the patch; otherwise keep previous
+      subtasks: Array.isArray(mapped.subtasks) ? mapped.subtasks : prev?.subtasks || [],
     }));
   }, []);
 

@@ -11,6 +11,7 @@ import {
 import {
   categoryFromApi,
   formatTaskSuggestionBody,
+  mapSubtaskFromApi,
   mapTaskAiSuggestionsToMessages,
   mapTaskFromApi,
 } from '../../../../../../features/tasks/tasksMappers';
@@ -159,11 +160,12 @@ export default function TaskAiAssistant({
       try {
         const data = await fetchTaskAiSuggestionsApi(taskId);
         const next = mapTaskAiSuggestionsToMessages(data);
+        // Never replace a live chat with an empty server list (causes Image-2 wipe)
+        if (next.length === 0) return;
         if (requireSuggestionId) {
           const found = next.some(
             (m) => String(m.suggestionId) === String(requireSuggestionId)
           );
-          // Server list can lag right after suggest — don't wipe the live Yes/No card
           if (!found) return;
         }
         setMessages(next);
@@ -183,7 +185,12 @@ export default function TaskAiAssistant({
     setHistoryLoading(true);
     try {
       const data = await fetchTaskAiSuggestionsApi(taskId);
-      setMessages(mapTaskAiSuggestionsToMessages(data));
+      const next = mapTaskAiSuggestionsToMessages(data);
+      // Initial load may be empty; after a live thread, don't wipe on a bad/empty parse
+      if (next.length === 0 && messagesRef.current.length > 0) {
+        return;
+      }
+      setMessages(next);
     } catch {
       if (messagesRef.current.length === 0) setMessages([]);
     } finally {
@@ -364,6 +371,24 @@ export default function TaskAiAssistant({
     const optimistic = allowlistedFromProposedTask(msg.suggestion?.proposedTask);
     if (optimistic) onTaskUpdated?.(optimistic);
 
+    // BREAKDOWN: paint proposed subtasks on the left immediately
+    const proposedSubs = msg.suggestion?.proposedSubtasks;
+    if (Array.isArray(proposedSubs) && proposedSubs.length > 0) {
+      onTaskUpdated?.({
+        subtasks: proposedSubs
+          .map((s, i) =>
+            mapSubtaskFromApi({
+              id: s.id || `proposed-${i}`,
+              title: s.title || s.name || 'Subtask',
+              description: s.description || '',
+              status: s.status || 'TODO',
+              estimatedMinutes: s.estimatedMinutes ?? null,
+            })
+          )
+          .filter(Boolean),
+      });
+    }
+
     try {
       const data = await acceptTaskSuggestionApi(suggestionId);
       if (!data?.success && data?.success !== undefined) {
@@ -372,18 +397,29 @@ export default function TaskAiAssistant({
       toast.success(data?.message || 'Changes applied');
       const acceptedTask = data?.task || data?.data?.task || data?.data;
       if (acceptedTask?.id || acceptedTask?.title) {
-        onTaskUpdated?.(mapTaskFromApi(acceptedTask));
+        const mapped = mapTaskFromApi(acceptedTask);
+        // Accept often returns task without nested subtasks — don't wipe optimistic list
+        if (!Array.isArray(acceptedTask.subtasks) || acceptedTask.subtasks.length === 0) {
+          const { subtasks: _ignored, ...rest } = mapped;
+          onTaskUpdated?.(rest);
+        } else {
+          onTaskUpdated?.(mapped);
+        }
       }
       await onRefreshTask?.();
-      // Only replace chat once history shows this suggestion as applied
-      // (avoids wiping the Figma "Yes, apply" bubble if GET still returns PENDING)
+      // Sync chat from server only when history actually has this thread.
+      // Empty GET must NOT wipe Figma bubbles (Goals keeps history; Tasks was wiping).
       try {
         const history = await fetchTaskAiSuggestionsApi(taskId);
         const next = mapTaskAiSuggestionsToMessages(history);
-        const stillPending = next.some(
-          (m) => m.suggestion && String(m.suggestionId) === String(suggestionId)
-        );
-        if (!stillPending) setMessages(next);
+        if (next.length === 0) {
+          // keep optimistic: Yes, apply + Done + Undo
+        } else {
+          const hasThisSuggestion = next.some(
+            (m) => String(m.suggestionId) === String(suggestionId)
+          );
+          if (hasThisSuggestion) setMessages(next);
+        }
       } catch {
         // keep optimistic Yes, apply + Done + Undo
       }

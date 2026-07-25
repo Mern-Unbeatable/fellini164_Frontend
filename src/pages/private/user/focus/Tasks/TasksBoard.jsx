@@ -227,13 +227,15 @@ export default function TasksBoard() {
   const refreshSelectedTask = useCallback(async () => {
     if (!selectedTaskId) return null;
     const byId = await dispatch(fetchTaskById(selectedTaskId));
-    await dispatch(fetchSubtasks(selectedTaskId));
+    const subs = await dispatch(fetchSubtasks(selectedTaskId));
     await loadTasks();
     await dispatch(fetchTasksSummary());
-    if (fetchTaskById.fulfilled.match(byId)) {
-      return mapTaskFromApi(byId.payload);
-    }
-    return null;
+    if (!fetchTaskById.fulfilled.match(byId)) return null;
+    const mapped = mapTaskFromApi(byId.payload);
+    const subtasks = fetchSubtasks.fulfilled.match(subs)
+      ? subs.payload.subtasks
+      : mapped.subtasks || [];
+    return { ...mapped, subtasks };
   }, [dispatch, selectedTaskId, loadTasks]);
 
   useEffect(() => {

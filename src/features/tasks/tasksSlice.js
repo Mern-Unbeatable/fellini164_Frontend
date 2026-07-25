@@ -344,9 +344,13 @@ const tasksSlice = createSlice({
         state.loadingTask = false;
         const mapped = mapTaskFromApi(action.payload);
         state.currentTask = mapped;
-        state.currentSubtasks = Array.isArray(action.payload?.subtasks)
-          ? action.payload.subtasks.map(mapSubtaskFromApi).filter(Boolean)
-          : mapped?.subtasks || [];
+        // Only replace subtasks when the task payload actually includes them.
+        // Otherwise keep current list until fetchSubtasks finishes (avoids empty flash).
+        if (Array.isArray(action.payload?.subtasks)) {
+          state.currentSubtasks = action.payload.subtasks
+            .map(mapSubtaskFromApi)
+            .filter(Boolean);
+        }
         mergeTaskIntoState(state, mapped);
       })
       .addCase(fetchTaskById.rejected, (state) => {

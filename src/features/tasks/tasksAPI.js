@@ -117,17 +117,19 @@ export async function suggestTaskAiApi(taskId, payload) {
  * GET /api/v1/tasks/:taskId/ai/suggestions
  * Omit status for full chat history (applied + dismissed + pending).
  * Pass status='pending' only when you need the open suggestion queue.
+ * Returns a plain array (same as Goals) for reliable chat mapping.
  */
 export async function fetchTaskAiSuggestionsApi(taskId, status) {
   const response = await axiosInstance.get(`${BASE}/${taskId}/ai/suggestions`, {
     params: status ? { status } : undefined,
   });
   const body = response?.data;
-  if (Array.isArray(body?.suggestions)) return body;
-  if (Array.isArray(body?.data)) return { ...body, suggestions: body.data };
-  if (Array.isArray(body?.items)) return { ...body, suggestions: body.items };
-  if (Array.isArray(body)) return { suggestions: body };
-  return body ?? { suggestions: [] };
+  if (Array.isArray(body?.suggestions)) return body.suggestions;
+  if (Array.isArray(body?.data?.suggestions)) return body.data.suggestions;
+  if (Array.isArray(body?.items)) return body.items;
+  if (Array.isArray(body?.data)) return body.data;
+  if (Array.isArray(body)) return body;
+  return [];
 }
 
 /** POST /api/v1/tasks/ai/suggestions/:suggestionId/accept */

@@ -77,11 +77,13 @@ export default function TaskDetailPage() {
   const refreshTask = useCallback(async () => {
     if (!taskId) return null;
     const byId = await dispatch(fetchTaskById(taskId));
-    await dispatch(fetchSubtasks(taskId));
-    if (fetchTaskById.fulfilled.match(byId)) {
-      return mapTaskFromApi(byId.payload);
-    }
-    return null;
+    const subs = await dispatch(fetchSubtasks(taskId));
+    if (!fetchTaskById.fulfilled.match(byId)) return null;
+    const mapped = mapTaskFromApi(byId.payload);
+    const subtasks = fetchSubtasks.fulfilled.match(subs)
+      ? subs.payload.subtasks
+      : mapped.subtasks || [];
+    return { ...mapped, subtasks };
   }, [dispatch, taskId]);
 
   const handleUpdateTaskFields = async (id, fields) => {

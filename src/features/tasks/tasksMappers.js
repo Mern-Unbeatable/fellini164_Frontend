@@ -420,13 +420,17 @@ function doneMessageForHistoryAction(action) {
 
 /** Map GET /tasks/:id/ai/suggestions → chat messages (Goals AI pattern). */
 export function mapTaskAiSuggestionsToMessages(envelope) {
-  const list = Array.isArray(envelope?.suggestions)
-    ? envelope.suggestions
-    : Array.isArray(envelope?.data)
-      ? envelope.data
-      : Array.isArray(envelope)
-        ? envelope
-        : [];
+  const list = Array.isArray(envelope)
+    ? envelope
+    : Array.isArray(envelope?.suggestions)
+      ? envelope.suggestions
+      : Array.isArray(envelope?.data?.suggestions)
+        ? envelope.data.suggestions
+        : Array.isArray(envelope?.data)
+          ? envelope.data
+          : Array.isArray(envelope?.items)
+            ? envelope.items
+            : [];
   const sorted = [...list].sort((a, b) => {
     const ta = new Date(a.createdAt || a.updatedAt || 0).getTime();
     const tb = new Date(b.createdAt || b.updatedAt || 0).getTime();
