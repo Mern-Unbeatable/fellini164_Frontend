@@ -102,7 +102,8 @@ export async function generateTaskApi(payload) {
 
 /**
  * POST /api/v1/tasks/:taskId/ai/suggest
- * Body: { action: BREAKDOWN | IMPROVE_DESCRIPTION | CHAT, message? }
+ * Body: { action: BREAKDOWN | IMPROVE_DESCRIPTION | CHAT, message?, regenerate? }
+ * When BREAKDOWN and task already has subtasks, send regenerate: true.
  */
 export async function suggestTaskAiApi(taskId, payload) {
   const response = await axiosInstance.post(`${BASE}/${taskId}/ai/suggest`, payload);

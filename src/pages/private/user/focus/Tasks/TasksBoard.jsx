@@ -474,7 +474,6 @@ export default function TasksBoard() {
         <div className="flex min-h-0 flex-1 flex-col">
           <TaskDetailPanel
             task={selectedTask}
-            onBack={closeTaskDetail}
             onUpdateTaskFields={(fields) => handleUpdateTaskFields(selectedTask.id, fields)}
             onEdit={openEditTaskModal}
             onDelete={(t) => {

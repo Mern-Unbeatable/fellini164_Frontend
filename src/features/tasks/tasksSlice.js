@@ -214,10 +214,11 @@ export const fetchSubtasks = createAsyncThunk(
 
 export const suggestTaskAi = createAsyncThunk(
   'tasks/suggestTaskAi',
-  async ({ taskId, action, message }, { rejectWithValue }) => {
+  async ({ taskId, action, message, regenerate }, { rejectWithValue }) => {
     try {
       const body = { action };
       if (message) body.message = message;
+      if (regenerate === true) body.regenerate = true;
       return await suggestTaskAiApi(taskId, body);
     } catch (error) {
       toast.error(error?.response?.data?.message || 'AI suggestion failed');

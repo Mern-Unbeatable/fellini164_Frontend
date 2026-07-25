@@ -916,7 +916,7 @@ Server persists immediately — **Add to Board** only refreshes the list (no sec
 | Complete | `POST /tasks/:id/complete` | `{ "actualMinutes": 50 }` optional |
 | Skip | `POST /tasks/:id/skip` | `{ "reason": "…" }` |
 | Delete | `DELETE /tasks/:id` | — |
-| AI suggest | `POST /tasks/:id/ai/suggest` | `{ "action": "BREAKDOWN" }` / `IMPROVE_DESCRIPTION` / `CHAT` |
+| AI suggest | `POST /tasks/:id/ai/suggest` | `{ "action": "BREAKDOWN", "regenerate": true }` when replacing existing subtasks; also `IMPROVE_DESCRIPTION` / `CHAT` |
 | Accept | `POST /tasks/ai/suggestions/:id/accept` | — |
 | Dismiss | `POST /tasks/ai/suggestions/:id/dismiss` | — |
 | Undo | `POST /tasks/:id/ai/undo` | — |

@@ -90,6 +90,7 @@ function ActionPill({ children, onClick, disabled }) {
  */
 export default function TaskAiAssistant({
   taskId,
+  hasSubtasks = false,
   onClose,
   onToggleExpand,
   isExpanded = false,
@@ -107,6 +108,8 @@ export default function TaskAiAssistant({
   const textareaRef = useRef(null);
   const scrollRef = useRef(null);
   const autoRanRef = useRef(false);
+  const hasSubtasksRef = useRef(hasSubtasks);
+  hasSubtasksRef.current = hasSubtasks;
 
   const reloadHistory = useCallback(async () => {
     if (!taskId) {
@@ -144,7 +147,7 @@ export default function TaskAiAssistant({
   }, [messages, loading, historyLoading]);
 
   const runSuggest = useCallback(
-    async (action, message) => {
+    async (action, message, options = {}) => {
       if (!taskId || loading) return;
 
       const userText = (message || '').trim();
@@ -157,9 +160,48 @@ export default function TaskAiAssistant({
       try {
         const body = { action };
         if (userText) body.message = userText;
+        // API requires regenerate=true when BREAKDOWN and task already has subtasks
+        const shouldRegenerate =
+          options.regenerate === true ||
+          (action === 'BREAKDOWN' && hasSubtasksRef.current);
+        if (shouldRegenerate) body.regenerate = true;
+
         const data = await suggestTaskAiApi(taskId, body);
         if (!data?.success && data?.success !== undefined) {
-          throw new Error(data?.message || 'Suggestion failed');
+          const errMsg = data?.message || 'Suggestion failed';
+          // Auto-retry once if backend asks for regenerate
+          if (
+            action === 'BREAKDOWN' &&
+            !body.regenerate &&
+            /regenerate\s*=\s*true/i.test(errMsg)
+          ) {
+            const retry = await suggestTaskAiApi(taskId, { ...body, regenerate: true });
+            if (!retry?.success && retry?.success !== undefined) {
+              throw new Error(retry?.message || errMsg);
+            }
+            const suggestionId = retry?.suggestionId || retry?.id || null;
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: `a-${suggestionId || Date.now()}`,
+                role: 'assistant',
+                text: formatTaskSuggestionBody(retry),
+                suggestion: retry,
+                suggestionId,
+                action: retry?.action || action,
+              },
+            ]);
+            if (suggestionId) {
+              try {
+                const suggestions = await fetchTaskAiSuggestionsApi(taskId, 'pending');
+                setMessages(mapTaskAiSuggestionsToMessages(suggestions));
+              } catch {
+                // keep optimistic local message
+              }
+            }
+            return;
+          }
+          throw new Error(errMsg);
         }
         const suggestionId = data?.suggestionId || data?.id || null;
         setMessages((prev) => [
@@ -183,6 +225,50 @@ export default function TaskAiAssistant({
         }
       } catch (err) {
         const msg = err?.response?.data?.message || err?.message || 'Failed to get AI suggestion';
+        // HTTP error path: retry BREAKDOWN once with regenerate if backend requires it
+        if (
+          action === 'BREAKDOWN' &&
+          /regenerate\s*=\s*true/i.test(msg)
+        ) {
+          try {
+            const body = { action, regenerate: true };
+            if (userText) body.message = userText;
+            const retry = await suggestTaskAiApi(taskId, body);
+            if (!retry?.success && retry?.success !== undefined) {
+              throw new Error(retry?.message || msg);
+            }
+            const suggestionId = retry?.suggestionId || retry?.id || null;
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: `a-${suggestionId || Date.now()}`,
+                role: 'assistant',
+                text: formatTaskSuggestionBody(retry),
+                suggestion: retry,
+                suggestionId,
+                action: retry?.action || action,
+              },
+            ]);
+            if (suggestionId) {
+              try {
+                const suggestions = await fetchTaskAiSuggestionsApi(taskId, 'pending');
+                setMessages(mapTaskAiSuggestionsToMessages(suggestions));
+              } catch {
+                // keep optimistic
+              }
+            }
+            return;
+          } catch (retryErr) {
+            const retryMsg =
+              retryErr?.response?.data?.message || retryErr?.message || msg;
+            toast.error(retryMsg);
+            setMessages((prev) => [
+              ...prev,
+              { id: `e-${Date.now()}`, role: 'assistant', text: retryMsg, error: true },
+            ]);
+            return;
+          }
+        }
         toast.error(msg);
         setMessages((prev) => [
           ...prev,
