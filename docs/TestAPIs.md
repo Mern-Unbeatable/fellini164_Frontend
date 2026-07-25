@@ -118,9 +118,10 @@ Confirm all of the following:
    - `node scripts/audit-goals-list.mjs` — GET `/goals` filters/search
    - `node scripts/audit-link-pickers.mjs` — GET `/tasks` + `/habits` link pickers
    - `node scripts/audit-habits-board.mjs` — Habits Board create + filter query mapping
+   - `node scripts/audit-tasks-board.mjs` — Tasks Board create + filter query mapping
 4. **QA §6 / Final §7** — Tick what was verified; leave unchecked if only Network QA remains.
-5. **Update Appendix A / C** — Set row to **FULFILLED** / **PARTIAL** / **DEFERRED** / **CLIENT** with date + evidence notes.
-6. **Logged-in Network** — Run Appendix B (Goals) or Appendix C §C.6 (Habits) smoke steps; compare Network tab to Postman.
+5. **Update Appendix A / C / D** — Set row to **FULFILLED** / **PARTIAL** / **DEFERRED** / **CLIENT** with date + evidence notes.
+6. **Logged-in Network** — Run Appendix B (Goals), Appendix C §C.6 (Habits), or Appendix D §D.6 (Tasks) smoke steps; compare Network tab to Postman.
 
 If Postman has no valid response:
 
@@ -797,3 +798,179 @@ If Postman has no response:
 | Schedule Custom | **CLIENT** |
 | Ghosts / test email | **DEFERRED** |
 | **Overall Habits Board** | **FULFILLED for contracted APIs**; ghosts + Custom schedule deferred/client |
+
+---
+
+## Appendix D — Tasks Board API Audit (Current Frontend)
+
+**Date:** 2026-07-25  
+**Last automated re-test:** 2026-07-25 — `audit-tasks-board.mjs` → **ALL PASS**  
+**Module:** `src/features/tasks/` + `src/pages/private/user/focus/Tasks/`  
+**Base URL (env):** `VITE_API_BASE_URL` → `https://backendtest.elyxaai.com`  
+**API prefix used in code:** `/api/v1/tasks`  
+**Contract verifier:** `node scripts/audit-tasks-board.mjs`
+
+---
+
+### D.1 Endpoint Matrix (as coded)
+
+| Action | Method + Path | Frontend entry | Contract evidence | Status |
+|--------|---------------|----------------|-------------------|--------|
+| Board summary | `GET /api/v1/tasks/summary` | Loaded with board | `{ success, summary }` | **FULFILLED** |
+| List + filters + search | `GET /api/v1/tasks` | Board filters/search → `buildTasksQueryParams` → `fetchTasks` (`parentOnly=true`) | status, priority, category, dueFilter, search, page, limit | **FULFILLED** |
+| Create task | `POST /api/v1/tasks` | **+ New Task** → Manual | Body §D.3 | **FULFILLED** |
+| AI generate task | `POST /api/v1/tasks/ai/generate` | **+ New Task** → AI Generation | `{ prompt, category, goalId? }`; server persists; Add to Board refreshes only | **FULFILLED** |
+| Get task by ID | `GET /api/v1/tasks/:id` | Detail drawer / full page | Ready | **FULFILLED** |
+| Update task | `PATCH /api/v1/tasks/:id` | Card/Detail ⋯ → **Edit**; linked goal | Partial fields + `goalId` link/unlink | **FULFILLED** |
+| Update status | `PATCH /api/v1/tasks/:id/status` | Slice wired (`updateTaskStatus`) | `{ status }` | **FULFILLED** (API) |
+| Complete | `POST /api/v1/tasks/:id/complete` | Slice wired (`completeTask`) | Optional `{ actualMinutes }` | **FULFILLED** (API) |
+| Skip | `POST /api/v1/tasks/:id/skip` | Slice wired (`skipTask`) | `{ reason }` | **FULFILLED** (API) / board menu N/A |
+| Delete | `DELETE /api/v1/tasks/:id` | Card/Detail ⋯ → **Delete** | No body | **FULFILLED** |
+| Subtasks list | `GET /api/v1/tasks/:id/subtasks` | Detail open | Ready | **FULFILLED** |
+| AI suggest | `POST /api/v1/tasks/:id/ai/suggest` | Detail AI Assistant (BREAKDOWN / IMPROVE_DESCRIPTION / CHAT) | Postman actions | **FULFILLED** |
+| List suggestions | `GET /api/v1/tasks/:id/ai/suggestions?status=pending` | AI history after refresh | Ready | **FULFILLED** |
+| Accept / Dismiss | `POST /api/v1/tasks/ai/suggestions/:id/accept\|dismiss` | Yes, apply / No, cancel | Ready | **FULFILLED** |
+| Undo AI | `POST /api/v1/tasks/:id/ai/undo` | Undo changes | Ready | **FULFILLED** |
+
+### D.1b Deferred / still mock
+
+| UI | Notes | Status |
+|----|-------|--------|
+| Empty-board ghost tasks | Local `GHOST_TASKS` (`?empty=1` in DEV) until suggestions API exists | **DEFERRED** |
+| Source filter | Not in Postman list query; filtered client-side after load | **CLIENT** |
+| Board ↔ List toggle | List non-functional in MVP | **DEFERRED** |
+
+### D.1c Toolbar mapping
+
+| UI control | Request | Status |
+|------------|---------|--------|
+| **+ New Task** Manual | `POST /tasks` | **FULFILLED** |
+| **+ New Task** AI | `POST /tasks/ai/generate` | **FULFILLED** |
+| **All Status** To Do / In Progress / Done | `GET /tasks?status=TODO\|IN_PROGRESS\|COMPLETED` | **FULFILLED** |
+| **All Priority** | `GET /tasks?priority=URGENT\|HIGH\|MEDIUM\|LOW` | **FULFILLED** |
+| **All Category** | `GET /tasks?category=CAREER\|HEALTH\|FINANCE\|PERSONAL\|EDUCATION` | **FULFILLED** |
+| **All Source** | Client only | **CLIENT** |
+| **All Date** | `GET /tasks?dueFilter=today\|tomorrow\|this_week\|this_month\|overdue` | **FULFILLED** |
+| Search | `GET /tasks?search=` (300ms debounce) | **FULFILLED** |
+
+---
+
+### D.2 GET /tasks — Query Parameters (Tasks Board)
+
+| Param | Allowed values | Frontend mapping |
+|-------|----------------|------------------|
+| `status` | TODO / IN_PROGRESS / COMPLETED / CANCELED / SKIPPED | Status filter (board uses first three) |
+| `priority` | LOW / MEDIUM / HIGH / URGENT | Priority filter |
+| `category` | CAREER / HEALTH / FINANCE / PERSONAL / EDUCATION | Category filter |
+| `goalId` | UUID | Not a board toolbar chip |
+| `search` | string | Search input |
+| `dueFilter` | today / tomorrow / this_week / this_month / overdue | Date filter |
+| `parentOnly` | true | Always `true` on board list |
+| `page` / `limit` | default `1` / `50` (max 100) | Always sent |
+
+---
+
+### D.3 Create — Request / Response
+
+**POST** `/api/v1/tasks`
+
+```json
+{
+  "title": "Prepare Daily cost report",
+  "description": "My today cost report",
+  "category": "FINANCE",
+  "priority": "HIGH",
+  "dueDate": "2026-07-23",
+  "dueTime": "9:00",
+  "estimatedMinutes": 36
+}
+```
+
+Optional: `"goalId": "<uuid>"`.
+
+Categories: `CAREER` | `HEALTH` | `FINANCE` | `PERSONAL` | `EDUCATION`.
+
+---
+
+### D.4 AI Generate — Request / Response
+
+**POST** `/api/v1/tasks/ai/generate`
+
+```json
+{
+  "prompt": "I need to update my today work time",
+  "category": "PERSONAL"
+}
+```
+
+Server persists immediately — **Add to Board** only refreshes the list (no second `POST /tasks`).
+
+---
+
+### D.5 Other board mutations (quick reference)
+
+| Action | Method + Path | Body |
+|--------|---------------|------|
+| Update | `PATCH /tasks/:id` | e.g. `{ "priority": "URGENT" }` or `{ "goalId": null }` |
+| Status only | `PATCH /tasks/:id/status` | `{ "status": "IN_PROGRESS" }` |
+| Complete | `POST /tasks/:id/complete` | `{ "actualMinutes": 50 }` optional |
+| Skip | `POST /tasks/:id/skip` | `{ "reason": "…" }` |
+| Delete | `DELETE /tasks/:id` | — |
+| AI suggest | `POST /tasks/:id/ai/suggest` | `{ "action": "BREAKDOWN" }` / `IMPROVE_DESCRIPTION` / `CHAT` |
+| Accept | `POST /tasks/ai/suggestions/:id/accept` | — |
+| Dismiss | `POST /tasks/ai/suggestions/:id/dismiss` | — |
+| Undo | `POST /tasks/:id/ai/undo` | — |
+| Summary | `GET /tasks/summary` | → `{ todo, inProgress, completed, overdue, dueToday, total }` |
+
+---
+
+### D.6 Board smoke (logged-in Network)
+
+| Step | Action in app | Expected Network |
+|------|---------------|------------------|
+| 1 | Open `/user/tasks` | `GET /tasks?page=1&limit=50&parentOnly=true` + `GET /tasks/summary` |
+| 2 | Status → To Do | `...&status=TODO` |
+| 3 | Priority → High | `...&priority=HIGH` |
+| 4 | Category → Finance | `...&category=FINANCE` |
+| 5 | Date → This month | `...&dueFilter=this_month` |
+| 6 | Source → Created by AI | List reload (no `source` query); client filter |
+| 7 | Search `report` | `...&search=report` (after debounce) |
+| 8 | **+ New Task** → Manual → Create | `POST /tasks` then list + summary refresh |
+| 9 | **+ New Task** → AI → Generate → Add to Board | `POST /tasks/ai/generate`; Add = refresh only |
+| 10 | Open task detail | `GET /tasks/:id` + `GET /tasks/:id/subtasks` (+ pending suggestions) |
+| 11 | AI → Break into subtasks → Yes, apply | `POST .../ai/suggest` then `POST .../ai/suggestions/:id/accept` |
+| 12 | ⋯ Edit / Delete | `PATCH` / `DELETE` |
+
+```bash
+node scripts/audit-tasks-board.mjs
+```
+
+---
+
+### D.7 TestAPIs.md compliance checklist
+
+| Rule | Result | Notes |
+|------|--------|-------|
+| Postman before integrate | **PASS** | Summary, list filters, CRUD, complete/skip, AI generate/suggest/accept |
+| Exact method (no guessing) | **PASS** | Paths match user Postman contract |
+| Remove mock after connect | **PASS** for list/filters/create/AI/detail AI; **DEFERRED** ghosts | See D.1b |
+| Loading / empty / errors | **PASS** | Soft list reload; empty columns; toasts |
+| Mapper audit | **PASS** | `audit-tasks-board.mjs` — ALL PASS (2026-07-25) |
+| Logged-in Network QA | **Manual** | Engineer checklist §D.6 |
+
+### D.8 Blockers
+
+1. **Ghost suggestions** — empty-board AI cards stay local until a suggestions API exists.
+2. **Source filter** — no Postman query param; remains client-side.
+
+### D.9 Verdict
+
+| Area | Verdict |
+|------|---------|
+| List + Status / Priority / Category / Date / search | **FULFILLED** |
+| Summary | **FULFILLED** |
+| Create + AI generate + Update + Delete | **FULFILLED** |
+| Detail AI suggest / accept / dismiss / undo | **FULFILLED** |
+| Source filter | **CLIENT** |
+| Ghosts / List view | **DEFERRED** |
+| **Overall Tasks Board** | **FULFILLED for contracted APIs**; ghosts + Source deferred/client |

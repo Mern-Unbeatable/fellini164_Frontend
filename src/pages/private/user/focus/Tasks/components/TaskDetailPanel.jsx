@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Sparkles,
   ChevronDown,
@@ -9,18 +9,13 @@ import {
   Plus,
   X,
   ExternalLink,
-  Maximize2,
-  Send,
   MoreHorizontal,
   Pencil,
   Trash2,
-  ListTree,
-  Wand2,
-  Minimize2,
 } from 'lucide-react';
 import SkeletonBar from '../../../../../../components/ui/SkeletonBar';
-import { UserChatBubble, AiChatBubble, ChatActionPill } from '../../../../../../components/ui/ChatBubbles';
-import { generateSubtasksFromTitle } from '../utils/subtasks';
+import TaskAiAssistant from './TaskAiAssistant';
+import { fetchGoalsApi } from '../../../../../../features/goals/goalsAPI';
 
 const PRIORITY_STYLES = {
   URGENT: 'bg-[rgba(220,38,38,0.05)] text-[#dc2626]',
@@ -36,22 +31,16 @@ const PRIORITY_LABELS = {
   LOW: 'Low',
 };
 
-/** User goals for Linked Goal picker (Rule 9 / Rule 12). First = AI recommended. */
-const LINKED_GOALS = ['Improve Rate', 'Save $10,000', 'Run 500km'];
-
 function isGoalTag(tag) {
   return Boolean(
-    tag?.linkedGoal || tag?.icon === Target || tag?.icon === TrendingUp
+    tag?.linkedGoal || tag?.iconKey === 'goal' || tag?.icon === Target || tag?.icon === TrendingUp
   );
 }
 
 function getLinkedGoalLabel(task) {
   if (task.linkedGoal) return task.linkedGoal;
+  if (task.goal?.title) return task.goal.title;
   return task.tags?.find(isGoalTag)?.label ?? null;
-}
-
-function buildImprovedDescription(description) {
-  return `${description ?? ''} This task directly supports your linked goal — tackle it with focused effort today.`.trim();
 }
 
 function TaskDetailMenu({ onClose, onEdit, onBreakIntoSubtasks, onImproveDescription, onDelete }) {
@@ -108,55 +97,10 @@ function TaskDetailMenu({ onClose, onEdit, onBreakIntoSubtasks, onImproveDescrip
   );
 }
 
-function SubtasksSection({
-  task,
-  onUpdateSubtasks,
-  autoTriggerAi,
-  onAutoTriggerConsumed,
-  isApplyingAiEdit = false,
-}) {
+function SubtasksSection({ task, isApplyingAiEdit = false, onRequestBreakdown }) {
   const subtasks = task.subtasks ?? [];
-  const [showRegenerateConfirm, setShowRegenerateConfirm] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const showAiSkeleton = isGenerating || isApplyingAiEdit;
-
-  const runGeneration = async () => {
-    setShowRegenerateConfirm(false);
-    setIsGenerating(true);
-    await new Promise((resolve) => setTimeout(resolve, 650));
-    const generated = generateSubtasksFromTitle(task.title);
-    onUpdateSubtasks(generated);
-    setIsGenerating(false);
-  };
-
-  const handleAiClick = () => {
-    if (isGenerating || isApplyingAiEdit) return;
-    if (subtasks.length === 0) {
-      runGeneration();
-    } else {
-      setShowRegenerateConfirm(true);
-    }
-  };
-
-  useEffect(() => {
-    if (!autoTriggerAi) return;
-    onAutoTriggerConsumed?.();
-    if (subtasks.length === 0) {
-      runGeneration();
-    } else {
-      setShowRegenerateConfirm(true);
-    }
-    // Only run when autoTriggerAi flips on
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoTriggerAi]);
-
-  const completedCount = subtasks.filter((s) => s.completed).length;
-
-  const toggleSubtask = (id) => {
-    onUpdateSubtasks(
-      subtasks.map((s) => (s.id === id ? { ...s, completed: !s.completed } : s))
-    );
-  };
+  const completedCount = subtasks.filter((s) => s.done || s.completed).length;
+  const showAiSkeleton = isApplyingAiEdit;
 
   return (
     <div className="flex w-full flex-col gap-1.5">
@@ -168,17 +112,13 @@ function SubtasksSection({
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            aria-label="Add subtask manually"
-            className="text-[#a3a3a3]"
-          >
+          <button type="button" aria-label="Add subtask manually" className="text-[#a3a3a3]">
             <Plus size={16} />
           </button>
           <button
             type="button"
-            onClick={handleAiClick}
-            disabled={isGenerating || isApplyingAiEdit}
+            onClick={() => onRequestBreakdown?.()}
+            disabled={isApplyingAiEdit}
             aria-label="Generate subtasks with AI"
             className="rounded-md p-0.5 text-[#8022fe] disabled:opacity-50"
           >
@@ -187,32 +127,7 @@ function SubtasksSection({
         </div>
       </div>
 
-      {showRegenerateConfirm && (
-        <div className="flex w-full items-center justify-between gap-3 rounded-lg border border-[#f2f2f2] bg-[#f9f4ff] px-3 py-2 dark:border-zinc-700">
-          <p className="text-[12px] font-medium text-[#5d5d5d] dark:text-gray-300">
-            Regenerate all subtasks?
-          </p>
-          <div className="flex shrink-0 items-center gap-2">
-            <button
-              type="button"
-              onClick={runGeneration}
-              className="text-[12px] font-medium text-[#8022fe]"
-            >
-              Yes
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowRegenerateConfirm(false)}
-              className="text-[12px] font-medium text-[#5d5d5d] dark:text-gray-300"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
-
       {showAiSkeleton ? (
-        /* Figma 1230:9627 — purple AI overlay block over subtasks */
         <SkeletonBar variant="ai" className="h-[164px] w-full rounded-[10px]" />
       ) : subtasks.length === 0 ? (
         <div className="flex h-10 items-center justify-center rounded-xl border border-dashed border-[#f2f2f2]">
@@ -222,29 +137,30 @@ function SubtasksSection({
         <div className="overflow-hidden rounded-xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800">
           <div className="flex flex-col gap-2.5 px-3 py-2">
             {subtasks.map((sub) => (
-              <label
+              <div
                 key={sub.id}
-                className={`flex cursor-pointer items-center gap-2 ${sub.completed ? 'opacity-50' : ''}`}
+                className={`flex items-center gap-2 ${sub.done || sub.completed ? 'opacity-50' : ''}`}
               >
-                <input
-                  type="checkbox"
-                  checked={sub.completed}
-                  onChange={() => toggleSubtask(sub.id)}
-                  className="size-3.5 rounded border-[#e9e9e9] accent-[#8022fe]"
+                <span
+                  className={`flex size-3.5 shrink-0 items-center justify-center rounded border ${
+                    sub.done || sub.completed
+                      ? 'border-[#8022fe] bg-[#8022fe] text-white'
+                      : 'border-[#e9e9e9]'
+                  }`}
                 />
                 <span
                   className={`text-[14px] font-medium text-[#5d5d5d] dark:text-gray-300 ${
-                    sub.completed ? 'line-through' : ''
+                    sub.done || sub.completed ? 'line-through' : ''
                   }`}
                 >
-                  {sub.label}{' '}
-                  <span
-                    className={`text-[12px] text-[#c2c2c2] ${sub.completed ? 'line-through' : ''}`}
-                  >
-                    ({sub.minutes} Min)
-                  </span>
+                  {sub.title || sub.label}{' '}
+                  {(sub.estimatedMinutes || sub.minutes) != null && (
+                    <span className="text-[12px] text-[#c2c2c2]">
+                      ({sub.estimatedMinutes || sub.minutes} Min)
+                    </span>
+                  )}
                 </span>
-              </label>
+              </div>
             ))}
           </div>
           <div className="border-t border-[#f2f2f2] px-3 py-2 dark:border-zinc-700">
@@ -259,374 +175,19 @@ function SubtasksSection({
   );
 }
 
-function formatChatTimestamp(date) {
-  const datePart = date.toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'short',
-    day: 'numeric',
-  });
-  const timePart = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-  return `${datePart} • ${timePart}`;
-}
-
-function formatAssistantProposal(text, plan) {
-  if (!plan?.length) return text;
-  return `${text}\n\nThis will:\n${plan.map((line) => `• ${line}`).join('\n')}`;
-}
-
-function isConfirmReply(text) {
-  const normalized = text.trim().toLowerCase().replace(/\s+/g, ' ');
-  return normalized === 'yes, apply' || normalized === 'yes apply' || normalized === 'no, cancel' || normalized === 'no cancel';
-}
-
-function ChatMessage({ message, onUndo }) {
-  if (message.role === 'user') {
-    return <UserChatBubble>{message.text}</UserChatBubble>;
-  }
-
-  const proposalText = message.plan
-    ? formatAssistantProposal(message.text, message.plan)
-    : message.text;
-
-  return (
-    <div className="flex w-full flex-col gap-2.5">
-      {message.confirm ? (
-        <AiChatBubble>{proposalText}</AiChatBubble>
-      ) : (
-        <AiChatBubble>{message.text}</AiChatBubble>
-      )}
-
-      {message.undo && !message.undone && (
-        <ChatActionPill onClick={() => onUndo(message)}>Undo changes</ChatActionPill>
-      )}
-    </div>
-  );
-}
-
-function ChatConfirmActions({ disabled, onApply, onCancel }) {
-  return (
-    <div className="relative z-10 flex w-full flex-col gap-2.5">
-      <AiChatBubble>Do you want me to apply these changes?</AiChatBubble>
-      <div className="flex items-center gap-2">
-        <ChatActionPill disabled={disabled} onClick={onApply}>
-          Yes, apply
-        </ChatActionPill>
-        <ChatActionPill disabled={disabled} onClick={onCancel}>
-          No, cancel
-        </ChatActionPill>
-      </div>
-    </div>
-  );
-}
-
-let messageIdCounter = 0;
-function nextMessageId() {
-  messageIdCounter += 1;
-  return `msg-${messageIdCounter}`;
-}
-
-function AiAssistantChat({
-  task,
-  onUpdateSubtasks,
-  onUpdateTaskFields,
-  onApplyingChange,
-  onClose,
-  onToggleExpand,
-  isExpanded = false,
-}) {
-  const [messages, setMessages] = useState([]);
-  const [prompt, setPrompt] = useState('');
-  const [isThinking, setIsThinking] = useState(false);
-  const [isApplyingConfirm, setIsApplyingConfirm] = useState(false);
-  const textareaRef = useRef(null);
-  const threadRef = useRef(null);
-  const messagesRef = useRef(messages);
-  const applyTimeoutRef = useRef(null);
-  const taskRef = useRef(task);
-
-  messagesRef.current = messages;
-  taskRef.current = task;
-
-  useEffect(() => {
-    const el = textareaRef.current;
-    if (!el) return;
-    el.style.height = 'auto';
-    el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
-  }, [prompt]);
-
-  useEffect(() => {
-    const el = threadRef.current;
-    if (!el) return;
-    el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
-  }, [messages, isThinking, isApplyingConfirm]);
-
-  useEffect(
-    () => () => {
-      if (applyTimeoutRef.current) window.clearTimeout(applyTimeoutRef.current);
-    },
-    []
-  );
-
-  const pushMessage = useCallback((msg) => {
-    const message = { id: nextMessageId(), ...msg };
-    setMessages((prev) => [...prev, message]);
-    return message;
-  }, []);
-
-  const getPendingConfirm = useCallback(
-    () =>
-      messagesRef.current.find(
-        (m) => m.role === 'assistant' && m.confirm && !m.resolved
-      ),
-    []
-  );
-
-  const getDoneMessage = (intent) => {
-    if (intent === 'description') return 'Done. The description was successfully improved.';
-    if (intent === 'subtasks') return 'Done. The subtasks were successfully added.';
-    return 'Done. The task was successfully updated.';
-  };
-
-  const runPrompt = (text, intent) => {
-    if (!text.trim() || isThinking || isApplyingConfirm) return;
-    pushMessage({ role: 'user', text });
-    setPrompt('');
-    setIsThinking(true);
-    window.setTimeout(() => {
-      setIsThinking(false);
-      const plan =
-        intent === 'subtasks'
-          ? ['add subtasks']
-          : intent === 'description'
-            ? ['improve clarity']
-            : ['improve clarity', 'add subtasks', 'improve tracking'];
-      pushMessage({
-        role: 'assistant',
-        text: 'Sure, I can update this task.',
-        plan,
-        confirm: true,
-        intent,
-      });
-    }, 700);
-  };
-
-  const handleApplyById = useCallback(
-    (messageId) => {
-      if (isApplyingConfirm) return;
-
-      const pending = messagesRef.current.find((m) => m.id === messageId);
-      if (!pending || pending.resolved || !pending.confirm) return;
-
-      setPrompt('');
-      pushMessage({ role: 'user', text: 'Yes, apply' });
-      setIsApplyingConfirm(true);
-      setMessages((prev) =>
-        prev.map((m) => (m.id === messageId ? { ...m, resolved: true } : m))
-      );
-      onApplyingChange(true);
-
-      if (applyTimeoutRef.current) window.clearTimeout(applyTimeoutRef.current);
-      applyTimeoutRef.current = window.setTimeout(() => {
-        const currentTask = taskRef.current;
-        const changes = [];
-        if (pending.intent === 'subtasks' || pending.intent === 'both') {
-          changes.push({ type: 'subtasks', previous: currentTask.subtasks });
-          onUpdateSubtasks(generateSubtasksFromTitle(currentTask.title));
-        }
-        if (pending.intent === 'description' || pending.intent === 'both') {
-          changes.push({ type: 'description', previous: currentTask.description });
-          onUpdateTaskFields({ description: buildImprovedDescription(currentTask.description) });
-        }
-        onApplyingChange(false);
-        setIsApplyingConfirm(false);
-        pushMessage({
-          role: 'assistant',
-          text: getDoneMessage(pending.intent),
-          undo: true,
-          changes,
-        });
-        applyTimeoutRef.current = null;
-      }, 900);
-    },
-    [isApplyingConfirm, onApplyingChange, onUpdateSubtasks, onUpdateTaskFields, pushMessage]
-  );
-
-  const handleCancelById = useCallback(
-    (messageId) => {
-      if (isApplyingConfirm) return;
-
-      const pending = messagesRef.current.find((m) => m.id === messageId);
-      if (!pending || pending.resolved || !pending.confirm) return;
-
-      setPrompt('');
-      pushMessage({ role: 'user', text: 'No, cancel' });
-      setMessages((prev) =>
-        prev.map((m) => (m.id === messageId ? { ...m, resolved: true } : m))
-      );
-      pushMessage({ role: 'assistant', text: 'Okay, no changes made.' });
-    },
-    [isApplyingConfirm, pushMessage]
-  );
-
-  const handleUndo = (msg) => {
-    if (!msg?.changes || msg.undone) return;
-    msg.changes.forEach((change) => {
-      if (change.type === 'subtasks') onUpdateSubtasks(change.previous);
-      if (change.type === 'description') onUpdateTaskFields({ description: change.previous });
-    });
-    setMessages((prev) => prev.map((m) => (m.id === msg.id ? { ...m, undone: true } : m)));
-    pushMessage({ role: 'assistant', text: 'Changes undone.' });
-  };
-
-  const handleSend = () => {
-    const trimmed = prompt.trim();
-    if (!trimmed || isThinking || isApplyingConfirm) return;
-
-    const pending = getPendingConfirm();
-    if (pending && isConfirmReply(trimmed)) {
-      setPrompt('');
-      const normalized = trimmed.toLowerCase().replace(/\s+/g, ' ');
-      if (normalized.startsWith('yes')) {
-        handleApplyById(pending.id);
-      } else {
-        handleCancelById(pending.id);
-      }
-      return;
-    }
-
-    runPrompt(trimmed, 'both');
-  };
-
-  const pendingConfirm = messages.find(
-    (m) => m.role === 'assistant' && m.confirm && !m.resolved
-  );
-
-  return (
-    <div className="flex h-full w-full flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-white dark:border-zinc-700 dark:bg-zinc-900">
-      <div className="flex items-center justify-between border-b border-[#f2f2f2] px-3 py-2.5 dark:border-zinc-700">
-        <div className="flex items-center gap-1.5">
-          <Sparkles size={14} className="text-[#8022fe]" />
-          <p className="text-[14px] font-medium text-[#5d5d5d] dark:text-gray-300">AI Assistant</p>
-        </div>
-        <div className="flex items-center gap-3 text-[#a3a3a3]">
-          <button
-            type="button"
-            onClick={onToggleExpand}
-            aria-label={isExpanded ? 'Collapse AI Assistant' : 'Expand AI Assistant'}
-            className="hover:text-[#5d5d5d] dark:hover:text-gray-300"
-          >
-            {isExpanded ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
-          </button>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close AI Assistant"
-            className="hover:text-[#5d5d5d] dark:hover:text-gray-300"
-          >
-            <X size={14} />
-          </button>
-        </div>
-      </div>
-
-      <div ref={threadRef} className="scrollbar-hidden flex flex-1 flex-col gap-5 overflow-y-auto py-3 pl-3 pr-4.5">
-        {messages.length === 0 && !isThinking ? (
-          <div className="flex flex-1 flex-col items-center justify-center gap-1.5 text-center">
-            <Sparkles size={16} className="text-[#e9d9ff]" />
-            <p className="text-[12px] text-[#c2c2c2]">Ask the AI Assistant to help with this task.</p>
-          </div>
-        ) : (
-          <>
-            <p className="text-center text-[12px] font-medium text-[#c2c2c2]">
-              {formatChatTimestamp(new Date())}
-            </p>
-            {messages.map((m) => (
-              <ChatMessage key={m.id} message={m} onUndo={handleUndo} />
-            ))}
-            {pendingConfirm && (
-              <ChatConfirmActions
-                disabled={isApplyingConfirm}
-                onApply={() => handleApplyById(pendingConfirm.id)}
-                onCancel={() => handleCancelById(pendingConfirm.id)}
-              />
-            )}
-            {(isThinking || isApplyingConfirm) && (
-              <div className="flex flex-col gap-1.5">
-                <SkeletonBar className="h-3 w-3/4" />
-                <SkeletonBar className="h-3 w-1/2" />
-              </div>
-            )}
-          </>
-        )}
-      </div>
-
-      <div className="flex flex-col gap-3 p-3">
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => runPrompt('Break this task into subtasks.', 'subtasks')}
-            disabled={isThinking || isApplyingConfirm}
-            className="flex items-center gap-1.5 rounded-lg border border-[#f2f2f2] px-2.5 py-1.5 text-[12px] font-medium text-[#5d5d5d] disabled:opacity-50 dark:border-zinc-700"
-          >
-            <ListTree size={14} className="shrink-0 text-[#8022fe]" />
-            Break into subtasks
-          </button>
-          <button
-            type="button"
-            onClick={() => runPrompt('Improve this task description.', 'description')}
-            disabled={isThinking || isApplyingConfirm}
-            className="flex items-center gap-1.5 rounded-lg border border-[#f2f2f2] px-2.5 py-1.5 text-[12px] font-medium text-[#5d5d5d] disabled:opacity-50 dark:border-zinc-700"
-          >
-            <Wand2 size={14} className="shrink-0 text-[#8022fe]" />
-            Improve description
-          </button>
-        </div>
-        <div className="flex w-full items-center gap-2 rounded-xl border border-[#f2f2f2] px-3 py-2 dark:border-zinc-700">
-          <textarea
-            ref={textareaRef}
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSend();
-              }
-            }}
-            placeholder="Describe what you want to change..."
-            rows={1}
-            className="max-h-30 flex-1 resize-none overflow-hidden bg-transparent text-[12px] text-[#5d5d5d] placeholder:text-[#c2c2c2] focus:outline-none dark:text-gray-300"
-          />
-          <button
-            type="button"
-            aria-label="Send"
-            disabled={!prompt.trim() || isThinking || isApplyingConfirm}
-            onClick={handleSend}
-            className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#8022fe] text-white disabled:opacity-50"
-          >
-            <Send size={12} />
-          </button>
-        </div>
-        <p className="text-center text-[10px] text-[#c2c2c2]">
-          AI can make mistakes. Verify important info.
-        </p>
-      </div>
-    </div>
-  );
-}
-
 function TaskDetailCard({
   task,
-  onUpdateSubtasks,
   onUpdateTaskFields,
-  autoTriggerSubtasksAi = false,
-  onAutoTriggerConsumed,
   isApplyingAiEdit = false,
   onEdit,
   onDelete,
   onTriggerSubtasksAi,
+  onTriggerImproveAi,
   variant = 'page',
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [goalMenuOpen, setGoalMenuOpen] = useState(false);
+  const [goalOptions, setGoalOptions] = useState([]);
   const menuRef = useRef(null);
   const goalMenuRef = useRef(null);
 
@@ -639,23 +200,46 @@ function TaskDetailCard({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const envelope = await fetchGoalsApi({ page: 1, limit: 50, status: 'ACTIVE' });
+        const list = Array.isArray(envelope?.goals)
+          ? envelope.goals
+          : Array.isArray(envelope?.data)
+            ? envelope.data
+            : [];
+        if (!cancelled) {
+          setGoalOptions(
+            list.filter((g) => g?.id).map((g) => ({ id: g.id, title: g.title || 'Untitled goal' }))
+          );
+        }
+      } catch {
+        if (!cancelled) setGoalOptions([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const estMinutesTag = task.tags?.find((t) => t.label?.includes('Min'));
   const estMinutesLabel = estMinutesTag
     ? `${estMinutesTag.label.replace(/\D/g, '')} Min`
-    : 'None';
+    : task.estimatedMinutes
+      ? `${task.estimatedMinutes} Min`
+      : 'None';
   const linkedGoal = getLinkedGoalLabel(task);
 
-  const handleImproveDescription = () => {
-    onUpdateTaskFields({ description: buildImprovedDescription(task.description) });
-  };
-
-  const handleSelectLinkedGoal = (goalLabel) => {
+  const handleSelectLinkedGoal = (goalId, goalTitle) => {
     setGoalMenuOpen(false);
-    if (goalLabel === '__create_new__') return;
+    if (!goalId) return;
     const withoutGoal = (task.tags ?? []).filter((tag) => !isGoalTag(tag));
     onUpdateTaskFields({
-      linkedGoal: goalLabel,
-      tags: [...withoutGoal, { label: goalLabel, icon: TrendingUp, linkedGoal: true }],
+      goalId,
+      linkedGoal: goalTitle,
+      tags: [...withoutGoal, { label: goalTitle, iconKey: 'goal', linkedGoal: true }],
     });
   };
 
@@ -696,7 +280,7 @@ function TaskDetailCard({
                 onClose={() => setMenuOpen(false)}
                 onEdit={() => onEdit?.(task)}
                 onBreakIntoSubtasks={onTriggerSubtasksAi}
-                onImproveDescription={handleImproveDescription}
+                onImproveDescription={onTriggerImproveAi}
                 onDelete={() => onDelete?.(task)}
               />
             )}
@@ -705,7 +289,6 @@ function TaskDetailCard({
         <div className={`relative flex flex-col ${isDrawer ? 'gap-1' : 'gap-2'}`}>
           {isApplyingAiEdit ? (
             <div className="flex flex-col gap-2">
-              {/* Figma 1231:9977 / 1231:9981 — purple AI title + description shimmer */}
               <SkeletonBar variant="ai" className="h-[31px] w-[241px] max-w-full rounded-[8px]" />
               <SkeletonBar variant="ai" className="h-4 w-[295px] max-w-full rounded-[5px]" />
             </div>
@@ -802,28 +385,25 @@ function TaskDetailCard({
                 </button>
                 {goalMenuOpen && (
                   <div className="absolute right-0 top-full z-30 mt-1 flex w-max min-w-44 flex-col overflow-hidden rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
-                    {LINKED_GOALS.map((goal, i) => (
-                      <button
-                        key={goal}
-                        type="button"
-                        onClick={() => handleSelectLinkedGoal(goal)}
-                        className={`flex w-full items-center gap-1.5 px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap hover:bg-[#fcfcfc] lg:text-[12px] dark:hover:bg-zinc-700 ${
-                          i === 0
-                            ? 'border-b border-[#f2f2f2] text-[#8022fe] dark:border-zinc-700'
-                            : 'text-[#5d5d5d] dark:text-gray-300'
-                        }`}
-                      >
-                        {i === 0 && <Sparkles size={10} className="shrink-0" />}
-                        {i === 0 ? `${goal} (AI recommended)` : goal}
-                      </button>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={() => handleSelectLinkedGoal('__create_new__')}
-                      className="flex w-full items-center gap-1.5 border-t border-[#f2f2f2] px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#5d5d5d] hover:bg-[#fcfcfc] lg:text-[12px] dark:border-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-700"
-                    >
-                      + Create new goal
-                    </button>
+                    {goalOptions.length === 0 ? (
+                      <p className="px-[10px] py-1.5 text-[12px] text-[#c2c2c2]">No active goals</p>
+                    ) : (
+                      goalOptions.map((goal, i) => (
+                        <button
+                          key={goal.id}
+                          type="button"
+                          onClick={() => handleSelectLinkedGoal(goal.id, goal.title)}
+                          className={`flex w-full items-center gap-1.5 px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap hover:bg-[#fcfcfc] lg:text-[12px] dark:hover:bg-zinc-700 ${
+                            i === 0
+                              ? 'border-b border-[#f2f2f2] text-[#8022fe] dark:border-zinc-700'
+                              : 'text-[#5d5d5d] dark:text-gray-300'
+                          }`}
+                        >
+                          {i === 0 && <Sparkles size={10} className="shrink-0" />}
+                          {goal.title}
+                        </button>
+                      ))
+                    )}
                   </div>
                 )}
               </div>
@@ -840,17 +420,6 @@ function TaskDetailCard({
                   View Goal <ExternalLink size={10} />
                 </span>
               </div>
-              <p className="px-3 pt-1 pb-2 text-[12px] text-[#c2c2c2]">
-                Stick to your fitness plan or engage in a workout session to boost your progress.
-              </p>
-              <div className="flex items-center justify-between border-t border-[#f2f2f2] px-3 py-2 text-[12px] text-[#5d5d5d] dark:border-zinc-700">
-                <span>
-                  <span className="text-[#c2c2c2]">Progress:</span> 60%
-                </span>
-                <span>
-                  3/5 Tasks <span className="text-[#c2c2c2]">•</span> 2 Habits
-                </span>
-              </div>
             </div>
           ) : (
             <div className="flex h-10 items-center justify-center rounded-xl border border-dashed border-[#f2f2f2] dark:border-zinc-700">
@@ -861,17 +430,15 @@ function TaskDetailCard({
 
         <SubtasksSection
           task={task}
-          onUpdateSubtasks={onUpdateSubtasks}
-          autoTriggerAi={autoTriggerSubtasksAi}
-          onAutoTriggerConsumed={onAutoTriggerConsumed}
           isApplyingAiEdit={isApplyingAiEdit}
+          onRequestBreakdown={onTriggerSubtasksAi}
         />
       </div>
     </div>
   );
 }
 
-// Slide-over peek (Figma frames 6/6.1/7/7.1) — board stays visible behind it.
+
 const DRAWER_DEFAULT_WIDTH = 360;
 const DRAWER_MIN_WIDTH = 360;
 const DRAWER_MAX_WIDTH = 720;
@@ -880,19 +447,26 @@ export function TaskDetailDrawer({
   task,
   onClose,
   onOpenFullPage,
-  onUpdateSubtasks,
   onUpdateTaskFields,
   onEdit,
   onDelete,
+  onRefreshTask,
   onTriggerSubtasksAi,
-  autoTriggerSubtasksAi = false,
-  onAutoTriggerConsumed,
+  onTriggerImproveAi,
+  autoAiAction = null,
+  onAutoAiActionConsumed,
 }) {
   const [width, setWidth] = useState(DRAWER_DEFAULT_WIDTH);
   const isResizing = useRef(false);
   const [isDesktop, setIsDesktop] = useState(
     () => typeof window !== 'undefined' && window.innerWidth >= 1024
   );
+  const [isApplyingAiEdit, setIsApplyingAiEdit] = useState(false);
+  const [isAssistantOpen, setIsAssistantOpen] = useState(Boolean(autoAiAction));
+
+  useEffect(() => {
+    if (autoAiAction) setIsAssistantOpen(true);
+  }, [autoAiAction]);
 
   useEffect(() => {
     const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
@@ -982,30 +556,47 @@ export function TaskDetailDrawer({
           <TaskDetailCard
             variant="drawer"
             task={task}
-            onUpdateSubtasks={onUpdateSubtasks}
             onUpdateTaskFields={onUpdateTaskFields}
-            autoTriggerSubtasksAi={autoTriggerSubtasksAi}
-            onAutoTriggerConsumed={onAutoTriggerConsumed}
+            isApplyingAiEdit={isApplyingAiEdit}
             onEdit={onEdit}
             onDelete={onDelete}
-            onTriggerSubtasksAi={onTriggerSubtasksAi}
+            onTriggerSubtasksAi={() => {
+              setIsAssistantOpen(true);
+              onTriggerSubtasksAi?.();
+            }}
+            onTriggerImproveAi={() => {
+              setIsAssistantOpen(true);
+              onTriggerImproveAi?.();
+            }}
           />
+          {isAssistantOpen && (
+            <div className="mt-4 h-80 shrink-0">
+              <TaskAiAssistant
+                taskId={task.id}
+                onClose={() => setIsAssistantOpen(false)}
+                onRefreshTask={onRefreshTask}
+                onApplyingChange={setIsApplyingAiEdit}
+                autoAction={autoAiAction}
+                onAutoActionConsumed={onAutoAiActionConsumed}
+              />
+            </div>
+          )}
         </div>
       </aside>
     </div>
   );
 }
 
-// Full page (Figma frame 8) — board hidden, AI Assistant docked alongside.
 export default function TaskDetailPanel({
   task,
-  onUpdateSubtasks,
   onUpdateTaskFields,
   onEdit,
   onDelete,
+  onRefreshTask,
   onTriggerSubtasksAi,
-  autoTriggerSubtasksAi = false,
-  onAutoTriggerConsumed,
+  onTriggerImproveAi,
+  autoAiAction = null,
+  onAutoAiActionConsumed,
 }) {
   const [isApplyingAiEdit, setIsApplyingAiEdit] = useState(false);
   const [isAssistantOpen, setIsAssistantOpen] = useState(true);
@@ -1036,27 +627,32 @@ export default function TaskDetailPanel({
         <TaskDetailCard
           variant="page"
           task={task}
-          onUpdateSubtasks={onUpdateSubtasks}
           onUpdateTaskFields={onUpdateTaskFields}
-          autoTriggerSubtasksAi={autoTriggerSubtasksAi}
-          onAutoTriggerConsumed={onAutoTriggerConsumed}
           isApplyingAiEdit={isApplyingAiEdit}
           onEdit={onEdit}
           onDelete={onDelete}
-          onTriggerSubtasksAi={onTriggerSubtasksAi}
+          onTriggerSubtasksAi={() => {
+            setIsAssistantOpen(true);
+            onTriggerSubtasksAi?.();
+          }}
+          onTriggerImproveAi={() => {
+            setIsAssistantOpen(true);
+            onTriggerImproveAi?.();
+          }}
         />
       </div>
 
       {isAssistantOpen && !isAssistantExpanded && (
         <div className="flex h-125 w-full shrink-0 flex-col xl:h-full xl:w-100">
-          <AiAssistantChat
-            task={task}
-            onUpdateSubtasks={onUpdateSubtasks}
-            onUpdateTaskFields={onUpdateTaskFields}
-            onApplyingChange={setIsApplyingAiEdit}
+          <TaskAiAssistant
+            taskId={task.id}
             onClose={closeAssistant}
             onToggleExpand={toggleExpandAssistant}
             isExpanded={false}
+            onRefreshTask={onRefreshTask}
+            onApplyingChange={setIsApplyingAiEdit}
+            autoAction={autoAiAction}
+            onAutoActionConsumed={onAutoAiActionConsumed}
           />
         </div>
       )}
@@ -1064,14 +660,15 @@ export default function TaskDetailPanel({
       {isAssistantOpen && isAssistantExpanded && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="h-[85vh] w-full max-w-2xl">
-            <AiAssistantChat
-              task={task}
-              onUpdateSubtasks={onUpdateSubtasks}
-              onUpdateTaskFields={onUpdateTaskFields}
-              onApplyingChange={setIsApplyingAiEdit}
+            <TaskAiAssistant
+              taskId={task.id}
               onClose={closeAssistant}
               onToggleExpand={toggleExpandAssistant}
               isExpanded
+              onRefreshTask={onRefreshTask}
+              onApplyingChange={setIsApplyingAiEdit}
+              autoAction={autoAiAction}
+              onAutoActionConsumed={onAutoAiActionConsumed}
             />
           </div>
         </div>
