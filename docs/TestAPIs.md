@@ -916,7 +916,7 @@ Server persists immediately — **Add to Board** only refreshes the list (no sec
 | Complete | `POST /tasks/:id/complete` | `{ "actualMinutes": 50 }` optional |
 | Skip | `POST /tasks/:id/skip` | `{ "reason": "…" }` |
 | Delete | `DELETE /tasks/:id` | — |
-| AI suggest | `POST /tasks/:id/ai/suggest` | `{ "action": "BREAKDOWN", "regenerate": true }` when replacing existing subtasks; also `IMPROVE_DESCRIPTION` / `CHAT` |
+| AI suggest | `POST /tasks/:id/ai/suggest` | `{ "action": "BREAKDOWN", "regenerate": true }` when replacing existing subtasks; `{ "action": "IMPROVE_DESCRIPTION" }` (± `message`); `{ "action": "CHAT", "message" }` |
 | Accept | `POST /tasks/ai/suggestions/:id/accept` | — |
 | Dismiss | `POST /tasks/ai/suggestions/:id/dismiss` | — |
 | Undo | `POST /tasks/:id/ai/undo` | — |
@@ -938,7 +938,8 @@ Server persists immediately — **Add to Board** only refreshes the list (no sec
 | 8 | **+ New Task** → Manual → Create | `POST /tasks` then list + summary refresh |
 | 9 | **+ New Task** → AI → Generate → Add to Board | `POST /tasks/ai/generate`; Add = refresh only |
 | 10 | Open task detail | `GET /tasks/:id` + `GET /tasks/:id/subtasks` (+ pending suggestions) |
-| 11 | AI → Break into subtasks → Yes, apply | `POST .../ai/suggest` then `POST .../ai/suggestions/:id/accept` |
+| 11 | AI → Break into subtasks → Yes, apply | `POST .../ai/suggest` `{ "action": "BREAKDOWN", … }` then accept |
+| 11b | AI → Improve description → Yes, apply | `POST .../ai/suggest` `{ "action": "IMPROVE_DESCRIPTION" }` (optional `message`); left panel title/description update from `proposedTask` + accept |
 | 12 | ⋯ Edit / Delete | `PATCH` / `DELETE` |
 
 ```bash

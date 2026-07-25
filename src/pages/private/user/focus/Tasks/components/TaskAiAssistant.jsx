@@ -9,6 +9,7 @@ import {
   undoTaskAiApi,
 } from '../../../../../../features/tasks/tasksAPI';
 import {
+  categoryFromApi,
   formatTaskSuggestionBody,
   mapTaskAiSuggestionsToMessages,
   mapTaskFromApi,
@@ -25,9 +26,36 @@ const QUICK_ACTIONS = [
     key: 'IMPROVE_DESCRIPTION',
     label: 'Improve description',
     icon: Wand2,
+    // Optional per Postman; included so the chat shows a user bubble
     message: 'Make it more specific',
   },
 ];
+
+/** MVP allowlist — never apply due/status/priority from proposedTask. */
+function allowlistedFromProposedTask(proposed) {
+  if (!proposed || typeof proposed !== 'object') return null;
+  const patch = {};
+  if (proposed.title != null && String(proposed.title).trim()) {
+    patch.title = String(proposed.title).trim();
+  }
+  if (proposed.description != null) {
+    patch.description = String(proposed.description);
+  }
+  if (proposed.category != null && String(proposed.category).trim()) {
+    patch.category = categoryFromApi(proposed.category);
+  }
+  return Object.keys(patch).length ? patch : null;
+}
+
+function unwrapSuggestResponse(data) {
+  if (!data || typeof data !== 'object') return data;
+  // Flat Postman shape: { success, suggestionId, proposedTask, ... }
+  if (data.suggestionId || data.proposedTask || data.proposedSubtasks || data.message) {
+    return data;
+  }
+  if (data.data && typeof data.data === 'object') return data.data;
+  return data;
+}
 
 function formatSessionStamp() {
   return new Date().toLocaleString('en-US', {
@@ -173,7 +201,8 @@ export default function TaskAiAssistant({
           (action === 'BREAKDOWN' && hasSubtasksRef.current);
         if (shouldRegenerate) body.regenerate = true;
 
-        const data = await suggestTaskAiApi(taskId, body);
+        const raw = await suggestTaskAiApi(taskId, body);
+        const data = unwrapSuggestResponse(raw);
         if (!data?.success && data?.success !== undefined) {
           const errMsg = data?.message || 'Suggestion failed';
           // Auto-retry once if backend asks for regenerate
@@ -182,7 +211,9 @@ export default function TaskAiAssistant({
             !body.regenerate &&
             /regenerate\s*=\s*true/i.test(errMsg)
           ) {
-            const retry = await suggestTaskAiApi(taskId, { ...body, regenerate: true });
+            const retry = unwrapSuggestResponse(
+              await suggestTaskAiApi(taskId, { ...body, regenerate: true })
+            );
             if (!retry?.success && retry?.success !== undefined) {
               throw new Error(retry?.message || errMsg);
             }
@@ -240,7 +271,7 @@ export default function TaskAiAssistant({
           try {
             const body = { action, regenerate: true };
             if (userText) body.message = userText;
-            const retry = await suggestTaskAiApi(taskId, body);
+            const retry = unwrapSuggestResponse(await suggestTaskAiApi(taskId, body));
             if (!retry?.success && retry?.success !== undefined) {
               throw new Error(retry?.message || msg);
             }
@@ -323,20 +354,28 @@ export default function TaskAiAssistant({
     setPrompt('');
     onApplyingChange?.(true);
 
+    // IMPROVE_DESCRIPTION: paint title/description immediately from proposedTask
+    const optimistic = allowlistedFromProposedTask(msg.suggestion?.proposedTask);
+    if (optimistic) {
+      onTaskUpdated?.(optimistic);
+    }
+
     try {
       const data = await acceptTaskSuggestionApi(suggestionId);
       if (!data?.success && data?.success !== undefined) {
         throw new Error(data?.message || 'Failed to apply suggestion');
       }
       toast.success(data?.message || 'Changes applied');
-      if (data?.task) {
-        onTaskUpdated?.(mapTaskFromApi(data.task));
+      const acceptedTask = data?.task || data?.data?.task || data?.data;
+      if (acceptedTask?.id || acceptedTask?.title) {
+        onTaskUpdated?.(mapTaskFromApi(acceptedTask));
       }
       await onRefreshTask?.();
       await reloadHistory();
     } catch (err) {
       const message = err?.response?.data?.message || err?.message || 'Failed to apply changes';
       toast.error(message);
+      await onRefreshTask?.();
     } finally {
       setBusyId(null);
       onApplyingChange?.(false);

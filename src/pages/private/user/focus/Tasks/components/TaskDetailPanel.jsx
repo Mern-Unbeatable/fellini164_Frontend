@@ -40,7 +40,15 @@ function useLocalTask(task) {
 
   const applyTaskUpdate = useCallback((next) => {
     if (!next) return;
-    const mapped = next.id ? next : mapTaskFromApi(next);
+    // Already-mapped UI task, or a partial allowlisted patch (title/description/…)
+    const looksMapped =
+      next.id ||
+      next.status === 'To Do' ||
+      next.status === 'In Progress' ||
+      next.status === 'Done' ||
+      next.columnKey ||
+      Array.isArray(next.tags);
+    const mapped = looksMapped ? next : mapTaskFromApi(next);
     if (!mapped) return;
     setLocalTask((prev) => ({
       ...(prev || {}),
