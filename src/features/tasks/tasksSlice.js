@@ -229,7 +229,7 @@ export const suggestTaskAi = createAsyncThunk(
 
 export const fetchTaskAiSuggestions = createAsyncThunk(
   'tasks/fetchTaskAiSuggestions',
-  async ({ taskId, status = 'pending' }, { rejectWithValue }) => {
+  async ({ taskId, status }, { rejectWithValue }) => {
     try {
       return await fetchTaskAiSuggestionsApi(taskId, status);
     } catch (error) {
@@ -439,6 +439,7 @@ export const selectTasks = (state) => state.tasks.items;
 export const selectTaskColumns = (state) => state.tasks.columns;
 export const selectTasksBoardStats = (state) => state.tasks.boardStats;
 export const selectTasksLoading = (state) => state.tasks.loadingList;
+export const selectTasksLoadingTask = (state) => state.tasks.loadingTask;
 export const selectCurrentTask = (state) => state.tasks.currentTask;
 export const selectCurrentSubtasks = (state) => state.tasks.currentSubtasks;
 export const selectTaskAiSuggestion = (state) => state.tasks.aiSuggestion;

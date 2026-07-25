@@ -396,13 +396,22 @@ function isDismissedSuggestion(status) {
   return ['DISMISSED', 'REJECTED', 'CANCELLED', 'CANCELED'].includes(status);
 }
 
+function defaultUserMessageForAction(action) {
+  const key = String(action || '').toUpperCase();
+  if (key === 'BREAKDOWN') return 'Break this task into subtasks';
+  if (key === 'IMPROVE_DESCRIPTION') return 'Make it more specific';
+  return null;
+}
+
 /** Map GET /tasks/:id/ai/suggestions → chat messages (Goals AI pattern). */
 export function mapTaskAiSuggestionsToMessages(envelope) {
   const list = Array.isArray(envelope?.suggestions)
     ? envelope.suggestions
-    : Array.isArray(envelope)
-      ? envelope
-      : [];
+    : Array.isArray(envelope?.data)
+      ? envelope.data
+      : Array.isArray(envelope)
+        ? envelope
+        : [];
   const sorted = [...list].sort((a, b) => {
     const ta = new Date(a.createdAt || a.updatedAt || 0).getTime();
     const tb = new Date(b.createdAt || b.updatedAt || 0).getTime();
@@ -410,15 +419,25 @@ export function mapTaskAiSuggestionsToMessages(envelope) {
   });
 
   const messages = [];
+  let lastAcceptedDoneId = null;
+
   sorted.forEach((item, index) => {
     const suggestionId = item.suggestionId || item.id;
     if (!suggestionId) return;
     const status = suggestionStatus(item);
-    const pending = isPendingSuggestion(status) || (item.isApplied === false && !item.isDismissed);
     const accepted = isAcceptedSuggestion(status) || item.isApplied === true;
     const dismissed = isDismissedSuggestion(status) || item.isDismissed === true;
+    const pending =
+      !accepted &&
+      !dismissed &&
+      (isPendingSuggestion(status) ||
+        (item.isApplied === false && item.isDismissed !== true));
 
-    const userText = item.userMessage || item.prompt || item.requestMessage;
+    const userText =
+      item.userMessage ||
+      item.prompt ||
+      item.requestMessage ||
+      defaultUserMessageForAction(item.action);
     if (userText) {
       messages.push({ id: `u-${suggestionId}`, role: 'user', text: String(userText) });
     }
@@ -436,7 +455,7 @@ export function mapTaskAiSuggestionsToMessages(envelope) {
       id: `a-${suggestionId}`,
       role: 'assistant',
       text: formatTaskSuggestionBody(suggestionPayload),
-      suggestion: pending && !accepted && !dismissed ? suggestionPayload : null,
+      suggestion: pending ? suggestionPayload : null,
       suggestionId,
       dismissed: dismissed || (!pending && !accepted),
       action: item.action,
@@ -445,14 +464,16 @@ export function mapTaskAiSuggestionsToMessages(envelope) {
 
     if (accepted) {
       messages.push({ id: `u-apply-${suggestionId}`, role: 'user', text: 'Yes, apply' });
+      const doneId = `done-${suggestionId}`;
       messages.push({
-        id: `done-${suggestionId}`,
+        id: doneId,
         role: 'assistant',
         text: item.applyMessage || 'Done. The task has been updated.',
-        canUndo: index === sorted.length - 1,
+        canUndo: false,
         suggestionId,
         fromHistory: true,
       });
+      lastAcceptedDoneId = doneId;
     } else if (dismissed) {
       messages.push({
         id: `u-cancel-${suggestionId}-${index}`,
@@ -468,5 +489,10 @@ export function mapTaskAiSuggestionsToMessages(envelope) {
     }
   });
 
+  if (lastAcceptedDoneId) {
+    return messages.map((m) =>
+      m.id === lastAcceptedDoneId ? { ...m, canUndo: true } : m
+    );
+  }
   return messages;
 }

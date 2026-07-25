@@ -8,9 +8,9 @@ import {
 } from 'lucide-react';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, useNavigate } from 'react-router-dom';
 import TaskFormModal from './components/TaskFormModal';
-import TaskDetailPanel, { TaskDetailDrawer } from './components/TaskDetailPanel';
+import { TaskDetailDrawer } from './components/TaskDetailPanel';
 import { TaskCard, GhostTaskCard } from './components/TaskCard';
 import {
   FILTER_CONFIG,
@@ -136,6 +136,7 @@ function isPixelPassMode() {
 
 export default function TasksBoard() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { setTaskDetail, setBackToTasksBoard } = useOutletContext();
   const reduxColumns = useSelector(selectTaskColumns);
   const loadingList = useSelector(selectTasksLoading);
@@ -148,7 +149,6 @@ export default function TasksBoard() {
   const [taskModal, setTaskModal] = useState({ open: false, mode: 'create', task: null });
   const [enteringTaskIds, setEnteringTaskIds] = useState(() => new Set());
   const [selectedTaskId, setSelectedTaskId] = useState(null);
-  const [isTaskExpanded, setIsTaskExpanded] = useState(false);
   const [triggerSubtasksAi, setTriggerSubtasksAi] = useState(false);
   const [triggerImproveAi, setTriggerImproveAi] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -219,9 +219,10 @@ export default function TasksBoard() {
     : null;
 
   useEffect(() => {
-    setTaskDetail(isTaskExpanded ? selectedTask?.title ?? null : null);
+    // Drawer peek does not change the breadcrumb detail
+    setTaskDetail(null);
     return () => setTaskDetail(null);
-  }, [selectedTask, isTaskExpanded, setTaskDetail]);
+  }, [setTaskDetail]);
 
   const refreshSelectedTask = useCallback(async () => {
     if (!selectedTaskId) return null;
@@ -245,14 +246,17 @@ export default function TasksBoard() {
     setSelectedTaskId(task.id);
     setTriggerSubtasksAi(runSubtasksAi);
     setTriggerImproveAi(runImproveAi);
-    setIsTaskExpanded(false);
+  };
+
+  const openTaskFullPage = (task) => {
+    if (!task?.id) return;
+    navigate(`/user/tasks/${task.id}`);
   };
 
   const closeTaskDetail = useCallback(() => {
     setSelectedTaskId(null);
     setTriggerSubtasksAi(false);
     setTriggerImproveAi(false);
-    setIsTaskExpanded(false);
   }, []);
 
   useEffect(() => {
@@ -261,13 +265,13 @@ export default function TasksBoard() {
   }, [setBackToTasksBoard, closeTaskDetail]);
 
   useEffect(() => {
-    if (!isTaskExpanded) return undefined;
+    if (!selectedTaskId) return undefined;
     const onKeyDown = (e) => {
       if (e.key === 'Escape') closeTaskDetail();
     };
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [isTaskExpanded, closeTaskDetail]);
+  }, [selectedTaskId, closeTaskDetail]);
 
   const handleUpdateTaskFields = async (taskId, fields) => {
     const ALLOWED_KEYS = new Set([
@@ -407,185 +411,160 @@ export default function TasksBoard() {
 
   return (
     <div className="relative flex min-h-full flex-col py-7.5 max-lg:min-h-0 max-lg:py-4 max-lg:sm:py-6">
-      {!isTaskExpanded && (
-        <>
-          <div className="mb-5 flex w-full items-start justify-between max-lg:mb-4 max-lg:flex-col max-lg:gap-4">
-            <div className="flex flex-col items-start gap-2">
-              <p className="text-[20px] font-medium text-[#181818] dark:text-white">Tasks Board</p>
-              {isPixelPassMode() ? (
-                <span className="text-[12px] font-medium text-[#c2c2c2] dark:text-gray-400 max-lg:text-sm">
-                  {TASKS_SUBTITLE_PHRASES[0]}
-                </span>
-              ) : (
-                <TypewriterText
-                  phrases={TASKS_SUBTITLE_PHRASES}
-                  className="text-[12px] font-medium text-[#c2c2c2] dark:text-gray-400 max-lg:text-sm"
-                />
-              )}
-            </div>
-            <label className="flex w-62.5 items-center gap-2 rounded-lg border border-[#f2f2f2] bg-white px-3 py-1.75 focus-within:border-[#e9e9e9] dark:border-zinc-700 dark:bg-zinc-800 dark:focus-within:border-zinc-600 max-lg:w-full max-lg:py-2">
-              <Search size={14} className="shrink-0 text-[#c2c2c2]" aria-hidden />
-              <input
-                type="search"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search tasks in board..."
-                aria-label="Search tasks in board"
-                className="w-full bg-transparent text-[12px] font-medium text-[#181818] outline-none placeholder:text-[#c2c2c2] dark:text-white max-lg:text-base"
-              />
-            </label>
-          </div>
-
-          <div className="mb-5 flex w-full items-center justify-between gap-3 max-lg:mb-4 max-lg:flex-col max-lg:items-stretch max-lg:gap-4">
-            <button
-              type="button"
-              onClick={openNewTaskModal}
-              className="flex shrink-0 items-center gap-2 rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] font-semibold whitespace-nowrap text-white max-lg:w-full max-lg:justify-center max-lg:py-2.5 max-lg:text-base"
-            >
-              <Plus size={14} strokeWidth={2.5} className="shrink-0 text-white" />
-              <span className="text-white">New Task</span>
-            </button>
-
-            <div className="flex items-center gap-2 max-lg:w-full max-lg:flex-col max-lg:gap-3 lg:flex-1 2xl:flex-none 2xl:gap-5">
-              <div className="flex shrink-0 items-center gap-1 rounded-lg border border-[#f2f2f2] bg-white p-1 dark:border-zinc-700 max-lg:w-full">
-                <span className="rounded px-2 py-0.75 text-[12px] font-medium text-[#181818] bg-[#f2f2f2] dark:bg-zinc-700 dark:text-white max-lg:flex-1 max-lg:py-2 max-lg:text-center max-lg:text-base">
-                  Board
-                </span>
-                <span className="flex w-12.5 items-center justify-center px-2 py-0.75 text-[12px] font-medium text-[#c2c2c2] max-lg:flex-1 max-lg:py-2 max-lg:text-base">
-                  List
-                </span>
-              </div>
-
-              <div className="h-4 w-px shrink-0 bg-[#f2f2f2] dark:bg-zinc-700 max-lg:hidden" />
-
-              <div className="flex items-center gap-1 max-lg:w-full max-lg:flex-col max-lg:gap-2 lg:flex-1 2xl:flex-none 2xl:gap-2.5">
-                {FILTER_CONFIG.map(({ key, defaultLabel, options }) => (
-                  <FilterDropdown
-                    key={key}
-                    defaultLabel={defaultLabel}
-                    options={options}
-                    value={activeFilters[key]}
-                    onChange={(value) => updateFilter(key, value)}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-
-      {isTaskExpanded && selectedTask ? (
-        <div className="flex min-h-0 flex-1 flex-col">
-          <TaskDetailPanel
-            task={selectedTask}
-            onUpdateTaskFields={(fields) => handleUpdateTaskFields(selectedTask.id, fields)}
-            onEdit={openEditTaskModal}
-            onDelete={(t) => {
-              handleDeleteTask(t);
-            }}
-            onRefreshTask={refreshSelectedTask}
-            autoAiAction={autoAiAction}
-            onAutoAiActionConsumed={() => {
-              setTriggerSubtasksAi(false);
-              setTriggerImproveAi(false);
-            }}
-            onTriggerSubtasksAi={() => setTriggerSubtasksAi(true)}
-            onTriggerImproveAi={() => setTriggerImproveAi(true)}
-          />
+      <div className="mb-5 flex w-full items-start justify-between max-lg:mb-4 max-lg:flex-col max-lg:gap-4">
+        <div className="flex flex-col items-start gap-2">
+          <p className="text-[20px] font-medium text-[#181818] dark:text-white">Tasks Board</p>
+          {isPixelPassMode() ? (
+            <span className="text-[12px] font-medium text-[#c2c2c2] dark:text-gray-400 max-lg:text-sm">
+              {TASKS_SUBTITLE_PHRASES[0]}
+            </span>
+          ) : (
+            <TypewriterText
+              phrases={TASKS_SUBTITLE_PHRASES}
+              className="text-[12px] font-medium text-[#c2c2c2] dark:text-gray-400 max-lg:text-sm"
+            />
+          )}
         </div>
-      ) : (
-        <div className="flex min-h-0 flex-1 items-stretch gap-4 lg:min-h-0 max-lg:h-auto max-lg:flex-none max-lg:flex-col">
-          {COLUMNS.map((column) => {
-            const Icon = column.icon;
-            const { key, label } = column;
-            const cards = filteredColumns[key];
-            const isTodo = key === 'todo';
-            const isDone = key === 'done';
-            const overdueCount = isTodo ? cards.filter((t) => t.overdueDays != null).length : 0;
-            const hasSearchResults = cards.length > 0;
-            return (
-              <div
+        <label className="flex w-62.5 items-center gap-2 rounded-lg border border-[#f2f2f2] bg-white px-3 py-1.75 focus-within:border-[#e9e9e9] dark:border-zinc-700 dark:bg-zinc-800 dark:focus-within:border-zinc-600 max-lg:w-full max-lg:py-2">
+          <Search size={14} className="shrink-0 text-[#c2c2c2]" aria-hidden />
+          <input
+            type="search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search tasks in board..."
+            aria-label="Search tasks in board"
+            className="w-full bg-transparent text-[12px] font-medium text-[#181818] outline-none placeholder:text-[#c2c2c2] dark:text-white max-lg:text-base"
+          />
+        </label>
+      </div>
+
+      <div className="mb-5 flex w-full items-center justify-between gap-3 max-lg:mb-4 max-lg:flex-col max-lg:items-stretch max-lg:gap-4">
+        <button
+          type="button"
+          onClick={openNewTaskModal}
+          className="flex shrink-0 items-center gap-2 rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] font-semibold whitespace-nowrap text-white max-lg:w-full max-lg:justify-center max-lg:py-2.5 max-lg:text-base"
+        >
+          <Plus size={14} strokeWidth={2.5} className="shrink-0 text-white" />
+          <span className="text-white">New Task</span>
+        </button>
+
+        <div className="flex items-center gap-2 max-lg:w-full max-lg:flex-col max-lg:gap-3 lg:flex-1 2xl:flex-none 2xl:gap-5">
+          <div className="flex shrink-0 items-center gap-1 rounded-lg border border-[#f2f2f2] bg-white p-1 dark:border-zinc-700 max-lg:w-full">
+            <span className="rounded px-2 py-0.75 text-[12px] font-medium text-[#181818] bg-[#f2f2f2] dark:bg-zinc-700 dark:text-white max-lg:flex-1 max-lg:py-2 max-lg:text-center max-lg:text-base">
+              Board
+            </span>
+            <span className="flex w-12.5 items-center justify-center px-2 py-0.75 text-[12px] font-medium text-[#c2c2c2] max-lg:flex-1 max-lg:py-2 max-lg:text-base">
+              List
+            </span>
+          </div>
+
+          <div className="h-4 w-px shrink-0 bg-[#f2f2f2] dark:bg-zinc-700 max-lg:hidden" />
+
+          <div className="flex items-center gap-1 max-lg:w-full max-lg:flex-col max-lg:gap-2 lg:flex-1 2xl:flex-none 2xl:gap-2.5">
+            {FILTER_CONFIG.map(({ key, defaultLabel, options }) => (
+              <FilterDropdown
                 key={key}
-                className="scrollbar-hidden relative flex h-full w-full shrink-0 flex-col items-start gap-2.5 overflow-y-auto rounded-2xl border border-[#f2f2f2] bg-white p-3 lg:min-h-0 lg:flex-1 dark:border-zinc-700 dark:bg-zinc-800 max-lg:h-auto max-lg:max-h-[min(70vh,560px)]"
-              >
-                <div className="flex w-full shrink-0 items-center justify-between">
-                  <div className="flex min-w-0 items-center gap-2">
-                    <Icon size={14} className="shrink-0 text-[#5d5d5d] dark:text-gray-300" />
-                    <p className="text-sm font-medium leading-normal text-[#5d5d5d] lg:text-[14px] dark:text-gray-300">
-                      {label}
-                    </p>
-                    {isTodo && overdueCount > 0 && (
-                      <span className="flex items-center gap-1 rounded-[6px] bg-[rgba(220,38,38,0.05)] px-[6px] py-[2px] text-[10px] font-semibold leading-normal text-[#dc2626]">
-                        <span className="size-[3px] shrink-0 rounded-full bg-[#dc2626]" />
-                        {overdueCount} Overdue
-                      </span>
-                    )}
-                  </div>
-                  {isTodo && showGhostCards ? (
-                    <span className="flex shrink-0 items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-xs font-medium text-[#8022fe] lg:text-[12px]">
-                      <Sparkles size={10} />
-                      {filteredGhostTasks.length} AI Suggestions
-                    </span>
-                  ) : (
-                    <span className="flex w-[22px] shrink-0 items-center justify-center rounded-[6px] bg-[#f2f2f2] px-[6px] py-[2px] text-xs font-medium leading-normal text-[#5d5d5d] lg:text-[12px] dark:bg-zinc-700 dark:text-gray-300">
-                      {cards.length}
+                defaultLabel={defaultLabel}
+                options={options}
+                value={activeFilters[key]}
+                onChange={(value) => updateFilter(key, value)}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex min-h-0 flex-1 items-stretch gap-4 lg:min-h-0 max-lg:h-auto max-lg:flex-none max-lg:flex-col">
+        {COLUMNS.map((column) => {
+          const Icon = column.icon;
+          const { key, label } = column;
+          const cards = filteredColumns[key];
+          const isTodo = key === 'todo';
+          const isDone = key === 'done';
+          const overdueCount = isTodo ? cards.filter((t) => t.overdueDays != null).length : 0;
+          const hasSearchResults = cards.length > 0;
+          return (
+            <div
+              key={key}
+              className="scrollbar-hidden relative flex h-full w-full shrink-0 flex-col items-start gap-2.5 overflow-y-auto rounded-2xl border border-[#f2f2f2] bg-white p-3 lg:min-h-0 lg:flex-1 dark:border-zinc-700 dark:bg-zinc-800 max-lg:h-auto max-lg:max-h-[min(70vh,560px)]"
+            >
+              <div className="flex w-full shrink-0 items-center justify-between">
+                <div className="flex min-w-0 items-center gap-2">
+                  <Icon size={14} className="shrink-0 text-[#5d5d5d] dark:text-gray-300" />
+                  <p className="text-sm font-medium leading-normal text-[#5d5d5d] lg:text-[14px] dark:text-gray-300">
+                    {label}
+                  </p>
+                  {isTodo && overdueCount > 0 && (
+                    <span className="flex items-center gap-1 rounded-[6px] bg-[rgba(220,38,38,0.05)] px-[6px] py-[2px] text-[10px] font-semibold leading-normal text-[#dc2626]">
+                      <span className="size-[3px] shrink-0 rounded-full bg-[#dc2626]" />
+                      {overdueCount} Overdue
                     </span>
                   )}
                 </div>
-
-                {isTodo && showGhostCards
-                  ? filteredGhostTasks.map((task) => (
-                      <GhostTaskCard
-                        key={task.id}
-                        task={task}
-                        onDismiss={handleDismissGhost}
-                        onRegenerate={handleRegenerateGhost}
-                        onAccept={() => handleAcceptGhost(task)}
-                      />
-                    ))
-                  : !hasSearchResults && isSearching
-                    ? (
-                      <EmptyColumnPlaceholder text="No matching tasks" />
-                    )
-                  : cards.length === 0 && !isTodo
-                    ? (
-                      <EmptyColumnPlaceholder
-                        text={
-                          key === 'inProgress'
-                            ? 'No tasks in progress'
-                            : 'Completed tasks will appear here'
-                        }
-                      />
-                    )
-                  : hasSearchResults
-                    ? cards.map((task) => (
-                        <TaskCard
-                          key={task.id}
-                          task={task}
-                          onEdit={openEditTaskModal}
-                          onDelete={handleDeleteTask}
-                          onSelect={(t) => openTaskDetail(t)}
-                          onBreakIntoSubtasks={(t) => openTaskDetail(t, true)}
-                          onImproveDescription={handleImproveDescription}
-                          isDoneColumn={isDone}
-                          isEntering={enteringTaskIds.has(task.id)}
-                        />
-                      ))
-                    : null}
-                {isTodo && cards.length > 3 && (
-                  <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[60px] rounded-b-2xl bg-gradient-to-b from-transparent to-white dark:to-zinc-800" />
+                {isTodo && showGhostCards ? (
+                  <span className="flex shrink-0 items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-xs font-medium text-[#8022fe] lg:text-[12px]">
+                    <Sparkles size={10} />
+                    {filteredGhostTasks.length} AI Suggestions
+                  </span>
+                ) : (
+                  <span className="flex w-[22px] shrink-0 items-center justify-center rounded-[6px] bg-[#f2f2f2] px-[6px] py-[2px] text-xs font-medium leading-normal text-[#5d5d5d] lg:text-[12px] dark:bg-zinc-700 dark:text-gray-300">
+                    {cards.length}
+                  </span>
                 )}
               </div>
-            );
-          })}
-        </div>
-      )}
 
-      {selectedTask && !isTaskExpanded && (
+              {isTodo && showGhostCards
+                ? filteredGhostTasks.map((task) => (
+                    <GhostTaskCard
+                      key={task.id}
+                      task={task}
+                      onDismiss={handleDismissGhost}
+                      onRegenerate={handleRegenerateGhost}
+                      onAccept={() => handleAcceptGhost(task)}
+                    />
+                  ))
+                : !hasSearchResults && isSearching
+                  ? (
+                    <EmptyColumnPlaceholder text="No matching tasks" />
+                  )
+                : cards.length === 0 && !isTodo
+                  ? (
+                    <EmptyColumnPlaceholder
+                      text={
+                        key === 'inProgress'
+                          ? 'No tasks in progress'
+                          : 'Completed tasks will appear here'
+                      }
+                    />
+                  )
+                : hasSearchResults
+                  ? cards.map((task) => (
+                      <TaskCard
+                        key={task.id}
+                        task={task}
+                        onEdit={openEditTaskModal}
+                        onDelete={handleDeleteTask}
+                        onSelect={(t) => openTaskDetail(t)}
+                        onBreakIntoSubtasks={(t) => openTaskDetail(t, true)}
+                        onImproveDescription={handleImproveDescription}
+                        isDoneColumn={isDone}
+                        isEntering={enteringTaskIds.has(task.id)}
+                      />
+                    ))
+                  : null}
+              {isTodo && cards.length > 3 && (
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[60px] rounded-b-2xl bg-gradient-to-b from-transparent to-white dark:to-zinc-800" />
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {selectedTask && (
         <TaskDetailDrawer
           task={selectedTask}
           onClose={closeTaskDetail}
-          onOpenFullPage={() => setIsTaskExpanded(true)}
+          onOpenFullPage={() => openTaskFullPage(selectedTask)}
           onUpdateTaskFields={(fields) => handleUpdateTaskFields(selectedTask.id, fields)}
           onEdit={openEditTaskModal}
           onDelete={(t) => {

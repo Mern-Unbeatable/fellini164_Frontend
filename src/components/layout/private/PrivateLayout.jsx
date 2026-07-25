@@ -19,9 +19,17 @@ export default function PrivateLayout() {
   }, []);
 
   const handleBackToTasksBoard = useCallback(() => {
+    if (pathname.match(/^\/user\/tasks\/[^/]+$/)) {
+      navigate('/user/tasks');
+      setTaskDetail(null);
+      return;
+    }
     backToTasksBoardRef.current?.();
     setTaskDetail(null);
-  }, []);
+  }, [pathname, navigate]);
+
+  const hasTaskDetail =
+    Boolean(taskDetail) || Boolean(pathname.match(/^\/user\/tasks\/[^/]+$/));
 
   const handleLogout = () => {
     dispatch(logout());
@@ -35,7 +43,7 @@ export default function PrivateLayout() {
         isMobileOpen={isMobileSidebarOpen}
         onCloseMobile={() => setIsMobileSidebarOpen(false)}
         onBackToTasksBoard={handleBackToTasksBoard}
-        hasTaskDetail={Boolean(taskDetail)}
+        hasTaskDetail={hasTaskDetail}
       />
 
       <div className="flex flex-1 flex-col overflow-hidden">

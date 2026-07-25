@@ -86,7 +86,7 @@ function ActionPill({ children, onClick, disabled }) {
 /**
  * Task detail AI Assistant
  * Suggest: POST /tasks/:id/ai/suggest
- * History: GET /tasks/:id/ai/suggestions?status=pending
+ * History: GET /tasks/:id/ai/suggestions (full list — keep chat after apply/refresh)
  * Accept / Dismiss / Undo: suggestion action endpoints
  */
 export default function TaskAiAssistant({
@@ -111,7 +111,9 @@ export default function TaskAiAssistant({
   const scrollRef = useRef(null);
   const autoRanRef = useRef(false);
   const hasSubtasksRef = useRef(hasSubtasks);
+  const messagesRef = useRef(messages);
   hasSubtasksRef.current = hasSubtasks;
+  messagesRef.current = messages;
 
   const reloadHistory = useCallback(async () => {
     if (!taskId) {
@@ -121,10 +123,13 @@ export default function TaskAiAssistant({
     }
     setHistoryLoading(true);
     try {
-      const data = await fetchTaskAiSuggestionsApi(taskId, 'pending');
-      setMessages(mapTaskAiSuggestionsToMessages(data));
+      // Full history (no status filter) so applied/dismissed bubbles stay after refresh
+      const data = await fetchTaskAiSuggestionsApi(taskId);
+      const next = mapTaskAiSuggestionsToMessages(data);
+      setMessages(next);
     } catch {
-      setMessages([]);
+      // Keep whatever is already on screen — do not wipe chat on network blip
+      if (messagesRef.current.length === 0) setMessages([]);
     } finally {
       setHistoryLoading(false);
     }
@@ -195,7 +200,7 @@ export default function TaskAiAssistant({
             ]);
             if (suggestionId) {
               try {
-                const suggestions = await fetchTaskAiSuggestionsApi(taskId, 'pending');
+                const suggestions = await fetchTaskAiSuggestionsApi(taskId);
                 setMessages(mapTaskAiSuggestionsToMessages(suggestions));
               } catch {
                 // keep optimistic local message
@@ -219,7 +224,7 @@ export default function TaskAiAssistant({
         ]);
         if (suggestionId) {
           try {
-            const suggestions = await fetchTaskAiSuggestionsApi(taskId, 'pending');
+            const suggestions = await fetchTaskAiSuggestionsApi(taskId);
             setMessages(mapTaskAiSuggestionsToMessages(suggestions));
           } catch {
             // keep optimistic local message
@@ -253,7 +258,7 @@ export default function TaskAiAssistant({
             ]);
             if (suggestionId) {
               try {
-                const suggestions = await fetchTaskAiSuggestionsApi(taskId, 'pending');
+                const suggestions = await fetchTaskAiSuggestionsApi(taskId);
                 setMessages(mapTaskAiSuggestionsToMessages(suggestions));
               } catch {
                 // keep optimistic

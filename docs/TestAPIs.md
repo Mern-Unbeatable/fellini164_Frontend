@@ -828,7 +828,7 @@ If Postman has no response:
 | Delete | `DELETE /api/v1/tasks/:id` | Card/Detail ⋯ → **Delete** | No body | **FULFILLED** |
 | Subtasks list | `GET /api/v1/tasks/:id/subtasks` | Detail open | Ready | **FULFILLED** |
 | AI suggest | `POST /api/v1/tasks/:id/ai/suggest` | Detail AI Assistant (BREAKDOWN / IMPROVE_DESCRIPTION / CHAT) | Postman actions | **FULFILLED** |
-| List suggestions | `GET /api/v1/tasks/:id/ai/suggestions?status=pending` | AI history after refresh | Ready | **FULFILLED** |
+| List suggestions | `GET /api/v1/tasks/:id/ai/suggestions` | AI chat history (full list; refresh-safe). Optional `?status=pending` for queue only | **FULFILLED** |
 | Accept / Dismiss | `POST /api/v1/tasks/ai/suggestions/:id/accept\|dismiss` | Yes, apply / No, cancel | Ready | **FULFILLED** |
 | Undo AI | `POST /api/v1/tasks/:id/ai/undo` | Undo changes | Ready | **FULFILLED** |
 

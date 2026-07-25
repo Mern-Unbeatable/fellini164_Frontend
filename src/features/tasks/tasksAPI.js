@@ -110,12 +110,21 @@ export async function suggestTaskAiApi(taskId, payload) {
   return response?.data;
 }
 
-/** GET /api/v1/tasks/:taskId/ai/suggestions?status=pending */
-export async function fetchTaskAiSuggestionsApi(taskId, status = 'pending') {
+/**
+ * GET /api/v1/tasks/:taskId/ai/suggestions
+ * Omit status for full chat history (applied + dismissed + pending).
+ * Pass status='pending' only when you need the open suggestion queue.
+ */
+export async function fetchTaskAiSuggestionsApi(taskId, status) {
   const response = await axiosInstance.get(`${BASE}/${taskId}/ai/suggestions`, {
     params: status ? { status } : undefined,
   });
-  return response?.data;
+  const body = response?.data;
+  if (Array.isArray(body?.suggestions)) return body;
+  if (Array.isArray(body?.data)) return { ...body, suggestions: body.data };
+  if (Array.isArray(body?.items)) return { ...body, suggestions: body.items };
+  if (Array.isArray(body)) return { suggestions: body };
+  return body ?? { suggestions: [] };
 }
 
 /** POST /api/v1/tasks/ai/suggestions/:suggestionId/accept */

@@ -8,6 +8,7 @@ import {
   markAllNotificationsAsRead,
 } from '../../../features/notifications/notificationsSlice';
 import { selectCurrentGoal, selectGoals } from '../../../features/goals/goalsSlice';
+import { selectCurrentTask } from '../../../features/tasks/tasksSlice';
 import NotificationPanel from './NotificationPanel';
 
 const BREADCRUMBS = [
@@ -29,7 +30,19 @@ const BREADCRUMBS = [
   { prefix: '/user/analytics', page: 'Analytics' },
 ];
 
-function getBreadcrumb(pathname, goals = [], currentGoal = null) {
+function getBreadcrumb(pathname, goals = [], currentGoal = null, currentTask = null) {
+  const taskDetailMatch = pathname.match(/^\/user\/tasks\/([^/]+)$/);
+  if (taskDetailMatch) {
+    const id = taskDetailMatch[1];
+    const title =
+      (currentTask && String(currentTask.id) === String(id) ? currentTask.title : null) ||
+      null;
+    return {
+      section: 'Work',
+      page: 'Tasks',
+      detail: title || 'Task',
+    };
+  }
   const goalDetailMatch = pathname.match(/^\/user\/goals\/([^/]+)$/);
   if (goalDetailMatch) {
     const goalId = goalDetailMatch[1];
@@ -64,9 +77,18 @@ export default function PrivateNavbar({
 }) {
   const goals = useSelector(selectGoals);
   const currentGoal = useSelector(selectCurrentGoal);
-  const { section, page, detail: routeDetail } = getBreadcrumb(pathname, goals, currentGoal);
-  const detail = pathname.startsWith('/user/tasks') ? taskDetail : routeDetail;
-  const canBackToTasks = pathname.startsWith('/user/tasks') && Boolean(detail);
+  const currentTask = useSelector(selectCurrentTask);
+  const { section, page, detail: routeDetail } = getBreadcrumb(
+    pathname,
+    goals,
+    currentGoal,
+    currentTask
+  );
+  // Prefer route-based detail for /user/tasks/:id; fall back to board-set title for legacy
+  const detail = routeDetail || (pathname.startsWith('/user/tasks') ? taskDetail : null);
+  const canBackToTasks =
+    Boolean(pathname.match(/^\/user\/tasks\/[^/]+$/)) ||
+    (pathname.startsWith('/user/tasks') && Boolean(detail));
   const dispatch = useDispatch();
   const notifications = useSelector(selectNotifications);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
