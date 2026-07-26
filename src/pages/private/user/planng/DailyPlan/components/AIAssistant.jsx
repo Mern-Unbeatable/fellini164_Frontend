@@ -27,13 +27,7 @@ export default function AIAssistant({
     { label: "Show what's included", icon: List, actionId: 'show_whats_included' },
   ];
 
-  if (viewMode === 'Daily') {
-    emptyStateChips.push({
-      label: 'Generate Daily Plan',
-      icon: Sparkles,
-      actionId: 'generate_daily_plan',
-    });
-  } else if (viewMode === 'Weekly') {
+  if (viewMode === 'Weekly') {
     emptyStateChips.push({
       label: 'Generate Weekly Plan',
       icon: Sparkles,

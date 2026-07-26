@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { Sparkles, Clock, Target, BarChart2 } from 'lucide-react';
 import { PLANNER_HOURS, dateKeyFromDate } from '../plannerData';
 
@@ -14,7 +14,7 @@ const CARD_TOP_OFFSET = 8;
 const HOUR_LINE_OVERHANG = 4;
 const GRID_BOTTOM_PAD = 24;
 
-// Positions scaled ~1.2├ù from Figma grid-relative tops (66/55 step ratio).
+// Positions scaled ~1.2× from Figma grid-relative tops (66/55 step ratio).
 const CARD_TOP_FROM_GRID = {
   '1 AM': 7,
   '2 AM': 89,
@@ -482,10 +482,8 @@ function TaskCard({ item, ghost, dimmed }) {
   );
 }
 
-function HabitCard({ item, ghost, dimmed, onComplete }) {
+function HabitCard({ item, ghost, dimmed }) {
   const fade = contentFade(ghost);
-  const done = item.progress?.done ?? 0;
-  const total = item.progress?.total ?? 1;
 
   const body = (
     <>
@@ -512,32 +510,12 @@ function HabitCard({ item, ghost, dimmed, onComplete }) {
           <div aria-hidden className="absolute top-0 bottom-0 left-0 w-px bg-[#f2f2f2]" />
         )}
         <div
-          role={onComplete && !ghost ? 'button' : undefined}
-          tabIndex={onComplete && !ghost ? 0 : undefined}
-          onClick={
-            onComplete && !ghost && !item.isCompleted
-              ? (e) => {
-                  e.stopPropagation();
-                  onComplete(item);
-                }
-              : undefined
-          }
-          onKeyDown={
-            onComplete && !ghost && !item.isCompleted
-              ? (e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    onComplete(item);
-                  }
-                }
-              : undefined
-          }
           className={`size-5 shrink-0 rounded-md border border-[#e9e9e9] bg-white dark:border-zinc-600 dark:bg-zinc-800 ${fade}`}
         />
         <span
           className={`text-[12px] leading-none font-medium text-[#5d5d5d] dark:text-gray-400 ${fade}`}
         >
-          {done}/{total}
+          {item.progress.done}/{item.progress.total}
         </span>
       </div>
     </>
@@ -559,12 +537,12 @@ function HabitCard({ item, ghost, dimmed, onComplete }) {
   );
 }
 
-function ItemCard({ item, ghost, dimmed, onComplete }) {
+function ItemCard({ item, ghost, dimmed }) {
   const animationClass = item.aiScheduleState ? 'animate-fade-in' : '';
   if (item.kind === 'habit') {
     return (
       <div className={`w-full ${animationClass}`}>
-        <HabitCard item={item} ghost={ghost} dimmed={dimmed} onComplete={onComplete} />
+        <HabitCard item={item} ghost={ghost} dimmed={dimmed} />
       </div>
     );
   }
@@ -581,7 +559,6 @@ export default function DailyView({
   plans,
   hasAcceptedPlan,
   isLoading,
-  onCompleteItem,
 }) {
   const dateToUse = selectedDate || currentDate || new Date(2026, 4, 13);
   const weekdayShort = dateToUse.toLocaleDateString('en-US', { weekday: 'short' });
@@ -657,22 +634,13 @@ export default function DailyView({
                   <div className="flex w-full items-start gap-2">
                     {hourItems.map((item) => (
                       <div key={item.id} className="min-w-0 flex-1">
-                        <ItemCard
-                          item={item}
-                          ghost={!hasAcceptedPlan}
-                          onComplete={onCompleteItem}
-                        />
+                        <ItemCard item={item} ghost={!hasAcceptedPlan} />
                       </div>
                     ))}
                   </div>
                 ) : (
                   hourItems.map((item) => (
-                    <ItemCard
-                      key={item.id}
-                      item={item}
-                      ghost={!hasAcceptedPlan}
-                      onComplete={onCompleteItem}
-                    />
+                    <ItemCard key={item.id} item={item} ghost={!hasAcceptedPlan} />
                   ))
                 )}
               </div>

@@ -1,4 +1,4 @@
-﻿// Shared mock content for the Planner board. Titles/descriptions intentionally mirror the
+// Shared mock content for the Planner board. Titles/descriptions intentionally mirror the
 // existing Tasks/Habits board mock data (TasksBoard.jsx INITIAL_COLUMNS.todo, Habits.jsx
 // habit-1) so the Planner reads as scheduling the *same* underlying items, not an invented
 // vocabulary — the Planner AI only reorders/retimes items, it never owns their content.
@@ -97,7 +97,7 @@ export const INITIAL_MESSAGE = {
   id: 'm1',
   sender: 'ai',
   text: "I've built a suggested plan for your day based on your tasks, habits, and priorities.\n\nDo you want to keep it?",
-  timestamp: 'Tuesday, May 5 ΓÇó 7:39 PM',
+  timestamp: 'Tuesday, May 5 • 7:39 PM',
   actions: [
     { label: 'Accept plan', actionId: 'accept_initial' },
     { label: 'Dismiss', actionId: 'dismiss_initial' },

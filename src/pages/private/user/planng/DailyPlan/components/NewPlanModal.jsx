@@ -50,20 +50,15 @@ function DatePickerField({ label, value, onChange, inputRef }) {
   );
 }
 
-export default function NewPlanModal({ open, onClose, onSave, isSubmitting = false }) {
+export default function NewPlanModal({ open, onClose, onSave }) {
   const [planText, setPlanText] = useState('');
   const [dateRange, setDateRange] = useState('Today');
   const [customStart, setCustomStart] = useState('');
   const [customEnd, setCustomEnd] = useState('');
-  const [error, setError] = useState('');
   const startInputRef = useRef(null);
   const endInputRef = useRef(null);
 
   const isCustom = dateRange === 'Custom';
-  const canSubmit =
-    Boolean(planText.trim()) &&
-    !isSubmitting &&
-    (!isCustom || (Boolean(customStart) && Boolean(customEnd)));
 
   // When Custom is selected, open the start date picker (client: Custom → Date Picker).
   useEffect(() => {
@@ -82,57 +77,28 @@ export default function NewPlanModal({ open, onClose, onSave, isSubmitting = fal
     return () => window.clearTimeout(timer);
   }, [open, isCustom]);
 
-  useEffect(() => {
-    if (!open) return;
-    setError('');
-  }, [open]);
-
   if (!open) return null;
 
   const resetAndClose = () => {
-    if (isSubmitting) return;
     setPlanText('');
     setDateRange('Today');
     setCustomStart('');
     setCustomEnd('');
-    setError('');
     onClose();
   };
 
-  const handleCreate = async () => {
-    if (!planText.trim()) {
-      setError('Describe what you want to plan.');
-      return;
-    }
-    if (isCustom && (!customStart || !customEnd)) {
-      setError('Select start and end dates for a custom range.');
-      return;
-    }
-    if (isCustom && customStart > customEnd) {
-      setError('End date must be on or after the start date.');
-      return;
-    }
-
-    setError('');
-    try {
-      await onSave({
-        plan: planText.trim(),
-        dateRange,
-        ...(isCustom
-          ? {
-              customStart,
-              customEnd,
-            }
-          : {}),
-      });
-      setPlanText('');
-      setDateRange('Today');
-      setCustomStart('');
-      setCustomEnd('');
-      setError('');
-    } catch (err) {
-      setError(err?.message || 'Failed to create plan. Please try again.');
-    }
+  const handleCreate = () => {
+    onSave({
+      plan: planText,
+      dateRange,
+      ...(isCustom
+        ? {
+            customStart: customStart || null,
+            customEnd: customEnd || null,
+          }
+        : {}),
+    });
+    resetAndClose();
   };
 
   const dateOptions = ['Today', 'This Week', 'This Month', 'Custom'];
@@ -212,32 +178,25 @@ export default function NewPlanModal({ open, onClose, onSave, isSubmitting = fal
           )}
         </div>
 
-        {error ? (
-          <p className="mb-3 text-[13px] font-medium text-red-500" role="alert">
-            {error}
-          </p>
-        ) : null}
-
         <div className="flex gap-3.5">
           <button
             type="button"
             onClick={resetAndClose}
-            disabled={isSubmitting}
-            className="flex-1 rounded-[16px] bg-[#F5F5F7] py-3.5 text-[15px] font-medium text-zinc-700 transition-colors hover:bg-zinc-200/80 disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex-1 rounded-[16px] bg-[#F5F5F7] py-3.5 text-[15px] font-medium text-zinc-700 transition-colors hover:bg-zinc-200/80"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={handleCreate}
-            disabled={!canSubmit}
+            disabled={!planText.trim()}
             className={`flex-1 rounded-[16px] py-3.5 text-[15px] font-medium transition-colors ${
-              canSubmit
+              planText.trim()
                 ? 'bg-primary text-white'
                 : 'cursor-not-allowed bg-[#F5F5F7] text-zinc-300'
             }`}
           >
-            {isSubmitting ? 'Creating…' : 'Create'}
+            Create
           </button>
         </div>
       </div>
