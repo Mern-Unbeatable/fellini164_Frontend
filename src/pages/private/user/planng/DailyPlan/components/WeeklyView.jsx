@@ -75,15 +75,34 @@ function getGridMinHeight() {
 }
 
 function getWeeklyCardLayout(item) {
-  const baseLayout = WEEKLY_CARD_LAYOUT[item.id];
-  if (!baseLayout) return null;
-  if (item.time === ORIGINAL_TIME_BY_ID[item.id]) return baseLayout;
-
   const hourIndex = PLANNER_HOURS.indexOf(item.time);
-  if (hourIndex < 0) return baseLayout;
+  const baseLayout = WEEKLY_CARD_LAYOUT[item.id];
+
+  // Mock seed cards (fixed Figma ids) keep their absolute layouts.
+  if (baseLayout) {
+    if (item.time === ORIGINAL_TIME_BY_ID[item.id]) return baseLayout;
+    if (hourIndex < 0) return baseLayout;
+    return {
+      ...baseLayout,
+      top: hourIndex * ROW_STEP + 7,
+    };
+  }
+
+  // API planner items (UUID ids) — place by startTime on the existing hour grid.
+  if (hourIndex >= 0) {
+    return {
+      top: hourIndex * ROW_STEP + 7,
+      height: item.kind === 'habit' ? 54 : 64,
+      showHabitBadge: item.kind === 'habit',
+    };
+  }
+
+  // No matching hour label — stack by order so the item still appears in the week column.
+  const order = Number(item.orderIndex) || 0;
   return {
-    ...baseLayout,
-    top: hourIndex * ROW_STEP + 7,
+    top: order * 44 + 7,
+    height: item.kind === 'habit' ? 54 : 64,
+    showHabitBadge: item.kind === 'habit',
   };
 }
 
