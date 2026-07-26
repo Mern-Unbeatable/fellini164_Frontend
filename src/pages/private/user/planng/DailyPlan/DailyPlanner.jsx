@@ -11,7 +11,6 @@ import { clonePlans } from './plannerEngine';
 import { getStorage, setStorage } from '../../../../../utils/storage';
 import {
   acceptPlannerSuggestion,
-  completePlannerItem,
   createPlannerPlan,
   dismissPlannerSuggestion,
   fetchPlannerAvailable,
@@ -289,17 +288,6 @@ export default function DailyPlanner() {
     } finally {
       setIsCreatingPlan(false);
       setIsLoading(false);
-    }
-  };
-
-  const handleCompleteItem = async (item) => {
-    const plannerItemId = item?.plannerItemId || item?.id;
-    if (!plannerItemId || item?.isCompleted) return;
-    try {
-      await dispatch(completePlannerItem(plannerItemId)).unwrap();
-      dispatch(fetchPlannerSummary(selectedDateKey));
-    } catch {
-      /* toast from slice */
     }
   };
 
@@ -931,7 +919,6 @@ export default function DailyPlanner() {
             calendarDays={calendarDays}
             getFormattedDateString={getFormattedDateString}
             isLoading={isLoading}
-            onCompleteItem={handleCompleteItem}
           />
         </div>
 
@@ -960,7 +947,6 @@ export default function DailyPlanner() {
         open={isNewPlanModalOpen}
         onClose={() => setIsNewPlanModalOpen(false)}
         onSave={handleSavePlan}
-        isSubmitting={isCreatingPlan}
       />
     </div>
   );

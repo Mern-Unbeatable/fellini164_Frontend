@@ -76,13 +76,14 @@ for (const thunk of [
   'acceptPlannerSuggestion',
   'dismissPlannerSuggestion',
   'undoPlannerAi',
-  'completePlannerItem',
 ]) {
   assert(`slice ${thunk}`, sliceSource.includes(thunk));
   assert(`DailyPlanner uses ${thunk}`, dailyPlannerSource.includes(thunk));
 }
+assert('slice completePlannerItem (API ready)', sliceSource.includes('completePlannerItem'));
 assert('slice updatePlannerItem (API ready)', sliceSource.includes('updatePlannerItem'));
 assert('API patch item', apiSource.includes('patch(`${BASE}/${plannerItemId}`'));
+assert('API complete', apiSource.includes('/complete'));
 
 console.log('\n=== UI → API (#1–#11) existing UI only ===');
 assert('#1 summary fetched (no extra stats bar)', dailyPlannerSource.includes('fetchPlannerSummary') && !headerSource.includes('scheduledToday'));
@@ -98,8 +99,11 @@ assert('#7 dismissPlannerSuggestion', dailyPlannerSource.includes('dismissPlanne
 assert('#8 undoPlannerAi', dailyPlannerSource.includes('undoPlannerAi'));
 assert('#9 patch API present (no extra time dropdown UI)', apiSource.includes('patch(`${BASE}/${plannerItemId}`') && !dailyViewSource.includes('aria-label={`Reschedule'));
 assert('#10 fetchPlannerSuggestion', dailyPlannerSource.includes('fetchPlannerSuggestion'));
-assert('#11 complete via existing habit checkbox', dailyPlannerSource.includes('completePlannerItem') && dailyViewSource.includes('onComplete'));
-assert('#11 no option time dropdown', !dailyViewSource.includes('<option key={hour}'));
+assert('#11 complete API ready (no new complete UI)', sliceSource.includes('completePlannerItem') && !dailyViewSource.includes('onComplete'));
+assert('NewPlanModal original (no isSubmitting)', !modalSource.includes('isSubmitting'));
+assert('DailyView has no onCompleteItem prop', !dailyViewSource.includes('onCompleteItem'));
+const aiSource = read('src/pages/private/user/planng/DailyPlan/components/AIAssistant.jsx');
+assert('AIAssistant no Generate Daily empty chip', !aiSource.includes("actionId: 'generate_daily_plan'"));
 
 console.log('\n=== Mappers ===');
 assert('Daily → DAILY', VIEW_UI_TO_API.Daily === 'DAILY');
