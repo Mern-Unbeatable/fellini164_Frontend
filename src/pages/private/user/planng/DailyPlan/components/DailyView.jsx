@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Sparkles, Clock, Target, BarChart2 } from 'lucide-react';
 import { PLANNER_HOURS, dateKeyFromDate } from '../plannerData';
 
@@ -14,12 +14,15 @@ const CARD_TOP_OFFSET = 8;
 const HOUR_LINE_OVERHANG = 4;
 const GRID_BOTTOM_PAD = 24;
 
-// Positions scaled ~1.2× from Figma grid-relative tops (66/55 step ratio).
-// Prefer hour-index math so timeline stays correct when PLANNER_HOURS expands.
-const CARD_TOP_FROM_GRID = {};
+// Positions scaled ~1.2├ù from Figma grid-relative tops (66/55 step ratio).
+const CARD_TOP_FROM_GRID = {
+  '1 AM': 7,
+  '2 AM': 89,
+  '11 AM': 638,
+};
 
 // 7 AM two-up — Figma 1264:24904: card aligns with 7 AM row, centered between 7 & 8 AM lines.
-const SEVEN_AM_HOUR_INDEX = 7; // PLANNER_HOURS includes 12 AM first
+const SEVEN_AM_HOUR_INDEX = 6;
 const SEVEN_AM_TASK_HEIGHT = 112;
 const SEVEN_AM_HABIT_HEIGHT = 54;
 
@@ -28,7 +31,7 @@ function getSevenAmCardTop() {
   return SEVEN_AM_HOUR_INDEX * ROW_STEP - 14;
 }
 // card begins 26px above the hour rule; purple rule sits a little below the hour line.
-const FOUR_AM_HOUR_INDEX = 4; // PLANNER_HOURS includes 12 AM first
+const FOUR_AM_HOUR_INDEX = 3;
 const FOUR_AM_CARD_ABOVE_HOUR_LINE = 26;
 const FOUR_AM_PURPLE_BELOW_HOUR_LINE = 18;
 
@@ -483,8 +486,6 @@ function HabitCard({ item, ghost, dimmed, onComplete }) {
   const fade = contentFade(ghost);
   const done = item.progress?.done ?? 0;
   const total = item.progress?.total ?? 1;
-  const completed = Boolean(item.isCompleted);
-  const canComplete = !ghost && onComplete && !completed;
 
   const body = (
     <>
@@ -510,19 +511,28 @@ function HabitCard({ item, ghost, dimmed, onComplete }) {
         ) : (
           <div aria-hidden className="absolute top-0 bottom-0 left-0 w-px bg-[#f2f2f2]" />
         )}
-        <button
-          type="button"
-          aria-label={completed ? 'Completed' : 'Mark complete'}
-          disabled={!canComplete}
-          onClick={(e) => {
-            e.stopPropagation();
-            if (canComplete) onComplete(item);
-          }}
-          className={`size-5 shrink-0 rounded-md border ${
-            completed
-              ? 'border-[#8022fe] bg-[#8022fe]'
-              : 'border-[#e9e9e9] bg-white dark:border-zinc-600 dark:bg-zinc-800'
-          } ${fade} ${canComplete ? 'cursor-pointer' : ''}`}
+        <div
+          role={onComplete && !ghost ? 'button' : undefined}
+          tabIndex={onComplete && !ghost ? 0 : undefined}
+          onClick={
+            onComplete && !ghost && !item.isCompleted
+              ? (e) => {
+                  e.stopPropagation();
+                  onComplete(item);
+                }
+              : undefined
+          }
+          onKeyDown={
+            onComplete && !ghost && !item.isCompleted
+              ? (e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onComplete(item);
+                  }
+                }
+              : undefined
+          }
+          className={`size-5 shrink-0 rounded-md border border-[#e9e9e9] bg-white dark:border-zinc-600 dark:bg-zinc-800 ${fade}`}
         />
         <span
           className={`text-[12px] leading-none font-medium text-[#5d5d5d] dark:text-gray-400 ${fade}`}
@@ -540,7 +550,7 @@ function HabitCard({ item, ghost, dimmed, onComplete }) {
       borderRx={2.5}
       borderRy={8}
       className={`flex w-full items-stretch overflow-hidden rounded-xl ${
-        dimmed || completed ? 'opacity-50' : ''
+        dimmed ? 'opacity-50' : ''
       }`}
       style={{ height: CARD_HEIGHT.halfHabit }}
     >
@@ -573,7 +583,7 @@ export default function DailyView({
   isLoading,
   onCompleteItem,
 }) {
-  const dateToUse = selectedDate || currentDate || new Date();
+  const dateToUse = selectedDate || currentDate || new Date(2026, 4, 13);
   const weekdayShort = dateToUse.toLocaleDateString('en-US', { weekday: 'short' });
   const dateNum = dateToUse.getDate();
   const dayItems = plans[dateKeyFromDate(dateToUse)] || [];

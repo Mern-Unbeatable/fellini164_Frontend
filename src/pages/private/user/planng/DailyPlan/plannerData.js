@@ -1,16 +1,12 @@
-// Shared mock content for the Planner board. Titles/descriptions intentionally mirror the
+﻿// Shared mock content for the Planner board. Titles/descriptions intentionally mirror the
 // existing Tasks/Habits board mock data (TasksBoard.jsx INITIAL_COLUMNS.todo, Habits.jsx
 // habit-1) so the Planner reads as scheduling the *same* underlying items, not an invented
 // vocabulary — the Planner AI only reorders/retimes items, it never owns their content.
 
 export const PLANNER_HOURS = [
-  '12 AM',
   '1 AM', '2 AM', '3 AM', '4 AM', '5 AM', '6 AM', '7 AM', '8 AM', '9 AM', '10 AM', '11 AM',
-  '12 PM',
-  '1 PM', '2 PM', '3 PM', '4 PM', '5 PM', '6 PM', '7 PM', '8 PM', '9 PM', '10 PM', '11 PM',
 ];
 
-/** @deprecated Prefer today via dateKeyFromDate(new Date()) — kept for mock fallbacks */
 export const SEED_DATE_KEY = '2026-05-13';
 
 export function dateKeyFromDate(date) {
@@ -100,6 +96,10 @@ export const INITIAL_DAILY_PLAN = [
 export const INITIAL_MESSAGE = {
   id: 'm1',
   sender: 'ai',
-  text: 'I can build or adjust your schedule from existing tasks and habits. Generate a plan, or ask me to rebalance, reduce overload, or free your evening.',
-  timestamp: null,
+  text: "I've built a suggested plan for your day based on your tasks, habits, and priorities.\n\nDo you want to keep it?",
+  timestamp: 'Tuesday, May 5 ΓÇó 7:39 PM',
+  actions: [
+    { label: 'Accept plan', actionId: 'accept_initial' },
+    { label: 'Dismiss', actionId: 'dismiss_initial' },
+  ],
 };

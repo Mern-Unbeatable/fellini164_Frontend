@@ -35,6 +35,7 @@ const dailyPlannerSource = read('src/pages/private/user/planng/DailyPlan/DailyPl
 const headerSource = read('src/pages/private/user/planng/DailyPlan/components/PlannerHeader.jsx');
 const dailyViewSource = read('src/pages/private/user/planng/DailyPlan/components/DailyView.jsx');
 const modalSource = read('src/pages/private/user/planng/DailyPlan/components/NewPlanModal.jsx');
+const plannerDataSource = read('src/pages/private/user/planng/DailyPlan/plannerData.js');
 
 let failed = 0;
 function assert(name, condition, detail = '') {
@@ -86,6 +87,7 @@ assert('API patch item', apiSource.includes('patch(`${BASE}/${plannerItemId}`'))
 console.log('\n=== UI → API (#1–#11) existing UI only ===');
 assert('#1 summary fetched (no extra stats bar)', dailyPlannerSource.includes('fetchPlannerSummary') && !headerSource.includes('scheduledToday'));
 assert('#1 header is title only', headerSource.includes('Planner Board') && !headerSource.includes('Unscheduled'));
+assert('timeline hours unchanged (1–11 AM)', plannerDataSource.includes("'1 AM', '2 AM'") && !plannerDataSource.includes("'12 PM'"));
 assert('#2 fetchPlannerBoard on refresh', dailyPlannerSource.includes('fetchPlannerBoard({ viewType: viewMode'));
 assert('#3 fetchPlannerAvailable on refresh', dailyPlannerSource.includes('fetchPlannerAvailable(selectedDateKey)'));
 assert('#4 modal buildCreatePlanPayload', dailyPlannerSource.includes('buildCreatePlanPayload'));
