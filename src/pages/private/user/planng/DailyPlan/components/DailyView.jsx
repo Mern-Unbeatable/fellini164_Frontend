@@ -337,7 +337,7 @@ function contentFade(ghost) {
   return ghost ? 'opacity-40 transition-opacity group-hover:opacity-100' : '';
 }
 
-function TaskCard({ item, ghost, dimmed, completeControl = null, timeControl = null }) {
+function TaskCard({ item, ghost, dimmed }) {
   const isOverload = item.status === 'Rescheduled';
   if (isOverload) {
     return (
@@ -359,10 +359,6 @@ function TaskCard({ item, ghost, dimmed, completeControl = null, timeControl = n
   const isCompact = !item.description && !item.category && !item.durationLabel;
   const isMedium = Boolean(item.description && !item.durationLabel && !item.category);
   const isFullMeta = Boolean(item.category || item.durationLabel || item.stepsLabel);
-  const actions =
-    completeControl || timeControl ? (
-      <div className="relative z-[2] flex shrink-0 items-center gap-1.5">{timeControl}{completeControl}</div>
-    ) : null;
 
   const fullTaskBody = (
     <div className={`flex min-w-0 flex-1 flex-col gap-2 ${fade}`}>
@@ -392,7 +388,6 @@ function TaskCard({ item, ghost, dimmed, completeControl = null, timeControl = n
           <span className={`min-w-0 truncate ${TYPO.compactTitle}`}>{item.title}</span>
           <GhostTagsRow item={item} className="shrink-0" />
         </div>
-        {actions}
       </GhostFieldShell>
     );
   }
@@ -419,7 +414,6 @@ function TaskCard({ item, ghost, dimmed, completeControl = null, timeControl = n
             {item.description}
           </p>
         </div>
-        {actions}
       </GhostFieldShell>
     );
   }
@@ -439,7 +433,6 @@ function TaskCard({ item, ghost, dimmed, completeControl = null, timeControl = n
         <div className="relative z-[1] flex min-h-0 min-w-0 flex-1">
           <HalfTaskCardBody item={item} faded={ghost} />
         </div>
-        {actions}
       </GhostFieldShell>
     );
   }
@@ -456,7 +449,6 @@ function TaskCard({ item, ghost, dimmed, completeControl = null, timeControl = n
         } ${item.optimized ? 'border-purple-200 bg-purple-50/10' : ''}`}
       >
         <div className="relative z-[1] min-w-0 flex-1">{fullTaskBody}</div>
-        {actions}
       </GhostFieldShell>
     );
   }
@@ -474,7 +466,6 @@ function TaskCard({ item, ghost, dimmed, completeControl = null, timeControl = n
       <div className={`relative z-[1] flex flex-wrap items-center gap-2 sm:gap-2.5 ${fade}`}>
         <span className={`min-w-0 truncate ${TYPO.cardTitle}`}>{item.title}</span>
         <GhostTagsRow item={item} className="shrink-0" />
-        {actions}
       </div>
       {item.description && (
         <p className={`relative z-[1] ${TYPO.cardDesc} ${fade}`}>{item.description}</p>
@@ -488,10 +479,12 @@ function TaskCard({ item, ghost, dimmed, completeControl = null, timeControl = n
   );
 }
 
-function HabitCard({ item, ghost, dimmed, completeControl = null, timeControl = null }) {
+function HabitCard({ item, ghost, dimmed, onComplete }) {
   const fade = contentFade(ghost);
   const done = item.progress?.done ?? 0;
   const total = item.progress?.total ?? 1;
+  const completed = Boolean(item.isCompleted);
+  const canComplete = !ghost && onComplete && !completed;
 
   const body = (
     <>
@@ -504,7 +497,6 @@ function HabitCard({ item, ghost, dimmed, completeControl = null, timeControl = 
             {item.description}
           </p>
         )}
-        {timeControl ? <div className="mt-1">{timeControl}</div> : null}
       </div>
       <div className="relative flex w-11 shrink-0 flex-col items-center justify-between px-3 py-2">
         {ghost ? (
@@ -518,11 +510,20 @@ function HabitCard({ item, ghost, dimmed, completeControl = null, timeControl = 
         ) : (
           <div aria-hidden className="absolute top-0 bottom-0 left-0 w-px bg-[#f2f2f2]" />
         )}
-        {completeControl || (
-          <div
-            className={`size-5 shrink-0 rounded-md border border-[#e9e9e9] bg-white dark:border-zinc-600 dark:bg-zinc-800 ${fade}`}
-          />
-        )}
+        <button
+          type="button"
+          aria-label={completed ? 'Completed' : 'Mark complete'}
+          disabled={!canComplete}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (canComplete) onComplete(item);
+          }}
+          className={`size-5 shrink-0 rounded-md border ${
+            completed
+              ? 'border-[#8022fe] bg-[#8022fe]'
+              : 'border-[#e9e9e9] bg-white dark:border-zinc-600 dark:bg-zinc-800'
+          } ${fade} ${canComplete ? 'cursor-pointer' : ''}`}
+        />
         <span
           className={`text-[12px] leading-none font-medium text-[#5d5d5d] dark:text-gray-400 ${fade}`}
         >
@@ -539,7 +540,7 @@ function HabitCard({ item, ghost, dimmed, completeControl = null, timeControl = 
       borderRx={2.5}
       borderRy={8}
       className={`flex w-full items-stretch overflow-hidden rounded-xl ${
-        dimmed ? 'opacity-50' : ''
+        dimmed || completed ? 'opacity-50' : ''
       }`}
       style={{ height: CARD_HEIGHT.halfHabit }}
     >
@@ -548,76 +549,18 @@ function HabitCard({ item, ghost, dimmed, completeControl = null, timeControl = 
   );
 }
 
-function ItemCard({ item, ghost, dimmed, onComplete, onReschedule }) {
+function ItemCard({ item, ghost, dimmed, onComplete }) {
   const animationClass = item.aiScheduleState ? 'animate-fade-in' : '';
-  const canAct = !ghost && Boolean(item.plannerItemId || item.id);
-  const completed = Boolean(item.isCompleted);
-
-  const completeControl =
-    canAct && onComplete ? (
-      <button
-        type="button"
-        aria-label={completed ? 'Completed' : 'Mark complete'}
-        disabled={completed}
-        onClick={(e) => {
-          e.stopPropagation();
-          if (!completed) onComplete(item);
-        }}
-        className={`flex size-5 shrink-0 items-center justify-center rounded-md border transition-colors ${
-          completed
-            ? 'border-[#8022fe] bg-[#8022fe] text-white'
-            : 'border-[#e9e9e9] bg-white text-transparent hover:border-[#8022fe] dark:border-zinc-600 dark:bg-zinc-800'
-        }`}
-      >
-        <span className="text-[10px] font-bold leading-none">✓</span>
-      </button>
-    ) : null;
-
-  const timeControl =
-    canAct && onReschedule && !completed ? (
-      <label className="sr-only-focusable flex items-center gap-1">
-        <span className="sr-only">Move time</span>
-        <select
-          aria-label={`Reschedule ${item.title}`}
-          value={item.time || '9 AM'}
-          onClick={(e) => e.stopPropagation()}
-          onChange={(e) => {
-            e.stopPropagation();
-            onReschedule(item, { displayTime: e.target.value });
-          }}
-          className="max-w-[88px] truncate rounded-md border border-[#F2F2F2] bg-white px-1.5 py-0.5 text-[11px] font-medium text-[#5D5D5D] dark:border-zinc-700 dark:bg-zinc-800 dark:text-gray-300"
-        >
-          {PLANNER_HOURS.map((hour) => (
-            <option key={hour} value={hour}>
-              {hour}
-            </option>
-          ))}
-        </select>
-      </label>
-    ) : null;
-
   if (item.kind === 'habit') {
     return (
       <div className={`w-full ${animationClass}`}>
-        <HabitCard
-          item={item}
-          ghost={ghost}
-          dimmed={dimmed || completed}
-          completeControl={completeControl}
-          timeControl={timeControl}
-        />
+        <HabitCard item={item} ghost={ghost} dimmed={dimmed} onComplete={onComplete} />
       </div>
     );
   }
   return (
     <div className={`w-full ${animationClass}`}>
-      <TaskCard
-        item={item}
-        ghost={ghost}
-        dimmed={dimmed || completed}
-        completeControl={completeControl}
-        timeControl={timeControl}
-      />
+      <TaskCard item={item} ghost={ghost} dimmed={dimmed} />
     </div>
   );
 }
@@ -629,7 +572,6 @@ export default function DailyView({
   hasAcceptedPlan,
   isLoading,
   onCompleteItem,
-  onRescheduleItem,
 }) {
   const dateToUse = selectedDate || currentDate || new Date();
   const weekdayShort = dateToUse.toLocaleDateString('en-US', { weekday: 'short' });
@@ -709,7 +651,6 @@ export default function DailyView({
                           item={item}
                           ghost={!hasAcceptedPlan}
                           onComplete={onCompleteItem}
-                          onReschedule={onRescheduleItem}
                         />
                       </div>
                     ))}
@@ -721,7 +662,6 @@ export default function DailyView({
                       item={item}
                       ghost={!hasAcceptedPlan}
                       onComplete={onCompleteItem}
-                      onReschedule={onRescheduleItem}
                     />
                   ))
                 )}

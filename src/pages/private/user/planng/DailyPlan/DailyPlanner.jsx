@@ -20,7 +20,6 @@ import {
   fetchPlannerSummary,
   suggestPlannerAi,
   undoPlannerAi,
-  updatePlannerItem,
   setHasAcceptedPlanLocal,
 } from '../../../../../features/planner/plannerSlice';
 import {
@@ -31,7 +30,6 @@ import {
   VIEW_UI_TO_API,
   boardToPlansMap,
   buildCreatePlanPayload,
-  buildPlannerPatchPayload,
   createPlanPromptForView,
   mapPlannerBoardFromApi,
   mapPlannerItemsFromApi,
@@ -77,7 +75,6 @@ export default function DailyPlanner() {
     status: boardStatus,
     lastSuggestionId,
     available,
-    summary,
   } = useSelector((state) => state.planner);
 
   const [isNewPlanModalOpen, setIsNewPlanModalOpen] = useState(false);
@@ -300,23 +297,6 @@ export default function DailyPlanner() {
     if (!plannerItemId || item?.isCompleted) return;
     try {
       await dispatch(completePlannerItem(plannerItemId)).unwrap();
-      dispatch(fetchPlannerSummary(selectedDateKey));
-    } catch {
-      /* toast from slice */
-    }
-  };
-
-  const handleRescheduleItem = async (item, { displayTime } = {}) => {
-    const plannerItemId = item?.plannerItemId || item?.id;
-    if (!plannerItemId || !displayTime || displayTime === item.time) return;
-    const payload = buildPlannerPatchPayload({
-      displayTime,
-      orderIndex: item.orderIndex ?? 0,
-      endTime: item.endTime || undefined,
-    });
-    try {
-      await dispatch(updatePlannerItem({ plannerItemId, payload })).unwrap();
-      dispatch(fetchPlannerBoard({ viewType: viewMode, date: selectedDateKey }));
       dispatch(fetchPlannerSummary(selectedDateKey));
     } catch {
       /* toast from slice */
@@ -925,7 +905,7 @@ export default function DailyPlanner() {
               AI Assistant
             </button>
           )}
-          <PlannerHeader summary={summary} />
+          <PlannerHeader />
           <PlannerControls
             currentDate={currentDate}
             selectedDate={selectedDate}
@@ -952,7 +932,6 @@ export default function DailyPlanner() {
             getFormattedDateString={getFormattedDateString}
             isLoading={isLoading}
             onCompleteItem={handleCompleteItem}
-            onRescheduleItem={handleRescheduleItem}
           />
         </div>
 

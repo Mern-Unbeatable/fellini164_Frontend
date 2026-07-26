@@ -990,19 +990,19 @@ node scripts/audit-tasks-board.mjs
 
 ### E.1 Endpoint Matrix (#1–#11) — UI like Create Plan
 
-| # | Action | Method + Path | UI entry (same style as Create Plan) | Status |
-|---|--------|---------------|--------------------------------------|--------|
-| 1 | Board summary | `GET /planner/summary?date=` | Header stats bar (Scheduled / Completed / Remaining / AI / Unscheduled / Habits) | **FULFILLED** |
+| # | Action | Method + Path | UI entry (existing UI only) | Status |
+|---|--------|---------------|------------------------------|--------|
+| 1 | Board summary | `GET /planner/summary?date=` | Fetched on date change (no extra stats bar) | **FULFILLED** |
 | 2 | Board | `GET /planner/board?viewType=&date=` | Open page + date nav + Daily/Weekly/Monthly | **FULFILLED** |
-| 3 | Available | `GET /planner/available?date=` | Load with board; **Show what's included** lists tasks/habits | **FULFILLED** |
-| 4 | Create plan | `POST /planner/create-plan` | **Create Plan** modal + Generate Daily/Weekly/Monthly chips | **FULFILLED** |
-| 5 | AI suggest | `POST /planner/ai/suggest` | Recalibrate / Reduce / Optimize / Balance / Free evening / chat | **FULFILLED** |
+| 3 | Available | `GET /planner/available?date=` | Load with board; **Show what's included** | **FULFILLED** |
+| 4 | Create plan | `POST /planner/create-plan` | **Create Plan** modal + Generate chips | **FULFILLED** |
+| 5 | AI suggest | `POST /planner/ai/suggest` | Existing AI Assistant actions / chat | **FULFILLED** |
 | 6 | Accept | `POST .../suggestions/:id/accept` | **Accept changes** | **FULFILLED** |
 | 7 | Dismiss | `POST .../suggestions/:id/dismiss` | **Dismiss** | **FULFILLED** |
 | 8 | Undo | `POST /planner/ai/undo` | **Undo changes** | **FULFILLED** |
-| 9 | Manual move | `PATCH /planner/:id` | Card time dropdown → `{ startTime, orderIndex }` | **FULFILLED** |
-| 10 | Get suggestion | `GET .../suggestions/:id` | **Show what's included** (pending suggestion) | **FULFILLED** |
-| 11 | Complete slot | `PATCH /planner/:id/complete` | Card ✓ complete control | **FULFILLED** |
+| 9 | Manual move | `PATCH /planner/:id` | Slice/API ready (no new time-dropdown UI) | **FULFILLED** (API) |
+| 10 | Get suggestion | `GET .../suggestions/:id` | **Show what's included** | **FULFILLED** |
+| 11 | Complete slot | `PATCH /planner/:id/complete` | Existing habit card checkbox | **FULFILLED** |
 
 ### E.1b Notes
 

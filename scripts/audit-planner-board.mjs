@@ -75,30 +75,29 @@ for (const thunk of [
   'acceptPlannerSuggestion',
   'dismissPlannerSuggestion',
   'undoPlannerAi',
-  'updatePlannerItem',
   'completePlannerItem',
 ]) {
   assert(`slice ${thunk}`, sliceSource.includes(thunk));
   assert(`DailyPlanner uses ${thunk}`, dailyPlannerSource.includes(thunk));
 }
+assert('slice updatePlannerItem (API ready)', sliceSource.includes('updatePlannerItem'));
+assert('API patch item', apiSource.includes('patch(`${BASE}/${plannerItemId}`'));
 
-console.log('\n=== UI → API (#1–#11) like Create Plan ===');
-assert('#1 summary in header', headerSource.includes('scheduledToday') && headerSource.includes('unscheduledTasks'));
-assert('#1 DailyPlanner passes summary', dailyPlannerSource.includes('<PlannerHeader summary={summary}'));
+console.log('\n=== UI → API (#1–#11) existing UI only ===');
+assert('#1 summary fetched (no extra stats bar)', dailyPlannerSource.includes('fetchPlannerSummary') && !headerSource.includes('scheduledToday'));
+assert('#1 header is title only', headerSource.includes('Planner Board') && !headerSource.includes('Unscheduled'));
 assert('#2 fetchPlannerBoard on refresh', dailyPlannerSource.includes('fetchPlannerBoard({ viewType: viewMode'));
 assert('#3 fetchPlannerAvailable on refresh', dailyPlannerSource.includes('fetchPlannerAvailable(selectedDateKey)'));
-assert('#3 show_whats_included fetches available', dailyPlannerSource.includes('fetchPlannerAvailable(selectedDateKey)'));
 assert('#4 modal buildCreatePlanPayload', dailyPlannerSource.includes('buildCreatePlanPayload'));
 assert('#4 NewPlanModal Create', modalSource.includes('Creating') || modalSource.includes('handleCreate'));
 assert('#5 suggestPlannerAi', dailyPlannerSource.includes('suggestPlannerAi'));
 assert('#6 acceptPlannerSuggestion', dailyPlannerSource.includes('acceptPlannerSuggestion'));
 assert('#7 dismissPlannerSuggestion', dailyPlannerSource.includes('dismissPlannerSuggestion'));
 assert('#8 undoPlannerAi', dailyPlannerSource.includes('undoPlannerAi'));
-assert('#9 updatePlannerItem / reschedule', dailyPlannerSource.includes('updatePlannerItem') && dailyPlannerSource.includes('handleRescheduleItem'));
-assert('#9 DailyView time select', dailyViewSource.includes('onReschedule') && dailyViewSource.includes('Reschedule'));
+assert('#9 patch API present (no extra time dropdown UI)', apiSource.includes('patch(`${BASE}/${plannerItemId}`') && !dailyViewSource.includes('aria-label={`Reschedule'));
 assert('#10 fetchPlannerSuggestion', dailyPlannerSource.includes('fetchPlannerSuggestion'));
-assert('#11 completePlannerItem', dailyPlannerSource.includes('completePlannerItem') && dailyPlannerSource.includes('handleCompleteItem'));
-assert('#11 DailyView complete control', dailyViewSource.includes('onComplete') && dailyViewSource.includes('Mark complete'));
+assert('#11 complete via existing habit checkbox', dailyPlannerSource.includes('completePlannerItem') && dailyViewSource.includes('onComplete'));
+assert('#11 no option time dropdown', !dailyViewSource.includes('<option key={hour}'));
 
 console.log('\n=== Mappers ===');
 assert('Daily → DAILY', VIEW_UI_TO_API.Daily === 'DAILY');
