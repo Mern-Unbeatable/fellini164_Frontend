@@ -114,14 +114,15 @@ Confirm all of the following:
 
 1. **Contract** — Confirm endpoint, method, query/body, and sample response exist in Appendix A / C (or paste Postman evidence first).
 2. **Code match** — Frontend request must match Postman (path, params, body keys). No invented fields.
-3. **Automated audits** (no auth):
+3. **Automated audits** (no auth — static contract only; **not** live Network):
    - `node scripts/audit-goals-list.mjs` — GET `/goals` filters/search
    - `node scripts/audit-link-pickers.mjs` — GET `/tasks` + `/habits` link pickers
    - `node scripts/audit-habits-board.mjs` — Habits Board create + filter query mapping
    - `node scripts/audit-tasks-board.mjs` — Tasks Board create + filter query mapping
+   - `node scripts/audit-planner-board.mjs` — Planner Board paths + create-plan modal payload + AI actions
 4. **QA §6 / Final §7** — Tick what was verified; leave unchecked if only Network QA remains.
-5. **Update Appendix A / C / D** — Set row to **FULFILLED** / **PARTIAL** / **DEFERRED** / **CLIENT** with date + evidence notes.
-6. **Logged-in Network** — Run Appendix B (Goals), Appendix C §C.6 (Habits), Appendix D §D.6 (Tasks), or Appendix E §E.6 (Planner) smoke steps; compare Network tab to Postman.
+5. **Update Appendix A / C / D / E** — Set row to **FULFILLED** / **PARTIAL** / **DEFERRED** / **CLIENT** with date + evidence notes.
+6. **Logged-in Network** — Run Appendix B (Goals), Appendix C §C.6 (Habits), Appendix D §D.6 (Tasks), or Appendix E §E.5 (Planner) smoke steps; compare Network tab to Postman. **Do not mark “live tested” until this step is done.**
 
 If Postman has no valid response:
 
@@ -980,49 +981,49 @@ node scripts/audit-tasks-board.mjs
 ## Appendix E — Planner Board API Audit (Current Frontend)
 
 **Date:** 2026-07-26  
-**Last automated re-test:** 2026-07-26 — `audit-planner-board.mjs`  
+**Last automated re-test:** 2026-07-26 — `audit-planner-board.mjs` → **ALL PASS (APIs #1–#11 UI wired)**  
 **Module:** `src/features/planner/` + `src/pages/private/user/planng/DailyPlan/`  
 **API prefix used in code:** `/api/v1/planner`  
 **Contract verifier:** `node scripts/audit-planner-board.mjs`
 
 ---
 
-### E.1 Endpoint Matrix (as coded)
+### E.1 Endpoint Matrix (#1–#11) — UI like Create Plan
 
-| Action | Method + Path | Frontend entry | Status |
-|--------|---------------|----------------|--------|
-| Board summary | `GET /api/v1/planner/summary?date=` | Date change → `fetchPlannerSummary` | **FULFILLED** |
-| Board (main UI) | `GET /api/v1/planner/board?viewType=&date=` | Date / Daily\|Weekly\|Monthly → `fetchPlannerBoard` | **FULFILLED** |
-| Available items | `GET /api/v1/planner/available?date=` | Show what's included fallback; post create-plan | **FULFILLED** |
-| Create plan | `POST /api/v1/planner/create-plan` | Generate Daily / Weekly / Monthly Plan | **FULFILLED** |
-| AI suggest | `POST /api/v1/planner/ai/suggest` | Recalibrate / Reduce / Optimize / Balance / Free evening / chat | **FULFILLED** |
-| Get suggestion | `GET /api/v1/planner/ai/suggestions/:id` | Show what's included (pending suggestion) | **FULFILLED** |
-| Accept suggestion | `POST .../ai/suggestions/:id/accept` | Accept changes | **FULFILLED** |
-| Dismiss suggestion | `POST .../ai/suggestions/:id/dismiss` | Dismiss preview | **FULFILLED** |
-| Undo AI | `POST /api/v1/planner/ai/undo` | Undo changes | **FULFILLED** |
-| Patch item | `PATCH /api/v1/planner/:id` | Slice wired (manual move) | **FULFILLED** (API) |
-| Complete slot | `PATCH /api/v1/planner/:id/complete` | Slice wired | **FULFILLED** (API) |
+| # | Action | Method + Path | UI entry (same style as Create Plan) | Status |
+|---|--------|---------------|--------------------------------------|--------|
+| 1 | Board summary | `GET /planner/summary?date=` | Header stats bar (Scheduled / Completed / Remaining / AI / Unscheduled / Habits) | **FULFILLED** |
+| 2 | Board | `GET /planner/board?viewType=&date=` | Open page + date nav + Daily/Weekly/Monthly | **FULFILLED** |
+| 3 | Available | `GET /planner/available?date=` | Load with board; **Show what's included** lists tasks/habits | **FULFILLED** |
+| 4 | Create plan | `POST /planner/create-plan` | **Create Plan** modal + Generate Daily/Weekly/Monthly chips | **FULFILLED** |
+| 5 | AI suggest | `POST /planner/ai/suggest` | Recalibrate / Reduce / Optimize / Balance / Free evening / chat | **FULFILLED** |
+| 6 | Accept | `POST .../suggestions/:id/accept` | **Accept changes** | **FULFILLED** |
+| 7 | Dismiss | `POST .../suggestions/:id/dismiss` | **Dismiss** | **FULFILLED** |
+| 8 | Undo | `POST /planner/ai/undo` | **Undo changes** | **FULFILLED** |
+| 9 | Manual move | `PATCH /planner/:id` | Card time dropdown → `{ startTime, orderIndex }` | **FULFILLED** |
+| 10 | Get suggestion | `GET .../suggestions/:id` | **Show what's included** (pending suggestion) | **FULFILLED** |
+| 11 | Complete slot | `PATCH /planner/:id/complete` | Card ✓ complete control | **FULFILLED** |
 
-### E.1b Deferred / UI notes
+### E.1b Notes
 
 | UI | Notes | Status |
 |----|-------|--------|
-| Create Plan modal (local add) | Still local-only card insert; AI create uses Generate * Plan chips | **DEFERRED** (optional) |
-| Drag reorder on board | `PATCH /planner/:id` ready in slice; board DnD not wired | **DEFERRED** |
-| Complete from card | `completePlannerItem` ready; card checkbox not wired | **DEFERRED** |
-| Custom dateRange create-plan | `CUSTOM` + start/end supported by API; UI uses TODAY / THIS_WEEK / THIS_MONTH | **DEFERRED** |
+| Weekly card complete/move | Daily wired; Weekly uses same board data (complete/move via Daily) | **PARTIAL** |
+| Logged-in Network | §E.5 still requires auth browser | **Manual** |
 
-### E.2 Create plan body
+### E.2 Create plan body (#4)
 
 | UI | `dateRange` | `viewType` (response) |
 |----|---------------|-------------------------|
-| Generate Daily Plan | `TODAY` | `DAILY` |
-| Generate Weekly Plan | `THIS_WEEK` | `WEEKLY` |
-| Generate Monthly Plan | `THIS_MONTH` | `MONTHLY` |
+| **Create Plan** → Today | `TODAY` | `DAILY` |
+| **Create Plan** → This Week | `THIS_WEEK` | `WEEKLY` |
+| **Create Plan** → This Month | `THIS_MONTH` | `MONTHLY` |
+| **Create Plan** → Custom | `CUSTOM` + `startDate` / `endDate` | `MONTHLY` (typical) |
+| Generate Daily / Weekly / Monthly chips | `TODAY` / `THIS_WEEK` / `THIS_MONTH` | matching |
 
 Body: `{ prompt, dateRange }` (+ `startDate` / `endDate` for `CUSTOM`).
 
-### E.3 AI suggest actions
+### E.3 AI suggest actions (#5)
 
 | UI | `action` |
 |----|------------|
@@ -1033,34 +1034,33 @@ Body: `{ prompt, dateRange }` (+ `startDate` / `endDate` for `CUSTOM`).
 | Free up my evening | `FREE_EVENING` |
 | Chat input | `CHAT` + `message` |
 
-Body always includes `viewType` (`DAILY`|`WEEKLY`|`MONTHLY`) and `date` (`YYYY-MM-DD`).
-
 ### E.4 Board item → UI card
 
 | API | UI |
 |-----|-----|
 | `itemType: TASK\|HABIT` | `kind: task\|habit` |
-| `startTime: "09:00"` | `time: "9 AM"` (timeline hour) |
+| `startTime: "09:00"` | `time: "9 AM"` + time dropdown (#9) |
 | `progress.label` | `stepsLabel` / habit `progress` |
-| `aiScheduled` / nested AI flags | `source: 'ai'` |
+| `aiScheduled` | `source: 'ai'` |
 | `estimatedMinutes` | `durationLabel` |
 | `goalTitle` | `goalLabel` |
+| `isCompleted` | ✓ control disabled (#11) |
 
 ### E.5 Smoke checklist (logged-in)
 
-1. Open `/user/daily-plan` → Network: `GET /planner/board?viewType=DAILY&date=today` + `GET /planner/summary`.
-2. Switch Weekly / Monthly → `viewType=WEEKLY|MONTHLY`.
-3. Generate Daily Plan → `POST /planner/create-plan` `dateRange=TODAY`; board fills.
-4. AI Actions → Recalibrate → Medium → `POST /planner/ai/suggest`; Accept → `.../accept`; Undo → `POST /planner/ai/undo`.
-5. Chat message → `action: CHAT`.
+1. Open `/user/daily-plan` → `#1` summary + `#2` board + `#3` available.
+2. Switch Weekly / Monthly → `#2` `viewType`.
+3. **Create Plan** modal → `#4` create-plan.
+4. AI suggest → Accept / Dismiss / Undo → `#5` `#6` `#7` `#8`.
+5. Show what's included → `#10` or `#3`.
+6. Card time dropdown → `#9` PATCH; card ✓ → `#11` complete.
 
 ### E.6 Verdict
 
 | Area | Verdict |
 |------|---------|
-| Summary + board (Daily/Weekly/Monthly) | **FULFILLED** |
-| Create plan (Today / Week / Month) | **FULFILLED** |
-| AI suggest / accept / dismiss / undo | **FULFILLED** |
-| Available + suggestion detail | **FULFILLED** |
-| Manual patch / complete from UI | **DEFERRED** (API ready) |
-| **Overall Planner Board** | **FULFILLED for contracted board + AI flows** |
+| APIs #1–#11 UI wired | **FULFILLED** (code) — `audit-planner-board.mjs` ALL PASS |
+| Logged-in Network smoke (§E.5) | **Manual — not run by agent** |
+| **Overall Planner Board** | **Code complete for #1–#11**; live Network = engineer/QA |
+
+**Note:** Audit is static UI→API wiring (same bar as Create Plan). It does **not** hit the backend.

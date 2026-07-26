@@ -11,6 +11,7 @@ import { clonePlans } from './plannerEngine';
 import { getStorage, setStorage } from '../../../../../utils/storage';
 import {
   acceptPlannerSuggestion,
+  completePlannerItem,
   createPlannerPlan,
   dismissPlannerSuggestion,
   fetchPlannerAvailable,
@@ -19,15 +20,18 @@ import {
   fetchPlannerSummary,
   suggestPlannerAi,
   undoPlannerAi,
-  setPlannerPlansLocal,
+  updatePlannerItem,
   setHasAcceptedPlanLocal,
 } from '../../../../../features/planner/plannerSlice';
 import {
   AI_ACTION_TO_API,
   DATE_RANGE_FROM_VIEW,
   ENERGY_TO_API,
+  VIEW_FROM_DATE_RANGE,
   VIEW_UI_TO_API,
   boardToPlansMap,
+  buildCreatePlanPayload,
+  buildPlannerPatchPayload,
   createPlanPromptForView,
   mapPlannerBoardFromApi,
   mapPlannerItemsFromApi,
@@ -73,9 +77,11 @@ export default function DailyPlanner() {
     status: boardStatus,
     lastSuggestionId,
     available,
+    summary,
   } = useSelector((state) => state.planner);
 
   const [isNewPlanModalOpen, setIsNewPlanModalOpen] = useState(false);
+  const [isCreatingPlan, setIsCreatingPlan] = useState(false);
   const today = new Date();
   const [currentDate, setCurrentDate] = useState(today);
   const [selectedDate, setSelectedDate] = useState(today);
@@ -123,6 +129,7 @@ export default function DailyPlanner() {
   const refreshBoard = useCallback(() => {
     dispatch(fetchPlannerBoard({ viewType: viewMode, date: selectedDateKey }));
     dispatch(fetchPlannerSummary(selectedDateKey));
+    dispatch(fetchPlannerAvailable(selectedDateKey));
   }, [dispatch, viewMode, selectedDateKey]);
 
   useEffect(() => {
@@ -184,19 +191,136 @@ export default function DailyPlanner() {
     );
   };
 
-  const handleSavePlan = (data) => {
-    const dateKey = dateKeyFromDate(selectedDate);
-    const newPlan = {
-      id: Date.now().toString(),
-      kind: 'task',
-      title: data.plan || 'Untitled Plan',
-    };
-    const next = {
-      ...plans,
-      [dateKey]: [...(plans[dateKey] || []), newPlan],
-    };
-    setPlans(next);
-    dispatch(setPlannerPlansLocal(next));
+  const handleSavePlan = async (data) => {
+    const payload = buildCreatePlanPayload({
+      prompt: data.plan,
+      dateRangeLabel: data.dateRange,
+      customStart: data.customStart,
+      customEnd: data.customEnd,
+    });
+
+    if (!payload.prompt) {
+      throw new Error('Describe what you want to plan.');
+    }
+    if (payload.dateRange === 'CUSTOM' && (!payload.startDate || !payload.endDate)) {
+      throw new Error('Select start and end dates for a custom range.');
+    }
+
+    const now = Date.now();
+    const transactionId = `modal_create_${now}`;
+    const beforePlans = clonePlans(plansRef.current);
+    const beforeAccepted = hasAcceptedRef.current;
+
+    setIsCreatingPlan(true);
+    setIsLoading(true);
+    try {
+      const result = await dispatch(createPlannerPlan(payload)).unwrap();
+      const apiView = String(result?.viewType || '').toUpperCase();
+      const nextView =
+        apiView === 'DAILY'
+          ? 'Daily'
+          : apiView === 'WEEKLY'
+            ? 'Weekly'
+            : apiView === 'MONTHLY'
+              ? 'Monthly'
+              : VIEW_FROM_DATE_RANGE[payload.dateRange] || viewMode;
+
+      setViewMode(nextView);
+
+      if (result?.date) {
+        const [y, m, d] = String(result.date).split('-').map(Number);
+        if (y && m && d) {
+          const nextDate = new Date(y, m - 1, d);
+          setCurrentDate(nextDate);
+          setSelectedDate(nextDate);
+        }
+      } else if (payload.startDate) {
+        const [y, m, d] = String(payload.startDate).split('-').map(Number);
+        if (y && m && d) {
+          const nextDate = new Date(y, m - 1, d);
+          setCurrentDate(nextDate);
+          setSelectedDate(nextDate);
+        }
+      }
+
+      const mappedBoard = mapPlannerBoardFromApi(result?.board);
+      const nextPlans = boardToPlansMap(
+        mappedBoard,
+        result?.date || payload.startDate || selectedDateKey
+      );
+      setPlans(nextPlans);
+      setHasAcceptedPlan(true);
+      dispatch(setHasAcceptedPlanLocal(true));
+      setPendingProposal(null);
+
+      recordCommittedChange({
+        id: transactionId,
+        label: 'Create Plan',
+        beforePlans,
+        beforeAccepted,
+        afterPlans: clonePlans(nextPlans),
+        afterAccepted: true,
+        type: 'generation',
+        useApiUndo: true,
+      });
+
+      postMessages(
+        {
+          id: `user_modal_create_${now}`,
+          sender: 'user',
+          text: `Create plan: ${payload.prompt}`,
+          timestamp: timestamp(),
+        },
+        {
+          id: `ai_modal_create_${now}`,
+          sender: 'ai',
+          text: result?.message || 'Your plan is ready! I scheduled your existing tasks and habits.',
+          timestamp: timestamp(),
+          links: [{ label: 'Undo changes', actionId: `undo:${transactionId}` }],
+        }
+      );
+
+      dispatch(fetchPlannerSummary(result?.date || selectedDateKey));
+      dispatch(fetchPlannerAvailable(result?.date || selectedDateKey));
+      setIsNewPlanModalOpen(false);
+    } catch (error) {
+      const message =
+        typeof error === 'string'
+          ? error
+          : error?.message || 'Failed to create plan. Please try again.';
+      throw new Error(message);
+    } finally {
+      setIsCreatingPlan(false);
+      setIsLoading(false);
+    }
+  };
+
+  const handleCompleteItem = async (item) => {
+    const plannerItemId = item?.plannerItemId || item?.id;
+    if (!plannerItemId || item?.isCompleted) return;
+    try {
+      await dispatch(completePlannerItem(plannerItemId)).unwrap();
+      dispatch(fetchPlannerSummary(selectedDateKey));
+    } catch {
+      /* toast from slice */
+    }
+  };
+
+  const handleRescheduleItem = async (item, { displayTime } = {}) => {
+    const plannerItemId = item?.plannerItemId || item?.id;
+    if (!plannerItemId || !displayTime || displayTime === item.time) return;
+    const payload = buildPlannerPatchPayload({
+      displayTime,
+      orderIndex: item.orderIndex ?? 0,
+      endTime: item.endTime || undefined,
+    });
+    try {
+      await dispatch(updatePlannerItem({ plannerItemId, payload })).unwrap();
+      dispatch(fetchPlannerBoard({ viewType: viewMode, date: selectedDateKey }));
+      dispatch(fetchPlannerSummary(selectedDateKey));
+    } catch {
+      /* toast from slice */
+    }
   };
 
   const getDaysInMonth = (year, month) => {
@@ -421,20 +545,38 @@ export default function DailyPlanner() {
             });
             return;
           } catch {
-            /* fall through */
+            /* fall through to available */
           }
         }
 
-        const taskCount = available?.tasks?.length ?? 0;
-        const habitCount = available?.habits?.length ?? 0;
+        let avail = available;
+        try {
+          avail = await dispatch(fetchPlannerAvailable(selectedDateKey)).unwrap();
+        } catch {
+          /* use store */
+        }
+        const taskCount = avail?.tasks?.length ?? 0;
+        const habitCount = avail?.habits?.length ?? 0;
+        const taskTitles = (avail?.tasks || [])
+          .slice(0, 5)
+          .map((t) => `• ${t.title}`)
+          .join('\n');
+        const habitTitles = (avail?.habits || [])
+          .slice(0, 5)
+          .map((h) => `• ${h.name}`)
+          .join('\n');
         postMessages({
           id: `${userMsgId}_ai`,
           sender: 'ai',
-          text: `This plan schedules your existing tasks and habits${
-            taskCount || habitCount
-              ? ` (${taskCount} unscheduled tasks, ${habitCount} active habits available).`
-              : '.'
-          } Planner AI only changes dates, times, order, and spacing — never their content.`,
+          text: [
+            `Available (not yet scheduled) for ${avail?.date || selectedDateKey}:`,
+            `${taskCount} tasks, ${habitCount} habits.`,
+            taskTitles ? `Tasks:\n${taskTitles}` : null,
+            habitTitles ? `Habits:\n${habitTitles}` : null,
+            'Planner AI only changes dates, times, order, and spacing — never their content.',
+          ]
+            .filter(Boolean)
+            .join('\n\n'),
           timestamp: ts,
         });
       })();
@@ -783,7 +925,7 @@ export default function DailyPlanner() {
               AI Assistant
             </button>
           )}
-          <PlannerHeader />
+          <PlannerHeader summary={summary} />
           <PlannerControls
             currentDate={currentDate}
             selectedDate={selectedDate}
@@ -809,6 +951,8 @@ export default function DailyPlanner() {
             calendarDays={calendarDays}
             getFormattedDateString={getFormattedDateString}
             isLoading={isLoading}
+            onCompleteItem={handleCompleteItem}
+            onRescheduleItem={handleRescheduleItem}
           />
         </div>
 
@@ -837,6 +981,7 @@ export default function DailyPlanner() {
         open={isNewPlanModalOpen}
         onClose={() => setIsNewPlanModalOpen(false)}
         onSave={handleSavePlan}
+        isSubmitting={isCreatingPlan}
       />
     </div>
   );

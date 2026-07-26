@@ -18,6 +18,41 @@ export const DATE_RANGE_FROM_VIEW = {
   Monthly: 'THIS_MONTH',
 };
 
+/** New Plan modal labels → API dateRange */
+export const DATE_RANGE_FROM_MODAL = {
+  Today: 'TODAY',
+  'This Week': 'THIS_WEEK',
+  'This Month': 'THIS_MONTH',
+  Custom: 'CUSTOM',
+};
+
+export const VIEW_FROM_DATE_RANGE = {
+  TODAY: 'Daily',
+  THIS_WEEK: 'Weekly',
+  THIS_MONTH: 'Monthly',
+  CUSTOM: 'Monthly',
+};
+
+/** Build POST /planner/create-plan body from New Plan modal form */
+export function buildCreatePlanPayload({
+  prompt,
+  dateRangeLabel,
+  customStart,
+  customEnd,
+}) {
+  const trimmed = String(prompt || '').trim();
+  const dateRange = DATE_RANGE_FROM_MODAL[dateRangeLabel] || 'TODAY';
+  const payload = {
+    prompt: trimmed,
+    dateRange,
+  };
+  if (dateRange === 'CUSTOM') {
+    if (customStart) payload.startDate = customStart;
+    if (customEnd) payload.endDate = customEnd;
+  }
+  return payload;
+}
+
 export const AI_ACTION_TO_API = {
   recalibrate_day: 'RECALIBRATE_DAY',
   reduce_overload: 'REDUCE_OVERLOAD',
@@ -49,6 +84,47 @@ export function startTimeToDisplay(startTime) {
   h = h % 12;
   if (h === 0) h = 12;
   return `${h} ${period}`;
+}
+
+/** "9 AM" | "2 PM" → "09:00" (API startTime) */
+export function displayTimeToStartTime(display) {
+  if (!display || typeof display !== 'string') return null;
+  const match = display.trim().match(/^(\d{1,2})\s*(AM|PM)$/i);
+  if (!match) return null;
+  let h = Number(match[1]);
+  const period = match[2].toUpperCase();
+  if (Number.isNaN(h) || h < 1 || h > 12) return null;
+  if (period === 'AM') {
+    if (h === 12) h = 0;
+  } else if (h !== 12) {
+    h += 12;
+  }
+  return `${String(h).padStart(2, '0')}:00`;
+}
+
+/** PATCH /planner/:id body from UI reschedule */
+export function buildPlannerPatchPayload({ startTime, endTime, orderIndex, displayTime }) {
+  const payload = {};
+  const apiStart =
+    startTime ||
+    (displayTime ? displayTimeToStartTime(displayTime) : null);
+  if (apiStart) payload.startTime = apiStart;
+  if (endTime != null && endTime !== '') payload.endTime = endTime;
+  if (orderIndex != null && orderIndex !== '') payload.orderIndex = Number(orderIndex);
+  return payload;
+}
+
+export function normalizePlannerSummary(summary) {
+  const s = summary || {};
+  return {
+    date: s.date || null,
+    scheduledToday: Number(s.scheduledToday) || 0,
+    completedToday: Number(s.completedToday) || 0,
+    remainingToday: Number(s.remainingToday) || 0,
+    aiScheduledToday: Number(s.aiScheduledToday) || 0,
+    unscheduledTasks: Number(s.unscheduledTasks) || 0,
+    activeHabits: Number(s.activeHabits) || 0,
+  };
 }
 
 export function categoryFromApi(category) {

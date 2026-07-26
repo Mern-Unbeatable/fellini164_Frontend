@@ -14,6 +14,8 @@ export default function PlannerBoard({
   calendarDays,
   getFormattedDateString,
   isLoading,
+  onCompleteItem,
+  onRescheduleItem,
 }) {
   return (
     <div className="flex min-w-0 flex-col max-xl:flex-none xl:min-h-0 xl:flex-1">
@@ -25,6 +27,8 @@ export default function PlannerBoard({
           plans={plans}
           hasAcceptedPlan={hasAcceptedPlan}
           isLoading={isLoading}
+          onCompleteItem={onCompleteItem}
+          onRescheduleItem={onRescheduleItem}
         />
       ) : viewMode === 'Weekly' ? (
         <WeeklyView
@@ -33,6 +37,8 @@ export default function PlannerBoard({
           plans={plans}
           hasAcceptedPlan={hasAcceptedPlan}
           isLoading={isLoading}
+          onCompleteItem={onCompleteItem}
+          onRescheduleItem={onRescheduleItem}
         />
       ) : (
         <MonthlyView

@@ -19,6 +19,7 @@ import {
   mapAvailableFromApi,
   mapPlannerBoardFromApi,
   mapPlannerItemFromApi,
+  normalizePlannerSummary,
   VIEW_UI_TO_API,
 } from './plannerMappers';
 
@@ -202,7 +203,7 @@ const plannerSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(fetchPlannerSummary.fulfilled, (state, action) => {
-        state.summary = action.payload;
+        state.summary = normalizePlannerSummary(action.payload);
       })
       .addCase(fetchPlannerBoard.pending, (state) => {
         state.status = 'loading';
