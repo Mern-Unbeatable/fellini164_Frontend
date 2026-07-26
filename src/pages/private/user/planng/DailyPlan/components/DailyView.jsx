@@ -15,14 +15,11 @@ const HOUR_LINE_OVERHANG = 4;
 const GRID_BOTTOM_PAD = 24;
 
 // Positions scaled ~1.2× from Figma grid-relative tops (66/55 step ratio).
-const CARD_TOP_FROM_GRID = {
-  '1 AM': 7,
-  '2 AM': 89,
-  '11 AM': 638,
-};
+// Prefer hour-index math so timeline stays correct when PLANNER_HOURS expands.
+const CARD_TOP_FROM_GRID = {};
 
 // 7 AM two-up — Figma 1264:24904: card aligns with 7 AM row, centered between 7 & 8 AM lines.
-const SEVEN_AM_HOUR_INDEX = 6;
+const SEVEN_AM_HOUR_INDEX = 7; // PLANNER_HOURS includes 12 AM first
 const SEVEN_AM_TASK_HEIGHT = 112;
 const SEVEN_AM_HABIT_HEIGHT = 54;
 
@@ -31,7 +28,7 @@ function getSevenAmCardTop() {
   return SEVEN_AM_HOUR_INDEX * ROW_STEP - 14;
 }
 // card begins 26px above the hour rule; purple rule sits a little below the hour line.
-const FOUR_AM_HOUR_INDEX = 3;
+const FOUR_AM_HOUR_INDEX = 4; // PLANNER_HOURS includes 12 AM first
 const FOUR_AM_CARD_ABOVE_HOUR_LINE = 26;
 const FOUR_AM_PURPLE_BELOW_HOUR_LINE = 18;
 
