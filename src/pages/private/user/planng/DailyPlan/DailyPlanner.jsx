@@ -793,6 +793,7 @@ export default function DailyPlanner() {
       return;
     }
 
+    // API #8 Undo — POST /api/v1/planner/ai/undo
     if (actionId.startsWith('undo:')) {
       const transactionId = actionId.split(':')[1];
       const latest = planHistory[planHistory.length - 1];
@@ -809,17 +810,13 @@ export default function DailyPlanner() {
 
       setIsLoading(true);
       try {
-        if (latest.useApiUndo) {
-          await dispatch(undoPlannerAi()).unwrap();
-          await dispatch(
-            fetchPlannerBoard({ viewType: viewMode, date: selectedDateKey })
-          ).unwrap();
-        } else {
-          setPlans(latest.beforePlans);
-          setHasAcceptedPlan(latest.beforeAccepted);
-          dispatch(setHasAcceptedPlanLocal(latest.beforeAccepted));
-        }
+        await dispatch(undoPlannerAi()).unwrap();
+        await dispatch(
+          fetchPlannerBoard({ viewType: viewMode, date: selectedDateKey })
+        ).unwrap();
+        dispatch(fetchPlannerSummary(selectedDateKey));
         setPlanHistory((prev) => prev.slice(0, -1));
+        setPendingProposal(null);
         postMessages(
           { id: `user_undo_${Date.now()}`, sender: 'user', text: 'Undo changes', timestamp: ts },
           {

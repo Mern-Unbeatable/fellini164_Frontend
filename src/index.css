@@ -1197,3 +1197,36 @@
     --color-border-primary: rgba(255, 255, 255, 0.15);
   }
 }
+
+/* ==================== */
+/* 10. TOASTIFY THEME   */
+/* Brand primary #8022FE (website purple) */
+/* ==================== */
+:root {
+  --toastify-color-success: #8022fe;
+  --toastify-color-info: #8022fe;
+  --toastify-icon-color-success: #8022fe;
+  --toastify-icon-color-info: #8022fe;
+  --toastify-color-progress-success: #8022fe;
+  --toastify-color-progress-info: #8022fe;
+}
+
+.Toastify__toast {
+  font-family: var(--font-dashboard, var(--font-primary));
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(128, 34, 254, 0.12);
+}
+
+.Toastify__toast--success .Toastify__toast-icon svg {
+  fill: #8022fe;
+}
+
+.Toastify__progress-bar--success,
+.Toastify__progress-bar--info {
+  background: #8022fe !important;
+}
+
+.Toastify__close-button {
+  color: #5d5d5d;
+  opacity: 0.7;
+}
