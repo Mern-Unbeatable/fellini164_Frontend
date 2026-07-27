@@ -257,6 +257,9 @@ const plannerSlice = createSlice({
         state.lastSuggestionId = null;
         toast.success(action.payload?.message || 'Plan accepted');
       })
+      .addCase(dismissPlannerSuggestion.fulfilled, (state) => {
+        state.lastSuggestionId = null;
+      })
       .addCase(undoPlannerAi.fulfilled, (state, action) => {
         const board = action.payload?.board;
         const dateKey = board?.date || board?.startDate;

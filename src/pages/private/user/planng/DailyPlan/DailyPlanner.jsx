@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Sparkles } from 'lucide-react';
+import { toast } from 'react-toastify';
 import NewPlanModal from './components/NewPlanModal';
 import PlannerBoard from './components/PlannerBoard';
 import AIAssistant from './components/AIAssistant';
@@ -28,6 +29,8 @@ import {
   VIEW_FROM_DATE_RANGE,
   VIEW_UI_TO_API,
   boardToPlansMap,
+  buildPlannerSuggestSourceItems,
+  suggestionResponseToPlans,
   buildCreatePlanPayload,
   createPlanPromptForView,
   mapPlannerBoardFromApi,
@@ -47,23 +50,8 @@ function getInitialViewMode() {
   return VIEW_MODES.includes(saved) ? saved : 'Daily';
 }
 
-function suggestionBoardToPlans(suggestPayload, fallbackDateKey) {
-  const board = suggestPayload?.board;
-  if (board && !Array.isArray(board) && typeof board === 'object' && (board.items || board.days)) {
-    return boardToPlansMap(mapPlannerBoardFromApi(board), fallbackDateKey);
-  }
-  if (Array.isArray(board)) {
-    const items = mapPlannerItemsFromApi(board);
-    const plans = {};
-    items.forEach((item) => {
-      const key = item.date || fallbackDateKey;
-      if (!key) return;
-      if (!plans[key]) plans[key] = [];
-      plans[key].push(item);
-    });
-    return plans;
-  }
-  return { [fallbackDateKey]: [] };
+function suggestionBoardToPlans(suggestPayload, fallbackDateKey, sourceItems = []) {
+  return suggestionResponseToPlans(suggestPayload, sourceItems, fallbackDateKey);
 }
 
 export default function DailyPlanner() {
@@ -430,7 +418,23 @@ export default function DailyPlanner() {
         suggestPlannerAi({ payload, dateQuery: selectedDateKey })
       ).unwrap();
 
-      const previewPlans = suggestionBoardToPlans(result, selectedDateKey);
+      let previewPlans;
+      try {
+        const sourceItems = buildPlannerSuggestSourceItems(plansRef.current, available);
+        previewPlans = suggestionBoardToPlans(result, selectedDateKey, sourceItems);
+      } catch {
+        toast.error('Could not preview that AI schedule. Please try again.');
+        setPlans(beforePlans);
+        setHasAcceptedPlan(beforeAccepted);
+        postMessages({
+          id: `ai_suggest_map_err_${now}`,
+          sender: 'ai',
+          text: 'I could not apply that schedule preview. Please try another action.',
+          timestamp: timestamp(),
+        });
+        return;
+      }
+
       setPlans(previewPlans);
       setHasAcceptedPlan(false);
 
@@ -453,11 +457,13 @@ export default function DailyPlanner() {
         timestamp: timestamp(),
         suggestionId: result?.suggestionId,
         actions: [
-          { label: 'Accept changes', actionId: `accept_change:${transactionId}` },
+          { label: 'Accept plan', actionId: `accept_change:${transactionId}` },
           { label: 'Dismiss', actionId: `dismiss_change:${transactionId}` },
         ],
       });
     } catch {
+      setPlans(beforePlans);
+      setHasAcceptedPlan(beforeAccepted);
       postMessages({
         id: `ai_suggest_err_${now}`,
         sender: 'ai',
@@ -565,21 +571,11 @@ export default function DailyPlanner() {
     }
 
     if (actionType === 'balance') {
-      postMessages(
-        { id: userMsgId, sender: 'user', text: 'Balance my schedule', timestamp: ts },
-        {
-          id: `${userMsgId}_ai`,
-          sender: 'ai',
-          text: 'I can rebalance your day by moving existing items and creating focus spacing. What would you like me to do?',
-          timestamp: ts,
-          actions: [
-            { label: 'Recalibrate My Day', actionId: 'recalibrate_day' },
-            { label: 'Reduce Overload', actionId: 'reduce_overload' },
-            { label: 'Optimize Schedule', actionId: 'optimize_schedule' },
-            { label: 'Balance Schedule', actionId: 'balance_schedule' },
-          ],
-        }
-      );
+      runAiSuggest({
+        actionKey: 'balance',
+        userText: 'Balance my schedule',
+        message: 'Balance my schedule',
+      });
       return;
     }
 
@@ -588,6 +584,7 @@ export default function DailyPlanner() {
         actionKey: 'free_evening',
         userText: 'Free up my evening',
         message: 'Free up my evening',
+        energyLevel: 'MEDIUM',
       });
       return;
     }
@@ -613,20 +610,14 @@ export default function DailyPlanner() {
     }
 
     if (actionType === 'recalibrate_day') {
-      postMessages(
-        { id: userMsgId, sender: 'user', text: 'Recalibrate My Day', timestamp: ts },
-        {
-          id: `${userMsgId}_ai_energy`,
-          sender: 'ai',
-          text: 'How is your energy today?',
-          timestamp: ts,
-          actions: [
-            { label: 'Low', actionId: 'energy_low' },
-            { label: 'Medium', actionId: 'energy_medium' },
-            { label: 'High', actionId: 'energy_high' },
-          ],
-        }
-      );
+      // API #5: call ai/suggest directly.
+      // Remove extra "energy" prompt from the AI Actions flow; use default MEDIUM.
+      runAiSuggest({
+        actionKey: 'recalibrate_day',
+        userText: 'Recalibrate My Day',
+        energyLevel: 'MEDIUM',
+        message: 'Recalibrate my day',
+      });
       return;
     }
 
@@ -635,6 +626,7 @@ export default function DailyPlanner() {
         actionKey: 'reduce_overload',
         userText: 'Reduce Overload',
         message: 'Reduce overload',
+        energyLevel: 'MEDIUM',
       });
       return;
     }
@@ -644,6 +636,7 @@ export default function DailyPlanner() {
         actionKey: 'optimize_schedule',
         userText: 'Optimize Schedule',
         message: 'Optimize schedule',
+        energyLevel: 'MEDIUM',
       });
       return;
     }
@@ -653,7 +646,9 @@ export default function DailyPlanner() {
         actionKey: 'balance',
         userText: 'Balance Schedule',
         message: 'Balance my schedule',
+        energyLevel: 'MEDIUM',
       });
+      return;
     }
   };
 
@@ -699,9 +694,28 @@ export default function DailyPlanner() {
       return;
     }
 
-    if (actionId.startsWith('accept_change:')) {
-      const proposalId = actionId.split(':')[1];
-      if (!pendingProposal || pendingProposal.id !== proposalId) {
+    // API #6 Accept AI Plan — Accept plan (initial or after suggest)
+    if (actionId === 'accept_initial' || actionId.startsWith('accept_change:')) {
+      const proposalId = actionId.startsWith('accept_change:')
+        ? actionId.split(':')[1]
+        : pendingProposal?.id;
+      const proposal =
+        proposalId && pendingProposal?.id === proposalId
+          ? pendingProposal
+          : pendingProposal;
+      const suggestionId = proposal?.suggestionId || lastSuggestionId;
+
+      if (!suggestionId) {
+        postMessages({
+          id: `ai_accept_none_${Date.now()}`,
+          sender: 'ai',
+          text: 'There is no pending AI plan to accept. Ask me to recalibrate or optimize your schedule first.',
+          timestamp: ts,
+        });
+        return;
+      }
+
+      if (actionId.startsWith('accept_change:') && (!proposal || proposal.id !== proposalId)) {
         postMessages({
           id: `ai_expired_${Date.now()}`,
           sender: 'ai',
@@ -711,29 +725,36 @@ export default function DailyPlanner() {
         return;
       }
 
-      const suggestionId = pendingProposal.suggestionId;
       setIsLoading(true);
       try {
-        if (suggestionId) {
-          await dispatch(acceptPlannerSuggestion(suggestionId)).unwrap();
+        await dispatch(acceptPlannerSuggestion(suggestionId)).unwrap();
+        const afterPlans = proposal?.afterPlans;
+        if (afterPlans) {
+          setPlans(afterPlans);
+        } else {
+          await dispatch(
+            fetchPlannerBoard({ viewType: viewMode, date: selectedDateKey })
+          ).unwrap();
         }
-        const afterPlans = pendingProposal.afterPlans;
-        setPlans(afterPlans);
         setHasAcceptedPlan(true);
         dispatch(setHasAcceptedPlanLocal(true));
-        recordCommittedChange({
-          ...pendingProposal,
-          useApiUndo: true,
-        });
+        if (proposal) {
+          recordCommittedChange({
+            ...proposal,
+            useApiUndo: true,
+          });
+        }
         setPendingProposal(null);
         postMessages(
-          { id: `user_accept_${Date.now()}`, sender: 'user', text: 'Accept changes', timestamp: ts },
+          { id: `user_accept_${Date.now()}`, sender: 'user', text: 'Accept plan', timestamp: ts },
           {
             id: `ai_accept_reply_${Date.now()}`,
             sender: 'ai',
-            text: 'The previewed schedule changes have been applied.',
+            text: 'Your AI plan has been applied.',
             timestamp: ts,
-            links: [{ label: 'Undo changes', actionId: `undo:${proposalId}` }],
+            links: proposalId
+              ? [{ label: 'Undo changes', actionId: `undo:${proposalId}` }]
+              : undefined,
           }
         );
         dispatch(fetchPlannerSummary(selectedDateKey));
@@ -750,31 +771,47 @@ export default function DailyPlanner() {
       return;
     }
 
-    if (actionId.startsWith('dismiss_change:')) {
-      const proposalId = actionId.split(':')[1];
-      if (pendingProposal?.id === proposalId) {
-        const suggestionId = pendingProposal.suggestionId;
-        setPlans(pendingProposal.beforePlans);
-        setHasAcceptedPlan(pendingProposal.beforeAccepted);
-        dispatch(setHasAcceptedPlanLocal(pendingProposal.beforeAccepted));
+    // API #7 Dismiss AI Plan — Dismiss (initial or after suggest)
+    if (actionId === 'dismiss_initial' || actionId.startsWith('dismiss_change:')) {
+      const proposalId = actionId.startsWith('dismiss_change:')
+        ? actionId.split(':')[1]
+        : pendingProposal?.id;
+      const proposal =
+        proposalId && pendingProposal?.id === proposalId
+          ? pendingProposal
+          : pendingProposal;
+      const suggestionId = proposal?.suggestionId || lastSuggestionId;
+
+      if (proposal && (!proposalId || proposal.id === proposalId)) {
+        setPlans(proposal.beforePlans);
+        setHasAcceptedPlan(proposal.beforeAccepted);
+        dispatch(setHasAcceptedPlanLocal(proposal.beforeAccepted));
         setPendingProposal(null);
-        if (suggestionId) {
-          try {
-            await dispatch(dismissPlannerSuggestion(suggestionId)).unwrap();
-          } catch {
-            /* local restore already done */
-          }
+      }
+
+      if (suggestionId) {
+        try {
+          await dispatch(dismissPlannerSuggestion(suggestionId)).unwrap();
+        } catch {
+          /* local restore already done when proposal existed */
         }
       }
-      postMessages({
-        id: `ai_dismiss_change_${Date.now()}`,
-        sender: 'ai',
-        text: 'The schedule preview was dismissed. Your previous schedule is unchanged.',
-        timestamp: ts,
-      });
+
+      postMessages(
+        { id: `user_dismiss_${Date.now()}`, sender: 'user', text: 'Dismiss', timestamp: ts },
+        {
+          id: `ai_dismiss_change_${Date.now()}`,
+          sender: 'ai',
+          text: suggestionId
+            ? 'The AI plan was dismissed. Your previous schedule is unchanged.'
+            : 'No pending AI plan to dismiss.',
+          timestamp: ts,
+        }
+      );
       return;
     }
 
+    // API #8 Undo — POST /api/v1/planner/ai/undo
     if (actionId.startsWith('undo:')) {
       const transactionId = actionId.split(':')[1];
       const latest = planHistory[planHistory.length - 1];
@@ -791,17 +828,13 @@ export default function DailyPlanner() {
 
       setIsLoading(true);
       try {
-        if (latest.useApiUndo) {
-          await dispatch(undoPlannerAi()).unwrap();
-          await dispatch(
-            fetchPlannerBoard({ viewType: viewMode, date: selectedDateKey })
-          ).unwrap();
-        } else {
-          setPlans(latest.beforePlans);
-          setHasAcceptedPlan(latest.beforeAccepted);
-          dispatch(setHasAcceptedPlanLocal(latest.beforeAccepted));
-        }
+        await dispatch(undoPlannerAi()).unwrap();
+        await dispatch(
+          fetchPlannerBoard({ viewType: viewMode, date: selectedDateKey })
+        ).unwrap();
+        dispatch(fetchPlannerSummary(selectedDateKey));
         setPlanHistory((prev) => prev.slice(0, -1));
+        setPendingProposal(null);
         postMessages(
           { id: `user_undo_${Date.now()}`, sender: 'user', text: 'Undo changes', timestamp: ts },
           {

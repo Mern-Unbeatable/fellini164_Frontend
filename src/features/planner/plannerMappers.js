@@ -171,12 +171,21 @@ export function mapPlannerItemFromApi(apiItem) {
   const progress = apiItem.progress;
   const stepsLabel = progress?.label || null;
   const habitProgress =
-    kind === 'habit' && progress
-      ? { done: progress.completed ?? 0, total: progress.total ?? 1 }
+    kind === 'habit'
+      ? {
+          done: progress?.completed ?? progress?.done ?? 0,
+          total: progress?.total ?? 1,
+        }
       : null;
 
+  // Skip empty/invalid AI placeholders (e.g. habitId null + title Unknown)
+  const resolvedId = apiItem.id || apiItem.taskId || apiItem.habitId || apiItem.task?.id || apiItem.habit?.id;
+  if (!resolvedId && (title === 'Unknown' || title === 'Untitled')) {
+    return null;
+  }
+
   return {
-    id: apiItem.id || apiItem.taskId || apiItem.habitId,
+    id: resolvedId || `tmp-${itemType}-${apiItem.orderIndex ?? 0}`,
     plannerItemId: apiItem.id || null,
     taskId: apiItem.taskId || apiItem.task?.id || null,
     habitId: apiItem.habitId || apiItem.habit?.id || null,
@@ -263,6 +272,88 @@ export function mapPlannerBoardFromApi(board) {
     itemsByDate,
     days: itemsByDate,
   };
+}
+
+/** POST /planner/ai/suggest response → date-keyed plans map for board preview */
+export function suggestionResponseToPlans(suggestPayload, sourceItems = [], fallbackDateKey) {
+  const board = suggestPayload?.board;
+  if (board && !Array.isArray(board) && typeof board === 'object' && (board.items || board.days)) {
+    return boardToPlansMap(mapPlannerBoardFromApi(board), fallbackDateKey);
+  }
+  if (Array.isArray(board)) {
+    const items = mapPlannerItemsFromApi(board);
+    const plans = {};
+    items.forEach((item) => {
+      const key = item.date || fallbackDateKey;
+      if (!key) return;
+      if (!plans[key]) plans[key] = [];
+      plans[key].push(item);
+    });
+    return plans;
+  }
+
+  const placements = suggestPayload?.placements;
+  if (Array.isArray(placements) && placements.length) {
+    const sourceByKey = new Map();
+    (sourceItems || []).forEach((item) => {
+      if (item?.taskId) sourceByKey.set(`task:${item.taskId}`, item);
+      if (item?.habitId) sourceByKey.set(`habit:${item.habitId}`, item);
+      if (item?.id) sourceByKey.set(`id:${item.id}`, item);
+    });
+
+    const plans = {};
+    placements.forEach((placement) => {
+      if (!placement?.taskId && !placement?.habitId) return;
+      const lookupKey = placement.taskId
+        ? `task:${placement.taskId}`
+        : placement.habitId
+          ? `habit:${placement.habitId}`
+          : null;
+      const existing = lookupKey ? sourceByKey.get(lookupKey) : null;
+      const merged = {
+        ...(existing || {}),
+        ...placement,
+        id: placement.plannerItemId || existing?.plannerItemId || existing?.id || placement.taskId || placement.habitId,
+        title: existing?.title || placement.title,
+        aiScheduled: true,
+        source: 'ai',
+      };
+      const mapped = mapPlannerItemFromApi(merged);
+      if (!mapped) return;
+      const dateKey = mapped.date || fallbackDateKey;
+      if (!dateKey) return;
+      if (!plans[dateKey]) plans[dateKey] = [];
+      plans[dateKey].push(mapped);
+    });
+    return plans;
+  }
+
+  return { [fallbackDateKey]: [] };
+}
+
+/** Flatten board + available pool for suggest preview merge */
+export function buildPlannerSuggestSourceItems(plans = {}, available = {}) {
+  const fromBoard = Object.values(plans || {}).flat();
+  const fromTasks = (available?.tasks || []).map((task) => ({
+    kind: 'task',
+    taskId: task.id,
+    id: task.id,
+    title: task.title,
+    priority: task.priority,
+    status: task.status,
+    category: task.category,
+    estimatedMinutes: task.estimatedMinutes,
+    goalTitle: task.goalTitle,
+  }));
+  const fromHabits = (available?.habits || []).map((habit) => ({
+    kind: 'habit',
+    habitId: habit.id,
+    id: habit.id,
+    title: habit.name || habit.title,
+    category: habit.category,
+    goalTitle: habit.goalTitle,
+  }));
+  return [...fromBoard, ...fromTasks, ...fromHabits];
 }
 
 /** Convert date-keyed UI plans map from board mapping */
