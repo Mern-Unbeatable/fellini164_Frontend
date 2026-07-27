@@ -14,6 +14,7 @@ import notificationsReducer from './notifications/notificationsSlice';
 import goalsReducer from './goals/goalsSlice';
 import habitsReducer from './habits/habitsSlice';
 import tasksReducer from './tasks/tasksSlice';
+import plannerReducer from './planner/plannerSlice';
 
 const store = configureStore({
   reducer: {
@@ -32,6 +33,7 @@ const store = configureStore({
     goals: goalsReducer,
     habits: habitsReducer,
     tasks: tasksReducer,
+    planner: plannerReducer,
   },
 });
 
