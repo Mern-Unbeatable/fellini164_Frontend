@@ -1,33 +1,40 @@
 import { AlertCircle, X } from 'lucide-react';
 
 /**
- * Confirm before permanently deleting a goal.
+ * Confirm before permanently deleting a goal, task, or habit.
  */
 export default function GoalDeleteConfirmModal({
   open,
+  title = 'Delete Goal',
+  /** @deprecated use itemName */
   goalTitle,
+  itemName,
+  entityLabel = 'goal',
   submitting = false,
   onClose,
   onConfirm,
 }) {
   if (!open) return null;
 
+  const name = itemName || goalTitle;
+  const fallback = `this ${entityLabel}`;
+
   return (
     <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
       <div
         role="dialog"
         aria-modal="true"
-        aria-labelledby="goal-delete-title"
+        aria-labelledby="delete-confirm-title"
         className="w-full max-w-sm rounded-2xl border border-[#f2f2f2] bg-white p-5 shadow-xl dark:border-zinc-700 dark:bg-zinc-800"
       >
         <div className="flex items-center justify-between border-b border-[#f2f2f2] pb-3 dark:border-zinc-700">
           <div className="flex items-center gap-2 text-[#dc2626]">
             <AlertCircle size={18} className="shrink-0" />
             <h3
-              id="goal-delete-title"
+              id="delete-confirm-title"
               className="text-[14px] font-semibold text-[#181818] dark:text-white"
             >
-              Delete Goal
+              {title}
             </h3>
           </div>
           <button
@@ -43,10 +50,8 @@ export default function GoalDeleteConfirmModal({
 
         <p className="mt-4 text-[13px] font-medium leading-normal text-[#5d5d5d] dark:text-gray-300">
           Are you sure you want to delete{' '}
-          <span className="font-semibold text-[#181818] dark:text-white">
-            {goalTitle || 'this goal'}
-          </span>
-          ? This action cannot be undone.
+          <span className="font-semibold text-[#181818] dark:text-white">{name || fallback}</span>?
+          This action cannot be undone.
         </p>
 
         <div className="mt-5 flex items-center justify-end gap-2.5">

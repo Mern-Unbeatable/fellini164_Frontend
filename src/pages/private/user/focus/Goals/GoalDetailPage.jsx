@@ -136,9 +136,11 @@ function GoalDetailMenu({ onClose, onEdit, onImprove, onPause, onDelete, isPause
   );
 }
 
-function TaskCardMenu({ onEdit, onComplete, onDelete, onClose }) {
+function TaskCardMenu({ onEdit, onComplete, onDelete, onClose, isCompleted = false }) {
   const itemBase =
     'flex w-full items-center gap-1.5 px-2.5 py-1.5 text-left text-[12px] font-medium whitespace-nowrap hover:bg-[#fcfcfc] dark:hover:bg-zinc-700';
+  const itemDisabled =
+    'flex w-full cursor-not-allowed items-center gap-1.5 px-2.5 py-1.5 text-left text-[12px] font-medium whitespace-nowrap opacity-40';
   return (
     <div className="absolute right-0 top-full z-50 mt-1 flex w-max flex-col overflow-hidden rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
       <button
@@ -154,11 +156,18 @@ function TaskCardMenu({ onEdit, onComplete, onDelete, onClose }) {
       </button>
       <button
         type="button"
+        disabled={isCompleted}
+        aria-disabled={isCompleted}
         onClick={() => {
+          if (isCompleted) return;
           onComplete?.();
           onClose();
         }}
-        className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}
+        className={
+          isCompleted
+            ? `${itemDisabled} text-[#5d5d5d] dark:text-gray-300`
+            : `${itemBase} text-[#5d5d5d] dark:text-gray-300`
+        }
       >
         <Check size={12} className="shrink-0" />
         Complete
@@ -190,7 +199,13 @@ function MetaTag({ tag }) {
 }
 
 function PageTaskCard({ task, onEdit, onComplete, onDelete }) {
-  const isDone = task.faded;
+  const statusKey = String(task.status || '').toLowerCase();
+  const isCompleted =
+    Boolean(task.faded) ||
+    Boolean(task.completedLabel) ||
+    statusKey === 'completed' ||
+    statusKey === 'done';
+  const isDone = isCompleted;
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
@@ -245,9 +260,13 @@ function PageTaskCard({ task, onEdit, onComplete, onDelete }) {
               </button>
               {menuOpen && (
                 <TaskCardMenu
+                  isCompleted={isCompleted}
                   onClose={() => setMenuOpen(false)}
                   onEdit={() => onEdit?.(task)}
-                  onComplete={() => onComplete?.(task)}
+                  onComplete={() => {
+                    if (isCompleted) return;
+                    onComplete?.(task);
+                  }}
                   onDelete={() => onDelete?.(task)}
                 />
               )}
@@ -763,6 +782,7 @@ export default function GoalDetailPage() {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deletingGoal, setDeletingGoal] = useState(false);
+  const [taskDeleteModal, setTaskDeleteModal] = useState({ open: false, task: null });
   // Stay on detail URL until GET /goals/:id settles (refresh must not bounce to board).
   const [detailFetchDone, setDetailFetchDone] = useState(false);
 
@@ -1016,6 +1036,10 @@ export default function GoalDetailPage() {
 
   const handleCompleteTask = async (task) => {
     if (!task?.id || taskActionBusy) return;
+    const statusKey = String(task.status || '').toLowerCase();
+    if (task.faded || task.completedLabel || statusKey === 'completed' || statusKey === 'done') {
+      return;
+    }
     setTaskActionBusy(task.id);
     try {
       const actualMinutes = Number(task.estimatedMinutes) > 0 ? Number(task.estimatedMinutes) : 30;
@@ -1032,7 +1056,18 @@ export default function GoalDetailPage() {
     }
   };
 
-  const handleDeleteTask = async (task) => {
+  const handleRequestDeleteTask = (task) => {
+    if (!task?.id) return;
+    setTaskDeleteModal({ open: true, task });
+  };
+
+  const handleCloseTaskDeleteModal = () => {
+    if (taskActionBusy) return;
+    setTaskDeleteModal({ open: false, task: null });
+  };
+
+  const handleConfirmDeleteTask = async () => {
+    const task = taskDeleteModal.task;
     if (!task?.id || taskActionBusy) return;
     setTaskActionBusy(task.id);
     try {
@@ -1040,6 +1075,7 @@ export default function GoalDetailPage() {
       const base = getCurrentTasks();
       mergeEditedTasks(base.filter((t) => t.id !== task.id));
       toast.success('Task deleted');
+      setTaskDeleteModal({ open: false, task: null });
       if (goal?.id) dispatch(fetchGoalById(goal.id));
     } catch (err) {
       const message =
@@ -1258,7 +1294,7 @@ export default function GoalDetailPage() {
                           task={task}
                           onEdit={openEditTask}
                           onComplete={handleCompleteTask}
-                          onDelete={handleDeleteTask}
+                          onDelete={handleRequestDeleteTask}
                         />
                       ))}
                     </div>
@@ -1342,7 +1378,9 @@ export default function GoalDetailPage() {
 
       <GoalDeleteConfirmModal
         open={deleteModalOpen}
-        goalTitle={goal?.title}
+        title="Delete Goal"
+        itemName={goal?.title}
+        entityLabel="goal"
         submitting={deletingGoal}
         onClose={() => {
           if (deletingGoal) return;
@@ -1361,6 +1399,16 @@ export default function GoalDetailPage() {
             setDeletingGoal(false);
           }
         }}
+      />
+
+      <GoalDeleteConfirmModal
+        open={taskDeleteModal.open}
+        title="Delete Task"
+        itemName={taskDeleteModal.task?.title}
+        entityLabel="task"
+        submitting={Boolean(taskActionBusy && taskDeleteModal.task?.id === taskActionBusy)}
+        onClose={handleCloseTaskDeleteModal}
+        onConfirm={handleConfirmDeleteTask}
       />
 
       {habitModal.open && (
