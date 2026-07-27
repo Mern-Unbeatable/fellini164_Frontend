@@ -169,10 +169,18 @@ export const updateGoalStatus = createAsyncThunk(
     try {
       const data = await updateGoalStatusApi(goalId, statusToApi(status));
       const mapped = mapGoalFromApi(data);
+      const nextStatus = mapped?.status || status;
+      if (nextStatus === 'paused') {
+        toast.success('Goal paused');
+      } else if (nextStatus === 'active') {
+        toast.success('Goal reactivated');
+      } else {
+        toast.success('Goal status updated');
+      }
       return {
         ...(mapped || {}),
         id: mapped?.id || goalId,
-        status,
+        status: nextStatus,
       };
     } catch (error) {
       toast.error(error?.response?.data?.message || 'Failed to update goal status');
