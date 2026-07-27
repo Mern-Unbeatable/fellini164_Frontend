@@ -1030,9 +1030,74 @@ Body: `{ prompt, dateRange }` (+ `startDate` / `endDate` for `CUSTOM`).
 | Recalibrate + energy Low/Medium/High | `RECALIBRATE_DAY` + `energyLevel` |
 | Reduce Overload | `REDUCE_OVERLOAD` |
 | Optimize Schedule | `OPTIMIZE_SCHEDULE` |
-| Balance Schedule | `BALANCE_SCHEDULE` |
-| Free up my evening | `FREE_EVENING` |
+| Balance my schedule | `BALANCE_SCHEDULE` + `message` |
+| Free up my evening | `FREE_EVENING` + `message` |
 | Chat input | `CHAT` + `message` |
+
+### E.3b POST /planner/ai/suggest — Balance / Free evening (#5)
+
+Same endpoint: `POST /api/v1/planner/ai/suggest?date={{today}}`  
+UI preview prefers `board[]` (full title/habit/task); falls back to `placements[]`.  
+`suggestionId` → Accept `#6` / Dismiss `#7`.
+
+**Balance my schedule** → `action: "BALANCE_SCHEDULE"`
+
+```json
+{
+  "success": true,
+  "message": "Recalibrate my day",
+  "suggestionId": "129fe8af-07b3-4637-99ef-7b1b38539e0d",
+  "action": "BALANCE_SCHEDULE",
+  "viewType": "DAILY",
+  "date": "2026-07-27",
+  "energyLevel": "MEDIUM",
+  "placements": [/* times only */],
+  "included": { "totalItems": 1, "taskCount": 0, "habitCount": 1 },
+  "board": [
+    {
+      "itemType": "HABIT",
+      "habitId": "59e1753d-33d7-484f-ab24-65349f294a98",
+      "date": "2026-07-27",
+      "startTime": "07:00",
+      "orderIndex": 0,
+      "aiScheduled": true,
+      "title": "Morning Exercise Routine",
+      "habit": { "id": "...", "name": "Morning Exercise Routine", "status": "ACTIVE" }
+    }
+  ],
+  "tokensUsed": 2298
+}
+```
+
+**Free up my evening** → `action: "FREE_EVENING"`
+
+```json
+{
+  "success": true,
+  "message": "Recalibrate my day",
+  "suggestionId": "c884d38c-ec8a-4b42-9014-1f87ea548647",
+  "action": "FREE_EVENING",
+  "viewType": "DAILY",
+  "date": "2026-07-27",
+  "energyLevel": "MEDIUM",
+  "placements": [/* times only */],
+  "included": { "totalItems": 1, "taskCount": 0, "habitCount": 1 },
+  "board": [
+    {
+      "itemType": "HABIT",
+      "habitId": "59e1753d-33d7-484f-ab24-65349f294a98",
+      "date": "2026-07-27",
+      "startTime": "06:00",
+      "endTime": "07:00",
+      "orderIndex": 0,
+      "aiScheduled": true,
+      "title": "Morning Exercise Routine",
+      "habit": { "id": "...", "name": "Morning Exercise Routine", "status": "ACTIVE" }
+    }
+  ],
+  "tokensUsed": 2299
+}
+```
 
 ### E.4 Board item → UI card
 

@@ -28,6 +28,8 @@ import {
   VIEW_FROM_DATE_RANGE,
   VIEW_UI_TO_API,
   boardToPlansMap,
+  buildPlannerSuggestSourceItems,
+  suggestionResponseToPlans,
   buildCreatePlanPayload,
   createPlanPromptForView,
   mapPlannerBoardFromApi,
@@ -47,23 +49,8 @@ function getInitialViewMode() {
   return VIEW_MODES.includes(saved) ? saved : 'Daily';
 }
 
-function suggestionBoardToPlans(suggestPayload, fallbackDateKey) {
-  const board = suggestPayload?.board;
-  if (board && !Array.isArray(board) && typeof board === 'object' && (board.items || board.days)) {
-    return boardToPlansMap(mapPlannerBoardFromApi(board), fallbackDateKey);
-  }
-  if (Array.isArray(board)) {
-    const items = mapPlannerItemsFromApi(board);
-    const plans = {};
-    items.forEach((item) => {
-      const key = item.date || fallbackDateKey;
-      if (!key) return;
-      if (!plans[key]) plans[key] = [];
-      plans[key].push(item);
-    });
-    return plans;
-  }
-  return { [fallbackDateKey]: [] };
+function suggestionBoardToPlans(suggestPayload, fallbackDateKey, sourceItems = []) {
+  return suggestionResponseToPlans(suggestPayload, sourceItems, fallbackDateKey);
 }
 
 export default function DailyPlanner() {
@@ -430,7 +417,8 @@ export default function DailyPlanner() {
         suggestPlannerAi({ payload, dateQuery: selectedDateKey })
       ).unwrap();
 
-      const previewPlans = suggestionBoardToPlans(result, selectedDateKey);
+      const sourceItems = buildPlannerSuggestSourceItems(plansRef.current, available);
+      const previewPlans = suggestionBoardToPlans(result, selectedDateKey, sourceItems);
       setPlans(previewPlans);
       setHasAcceptedPlan(false);
 
@@ -565,21 +553,11 @@ export default function DailyPlanner() {
     }
 
     if (actionType === 'balance') {
-      postMessages(
-        { id: userMsgId, sender: 'user', text: 'Balance my schedule', timestamp: ts },
-        {
-          id: `${userMsgId}_ai`,
-          sender: 'ai',
-          text: 'I can rebalance your day by moving existing items and creating focus spacing. What would you like me to do?',
-          timestamp: ts,
-          actions: [
-            { label: 'Recalibrate My Day', actionId: 'recalibrate_day' },
-            { label: 'Reduce Overload', actionId: 'reduce_overload' },
-            { label: 'Optimize Schedule', actionId: 'optimize_schedule' },
-            { label: 'Balance Schedule', actionId: 'balance_schedule' },
-          ],
-        }
-      );
+      runAiSuggest({
+        actionKey: 'balance',
+        userText: 'Balance my schedule',
+        message: 'Balance my schedule',
+      });
       return;
     }
 
@@ -654,6 +632,7 @@ export default function DailyPlanner() {
         userText: 'Balance Schedule',
         message: 'Balance my schedule',
       });
+      return;
     }
   };
 
