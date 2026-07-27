@@ -997,8 +997,8 @@ node scripts/audit-tasks-board.mjs
 | 3 | Available | `GET /planner/available?date=` | Load with board; **Show what's included** | **FULFILLED** |
 | 4 | Create plan | `POST /planner/create-plan` | **Create Plan** modal + Generate chips | **FULFILLED** |
 | 5 | AI suggest | `POST /planner/ai/suggest` | Existing AI Assistant actions / chat | **FULFILLED** |
-| 6 | Accept | `POST .../suggestions/:id/accept` | **Accept changes** | **FULFILLED** |
-| 7 | Dismiss | `POST .../suggestions/:id/dismiss` | **Dismiss** | **FULFILLED** |
+| 6 | Accept AI Plan | `POST .../suggestions/:id/accept` | **Accept plan** | **FULFILLED** |
+| 7 | Dismiss AI Plan | `POST .../suggestions/:id/dismiss` | **Dismiss** | **FULFILLED** |
 | 8 | Undo | `POST /planner/ai/undo` | **Undo changes** | **FULFILLED** |
 | 9 | Manual move | `PATCH /planner/:id` | Slice/API ready (no new time-dropdown UI) | **FULFILLED** (API) |
 | 10 | Get suggestion | `GET .../suggestions/:id` | **Show what's included** | **FULFILLED** |

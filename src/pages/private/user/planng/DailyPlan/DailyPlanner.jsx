@@ -453,7 +453,7 @@ export default function DailyPlanner() {
         timestamp: timestamp(),
         suggestionId: result?.suggestionId,
         actions: [
-          { label: 'Accept changes', actionId: `accept_change:${transactionId}` },
+          { label: 'Accept plan', actionId: `accept_change:${transactionId}` },
           { label: 'Dismiss', actionId: `dismiss_change:${transactionId}` },
         ],
       });
@@ -699,9 +699,28 @@ export default function DailyPlanner() {
       return;
     }
 
-    if (actionId.startsWith('accept_change:')) {
-      const proposalId = actionId.split(':')[1];
-      if (!pendingProposal || pendingProposal.id !== proposalId) {
+    // API #6 Accept AI Plan — Accept plan (initial or after suggest)
+    if (actionId === 'accept_initial' || actionId.startsWith('accept_change:')) {
+      const proposalId = actionId.startsWith('accept_change:')
+        ? actionId.split(':')[1]
+        : pendingProposal?.id;
+      const proposal =
+        proposalId && pendingProposal?.id === proposalId
+          ? pendingProposal
+          : pendingProposal;
+      const suggestionId = proposal?.suggestionId || lastSuggestionId;
+
+      if (!suggestionId) {
+        postMessages({
+          id: `ai_accept_none_${Date.now()}`,
+          sender: 'ai',
+          text: 'There is no pending AI plan to accept. Ask me to recalibrate or optimize your schedule first.',
+          timestamp: ts,
+        });
+        return;
+      }
+
+      if (actionId.startsWith('accept_change:') && (!proposal || proposal.id !== proposalId)) {
         postMessages({
           id: `ai_expired_${Date.now()}`,
           sender: 'ai',
@@ -711,29 +730,36 @@ export default function DailyPlanner() {
         return;
       }
 
-      const suggestionId = pendingProposal.suggestionId;
       setIsLoading(true);
       try {
-        if (suggestionId) {
-          await dispatch(acceptPlannerSuggestion(suggestionId)).unwrap();
+        await dispatch(acceptPlannerSuggestion(suggestionId)).unwrap();
+        const afterPlans = proposal?.afterPlans;
+        if (afterPlans) {
+          setPlans(afterPlans);
+        } else {
+          await dispatch(
+            fetchPlannerBoard({ viewType: viewMode, date: selectedDateKey })
+          ).unwrap();
         }
-        const afterPlans = pendingProposal.afterPlans;
-        setPlans(afterPlans);
         setHasAcceptedPlan(true);
         dispatch(setHasAcceptedPlanLocal(true));
-        recordCommittedChange({
-          ...pendingProposal,
-          useApiUndo: true,
-        });
+        if (proposal) {
+          recordCommittedChange({
+            ...proposal,
+            useApiUndo: true,
+          });
+        }
         setPendingProposal(null);
         postMessages(
-          { id: `user_accept_${Date.now()}`, sender: 'user', text: 'Accept changes', timestamp: ts },
+          { id: `user_accept_${Date.now()}`, sender: 'user', text: 'Accept plan', timestamp: ts },
           {
             id: `ai_accept_reply_${Date.now()}`,
             sender: 'ai',
-            text: 'The previewed schedule changes have been applied.',
+            text: 'Your AI plan has been applied.',
             timestamp: ts,
-            links: [{ label: 'Undo changes', actionId: `undo:${proposalId}` }],
+            links: proposalId
+              ? [{ label: 'Undo changes', actionId: `undo:${proposalId}` }]
+              : undefined,
           }
         );
         dispatch(fetchPlannerSummary(selectedDateKey));
@@ -750,28 +776,43 @@ export default function DailyPlanner() {
       return;
     }
 
-    if (actionId.startsWith('dismiss_change:')) {
-      const proposalId = actionId.split(':')[1];
-      if (pendingProposal?.id === proposalId) {
-        const suggestionId = pendingProposal.suggestionId;
-        setPlans(pendingProposal.beforePlans);
-        setHasAcceptedPlan(pendingProposal.beforeAccepted);
-        dispatch(setHasAcceptedPlanLocal(pendingProposal.beforeAccepted));
+    // API #7 Dismiss AI Plan — Dismiss (initial or after suggest)
+    if (actionId === 'dismiss_initial' || actionId.startsWith('dismiss_change:')) {
+      const proposalId = actionId.startsWith('dismiss_change:')
+        ? actionId.split(':')[1]
+        : pendingProposal?.id;
+      const proposal =
+        proposalId && pendingProposal?.id === proposalId
+          ? pendingProposal
+          : pendingProposal;
+      const suggestionId = proposal?.suggestionId || lastSuggestionId;
+
+      if (proposal && (!proposalId || proposal.id === proposalId)) {
+        setPlans(proposal.beforePlans);
+        setHasAcceptedPlan(proposal.beforeAccepted);
+        dispatch(setHasAcceptedPlanLocal(proposal.beforeAccepted));
         setPendingProposal(null);
-        if (suggestionId) {
-          try {
-            await dispatch(dismissPlannerSuggestion(suggestionId)).unwrap();
-          } catch {
-            /* local restore already done */
-          }
+      }
+
+      if (suggestionId) {
+        try {
+          await dispatch(dismissPlannerSuggestion(suggestionId)).unwrap();
+        } catch {
+          /* local restore already done when proposal existed */
         }
       }
-      postMessages({
-        id: `ai_dismiss_change_${Date.now()}`,
-        sender: 'ai',
-        text: 'The schedule preview was dismissed. Your previous schedule is unchanged.',
-        timestamp: ts,
-      });
+
+      postMessages(
+        { id: `user_dismiss_${Date.now()}`, sender: 'user', text: 'Dismiss', timestamp: ts },
+        {
+          id: `ai_dismiss_change_${Date.now()}`,
+          sender: 'ai',
+          text: suggestionId
+            ? 'The AI plan was dismissed. Your previous schedule is unchanged.'
+            : 'No pending AI plan to dismiss.',
+          timestamp: ts,
+        }
+      );
       return;
     }
 
