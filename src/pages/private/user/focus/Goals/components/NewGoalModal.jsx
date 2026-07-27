@@ -63,10 +63,13 @@ function formatDueDate(value) {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-function Field({ label, children }) {
+function Field({ label, required = false, children }) {
   return (
     <div className="flex flex-col gap-[6px]">
-      <p className="text-[12px] font-medium leading-[1.5] text-[#c2c2c2] dark:text-zinc-500">{label}</p>
+      <p className="text-[12px] font-medium leading-[1.5] text-[#c2c2c2] dark:text-zinc-500">
+        {label}
+        {required ? <span className="text-[#8022fe]"> *</span> : null}
+      </p>
       {children}
     </div>
   );
@@ -474,12 +477,13 @@ function ManualFormFields({
         onToggle={setHabitsOpen}
       />
 
-      <Field label="Description">
+      <Field label="Description" required>
         <textarea
           rows={3}
           value={form.description}
           onChange={(e) => update('description', e.target.value)}
           placeholder="Add details..."
+          required
           className={`${textareaClasses} h-[80px] resize-none`}
         />
       </Field>
@@ -733,6 +737,7 @@ export default function NewGoalModal({ open, onClose, onSave, mode = 'create', i
   };
 
   const handleManualSubmit = () => {
+    if (!form.title.trim() || !form.description.trim()) return;
     onSave({
       title: form.title,
       description: form.description,
@@ -755,7 +760,7 @@ export default function NewGoalModal({ open, onClose, onSave, mode = 'create', i
     if (tab === 'ai') setAiPhase(generatedGoal ? 'preview' : 'input');
   };
 
-  const canSubmitManual = form.title.trim().length > 0;
+  const canSubmitManual = form.title.trim().length > 0 && form.description.trim().length > 0;
   const canGenerate = aiPrompt.trim().length > 0 && !isRevealing;
   const showAiPreview = activeTab === 'ai' && aiPhase === 'preview';
   const showAiGenerating = activeTab === 'ai' && aiPhase === 'generating';
