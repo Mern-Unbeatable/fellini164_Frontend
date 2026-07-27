@@ -19,7 +19,6 @@ function App() {
         draggable
         pauseOnHover
         theme="light"
-        toastStyle={{ color: '#181818' }}
       />
     </>
   );
