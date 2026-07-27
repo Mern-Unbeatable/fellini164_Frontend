@@ -515,7 +515,7 @@ function HabitCard({ item, ghost, dimmed }) {
         <span
           className={`text-[12px] leading-none font-medium text-[#5d5d5d] dark:text-gray-400 ${fade}`}
         >
-          {item.progress.done}/{item.progress.total}
+          {item.progress?.done ?? 0}/{item.progress?.total ?? 1}
         </span>
       </div>
     </>

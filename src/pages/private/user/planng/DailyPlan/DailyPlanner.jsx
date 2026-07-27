@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Sparkles } from 'lucide-react';
+import { toast } from 'react-toastify';
 import NewPlanModal from './components/NewPlanModal';
 import PlannerBoard from './components/PlannerBoard';
 import AIAssistant from './components/AIAssistant';
@@ -417,8 +418,23 @@ export default function DailyPlanner() {
         suggestPlannerAi({ payload, dateQuery: selectedDateKey })
       ).unwrap();
 
-      const sourceItems = buildPlannerSuggestSourceItems(plansRef.current, available);
-      const previewPlans = suggestionBoardToPlans(result, selectedDateKey, sourceItems);
+      let previewPlans;
+      try {
+        const sourceItems = buildPlannerSuggestSourceItems(plansRef.current, available);
+        previewPlans = suggestionBoardToPlans(result, selectedDateKey, sourceItems);
+      } catch {
+        toast.error('Could not preview that AI schedule. Please try again.');
+        setPlans(beforePlans);
+        setHasAcceptedPlan(beforeAccepted);
+        postMessages({
+          id: `ai_suggest_map_err_${now}`,
+          sender: 'ai',
+          text: 'I could not apply that schedule preview. Please try another action.',
+          timestamp: timestamp(),
+        });
+        return;
+      }
+
       setPlans(previewPlans);
       setHasAcceptedPlan(false);
 
@@ -446,6 +462,8 @@ export default function DailyPlanner() {
         ],
       });
     } catch {
+      setPlans(beforePlans);
+      setHasAcceptedPlan(beforeAccepted);
       postMessages({
         id: `ai_suggest_err_${now}`,
         sender: 'ai',

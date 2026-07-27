@@ -171,12 +171,21 @@ export function mapPlannerItemFromApi(apiItem) {
   const progress = apiItem.progress;
   const stepsLabel = progress?.label || null;
   const habitProgress =
-    kind === 'habit' && progress
-      ? { done: progress.completed ?? 0, total: progress.total ?? 1 }
+    kind === 'habit'
+      ? {
+          done: progress?.completed ?? progress?.done ?? 0,
+          total: progress?.total ?? 1,
+        }
       : null;
 
+  // Skip empty/invalid AI placeholders (e.g. habitId null + title Unknown)
+  const resolvedId = apiItem.id || apiItem.taskId || apiItem.habitId || apiItem.task?.id || apiItem.habit?.id;
+  if (!resolvedId && (title === 'Unknown' || title === 'Untitled')) {
+    return null;
+  }
+
   return {
-    id: apiItem.id || apiItem.taskId || apiItem.habitId,
+    id: resolvedId || `tmp-${itemType}-${apiItem.orderIndex ?? 0}`,
     plannerItemId: apiItem.id || null,
     taskId: apiItem.taskId || apiItem.task?.id || null,
     habitId: apiItem.habitId || apiItem.habit?.id || null,
@@ -294,6 +303,7 @@ export function suggestionResponseToPlans(suggestPayload, sourceItems = [], fall
 
     const plans = {};
     placements.forEach((placement) => {
+      if (!placement?.taskId && !placement?.habitId) return;
       const lookupKey = placement.taskId
         ? `task:${placement.taskId}`
         : placement.habitId
