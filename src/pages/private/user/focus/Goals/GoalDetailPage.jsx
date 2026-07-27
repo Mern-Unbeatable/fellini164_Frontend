@@ -54,6 +54,7 @@ import GoalAiAssistant from './components/GoalAiAssistant';
 import LinkItemsModal from './components/LinkItemsModal';
 import GoalSparkLinkModal from './components/GoalSparkLinkModal';
 import NewGoalModal from './components/NewGoalModal';
+import GoalDeleteConfirmModal from './components/GoalDeleteConfirmModal';
 import NewHabitsModal from '../Habits/components/NewHabitsModal';
 import TaskFormModal from '../Tasks/components/TaskFormModal';
 
@@ -760,6 +761,8 @@ export default function GoalDetailPage() {
   const [linkModal, setLinkModal] = useState({ open: false, type: 'tasks' });
   const [sparkModal, setSparkModal] = useState({ open: false, type: 'tasks' });
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deletingGoal, setDeletingGoal] = useState(false);
   // Stay on detail URL until GET /goals/:id settles (refresh must not bounce to board).
   const [detailFetchDone, setDetailFetchDone] = useState(false);
 
@@ -1189,10 +1192,9 @@ export default function GoalDetailPage() {
                       onEdit={openEditGoal}
                       onImprove={openEditGoal}
                       onPause={handleTogglePause}
-                      onDelete={async () => {
+                      onDelete={() => {
                         setMenuOpen(false);
-                        await dispatch(deleteGoal(goal.id));
-                        navigate('/user/goals');
+                        setDeleteModalOpen(true);
                       }}
                     />
                   )}
@@ -1336,6 +1338,29 @@ export default function GoalDetailPage() {
         onSave={handleSaveGoal}
         mode="edit"
         initialGoal={goal}
+      />
+
+      <GoalDeleteConfirmModal
+        open={deleteModalOpen}
+        goalTitle={goal?.title}
+        submitting={deletingGoal}
+        onClose={() => {
+          if (deletingGoal) return;
+          setDeleteModalOpen(false);
+        }}
+        onConfirm={async () => {
+          if (!goal?.id) return;
+          setDeletingGoal(true);
+          try {
+            await dispatch(deleteGoal(goal.id)).unwrap();
+            setDeleteModalOpen(false);
+            navigate('/user/goals');
+          } catch {
+            /* toast from slice */
+          } finally {
+            setDeletingGoal(false);
+          }
+        }}
       />
 
       {habitModal.open && (

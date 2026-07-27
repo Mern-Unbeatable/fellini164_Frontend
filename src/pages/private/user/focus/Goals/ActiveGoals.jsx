@@ -19,6 +19,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import NewGoalModal from './components/NewGoalModal';
 import GoalProgressModal from './components/GoalProgressModal';
+import GoalDeleteConfirmModal from './components/GoalDeleteConfirmModal';
 import GoalDetailPanel, {
   getLinkedHabits,
   getLinkedTasks,
@@ -745,6 +746,8 @@ export default function ActiveGoals() {
   const [linkModal, setLinkModal] = useState({ open: false, type: 'tasks', goal: null });
   const [sparkModal, setSparkModal] = useState({ open: false, type: 'tasks', goal: null });
   const [linking, setLinking] = useState(false);
+  const [deleteModal, setDeleteModal] = useState({ open: false, goal: null });
+  const [deletingGoal, setDeletingGoal] = useState(false);
   /** Local linked-item overlays for detail panel (UI) until board refresh returns them. */
   const [linkOverrides, setLinkOverrides] = useState({});
 
@@ -979,10 +982,30 @@ export default function ActiveGoals() {
     await dispatch(updateGoalStatus({ goalId: goal.id, status: nextStatus }));
   };
 
-  const handleDeleteGoal = async (id) => {
-    await dispatch(deleteGoal(id));
-    if (selectedGoalId === id) setSelectedGoalId(null);
-    await loadGoals();
+  const handleRequestDeleteGoal = (goal) => {
+    if (!goal?.id) return;
+    setDeleteModal({ open: true, goal });
+  };
+
+  const handleCloseDeleteModal = () => {
+    if (deletingGoal) return;
+    setDeleteModal({ open: false, goal: null });
+  };
+
+  const handleConfirmDeleteGoal = async () => {
+    const id = deleteModal.goal?.id;
+    if (!id) return;
+    setDeletingGoal(true);
+    try {
+      await dispatch(deleteGoal(id)).unwrap();
+      if (selectedGoalId === id) setSelectedGoalId(null);
+      setDeleteModal({ open: false, goal: null });
+      await loadGoals();
+    } catch {
+      /* toast from slice */
+    } finally {
+      setDeletingGoal(false);
+    }
   };
 
   const handleSelectGoal = (goal) => setSelectedGoalId(goal.id);
@@ -1128,7 +1151,7 @@ export default function ActiveGoals() {
                     onAddHabit={handleAddHabit}
                     onComplete={handleCompleteGoal}
                     onPause={handlePauseGoal}
-                    onDelete={(g) => handleDeleteGoal(g.id)}
+                    onDelete={handleRequestDeleteGoal}
                   />
                   </div>
                 ))}
@@ -1146,7 +1169,7 @@ export default function ActiveGoals() {
           onEdit={handleEditGoal}
           onImprove={handleEditGoal}
           onPause={handlePauseGoal}
-          onDelete={(g) => handleDeleteGoal(g.id)}
+          onDelete={handleRequestDeleteGoal}
           onAddLinkedTasks={handleAddTask}
           onAddLinkedHabits={handleAddHabit}
           onAiLinkedTasks={handleOpenSparkTasks}
@@ -1197,6 +1220,14 @@ export default function ActiveGoals() {
         onClose={handleCloseSparkModal}
         onGenerate={handleSparkGenerate}
         onAttach={handleSparkAttach}
+      />
+
+      <GoalDeleteConfirmModal
+        open={deleteModal.open}
+        goalTitle={deleteModal.goal?.title}
+        submitting={deletingGoal}
+        onClose={handleCloseDeleteModal}
+        onConfirm={handleConfirmDeleteGoal}
       />
     </div>
   );

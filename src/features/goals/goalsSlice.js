@@ -194,6 +194,7 @@ export const deleteGoal = createAsyncThunk(
   async (goalId, { rejectWithValue }) => {
     try {
       await deleteGoalApi(goalId);
+      toast.success('Goal deleted');
       return goalId;
     } catch (error) {
       toast.error(error?.response?.data?.message || 'Failed to delete goal');
