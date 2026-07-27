@@ -566,6 +566,7 @@ export default function DailyPlanner() {
         actionKey: 'free_evening',
         userText: 'Free up my evening',
         message: 'Free up my evening',
+        energyLevel: 'MEDIUM',
       });
       return;
     }
@@ -591,20 +592,14 @@ export default function DailyPlanner() {
     }
 
     if (actionType === 'recalibrate_day') {
-      postMessages(
-        { id: userMsgId, sender: 'user', text: 'Recalibrate My Day', timestamp: ts },
-        {
-          id: `${userMsgId}_ai_energy`,
-          sender: 'ai',
-          text: 'How is your energy today?',
-          timestamp: ts,
-          actions: [
-            { label: 'Low', actionId: 'energy_low' },
-            { label: 'Medium', actionId: 'energy_medium' },
-            { label: 'High', actionId: 'energy_high' },
-          ],
-        }
-      );
+      // API #5: call ai/suggest directly.
+      // Remove extra "energy" prompt from the AI Actions flow; use default MEDIUM.
+      runAiSuggest({
+        actionKey: 'recalibrate_day',
+        userText: 'Recalibrate My Day',
+        energyLevel: 'MEDIUM',
+        message: 'Recalibrate my day',
+      });
       return;
     }
 
@@ -613,6 +608,7 @@ export default function DailyPlanner() {
         actionKey: 'reduce_overload',
         userText: 'Reduce Overload',
         message: 'Reduce overload',
+        energyLevel: 'MEDIUM',
       });
       return;
     }
@@ -622,6 +618,7 @@ export default function DailyPlanner() {
         actionKey: 'optimize_schedule',
         userText: 'Optimize Schedule',
         message: 'Optimize schedule',
+        energyLevel: 'MEDIUM',
       });
       return;
     }
@@ -631,6 +628,7 @@ export default function DailyPlanner() {
         actionKey: 'balance',
         userText: 'Balance Schedule',
         message: 'Balance my schedule',
+        energyLevel: 'MEDIUM',
       });
       return;
     }
