@@ -96,8 +96,14 @@ export async function fetchSubtasksApi(taskId) {
 export async function generateTaskApi(payload) {
   const response = await axiosInstance.post(`${BASE}/ai/generate`, payload);
   const body = response?.data;
-  if (body?.task) return body.task;
-  return unwrapData(response);
+  // Envelope: { success, message, task, tokensUsed }
+  if (body?.task && typeof body.task === 'object') return body.task;
+  if (body?.data?.task && typeof body.data.task === 'object') return body.data.task;
+  const unwrapped = unwrapData(response);
+  if (unwrapped?.task && typeof unwrapped.task === 'object' && !unwrapped.id) {
+    return unwrapped.task;
+  }
+  return unwrapped;
 }
 
 /**

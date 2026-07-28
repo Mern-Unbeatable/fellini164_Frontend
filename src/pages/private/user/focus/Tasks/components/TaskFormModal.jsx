@@ -5,6 +5,7 @@ import TypewriterPlaceholder from '../../../../../../components/ui/TypewriterPla
 import SkeletonBar from '../../../../../../components/ui/SkeletonBar';
 import { useAiGenerationReveal } from '../../../../../../hooks/useAiGenerationReveal';
 import { generateTask } from '../../../../../../features/tasks/tasksSlice';
+import { formatTaskDueDateLabel } from '../../../../../../features/tasks/tasksMappers';
 import { fetchGoalsApi } from '../../../../../../features/goals/goalsAPI';
 
 const PRIORITIES = ['Low', 'Medium', 'High', 'Urgent'];
@@ -177,6 +178,9 @@ function TabToggle({ activeTab, onChange, showTabs, disabled }) {
 function AIGeneratedPreviewCard({ task, revealStep = 3 }) {
   const showTitle = revealStep >= 1;
   const showDescription = revealStep >= 2;
+  // Due footer: API dueDate → "Today" / date label (mapper defaults to today if missing)
+  const dueLabel =
+    formatTaskDueDateLabel(task?.dueDate) || task?.due || 'Today';
 
   return (
     <div className="flex w-full flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-white dark:border-zinc-700 dark:bg-zinc-800">
@@ -222,7 +226,7 @@ function AIGeneratedPreviewCard({ task, revealStep = 3 }) {
       <div className="flex items-center border-t border-[#f2f2f2] px-3 py-2.5 dark:border-zinc-700">
         <p className="text-[12px]">
           <span className="text-[#c2c2c2]">Due:</span>{' '}
-          <span className="text-[#5d5d5d]">{task.due}</span>
+          <span className="text-[#5d5d5d]">{dueLabel}</span>
         </p>
       </div>
     </div>
@@ -498,7 +502,9 @@ export default function TaskFormModal({ mode = 'create', initialTask, onClose, o
         priority: task.priority || 'MEDIUM',
         category: task.category || form.category || 'Career',
         estMinutes: task.estimatedMinutes ?? task.estMinutes ?? 30,
-        due: task.due || 'Today',
+        dueDate: task.dueDate || null,
+        dueTime: task.dueTime || null,
+        due: formatTaskDueDateLabel(task.dueDate) || task.due || null,
       });
       setPendingTask(null);
       setAiPhase('preview');

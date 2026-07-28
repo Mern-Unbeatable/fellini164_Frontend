@@ -118,6 +118,7 @@ export const generateTask = createAsyncThunk(
       const data = await generateTaskApi(body);
       const preview = mapAiGeneratedTaskForPreview(data);
       if (!preview?.id) return rejectWithValue('Invalid AI generate response');
+      // Due always set by mapper (API dueDate, or today fallback)
       return preview;
     } catch (error) {
       toast.error(error?.response?.data?.message || 'Failed to generate task');

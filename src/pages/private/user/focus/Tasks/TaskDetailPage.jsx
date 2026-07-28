@@ -3,6 +3,7 @@ import { Navigate, useNavigate, useOutletContext, useParams } from 'react-router
 import { useDispatch, useSelector } from 'react-redux';
 import TaskDetailPanel from './components/TaskDetailPanel';
 import TaskFormModal from './components/TaskFormModal';
+import DeleteConfirmModal from '../../../../../components/ui/DeleteConfirmModal';
 import {
   clearCurrentTask,
   deleteTask,
@@ -32,6 +33,8 @@ export default function TaskDetailPage() {
   const [triggerSubtasksAi, setTriggerSubtasksAi] = useState(false);
   const [triggerImproveAi, setTriggerImproveAi] = useState(false);
   const [taskModal, setTaskModal] = useState({ open: false, task: null });
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deletingTask, setDeletingTask] = useState(false);
 
   const task =
     currentTask && String(currentTask.id) === String(taskId)
@@ -107,10 +110,24 @@ export default function TaskDetailPage() {
     await refreshTask();
   };
 
-  const handleDelete = async (t) => {
-    await dispatch(deleteTask(t.id));
-    await dispatch(fetchTasksSummary());
-    navigate('/user/tasks');
+  const handleRequestDelete = (t) => {
+    if (!t?.id) return;
+    setDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!task?.id) return;
+    setDeletingTask(true);
+    try {
+      await dispatch(deleteTask(task.id)).unwrap();
+      setDeleteModalOpen(false);
+      await dispatch(fetchTasksSummary());
+      navigate('/user/tasks');
+    } catch {
+      /* toast from slice */
+    } finally {
+      setDeletingTask(false);
+    }
   };
 
   const autoAiAction = triggerImproveAi ? 'improve' : triggerSubtasksAi ? 'breakdown' : null;
@@ -126,7 +143,7 @@ export default function TaskDetailPage() {
         task={task}
         onUpdateTaskFields={(fields) => handleUpdateTaskFields(task.id, fields)}
         onEdit={(t) => setTaskModal({ open: true, task: t })}
-        onDelete={handleDelete}
+        onDelete={handleRequestDelete}
         onRefreshTask={refreshTask}
         autoAiAction={autoAiAction}
         onAutoAiActionConsumed={() => {
@@ -150,6 +167,19 @@ export default function TaskDetailPage() {
           }}
         />
       )}
+
+      <DeleteConfirmModal
+        open={deleteModalOpen}
+        title="Delete Task"
+        itemName={task?.title}
+        entityLabel="task"
+        submitting={deletingTask}
+        onClose={() => {
+          if (deletingTask) return;
+          setDeleteModalOpen(false);
+        }}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 }
