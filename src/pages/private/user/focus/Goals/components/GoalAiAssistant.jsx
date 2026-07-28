@@ -93,6 +93,8 @@ function hasApplyableProposal(data) {
   if (data.proposedGoal?.title || data.proposedGoal?.description) return true;
   if (Array.isArray(data.proposedTasks) && data.proposedTasks.length) return true;
   if (Array.isArray(data.proposedHabits) && data.proposedHabits.length) return true;
+  // PENDING history / CHAT: still allow Yes/No when we have a suggestionId
+  if (data.suggestionId || data.id) return true;
   return false;
 }
 
@@ -117,6 +119,11 @@ export default function GoalAiAssistant({
   const [sessionStamp] = useState(formatSessionStamp);
   const textareaRef = useRef(null);
   const scrollRef = useRef(null);
+  const messagesRef = useRef([]);
+
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
 
   const reloadHistory = useCallback(async () => {
     if (!goalId) {
@@ -127,10 +134,17 @@ export default function GoalAiAssistant({
     setHistoryLoading(true);
     try {
       const suggestions = await fetchGoalAiSuggestionsApi(goalId);
-      setMessages(mapGoalAiSuggestionsToMessages(suggestions));
+      const next = mapGoalAiSuggestionsToMessages(suggestions);
+      // Don't wipe a live chat when history is empty / failed to parse
+      if (next.length === 0 && messagesRef.current.length > 0) {
+        return;
+      }
+      setMessages(next);
     } catch (err) {
-      const msg = err?.response?.data?.message || err?.message || 'Failed to load AI history';
-      toast.error(msg);
+      if (messagesRef.current.length === 0) {
+        const msg = err?.response?.data?.message || err?.message || 'Failed to load AI history';
+        toast.error(msg);
+      }
     } finally {
       setHistoryLoading(false);
     }
@@ -154,6 +168,27 @@ export default function GoalAiAssistant({
     if (!el) return;
     el.scrollTop = el.scrollHeight;
   }, [messages, loading, historyLoading]);
+
+  const syncHistory = useCallback(
+    async ({ requireSuggestionId } = {}) => {
+      if (!goalId) return;
+      try {
+        const suggestions = await fetchGoalAiSuggestionsApi(goalId);
+        const next = mapGoalAiSuggestionsToMessages(suggestions);
+        if (next.length === 0) return;
+        if (requireSuggestionId) {
+          const hasIt = next.some(
+            (m) => String(m.suggestionId) === String(requireSuggestionId)
+          );
+          if (!hasIt) return;
+        }
+        setMessages(next);
+      } catch {
+        // keep on-screen messages
+      }
+    },
+    [goalId]
+  );
 
   const runSuggest = async (action, message) => {
     if (!goalId || !message?.trim() || loading) return;
@@ -179,15 +214,7 @@ export default function GoalAiAssistant({
           action: data?.action || action,
         },
       ]);
-      // Sync from backend so refresh + Yes/No stay accurate
-      if (suggestionId) {
-        try {
-          const suggestions = await fetchGoalAiSuggestionsApi(goalId);
-          setMessages(mapGoalAiSuggestionsToMessages(suggestions));
-        } catch {
-          // keep optimistic local message
-        }
-      }
+      if (suggestionId) await syncHistory({ requireSuggestionId: suggestionId });
     } catch (err) {
       const msg = err?.response?.data?.message || err?.message || 'Failed to get AI suggestion';
       toast.error(msg);
@@ -217,6 +244,26 @@ export default function GoalAiAssistant({
     setBusyId(msg.id);
     setPrompt('');
 
+    // Figma: purple "Yes, apply" → Done + Undo (don't wait for history)
+    setMessages((prev) => {
+      const withoutPills = prev.map((m) =>
+        m.id === msg.id || String(m.suggestionId) === String(suggestionId)
+          ? { ...m, suggestion: null, dismissed: true }
+          : m
+      );
+      return [
+        ...withoutPills,
+        { id: `u-apply-${suggestionId}-${Date.now()}`, role: 'user', text: 'Yes, apply' },
+        {
+          id: `done-${suggestionId}`,
+          role: 'assistant',
+          text: 'Done. The goal has been updated.',
+          canUndo: true,
+          suggestionId,
+        },
+      ];
+    });
+
     try {
       const data = await acceptGoalSuggestionApi(suggestionId);
       if (!data?.success && data?.success !== undefined) {
@@ -224,10 +271,36 @@ export default function GoalAiAssistant({
       }
       toast.success(data?.message || 'Changes applied');
       await onRefreshGoal?.();
-      await reloadHistory();
+      try {
+        const history = await fetchGoalAiSuggestionsApi(goalId);
+        const next = mapGoalAiSuggestionsToMessages(history);
+        if (next.length === 0) {
+          // keep optimistic Yes, apply + Done + Undo
+        } else {
+          const hasThisSuggestion = next.some(
+            (m) => String(m.suggestionId) === String(suggestionId)
+          );
+          if (hasThisSuggestion) setMessages(next);
+        }
+      } catch {
+        // keep optimistic
+      }
     } catch (err) {
       const message = err?.response?.data?.message || err?.message || 'Failed to apply changes';
       toast.error(message);
+      // Restore Yes/No; remove optimistic apply bubbles
+      setMessages((prev) => {
+        const cleaned = prev.filter(
+          (m) =>
+            m.id !== `done-${suggestionId}` &&
+            !(m.role === 'user' && m.text === 'Yes, apply' && String(m.id).includes(String(suggestionId)))
+        );
+        return cleaned.map((m) =>
+          String(m.suggestionId) === String(suggestionId)
+            ? { ...m, suggestion: msg.suggestion || m.suggestion, dismissed: false }
+            : m
+        );
+      });
     } finally {
       setBusyId(null);
     }
@@ -238,12 +311,29 @@ export default function GoalAiAssistant({
     if (!suggestionId || busyId) return;
     setBusyId(msg.id);
 
+    setMessages((prev) => {
+      const withoutPills = prev.map((m) =>
+        m.id === msg.id || String(m.suggestionId) === String(suggestionId)
+          ? { ...m, suggestion: null, dismissed: true }
+          : m
+      );
+      return [
+        ...withoutPills,
+        { id: `u-cancel-${suggestionId}-${Date.now()}`, role: 'user', text: 'No, cancel' },
+        {
+          id: `c-${suggestionId}`,
+          role: 'assistant',
+          text: 'Okay, I discarded that suggestion.',
+        },
+      ];
+    });
+
     try {
       const data = await dismissGoalSuggestionApi(suggestionId);
       if (!data?.success && data?.success !== undefined) {
         throw new Error(data?.message || 'Failed to dismiss suggestion');
       }
-      await reloadHistory();
+      await syncHistory({ requireSuggestionId: suggestionId });
     } catch (err) {
       const message = err?.response?.data?.message || err?.message || 'Failed to cancel suggestion';
       toast.error(message);
@@ -262,7 +352,14 @@ export default function GoalAiAssistant({
       }
       toast.success(data?.message || 'Changes undone');
       await onRefreshGoal?.();
-      await reloadHistory();
+      setMessages((prev) =>
+        prev.map((m) => (m.id === msg.id ? { ...m, canUndo: false } : m)).concat({
+          id: `undo-${Date.now()}`,
+          role: 'assistant',
+          text: data?.message || 'Undone. Restored the previous goal version.',
+        })
+      );
+      await syncHistory();
     } catch (err) {
       const message = err?.response?.data?.message || err?.message || 'Failed to undo changes';
       toast.error(message);

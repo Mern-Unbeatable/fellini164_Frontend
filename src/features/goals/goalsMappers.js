@@ -629,12 +629,30 @@ export function mapGoalAiSuggestionsToMessages(list) {
       id: suggestionId,
       suggestionId,
       message: item.assistantMessage || item.responseMessage || item.message,
-      proposedGoal: item.proposedGoal || null,
-      proposedTasks: Array.isArray(item.proposedTasks) ? item.proposedTasks : [],
-      proposedHabits: Array.isArray(item.proposedHabits) ? item.proposedHabits : [],
+      proposedGoal:
+        item.proposedGoal ||
+        item.proposal?.goal ||
+        item.payload?.proposedGoal ||
+        item.data?.proposedGoal ||
+        null,
+      proposedTasks: Array.isArray(item.proposedTasks)
+        ? item.proposedTasks
+        : Array.isArray(item.proposal?.tasks)
+          ? item.proposal.tasks
+          : Array.isArray(item.payload?.proposedTasks)
+            ? item.payload.proposedTasks
+            : [],
+      proposedHabits: Array.isArray(item.proposedHabits)
+        ? item.proposedHabits
+        : Array.isArray(item.proposal?.habits)
+          ? item.proposal.habits
+          : Array.isArray(item.payload?.proposedHabits)
+            ? item.payload.proposedHabits
+            : [],
       action: item.action,
     };
 
+    // Keep Yes/No for any PENDING suggestion (proposals may be nested; pills still needed).
     messages.push({
       id: `a-${suggestionId}`,
       role: 'assistant',

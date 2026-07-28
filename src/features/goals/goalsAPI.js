@@ -75,12 +75,31 @@ function isRouteMissing(error) {
 }
 
 /**
- * POST /api/v1/goals/:goalId/complete
- * Marks goal completed (same action style as POST /tasks/:id/complete).
+ * Complete Goal.
+ * Preferred: POST /api/v1/goals/:goalId/complete
+ * Fallbacks when backend returns "Route not found":
+ *   PATCH .../complete → PATCH .../complete-status → PATCH .../:id { status: COMPLETED }
  */
 export async function completeGoalApi(id) {
-  const response = await axiosInstance.post(`${BASE}/${id}/complete`);
-  return unwrapData(response);
+  const attempts = [
+    () => axiosInstance.post(`${BASE}/${id}/complete`),
+    () => axiosInstance.patch(`${BASE}/${id}/complete`),
+    () => axiosInstance.patch(`${BASE}/${id}/complete-status`),
+    () => axiosInstance.patch(`${BASE}/${id}`, { status: 'COMPLETED' }),
+  ];
+
+  let lastError;
+  for (const attempt of attempts) {
+    try {
+      const response = await attempt();
+      return unwrapData(response);
+    } catch (error) {
+      lastError = error;
+      if (isRouteMissing(error)) continue;
+      throw error;
+    }
+  }
+  throw lastError;
 }
 
 /**
@@ -231,8 +250,10 @@ export async function fetchGoalAiSuggestionsApi(goalId) {
   const response = await axiosInstance.get(`${BASE}/${goalId}/ai/suggestions`);
   const body = response?.data;
   if (Array.isArray(body?.suggestions)) return body.suggestions;
+  if (Array.isArray(body?.data?.suggestions)) return body.data.suggestions;
   if (Array.isArray(body?.data)) return body.data;
   if (Array.isArray(body?.items)) return body.items;
+  if (Array.isArray(body?.results)) return body.results;
   if (Array.isArray(body)) return body;
   return [];
 }

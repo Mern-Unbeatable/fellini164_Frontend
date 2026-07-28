@@ -139,13 +139,13 @@ export const updateGoal = createAsyncThunk(
   }
 );
 
-/** Complete Goal — PATCH /goals/:id/complete (fallback status) */
+/** Complete Goal — POST /goals/:id/complete (+ route fallbacks) */
 export const completeGoal = createAsyncThunk(
   'goals/completeGoal',
   async (goalId, { rejectWithValue }) => {
     try {
       const data = await completeGoalApi(goalId);
-      return mapGoalFromApi(data) || {
+      const mapped = mapGoalFromApi(data?.goal || data) || {
         id: goalId,
         status: 'completed',
         progress: 100,
@@ -155,9 +155,13 @@ export const completeGoal = createAsyncThunk(
           year: 'numeric',
         }),
       };
+      toast.success(data?.message || 'Goal completed');
+      return { ...mapped, status: mapped.status || 'completed' };
     } catch (error) {
-      toast.error(error?.response?.data?.message || 'Failed to complete goal');
-      return rejectWithValue(error?.response?.data?.message || 'Failed to complete goal');
+      const message =
+        error?.response?.data?.message || error?.message || 'Failed to complete goal';
+      toast.error(message === 'Route not found' ? 'Could not complete goal. Please try again.' : message);
+      return rejectWithValue(message);
     }
   }
 );
