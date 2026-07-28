@@ -30,7 +30,7 @@ function MonthGhostFieldBorder() {
 function MonthGhostPlanItem({ title, active = false, animated = false }) {
   return (
     <div
-      className={`group relative w-full shrink-0 overflow-hidden rounded-lg py-1.5 px-2 transition-all duration-200 dark:bg-zinc-800 ${
+      className={`group relative w-full shrink-0 overflow-hidden rounded-lg px-2 py-1.5 transition-all duration-200 dark:bg-zinc-800 ${
         active
           ? 'bg-[#fcfcfc] shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)]'
           : 'bg-white hover:bg-[#fcfcfc] dark:hover:bg-zinc-800/90'
@@ -45,7 +45,7 @@ function MonthGhostPlanItem({ title, active = false, animated = false }) {
         style={{ boxShadow: 'inset 0 0 0 1px #f2f2f2' }}
       />
       <p
-        className={`relative z-[1] truncate text-center text-[12px] font-medium leading-[1.5] text-[#181818] dark:text-gray-300 ${
+        className={`relative z-[1] truncate text-center text-[12px] leading-[1.5] font-medium text-[#181818] dark:text-gray-300 ${
           active ? '' : 'opacity-40 transition-opacity group-hover:opacity-100'
         }`}
         title={title}
@@ -76,13 +76,13 @@ export default function MonthlyView({
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-white dark:bg-zinc-900 border border-[#F2F2F2] dark:border-zinc-800/80 rounded-2xl overflow-hidden shadow-sm max-xl:h-auto max-xl:flex-none">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[#F2F2F2] bg-white shadow-sm max-xl:h-auto max-xl:flex-none dark:border-zinc-800/80 dark:bg-zinc-900">
       {/* Weekday Names */}
-      <div className="grid grid-cols-7 border-b border-gray-100 dark:border-zinc-800/80 gap-0 shrink-0">
+      <div className="grid shrink-0 grid-cols-7 gap-0 border-b border-gray-100 dark:border-zinc-800/80">
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((dayName) => (
           <div
             key={dayName}
-            className="py-2 sm:py-3.5 text-center text-xs font-medium text-[#5D5D5D] dark:text-gray-400 border-r last:border-r-0 border-gray-100 dark:border-zinc-800/80 bg-white dark:bg-zinc-900"
+            className="border-r border-gray-100 bg-white py-2 text-center text-xs font-medium text-[#5D5D5D] last:border-r-0 sm:py-3.5 dark:border-zinc-800/80 dark:bg-zinc-900 dark:text-gray-400"
           >
             {dayName}
           </div>
@@ -93,7 +93,7 @@ export default function MonthlyView({
           grows only its own week; a full border per cell (card look) replaces shared
           grid-lines since those only look right when every row is the same height. The whole
           list scrolls internally so an unusually tall week never clips the weeks below it. */}
-      <div className="scrollbar-white flex min-h-0 flex-1 flex-col gap-1.5 overflow-y-auto bg-gray-50/5 p-1.5 dark:bg-zinc-900/5 sm:gap-2 sm:p-2 max-xl:max-h-[min(70vh,560px)] xl:min-h-0">
+      <div className="scrollbar-white flex min-h-0 flex-1 flex-col gap-1.5 overflow-y-auto bg-gray-50/5 p-1.5 max-xl:max-h-[min(70vh,560px)] sm:gap-2 sm:p-2 xl:min-h-0 dark:bg-zinc-900/5">
         {weeks.map((week, weekIndex) => (
           <div key={weekIndex} className="grid grid-cols-7 gap-1.5 sm:gap-2">
             {week.map((dayObj) => {
@@ -103,9 +103,10 @@ export default function MonthlyView({
               const monthlyDisplayPlans = dayPlans
                 .filter((plan) => plan.layout !== 'half')
                 .slice(0, 3);
-              const isSelected = selectedDate.getDate() === dayObj.day &&
-                                 selectedDate.getMonth() === dayObj.month &&
-                                 selectedDate.getFullYear() === dayObj.year;
+              const isSelected =
+                selectedDate.getDate() === dayObj.day &&
+                selectedDate.getMonth() === dayObj.month &&
+                selectedDate.getFullYear() === dayObj.year;
               const key = `${dayObj.year}-${dayObj.month}-${dayObj.day}-${dayObj.isCurrentMonth}`;
 
               return (
@@ -117,23 +118,25 @@ export default function MonthlyView({
                       setViewMode('Daily');
                     }
                   }}
-                  className="flex min-h-12.5 flex-col items-center overflow-hidden rounded-lg border border-gray-100 bg-white p-1 transition-colors hover:border-violet-200 hover:bg-gray-50/50 dark:border-zinc-800/80 dark:bg-zinc-900 dark:hover:border-violet-800 dark:hover:bg-zinc-800/20 sm:h-30 sm:max-h-30 sm:rounded-xl sm:p-3 cursor-pointer"
+                  className="flex min-h-12.5 cursor-pointer flex-col items-center overflow-hidden rounded-lg border border-gray-100 bg-white p-1 transition-colors hover:border-violet-200 hover:bg-gray-50/50 sm:h-30 sm:max-h-30 sm:rounded-xl sm:p-3 dark:border-zinc-800/80 dark:bg-zinc-900 dark:hover:border-violet-800 dark:hover:bg-zinc-800/20"
                 >
                   {/* Day Number */}
                   <div className="mb-0.5 flex shrink-0 justify-center sm:mb-1.5">
-                    <span className={`text-xs font-medium w-5 h-5 sm:w-7 sm:h-7 flex items-center justify-center rounded-md sm:rounded-lg transition-all ${
-                      isSelected
-                        ? 'bg-purple-100/70 text-primary dark:bg-purple-950/40 dark:text-purple-400 font-bold'
-                        : dayObj.isCurrentMonth
-                          ? 'text-slate-600 dark:text-gray-300'
-                          : 'text-gray-300 dark:text-zinc-700'
-                    }`}>
+                    <span
+                      className={`flex h-5 w-5 items-center justify-center rounded-md text-xs font-medium transition-all sm:h-7 sm:w-7 sm:rounded-lg ${
+                        isSelected
+                          ? 'text-primary bg-purple-100/70 font-bold dark:bg-purple-950/40 dark:text-purple-400'
+                          : dayObj.isCurrentMonth
+                            ? 'text-slate-600 dark:text-gray-300'
+                            : 'text-gray-300 dark:text-zinc-700'
+                      }`}
+                    >
                       {dayObj.day}
                     </span>
                   </div>
 
                   {/* Plan Items (Desktop) — clipped inside fixed cell height */}
-                  <div className="mt-1 hidden w-full min-h-0 flex-1 flex-col gap-1 overflow-hidden sm:flex">
+                  <div className="mt-1 hidden min-h-0 w-full flex-1 flex-col gap-1 overflow-hidden sm:flex">
                     {isLoading && isSelected
                       ? [0, 1, 2].map((value) => (
                           <div
@@ -152,15 +155,17 @@ export default function MonthlyView({
                   </div>
 
                   {/* Plan Indicators (Mobile dot representation) */}
-                  <div className="flex sm:hidden gap-0.5 mt-1 justify-center flex-wrap max-w-full">
-                    {(isLoading && isSelected ? [0, 1, 2] : monthlyDisplayPlans).map((plan, index) => (
-                      <span
-                        key={plan.id || index}
-                        className={`w-1.5 h-1.5 rounded-full bg-primary shrink-0 ${
-                          isLoading && isSelected ? 'animate-pulse opacity-40' : ''
-                        }`}
-                      />
-                    ))}
+                  <div className="mt-1 flex max-w-full flex-wrap justify-center gap-0.5 sm:hidden">
+                    {(isLoading && isSelected ? [0, 1, 2] : monthlyDisplayPlans).map(
+                      (plan, index) => (
+                        <span
+                          key={plan.id || index}
+                          className={`bg-primary h-1.5 w-1.5 shrink-0 rounded-full ${
+                            isLoading && isSelected ? 'animate-pulse opacity-40' : ''
+                          }`}
+                        />
+                      )
+                    )}
                   </div>
                 </div>
               );
