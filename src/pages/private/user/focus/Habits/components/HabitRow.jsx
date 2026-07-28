@@ -162,6 +162,8 @@ export default function HabitRow({
   const isCompleted = habit.status === 'completed';
   const showMenuTrigger = showMenu && (isHovered || menuOpen);
   const streak = streakPresentation(habit);
+  // Match Goals paused card — ash fade on content (no new colors)
+  const ash = isPaused ? 'opacity-50' : '';
 
   return (
     <div
@@ -170,7 +172,7 @@ export default function HabitRow({
       onMouseLeave={() => setIsHovered(false)}
       className="relative flex w-full shrink-0 items-start rounded-2xl border border-solid border-[#f2f2f2] bg-[#fcfcfc] p-3 max-lg:flex-col max-lg:gap-3 dark:border-zinc-700 dark:bg-zinc-800"
     >
-      <div className={`flex shrink-0 flex-col gap-2.5 max-lg:w-full ${compact ? 'w-97' : 'w-56 2xl:w-97'}`}>
+      <div className={`flex shrink-0 flex-col gap-2.5 max-lg:w-full ${compact ? 'w-97' : 'w-56 2xl:w-97'} ${ash}`}>
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
             <p
@@ -194,39 +196,35 @@ export default function HabitRow({
           >
             {habit.description}
           </p>
-          {isPaused && (
-            <p className="text-xs font-medium leading-normal text-[#5d5d5d] dark:text-gray-400">
-              Check-ins are paused until you activate again.
-            </p>
-          )}
         </div>
         <HabitTagList
           tags={habit.tags || []}
           maxVisible={compact ? (habit.tags || []).length : 2}
           wrap={compact}
-          className={isPaused ? 'opacity-50' : ''}
         />
       </div>
 
       {!compact && (
-        <div className="flex w-24 shrink-0 items-center gap-1.5 max-lg:w-auto 2xl:w-43.75">
+        <div className={`flex w-24 shrink-0 items-center gap-1.5 max-lg:w-auto 2xl:w-43.75 ${ash}`}>
           <Flame size={12} className={`shrink-0 ${streak.flame ? 'text-[#f97316]' : 'text-transparent'}`} />
           <p className={`text-sm font-medium ${streak.className}`}>{habit.streak} days</p>
         </div>
       )}
 
       {!compact && !isCompleted && (
-        <div className="grid w-full grid-cols-7 place-items-center gap-1 lg:hidden">
+        <div className={`grid w-full grid-cols-7 place-items-center gap-1 lg:hidden ${ash}`}>
           {DAYS.map((day, i) => (
             <div key={day} className="flex items-center justify-center gap-1">
               <p
                 className={`text-xs font-medium ${
-                  i === todayIndex ? 'text-[#8022fe]' : 'text-[#5d5d5d] dark:text-gray-300'
+                  i === todayIndex && !isPaused ? 'text-[#8022fe]' : 'text-[#5d5d5d] dark:text-gray-300'
                 }`}
               >
                 {day}
               </p>
-              {i === todayIndex && <span className="size-1 shrink-0 rounded-full bg-[#8022fe]" />}
+              {i === todayIndex && !isPaused && (
+                <span className="size-1 shrink-0 rounded-full bg-[#8022fe]" />
+              )}
             </div>
           ))}
         </div>
@@ -249,7 +247,7 @@ export default function HabitRow({
             compact
               ? 'w-[460px] shrink-0 justify-center gap-5'
               : `flex-1 justify-between ${showMenu ? 'pr-8 2xl:pr-41' : ''}`
-          }`}
+          } ${ash}`}
         >
           {DAYS.map((day, i) => (
             <DayCell
@@ -258,7 +256,7 @@ export default function HabitRow({
               progress={
                 habit.days?.[i] === 'today' && habit.todayProgress ? habit.todayProgress : null
               }
-              dimmed={isPaused}
+              dimmed={false}
               interactive={Boolean(onToggleDay) && !isCompleted && !isPaused && i === todayIndex}
               onToggle={() => onToggleDay?.(habit.id, i)}
             />
