@@ -154,7 +154,7 @@ If Postman has no valid response:
 | Activate | `PATCH /api/v1/goals/:id/activate` | Same toggle | Counterpart of pause | **FULFILLED** |
 | Delete | `DELETE /api/v1/goals/:id` | Card / detail menu | Wired | **FULFILLED** |
 | Update goal | `PATCH /api/v1/goals/:id` | Edit Goal modal (board + detail) | Partial body `{ title, priorityLevel?, status?, targetDate?, … }` | **FULFILLED** |
-| Complete goal | `POST /api/v1/goals/:id/complete` | Card menu Complete | No body | **FULFILLED** |
+| Complete goal | `POST /api/v1/goals/:id/complete` | Card menu Complete | No body. Fallback if 404: `PATCH .../complete` → `PATCH .../complete-status` → `PATCH /goals/:id` `{ status: COMPLETED }` | **FULFILLED** |
 | Link tasks | `POST /api/v1/goals/:id/link-tasks` | Plus / Spark Find & Attach | Body `{ taskIds: [uuid] }` | **FULFILLED** |
 | Link habits | `POST /api/v1/goals/:id/link-habits` | Plus / Spark Find & Attach | Body `{ habitIds: [uuid] }` | **FULFILLED** |
 | Tasks for link picker | `GET /api/v1/tasks` | **+** `LinkItemsModal`, Spark **Find & Attach**, New Goal linked tasks | Envelope `{ tasks, pagination }`; default `parentOnly=true&page=1&limit=50` (no `goalId`) | **FULFILLED** |
