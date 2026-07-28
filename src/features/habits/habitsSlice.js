@@ -167,6 +167,7 @@ export const markHabitCompleted = createAsyncThunk(
   async (habitId, { rejectWithValue }) => {
     try {
       const data = await markHabitStatusCompletedApi(habitId);
+      toast.success('Habit completed');
       return (
         mapHabitFromApi(data) || {
           id: habitId,
@@ -187,10 +188,18 @@ export const updateHabitStatus = createAsyncThunk(
     try {
       const data = await updateHabitStatusApi(habitId, statusToApi(status));
       const mapped = mapHabitFromApi(data);
+      const nextStatus = mapped?.status || status;
+      if (nextStatus === 'paused') {
+        toast.success('Habit paused');
+      } else if (nextStatus === 'active') {
+        toast.success('Habit activated');
+      } else {
+        toast.success('Habit status updated');
+      }
       return {
         ...(mapped || {}),
         id: mapped?.id || habitId,
-        status,
+        status: nextStatus,
       };
     } catch (error) {
       toast.error(error?.response?.data?.message || 'Failed to update habit status');

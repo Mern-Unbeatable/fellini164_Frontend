@@ -54,7 +54,7 @@ import GoalAiAssistant from './components/GoalAiAssistant';
 import LinkItemsModal from './components/LinkItemsModal';
 import GoalSparkLinkModal from './components/GoalSparkLinkModal';
 import NewGoalModal from './components/NewGoalModal';
-import GoalDeleteConfirmModal from './components/GoalDeleteConfirmModal';
+import DeleteConfirmModal from '../../../../../components/ui/DeleteConfirmModal';
 import NewHabitsModal from '../Habits/components/NewHabitsModal';
 import TaskFormModal from '../Tasks/components/TaskFormModal';
 
@@ -1376,7 +1376,7 @@ export default function GoalDetailPage() {
         initialGoal={goal}
       />
 
-      <GoalDeleteConfirmModal
+      <DeleteConfirmModal
         open={deleteModalOpen}
         title="Delete Goal"
         itemName={goal?.title}
@@ -1401,7 +1401,7 @@ export default function GoalDetailPage() {
         }}
       />
 
-      <GoalDeleteConfirmModal
+      <DeleteConfirmModal
         open={taskDeleteModal.open}
         title="Delete Task"
         itemName={taskDeleteModal.task?.title}

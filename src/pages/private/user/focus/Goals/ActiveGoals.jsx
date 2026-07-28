@@ -19,7 +19,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import NewGoalModal from './components/NewGoalModal';
 import GoalProgressModal from './components/GoalProgressModal';
-import GoalDeleteConfirmModal from './components/GoalDeleteConfirmModal';
+import DeleteConfirmModal from '../../../../../components/ui/DeleteConfirmModal';
 import GoalDetailPanel, {
   getLinkedHabits,
   getLinkedTasks,
@@ -1222,9 +1222,11 @@ export default function ActiveGoals() {
         onAttach={handleSparkAttach}
       />
 
-      <GoalDeleteConfirmModal
+      <DeleteConfirmModal
         open={deleteModal.open}
-        goalTitle={deleteModal.goal?.title}
+        title="Delete Goal"
+        itemName={deleteModal.goal?.title}
+        entityLabel="goal"
         submitting={deletingGoal}
         onClose={handleCloseDeleteModal}
         onConfirm={handleConfirmDeleteGoal}

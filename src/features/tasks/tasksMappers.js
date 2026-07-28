@@ -115,6 +115,41 @@ function formatDueLabel(iso) {
   return formatDisplayDate(iso) || String(iso);
 }
 
+/** AI preview Due line — date only from API `dueDate` (not dueTime). */
+function formatAiPreviewDue(dueDate) {
+  if (dueDate == null || dueDate === '') return null;
+
+  // Extract YYYY-MM-DD from ISO, date-only, or Date
+  let ymd = null;
+  if (dueDate instanceof Date && !Number.isNaN(dueDate.getTime())) {
+    const y = dueDate.getFullYear();
+    const m = String(dueDate.getMonth() + 1).padStart(2, '0');
+    const d = String(dueDate.getDate()).padStart(2, '0');
+    ymd = `${y}-${m}-${d}`;
+  } else {
+    const match = String(dueDate).match(/(\d{4}-\d{2}-\d{2})/);
+    if (match) ymd = match[1];
+  }
+
+  if (!ymd) return formatDueLabel(dueDate);
+
+  const [y, m, d] = ymd.split('-').map(Number);
+  const target = new Date(y, m - 1, d);
+  if (Number.isNaN(target.getTime())) return null;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  target.setHours(0, 0, 0, 0);
+  const diffDays = Math.round((target - today) / (1000 * 60 * 60 * 24));
+  if (diffDays === 0) return 'Today';
+  if (diffDays === 1) return 'Tomorrow';
+  return target.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
 function overdueDaysFromDue(iso, status) {
   if (!iso) return null;
   const upper = String(status || '').toUpperCase();
@@ -217,9 +252,41 @@ export function mapTaskFromApi(apiTask, preferredSource) {
 }
 
 export function mapAiGeneratedTaskForPreview(apiTask) {
-  const mapped = mapTaskFromApi(apiTask, 'ai');
+  // Guard: sometimes callers pass the full envelope { success, task, … }
+  const raw =
+    apiTask?.task && typeof apiTask.task === 'object' && !apiTask.id
+      ? apiTask.task
+      : apiTask;
+  const mapped = mapTaskFromApi(raw, 'ai');
   if (!mapped?.id) return null;
-  return { ...mapped, alreadyPersisted: true };
+
+  // AI generate: use API dueDate; if missing, default to today (product expectation)
+  const dueDateRaw = raw?.dueDate ?? raw?.due_date ?? mapped.dueDate ?? null;
+  let dueFromApi = formatAiPreviewDue(dueDateRaw);
+  let dueDateYmd = dueDateRaw
+    ? String(dueDateRaw).match(/(\d{4}-\d{2}-\d{2})/)?.[1] || null
+    : null;
+
+  if (!dueDateYmd) {
+    const now = new Date();
+    dueDateYmd = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    dueFromApi = 'Today';
+  } else if (!dueFromApi) {
+    dueFromApi = formatAiPreviewDue(dueDateYmd) || 'Today';
+  }
+
+  return {
+    ...mapped,
+    alreadyPersisted: true,
+    due: dueFromApi || mapped.due || 'Today',
+    dueDate: dueDateYmd,
+    dueTime: raw?.dueTime ?? mapped.dueTime ?? null,
+  };
+}
+
+/** Format API dueDate for task cards / AI preview (date only). */
+export function formatTaskDueDateLabel(dueDate) {
+  return formatAiPreviewDue(dueDate);
 }
 
 export function mapCreatePayload(form) {

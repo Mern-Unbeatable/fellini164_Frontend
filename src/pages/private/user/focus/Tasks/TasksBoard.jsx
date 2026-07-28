@@ -18,6 +18,7 @@ import {
   FilterDropdown,
 } from './components/TaskFilters';
 import TypewriterText from '../../../../../components/ui/TypewriterText';
+import DeleteConfirmModal from '../../../../../components/ui/DeleteConfirmModal';
 import {
   createTask,
   deleteTask,
@@ -153,6 +154,8 @@ export default function TasksBoard() {
   const [triggerImproveAi, setTriggerImproveAi] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilters, setActiveFilters] = useState(DEFAULT_FILTERS);
+  const [deleteModal, setDeleteModal] = useState({ open: false, task: null });
+  const [deletingTask, setDeletingTask] = useState(false);
 
   const loadTasks = useCallback(() => {
     if (forceEmpty) return Promise.resolve();
@@ -361,10 +364,30 @@ export default function TasksBoard() {
 
   const showGhostCards = boardIsEmpty && filteredGhostTasks.length > 0 && !loadingList;
 
-  const handleDeleteTask = async (task) => {
-    await dispatch(deleteTask(task.id));
-    await dispatch(fetchTasksSummary());
-    if (String(selectedTaskId) === String(task.id)) closeTaskDetail();
+  const handleRequestDeleteTask = (task) => {
+    if (!task?.id) return;
+    setDeleteModal({ open: true, task });
+  };
+
+  const handleCloseDeleteModal = () => {
+    if (deletingTask) return;
+    setDeleteModal({ open: false, task: null });
+  };
+
+  const handleConfirmDeleteTask = async () => {
+    const id = deleteModal.task?.id;
+    if (!id) return;
+    setDeletingTask(true);
+    try {
+      await dispatch(deleteTask(id)).unwrap();
+      setDeleteModal({ open: false, task: null });
+      await dispatch(fetchTasksSummary());
+      if (String(selectedTaskId) === String(id)) closeTaskDetail();
+    } catch {
+      /* toast from slice */
+    } finally {
+      setDeletingTask(false);
+    }
   };
 
   const handleSubmitTask = async (form) => {
@@ -545,7 +568,7 @@ export default function TasksBoard() {
                         key={task.id}
                         task={task}
                         onEdit={openEditTaskModal}
-                        onDelete={handleDeleteTask}
+                        onDelete={handleRequestDeleteTask}
                         onSelect={(t) => openTaskDetail(t)}
                         onBreakIntoSubtasks={(t) => openTaskDetail(t, true)}
                         onImproveDescription={handleImproveDescription}
@@ -570,7 +593,7 @@ export default function TasksBoard() {
           onUpdateTaskFields={(fields) => handleUpdateTaskFields(selectedTask.id, fields)}
           onEdit={openEditTaskModal}
           onDelete={(t) => {
-            handleDeleteTask(t);
+            handleRequestDeleteTask(t);
           }}
           onRefreshTask={refreshSelectedTask}
           autoAiAction={autoAiAction}
@@ -592,6 +615,16 @@ export default function TasksBoard() {
           onSubmit={handleSubmitTask}
         />
       )}
+
+      <DeleteConfirmModal
+        open={deleteModal.open}
+        title="Delete Task"
+        itemName={deleteModal.task?.title}
+        entityLabel="task"
+        submitting={deletingTask}
+        onClose={handleCloseDeleteModal}
+        onConfirm={handleConfirmDeleteTask}
+      />
     </div>
   );
 }

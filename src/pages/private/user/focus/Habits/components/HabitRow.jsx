@@ -74,13 +74,26 @@ function DayCell({ state, progress, dimmed, interactive, onToggle }) {
   );
 }
 
-function HabitRowMenu({ onEdit, onImprove, onComplete, onPause, onDelete, isPaused }) {
+function HabitRowMenu({
+  onEdit,
+  onImprove,
+  onComplete,
+  onPause,
+  onDelete,
+  isPaused,
+  isCompleted = false,
+}) {
+  const itemBase =
+    'flex items-center gap-1.5 px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap hover:bg-[#fcfcfc] dark:hover:bg-zinc-700';
+  const itemDisabled =
+    'flex cursor-not-allowed items-center gap-1.5 px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap opacity-40';
+
   return (
     <div className="flex w-max flex-col overflow-hidden rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
       <button
         type="button"
         onClick={onEdit}
-        className="flex items-center gap-1.5 border-b border-[#f2f2f2] px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#5d5d5d] hover:bg-[#fcfcfc] dark:border-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-700"
+        className={`${itemBase} border-b border-[#f2f2f2] text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300`}
       >
         <Pencil size={10} className="shrink-0" />
         Edit
@@ -88,15 +101,24 @@ function HabitRowMenu({ onEdit, onImprove, onComplete, onPause, onDelete, isPaus
       <button
         type="button"
         onClick={onImprove}
-        className="flex items-center gap-1.5 border-b border-[#f2f2f2] px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#8022fe] hover:bg-[#fcfcfc] dark:border-zinc-700 dark:hover:bg-zinc-700"
+        className={`${itemBase} border-b border-[#f2f2f2] text-[#8022fe] dark:border-zinc-700`}
       >
         <Sparkles size={10} className="shrink-0" />
         Improve habit
       </button>
       <button
         type="button"
-        onClick={onComplete}
-        className="flex items-center gap-1.5 px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#5d5d5d] hover:bg-[#fcfcfc] dark:text-gray-300 dark:hover:bg-zinc-700"
+        disabled={isCompleted}
+        aria-disabled={isCompleted}
+        onClick={() => {
+          if (isCompleted) return;
+          onComplete?.();
+        }}
+        className={
+          isCompleted
+            ? `${itemDisabled} text-[#5d5d5d] dark:text-gray-300`
+            : `${itemBase} text-[#5d5d5d] dark:text-gray-300`
+        }
       >
         <Check size={10} className="shrink-0" />
         Complete
@@ -104,7 +126,7 @@ function HabitRowMenu({ onEdit, onImprove, onComplete, onPause, onDelete, isPaus
       <button
         type="button"
         onClick={onPause}
-        className="flex items-center gap-1.5 px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#5d5d5d] hover:bg-[#fcfcfc] dark:text-gray-300 dark:hover:bg-zinc-700"
+        className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}
       >
         <Pause size={10} className="shrink-0" />
         {isPaused ? 'Activate' : 'Pause'}
@@ -112,7 +134,7 @@ function HabitRowMenu({ onEdit, onImprove, onComplete, onPause, onDelete, isPaus
       <button
         type="button"
         onClick={onDelete}
-        className="flex items-center gap-1.5 px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#5d5d5d] hover:bg-[#fcfcfc] dark:text-gray-300 dark:hover:bg-zinc-700"
+        className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}
       >
         <Trash2 size={10} className="shrink-0" />
         Delete
@@ -162,6 +184,8 @@ export default function HabitRow({
   const isCompleted = habit.status === 'completed';
   const showMenuTrigger = showMenu && (isHovered || menuOpen);
   const streak = streakPresentation(habit);
+  // Match Goals paused card — ash fade on content (no new colors)
+  const ash = isPaused ? 'opacity-50' : '';
 
   return (
     <div
@@ -170,7 +194,7 @@ export default function HabitRow({
       onMouseLeave={() => setIsHovered(false)}
       className="relative flex w-full shrink-0 items-start rounded-2xl border border-solid border-[#f2f2f2] bg-[#fcfcfc] p-3 max-lg:flex-col max-lg:gap-3 dark:border-zinc-700 dark:bg-zinc-800"
     >
-      <div className={`flex shrink-0 flex-col gap-2.5 max-lg:w-full ${compact ? 'w-97' : 'w-56 2xl:w-97'}`}>
+      <div className={`flex shrink-0 flex-col gap-2.5 max-lg:w-full ${compact ? 'w-97' : 'w-56 2xl:w-97'} ${ash}`}>
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
             <p
@@ -199,29 +223,30 @@ export default function HabitRow({
           tags={habit.tags || []}
           maxVisible={compact ? (habit.tags || []).length : 2}
           wrap={compact}
-          className={isPaused ? 'opacity-50' : ''}
         />
       </div>
 
       {!compact && (
-        <div className="flex w-24 shrink-0 items-center gap-1.5 max-lg:w-auto 2xl:w-43.75">
+        <div className={`flex w-24 shrink-0 items-center gap-1.5 max-lg:w-auto 2xl:w-43.75 ${ash}`}>
           <Flame size={12} className={`shrink-0 ${streak.flame ? 'text-[#f97316]' : 'text-transparent'}`} />
           <p className={`text-sm font-medium ${streak.className}`}>{habit.streak} days</p>
         </div>
       )}
 
       {!compact && !isCompleted && (
-        <div className="grid w-full grid-cols-7 place-items-center gap-1 lg:hidden">
+        <div className={`grid w-full grid-cols-7 place-items-center gap-1 lg:hidden ${ash}`}>
           {DAYS.map((day, i) => (
             <div key={day} className="flex items-center justify-center gap-1">
               <p
                 className={`text-xs font-medium ${
-                  i === todayIndex ? 'text-[#8022fe]' : 'text-[#5d5d5d] dark:text-gray-300'
+                  i === todayIndex && !isPaused ? 'text-[#8022fe]' : 'text-[#5d5d5d] dark:text-gray-300'
                 }`}
               >
                 {day}
               </p>
-              {i === todayIndex && <span className="size-1 shrink-0 rounded-full bg-[#8022fe]" />}
+              {i === todayIndex && !isPaused && (
+                <span className="size-1 shrink-0 rounded-full bg-[#8022fe]" />
+              )}
             </div>
           ))}
         </div>
@@ -244,7 +269,7 @@ export default function HabitRow({
             compact
               ? 'w-[460px] shrink-0 justify-center gap-5'
               : `flex-1 justify-between ${showMenu ? 'pr-8 2xl:pr-41' : ''}`
-          }`}
+          } ${ash}`}
         >
           {DAYS.map((day, i) => (
             <DayCell
@@ -253,8 +278,8 @@ export default function HabitRow({
               progress={
                 habit.days?.[i] === 'today' && habit.todayProgress ? habit.todayProgress : null
               }
-              dimmed={isPaused}
-              interactive={Boolean(onToggleDay) && !isCompleted && i === todayIndex}
+              dimmed={false}
+              interactive={Boolean(onToggleDay) && !isCompleted && !isPaused && i === todayIndex}
               onToggle={() => onToggleDay?.(habit.id, i)}
             />
           ))}
@@ -279,6 +304,7 @@ export default function HabitRow({
         <div className="absolute right-3 top-9 z-50">
           <HabitRowMenu
             isPaused={isPaused}
+            isCompleted={isCompleted}
             onEdit={() => {
               setMenuOpen(false);
               onEdit?.(habit);
@@ -288,6 +314,7 @@ export default function HabitRow({
               onImprove?.(habit);
             }}
             onComplete={() => {
+              if (isCompleted) return;
               setMenuOpen(false);
               onComplete?.(habit);
             }}

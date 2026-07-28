@@ -1,5 +1,5 @@
 import React from 'react';
-import { RefreshCw, Clock, Sparkles } from 'lucide-react';
+import { RefreshCw, Clock } from 'lucide-react';
 import { PLANNER_HOURS, SEED_DATE_KEY, dateKeyFromDate, getWeekDays } from '../plannerData';
 
 // Weekly grid rhythm — time column matches DailyView exactly.
@@ -18,19 +18,17 @@ const DAY_GRID_COLUMNS = `repeat(${DAY_COLS}, minmax(0, 1fr))`;
 const HOUR_LABEL =
   'shrink-0 text-right text-[12px] font-medium leading-[1.5] whitespace-nowrap text-[#c2c2c2] dark:text-gray-500';
 
-// Figma 1264:27359+ — compact title 10px; badges/chips 8px.
+// Weekly card typography — 12px; titles truncate like Monthly (no 2-line overflow into chips).
 const WEEKLY_TYPO = {
   ghostTitle:
-    'm-0 h-[18px] w-full min-w-0 truncate text-center text-[12px] font-medium leading-[1.5] text-[#181818] dark:text-gray-300',
+    'm-0 w-full min-w-0 truncate text-center text-[12px] font-medium leading-[1.5] text-[#181818] dark:text-gray-300',
   title:
-    'm-0 w-full min-w-0 truncate text-center text-[10px] font-medium leading-[1.5] text-[#181818] dark:text-gray-300',
-  titleMulti:
-    'm-0 line-clamp-2 h-[29px] w-full min-w-0 shrink-0 break-words text-left text-[10px] font-medium leading-[1.5] text-[#181818] dark:text-gray-300',
+    'm-0 w-full min-w-0 truncate text-center text-[12px] font-medium leading-[1.5] text-[#181818] dark:text-gray-300',
   habitTitle:
-    'm-0 line-clamp-2 h-[36px] w-full min-w-0 shrink-0 break-words text-left text-[12px] font-medium leading-[1.5] text-[#181818] dark:text-gray-300',
-  badge: 'text-[8px] font-medium uppercase leading-[1.5]',
+    'm-0 w-full min-w-0 truncate text-left text-[12px] font-medium leading-[1.5] text-[#181818] dark:text-gray-300',
+  badge: 'text-[12px] font-medium uppercase leading-[1.5]',
   badgeMd: 'text-[12px] font-medium uppercase leading-[1.5]',
-  chip: 'text-[8px] font-medium leading-[1.5] text-[#5d5d5d]',
+  chip: 'text-[12px] font-medium leading-[1.5] text-[#5d5d5d]',
   chipMd: 'text-[12px] font-medium leading-[1.5] text-[#5d5d5d]',
 };
 
@@ -89,20 +87,26 @@ function getWeeklyCardLayout(item) {
   }
 
   // API planner items (UUID ids) — place by startTime on the existing hour grid.
+  // Habits need extra height so the floating "1 Habit" badge never covers the title.
+  // Tasks with meta chips need ~72px so truncated title + Career/Min never overlap.
   if (hourIndex >= 0) {
+    const isHabit = item.kind === 'habit';
+    const hasMeta = Boolean(item.category || item.durationLabel);
     return {
       top: hourIndex * ROW_STEP + 7,
-      height: item.kind === 'habit' ? 54 : 64,
-      showHabitBadge: item.kind === 'habit',
+      height: isHabit ? (hasMeta ? 76 : 64) : hasMeta ? 72 : 52,
+      showHabitBadge: isHabit,
     };
   }
 
   // No matching hour label — stack by order so the item still appears in the week column.
   const order = Number(item.orderIndex) || 0;
+  const isHabit = item.kind === 'habit';
+  const hasMeta = Boolean(item.category || item.durationLabel);
   return {
     top: order * 44 + 7,
-    height: item.kind === 'habit' ? 54 : 64,
-    showHabitBadge: item.kind === 'habit',
+    height: isHabit ? (hasMeta ? 76 : 64) : hasMeta ? 72 : 52,
+    showHabitBadge: isHabit,
   };
 }
 
@@ -205,7 +209,7 @@ function WeekGhostCard({ ghost, className = '', style, children, habitBadge, rad
       />
       {habitBadge && (
         <div
-          className={`absolute top-[-8px] left-1/2 z-2 flex w-max -translate-x-1/2 items-center gap-[4px] whitespace-nowrap rounded-[4px] bg-[#fcfcfc] px-[3px] py-px dark:bg-zinc-900 ${
+          className={`absolute top-[-10px] left-1/2 z-2 flex w-max -translate-x-1/2 items-center gap-[4px] whitespace-nowrap rounded-[4px] border border-[#f2f2f2] bg-[#fcfcfc] px-[6px] py-[2px] dark:border-zinc-700 dark:bg-zinc-900 ${
             ghost ? 'opacity-40 transition-opacity group-hover:opacity-100' : ''
           }`}
         >
@@ -226,9 +230,51 @@ function WeekGhostCard({ ghost, className = '', style, children, habitBadge, rad
   );
 }
 
-function WeekGhostFieldTitle({ children, multiline = false, className = '' }) {
-  const style = multiline ? WEEKLY_TYPO.titleMulti : WEEKLY_TYPO.title;
-  return <p className={`${style} ${className}`}>{children}</p>;
+/** Monthly-style task chip row (Career / 480 Min) — never wraps under title. */
+function WeekTaskMetaChips({ item, fade, chipClass }) {
+  if (!item.category && !item.durationLabel) return null;
+  return (
+    <div
+      className={`flex w-full min-w-0 shrink-0 flex-nowrap items-center justify-center gap-[4px] overflow-hidden ${fade}`}
+    >
+      {item.category && (
+        <span
+          className={`max-w-[50%] shrink truncate rounded-[4px] border border-[#f2f2f2] px-[6px] py-[2px] ${chipClass}`}
+        >
+          {item.category}
+        </span>
+      )}
+      {item.durationLabel && (
+        <span
+          className={`flex min-w-0 max-w-[50%] items-center gap-[4px] truncate rounded-[4px] border border-[#f2f2f2] px-[6px] py-[2px] ${chipClass}`}
+        >
+          <Clock size={10} className="shrink-0" /> {item.durationLabel}
+        </span>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Task cards in Weekly — same truncation as Monthly field:
+ * single-line ellipsis title + optional meta chips below (no wrap/overlap).
+ */
+function WeekTaskFieldCard({ item, ghost, height }) {
+  const fade = weekContentFade(ghost);
+  const hasMeta = Boolean(item.category || item.durationLabel);
+
+  return (
+    <WeekGhostCard ghost={ghost} style={{ height }}>
+      <div
+        className={`box-border flex h-full w-full min-w-0 flex-col items-center justify-center gap-[4px] overflow-hidden px-[6px] py-[6px] text-center ${fade}`}
+      >
+        <p className={WEEKLY_TYPO.title} title={item.title}>
+          {item.title}
+        </p>
+        {hasMeta && <WeekTaskMetaChips item={item} fade="" chipClass={WEEKLY_TYPO.chip} />}
+      </div>
+    </WeekGhostCard>
+  );
 }
 
 function WeekItemCard({ item, ghost, layout }) {
@@ -236,6 +282,7 @@ function WeekItemCard({ item, ghost, layout }) {
   const isTiny = layout.height <= 20;
   const isCompact = layout.height <= 37 && !isTiny;
   const fade = weekContentFade(ghost);
+  const isTask = item.kind === 'task' || (!layout.showHabitBadge && item.kind !== 'habit');
 
   if (isTiny) {
     return (
@@ -253,15 +300,18 @@ function WeekItemCard({ item, ghost, layout }) {
     );
   }
 
+  // Real / API tasks — monthly-style truncated field (fixes long-title overlap into chips).
+  if (isTask && !WEEKLY_CARD_LAYOUT[item.id]) {
+    return <WeekTaskFieldCard item={item} ghost={ghost} height={height} />;
+  }
+
   if (item.id === '3') {
     return (
       <WeekGhostCard ghost={ghost} style={{ height }}>
-        <div className="box-border flex h-full w-full flex-col items-center justify-start gap-[6px] px-[8px] pb-[6px] pt-[8px] text-center">
-          <div className={`flex w-full min-w-0 flex-col items-center ${fade}`}>
-            <p className="m-0 w-full truncate text-center text-[12px] font-medium leading-[1.5] text-[#181818] dark:text-gray-300">
-              {item.title}
-            </p>
-          </div>
+        <div className="box-border flex h-full w-full flex-col items-center justify-center gap-[4px] overflow-hidden px-[8px] py-[6px] text-center">
+          <p className={`${WEEKLY_TYPO.title} ${fade}`} title={item.title}>
+            {item.title}
+          </p>
           <div className={`flex w-full min-w-0 flex-nowrap items-center justify-center gap-[4px] overflow-hidden ${fade}`}>
             {item.priority && (
               <span className={`shrink-0 rounded-[4px] px-[3px] py-px ${WEEKLY_TYPO.badgeMd} ${PRIORITY_STYLES[item.priority]}`}>
@@ -279,37 +329,23 @@ function WeekItemCard({ item, ghost, layout }) {
     );
   }
 
-  // Figma 1264:27361 — 106×108, radius 8, px-8 pt-8 pb-6, gap-6, left-aligned stack.
+  // Habit cards — top padding clears floating "1 Habit" badge; title truncates like Monthly.
   if (layout.showHabitBadge) {
     return (
       <WeekGhostCard ghost={ghost} habitBadge style={{ height }}>
-        <div className="box-border flex h-full w-full flex-col items-start gap-[6px] px-[8px] pt-[8px] pb-[6px] text-left">
-          <div className={`flex w-full min-w-0 flex-col items-start gap-[6px] ${fade}`}>
-            <p className={WEEKLY_TYPO.habitTitle}>{item.title}</p>
-            {(item.priority || item.status) && (
-              <div className="flex w-full min-w-0 flex-nowrap items-center gap-[4px] overflow-hidden">
-                {item.priority && (
-                  <span className={`shrink-0 rounded-[4px] px-[3px] py-px ${WEEKLY_TYPO.badgeMd} ${PRIORITY_STYLES[item.priority]}`}>
-                    {item.priority}
-                  </span>
-                )}
-                {item.status && (
-                  <span className={`min-w-0 truncate rounded-[4px] bg-[#f2f2f2] px-[3px] py-px uppercase text-[#a3a3a3] ${WEEKLY_TYPO.badgeMd}`}>
-                    {item.status}
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
+        <div className="box-border flex h-full w-full flex-col items-start justify-center gap-[4px] overflow-hidden px-[8px] pt-[14px] pb-[6px] text-left">
+          <p className={`${WEEKLY_TYPO.habitTitle} ${fade}`} title={item.title}>
+            {item.title}
+          </p>
           {(item.category || item.durationLabel) && (
             <div className={`flex w-full min-w-0 shrink-0 flex-nowrap items-center gap-[4px] overflow-hidden ${fade}`}>
               {item.category && (
-                <span className={`shrink-0 truncate rounded-[4px] border border-[#f2f2f2] px-[6px] py-[2px] ${WEEKLY_TYPO.chipMd}`}>
+                <span className={`max-w-[50%] shrink truncate rounded-[4px] border border-[#f2f2f2] px-[6px] py-[2px] ${WEEKLY_TYPO.chipMd}`}>
                   {item.category}
                 </span>
               )}
               {item.durationLabel && (
-                <span className={`flex min-w-0 items-center gap-[4px] truncate rounded-[4px] border border-[#f2f2f2] px-[6px] py-[2px] ${WEEKLY_TYPO.chipMd}`}>
+                <span className={`flex min-w-0 max-w-[50%] items-center gap-[4px] truncate rounded-[4px] border border-[#f2f2f2] px-[6px] py-[2px] ${WEEKLY_TYPO.chipMd}`}>
                   <Clock size={10} className="shrink-0" /> {item.durationLabel}
                 </span>
               )}
@@ -320,83 +356,54 @@ function WeekItemCard({ item, ghost, layout }) {
     );
   }
 
-  // Figma Frame 219 — 11 AM: title + HIGH / IN PROGRESS only, 12px text.
+  // Figma Frame 219 — 11 AM seed card.
   if (item.id === '4') {
     return (
       <WeekGhostCard ghost={ghost} style={{ height }}>
-        <div className="box-border flex w-full flex-col items-start px-[8px] pt-[8px] pb-[6px] text-left">
-          <div className={`flex w-full min-w-0 flex-col items-start gap-[2px] ${fade}`}>
-            <p className={WEEKLY_TYPO.habitTitle}>{item.title}</p>
-            {(item.priority || item.status) && (
-              <div className="flex w-full min-w-0 flex-nowrap items-center gap-[4px] overflow-hidden">
-                {item.priority && (
-                  <span className={`shrink-0 rounded-[4px] px-[3px] py-px ${WEEKLY_TYPO.badgeMd} ${PRIORITY_STYLES[item.priority]}`}>
-                    {item.priority}
-                  </span>
-                )}
-                {item.status && (
-                  <span className={`min-w-0 truncate rounded-[4px] bg-[#f2f2f2] px-[3px] py-px uppercase text-[#a3a3a3] ${WEEKLY_TYPO.badgeMd}`}>
-                    {item.status}
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      </WeekGhostCard>
-    );
-  }
-
-  return (
-    <WeekGhostCard ghost={ghost} style={{ height }}>
-      <div className="box-border flex h-full w-full flex-col items-center gap-[6px] px-[6px] pb-[6px] pt-[8px] text-center">
-        <div className={`flex min-h-0 w-full flex-1 flex-col items-center gap-[6px] ${fade}`}>
-          <WeekGhostFieldTitle multiline>
+        <div className="box-border flex h-full w-full flex-col items-start justify-center gap-[2px] overflow-hidden px-[8px] py-[6px] text-left">
+          <p className={`${WEEKLY_TYPO.habitTitle} ${fade}`} title={item.title}>
             {item.title}
-          </WeekGhostFieldTitle>
+          </p>
           {(item.priority || item.status) && (
-            <div className="flex w-full min-w-0 flex-nowrap items-center justify-center gap-[4px] overflow-hidden">
+            <div className={`flex w-full min-w-0 flex-nowrap items-center gap-[4px] overflow-hidden ${fade}`}>
               {item.priority && (
-                <span className={`shrink-0 rounded-[4px] px-[3px] py-px ${WEEKLY_TYPO.badge} ${PRIORITY_STYLES[item.priority]}`}>
+                <span className={`shrink-0 rounded-[4px] px-[3px] py-px ${WEEKLY_TYPO.badgeMd} ${PRIORITY_STYLES[item.priority]}`}>
                   {item.priority}
                 </span>
               )}
               {item.status && (
-                <span className={`min-w-0 truncate rounded-[4px] bg-[#f2f2f2] px-[3px] py-px uppercase text-[#a3a3a3] ${WEEKLY_TYPO.badge}`}>
+                <span className={`min-w-0 truncate rounded-[4px] bg-[#f2f2f2] px-[3px] py-px uppercase text-[#a3a3a3] ${WEEKLY_TYPO.badgeMd}`}>
                   {item.status}
-                </span>
-              )}
-              {(item.source === 'ai' || item.aiScheduleState) && (
-                <span className={`flex shrink-0 items-center gap-[4px] rounded-[4px] bg-[#f9f4ff] px-[3px] py-px text-[#8022fe] ${WEEKLY_TYPO.badge}`}>
-                  <Sparkles size={8} /> AI
                 </span>
               )}
             </div>
           )}
         </div>
-        {(item.category || item.durationLabel) && (
-          <div className={`flex w-full min-w-0 flex-nowrap content-center items-center justify-center gap-[4px] overflow-hidden ${fade}`}>
-            {item.category && (
-              <span className={`shrink-0 truncate rounded-[4px] border border-[#f2f2f2] px-[6px] py-[2px] ${WEEKLY_TYPO.chip}`}>
-                {item.category}
-              </span>
-            )}
-            {item.durationLabel && (
-              <span className={`flex min-w-0 items-center gap-[4px] truncate rounded-[4px] border border-[#f2f2f2] px-[6px] py-[2px] ${WEEKLY_TYPO.chip}`}>
-                <Clock size={7} className="shrink-0" /> {item.durationLabel}
-              </span>
-            )}
-          </div>
-        )}
-      </div>
-    </WeekGhostCard>
-  );
+      </WeekGhostCard>
+    );
+  }
+
+  // Fallback (seed tasks with meta) — monthly truncate + chips.
+  return <WeekTaskFieldCard item={item} ghost={ghost} height={height} />;
 }
 
-export default function WeeklyView({ currentDate, selectedDate, plans, hasAcceptedPlan, isLoading }) {
+export default function WeeklyView({
+  currentDate,
+  selectedDate,
+  setSelectedDate,
+  setViewMode,
+  plans,
+  hasAcceptedPlan,
+  isLoading,
+}) {
   const anchorDate = selectedDate || currentDate || new Date(2026, 4, 13);
   const weekDays = getWeekDays(anchorDate);
   const selectedKey = dateKeyFromDate(anchorDate);
+
+  const openDayInDaily = (day) => {
+    if (setSelectedDate) setSelectedDate(new Date(day.getFullYear(), day.getMonth(), day.getDate()));
+    if (setViewMode) setViewMode('Daily');
+  };
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-white shadow-sm max-xl:h-auto max-xl:flex-none dark:border-zinc-800/80 dark:bg-zinc-900">
@@ -412,7 +419,12 @@ export default function WeeklyView({ currentDate, selectedDate, plans, hasAccept
                 {weekDays.map((day) => {
                   const isActive = dateKeyFromDate(day) === selectedKey;
                   return (
-                    <div key={day.toISOString()} className="flex min-w-0 flex-col items-center gap-[2px]">
+                    <button
+                      key={day.toISOString()}
+                      type="button"
+                      onClick={() => openDayInDaily(day)}
+                      className="flex min-w-0 cursor-pointer flex-col items-center gap-[2px] rounded-lg border-0 bg-transparent p-0"
+                    >
                       <p className="text-center text-[12px] font-medium leading-[1.5] whitespace-nowrap text-[#c2c2c2] dark:text-gray-500">
                         {day.toLocaleDateString('en-US', { weekday: 'short' })}
                       </p>
@@ -431,7 +443,7 @@ export default function WeeklyView({ currentDate, selectedDate, plans, hasAccept
                           {day.getDate()}
                         </p>
                       </div>
-                    </div>
+                    </button>
                   );
                 })}
               </div>
@@ -470,11 +482,23 @@ export default function WeeklyView({ currentDate, selectedDate, plans, hasAccept
                               <WeekCardAnchor
                                 key={item.id}
                                 top={scaleY(layout.top)}
-                                className={`pointer-events-auto ${
+                                className={`pointer-events-auto cursor-pointer ${
                                   item.aiScheduleState ? 'animate-fade-in' : ''
                                 }`}
                               >
-                                <WeekItemCard item={item} ghost={!hasAcceptedPlan} layout={layout} />
+                                <div
+                                  role="button"
+                                  tabIndex={0}
+                                  onClick={() => openDayInDaily(day)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                      e.preventDefault();
+                                      openDayInDaily(day);
+                                    }
+                                  }}
+                                >
+                                  <WeekItemCard item={item} ghost={!hasAcceptedPlan} layout={layout} />
+                                </div>
                               </WeekCardAnchor>
                             );
                           })}

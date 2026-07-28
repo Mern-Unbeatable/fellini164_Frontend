@@ -11,6 +11,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import NewHabitsModal from './components/NewHabitsModal';
 import HabitRow from './components/HabitRow';
 import GhostHabitRow from './components/GhostHabitRow';
+import DeleteConfirmModal from '../../../../../components/ui/DeleteConfirmModal';
 import {
   FILTER_CONFIG,
   DEFAULT_FILTERS,
@@ -159,6 +160,8 @@ export default function Habits() {
   });
   const [improveModal, setImproveModal] = useState({ open: false, habit: null });
   const [improveSubmitting, setImproveSubmitting] = useState(false);
+  const [deleteModal, setDeleteModal] = useState({ open: false, habit: null });
+  const [deletingHabit, setDeletingHabit] = useState(false);
   const [ghostHabits, setGhostHabits] = useState(GHOST_HABITS);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilters, setActiveFilters] = useState(DEFAULT_FILTERS);
@@ -300,6 +303,7 @@ export default function Habits() {
   };
 
   const handleCompleteHabit = async (habit) => {
+    if (!habit?.id || habit.status === 'completed') return;
     await dispatch(markHabitCompleted(habit.id));
     await loadHabits();
     await dispatch(fetchHabitsSummary());
@@ -312,9 +316,29 @@ export default function Habits() {
     await dispatch(fetchHabitsSummary());
   };
 
-  const handleDeleteHabit = async (habit) => {
-    await dispatch(deleteHabit(habit.id));
-    await dispatch(fetchHabitsSummary());
+  const handleRequestDeleteHabit = (habit) => {
+    if (!habit?.id) return;
+    setDeleteModal({ open: true, habit });
+  };
+
+  const handleCloseDeleteModal = () => {
+    if (deletingHabit) return;
+    setDeleteModal({ open: false, habit: null });
+  };
+
+  const handleConfirmDeleteHabit = async () => {
+    const id = deleteModal.habit?.id;
+    if (!id) return;
+    setDeletingHabit(true);
+    try {
+      await dispatch(deleteHabit(id)).unwrap();
+      setDeleteModal({ open: false, habit: null });
+      await dispatch(fetchHabitsSummary());
+    } catch {
+      /* toast from slice */
+    } finally {
+      setDeletingHabit(false);
+    }
   };
 
   return (
@@ -442,7 +466,7 @@ export default function Habits() {
                 onImprove={handleImproveHabit}
                 onComplete={handleCompleteHabit}
                 onPause={handlePauseHabit}
-                onDelete={handleDeleteHabit}
+                onDelete={handleRequestDeleteHabit}
               />
             ))
           )}
@@ -473,6 +497,16 @@ export default function Habits() {
         submitting={improveSubmitting}
         onClose={() => setImproveModal({ open: false, habit: null })}
         onSubmit={handleImproveSubmit}
+      />
+
+      <DeleteConfirmModal
+        open={deleteModal.open}
+        title="Delete Habit"
+        itemName={deleteModal.habit?.title}
+        entityLabel="habit"
+        submitting={deletingHabit}
+        onClose={handleCloseDeleteModal}
+        onConfirm={handleConfirmDeleteHabit}
       />
     </div>
   );

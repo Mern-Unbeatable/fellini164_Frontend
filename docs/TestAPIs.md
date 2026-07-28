@@ -602,11 +602,12 @@ Response envelope:
 ## Appendix C — Habits Board API Audit (Current Frontend)
 
 **Date:** 2026-07-23  
-**Last automated re-test:** 2026-07-23 — `audit-habits-board.mjs` → **ALL PASS**  
+**Last automated re-test:** 2026-07-28 — `audit-habits-board.mjs` + `audit-habits-error-handling.mjs` → **ALL PASS**  
 **Module:** `src/features/habits/` + `src/pages/private/user/focus/Habits/`  
 **Base URL (env):** `VITE_API_BASE_URL` → `https://backendtest.elyxaai.com`  
 **API prefix used in code:** `/api/v1/habits`  
-**Contract verifier:** `node scripts/audit-habits-board.mjs`
+**Contract verifier:** `node scripts/audit-habits-board.mjs`  
+**Error-handling verifier:** `node scripts/audit-habits-error-handling.mjs`
 
 ---
 
@@ -762,6 +763,7 @@ Server persists immediately — **Add to Board** only refreshes the list (no sec
 
 ```bash
 node scripts/audit-habits-board.mjs
+node scripts/audit-habits-error-handling.mjs
 ```
 
 ---
@@ -774,7 +776,8 @@ node scripts/audit-habits-board.mjs
 | Exact method (no guessing) | **PASS** | Pause/Activate = `/pause` toggle only after `/activate` 404 confirmed |
 | Remove mock after connect | **PASS** for list/filters/create/AI/row actions; **DEFERRED** ghosts | See C.1b |
 | Loading / empty / errors | **PASS** | Soft list reload; empty copy; toasts |
-| Mapper audit | **PASS** | `audit-habits-board.mjs` — ALL PASS (2026-07-23) |
+| Mapper audit | **PASS** | `audit-habits-board.mjs` — ALL PASS (2026-07-28) |
+| Error toasts + path contract | **PASS** | `audit-habits-error-handling.mjs` — ALL PASS (2026-07-28) |
 | Logged-in Network QA | **Manual** | Engineer checklist §C.6 |
 
 ### C.8 Blockers

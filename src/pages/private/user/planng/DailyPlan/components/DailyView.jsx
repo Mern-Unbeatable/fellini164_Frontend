@@ -30,6 +30,14 @@ function getSevenAmCardTop() {
   // Figma image 1 — card top aligns with the 7 AM label row; slight nudge up for dotted fields.
   return SEVEN_AM_HOUR_INDEX * ROW_STEP - 14;
 }
+
+// 9 AM — same centering as 7 AM so full task cards sit on the 9 AM row (not drifting toward 10 AM).
+const NINE_AM_HOUR_INDEX = 8;
+
+function getNineAmCardTop() {
+  return NINE_AM_HOUR_INDEX * ROW_STEP - 14;
+}
+
 // card begins 26px above the hour rule; purple rule sits a little below the hour line.
 const FOUR_AM_HOUR_INDEX = 3;
 const FOUR_AM_CARD_ABOVE_HOUR_LINE = 26;
@@ -111,6 +119,7 @@ function getHourLineTop(index) {
 function getCardTop(hour, index) {
   if (hour === '4 AM') return getHourLineTop(index) - FOUR_AM_CARD_ABOVE_HOUR_LINE;
   if (hour === '7 AM') return getSevenAmCardTop();
+  if (hour === '9 AM') return getNineAmCardTop();
   if (CARD_TOP_FROM_GRID[hour] != null) return CARD_TOP_FROM_GRID[hour];
   return getHourLineTop(index) + CARD_TOP_OFFSET;
 }
