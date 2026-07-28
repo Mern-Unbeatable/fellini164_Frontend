@@ -1,15 +1,16 @@
 import { AlertCircle, X } from 'lucide-react';
 
 /**
- * Confirm before permanently deleting a goal, task, or habit.
+ * Shared confirm dialog before permanently deleting a goal, task, habit, etc.
+ * Page-specific: pass title / itemName / entityLabel; wire onConfirm to that page’s API.
  */
-export default function GoalDeleteConfirmModal({
+export default function DeleteConfirmModal({
   open,
-  title = 'Delete Goal',
-  /** @deprecated use itemName */
+  title = 'Delete',
+  /** @deprecated use itemName — kept so existing Goals call sites keep working */
   goalTitle,
   itemName,
-  entityLabel = 'goal',
+  entityLabel = 'item',
   submitting = false,
   onClose,
   onConfirm,
