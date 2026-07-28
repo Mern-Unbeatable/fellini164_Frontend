@@ -87,13 +87,14 @@ function getWeeklyCardLayout(item) {
   }
 
   // API planner items (UUID ids) — place by startTime on the existing hour grid.
+  // Habits need extra height so the floating "1 Habit" badge never covers the title.
   // Tasks with meta chips need ~72px so truncated title + Career/Min never overlap.
   if (hourIndex >= 0) {
     const isHabit = item.kind === 'habit';
     const hasMeta = Boolean(item.category || item.durationLabel);
     return {
       top: hourIndex * ROW_STEP + 7,
-      height: isHabit ? 54 : hasMeta ? 72 : 52,
+      height: isHabit ? (hasMeta ? 76 : 64) : hasMeta ? 72 : 52,
       showHabitBadge: isHabit,
     };
   }
@@ -104,7 +105,7 @@ function getWeeklyCardLayout(item) {
   const hasMeta = Boolean(item.category || item.durationLabel);
   return {
     top: order * 44 + 7,
-    height: isHabit ? 54 : hasMeta ? 72 : 52,
+    height: isHabit ? (hasMeta ? 76 : 64) : hasMeta ? 72 : 52,
     showHabitBadge: isHabit,
   };
 }
@@ -208,7 +209,7 @@ function WeekGhostCard({ ghost, className = '', style, children, habitBadge, rad
       />
       {habitBadge && (
         <div
-          className={`absolute top-[-8px] left-1/2 z-2 flex w-max -translate-x-1/2 items-center gap-[4px] whitespace-nowrap rounded-[4px] bg-[#fcfcfc] px-[3px] py-px dark:bg-zinc-900 ${
+          className={`absolute top-[-10px] left-1/2 z-2 flex w-max -translate-x-1/2 items-center gap-[4px] whitespace-nowrap rounded-[4px] border border-[#f2f2f2] bg-[#fcfcfc] px-[6px] py-[2px] dark:border-zinc-700 dark:bg-zinc-900 ${
             ghost ? 'opacity-40 transition-opacity group-hover:opacity-100' : ''
           }`}
         >
@@ -328,11 +329,11 @@ function WeekItemCard({ item, ghost, layout }) {
     );
   }
 
-  // Habit cards — truncated title + optional chips (same ellipsis rule as Monthly).
+  // Habit cards — top padding clears floating "1 Habit" badge; title truncates like Monthly.
   if (layout.showHabitBadge) {
     return (
       <WeekGhostCard ghost={ghost} habitBadge style={{ height }}>
-        <div className="box-border flex h-full w-full flex-col items-start justify-center gap-[4px] overflow-hidden px-[8px] py-[6px] text-left">
+        <div className="box-border flex h-full w-full flex-col items-start justify-center gap-[4px] overflow-hidden px-[8px] pt-[14px] pb-[6px] text-left">
           <p className={`${WEEKLY_TYPO.habitTitle} ${fade}`} title={item.title}>
             {item.title}
           </p>
