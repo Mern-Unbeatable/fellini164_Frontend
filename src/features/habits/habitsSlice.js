@@ -167,6 +167,7 @@ export const markHabitCompleted = createAsyncThunk(
   async (habitId, { rejectWithValue }) => {
     try {
       const data = await markHabitStatusCompletedApi(habitId);
+      toast.success('Habit completed');
       return (
         mapHabitFromApi(data) || {
           id: habitId,

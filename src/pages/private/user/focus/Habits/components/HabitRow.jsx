@@ -74,13 +74,26 @@ function DayCell({ state, progress, dimmed, interactive, onToggle }) {
   );
 }
 
-function HabitRowMenu({ onEdit, onImprove, onComplete, onPause, onDelete, isPaused }) {
+function HabitRowMenu({
+  onEdit,
+  onImprove,
+  onComplete,
+  onPause,
+  onDelete,
+  isPaused,
+  isCompleted = false,
+}) {
+  const itemBase =
+    'flex items-center gap-1.5 px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap hover:bg-[#fcfcfc] dark:hover:bg-zinc-700';
+  const itemDisabled =
+    'flex cursor-not-allowed items-center gap-1.5 px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap opacity-40';
+
   return (
     <div className="flex w-max flex-col overflow-hidden rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
       <button
         type="button"
         onClick={onEdit}
-        className="flex items-center gap-1.5 border-b border-[#f2f2f2] px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#5d5d5d] hover:bg-[#fcfcfc] dark:border-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-700"
+        className={`${itemBase} border-b border-[#f2f2f2] text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300`}
       >
         <Pencil size={10} className="shrink-0" />
         Edit
@@ -88,15 +101,24 @@ function HabitRowMenu({ onEdit, onImprove, onComplete, onPause, onDelete, isPaus
       <button
         type="button"
         onClick={onImprove}
-        className="flex items-center gap-1.5 border-b border-[#f2f2f2] px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#8022fe] hover:bg-[#fcfcfc] dark:border-zinc-700 dark:hover:bg-zinc-700"
+        className={`${itemBase} border-b border-[#f2f2f2] text-[#8022fe] dark:border-zinc-700`}
       >
         <Sparkles size={10} className="shrink-0" />
         Improve habit
       </button>
       <button
         type="button"
-        onClick={onComplete}
-        className="flex items-center gap-1.5 px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#5d5d5d] hover:bg-[#fcfcfc] dark:text-gray-300 dark:hover:bg-zinc-700"
+        disabled={isCompleted}
+        aria-disabled={isCompleted}
+        onClick={() => {
+          if (isCompleted) return;
+          onComplete?.();
+        }}
+        className={
+          isCompleted
+            ? `${itemDisabled} text-[#5d5d5d] dark:text-gray-300`
+            : `${itemBase} text-[#5d5d5d] dark:text-gray-300`
+        }
       >
         <Check size={10} className="shrink-0" />
         Complete
@@ -104,7 +126,7 @@ function HabitRowMenu({ onEdit, onImprove, onComplete, onPause, onDelete, isPaus
       <button
         type="button"
         onClick={onPause}
-        className="flex items-center gap-1.5 px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#5d5d5d] hover:bg-[#fcfcfc] dark:text-gray-300 dark:hover:bg-zinc-700"
+        className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}
       >
         <Pause size={10} className="shrink-0" />
         {isPaused ? 'Activate' : 'Pause'}
@@ -112,7 +134,7 @@ function HabitRowMenu({ onEdit, onImprove, onComplete, onPause, onDelete, isPaus
       <button
         type="button"
         onClick={onDelete}
-        className="flex items-center gap-1.5 px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#5d5d5d] hover:bg-[#fcfcfc] dark:text-gray-300 dark:hover:bg-zinc-700"
+        className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}
       >
         <Trash2 size={10} className="shrink-0" />
         Delete
@@ -282,6 +304,7 @@ export default function HabitRow({
         <div className="absolute right-3 top-9 z-50">
           <HabitRowMenu
             isPaused={isPaused}
+            isCompleted={isCompleted}
             onEdit={() => {
               setMenuOpen(false);
               onEdit?.(habit);
@@ -291,6 +314,7 @@ export default function HabitRow({
               onImprove?.(habit);
             }}
             onComplete={() => {
+              if (isCompleted) return;
               setMenuOpen(false);
               onComplete?.(habit);
             }}

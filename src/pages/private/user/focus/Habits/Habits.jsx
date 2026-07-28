@@ -303,6 +303,7 @@ export default function Habits() {
   };
 
   const handleCompleteHabit = async (habit) => {
+    if (!habit?.id || habit.status === 'completed') return;
     await dispatch(markHabitCompleted(habit.id));
     await loadHabits();
     await dispatch(fetchHabitsSummary());
