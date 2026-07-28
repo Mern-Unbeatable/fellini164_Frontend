@@ -30,6 +30,8 @@ export default function PlannerBoard({
         <WeeklyView
           currentDate={currentDate}
           selectedDate={selectedDate}
+          setSelectedDate={setSelectedDate}
+          setViewMode={setViewMode}
           plans={plans}
           hasAcceptedPlan={hasAcceptedPlan}
           isLoading={isLoading}

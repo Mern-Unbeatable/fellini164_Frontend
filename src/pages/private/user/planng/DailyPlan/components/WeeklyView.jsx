@@ -386,10 +386,23 @@ function WeekItemCard({ item, ghost, layout }) {
   return <WeekTaskFieldCard item={item} ghost={ghost} height={height} />;
 }
 
-export default function WeeklyView({ currentDate, selectedDate, plans, hasAcceptedPlan, isLoading }) {
+export default function WeeklyView({
+  currentDate,
+  selectedDate,
+  setSelectedDate,
+  setViewMode,
+  plans,
+  hasAcceptedPlan,
+  isLoading,
+}) {
   const anchorDate = selectedDate || currentDate || new Date(2026, 4, 13);
   const weekDays = getWeekDays(anchorDate);
   const selectedKey = dateKeyFromDate(anchorDate);
+
+  const openDayInDaily = (day) => {
+    if (setSelectedDate) setSelectedDate(new Date(day.getFullYear(), day.getMonth(), day.getDate()));
+    if (setViewMode) setViewMode('Daily');
+  };
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-white shadow-sm max-xl:h-auto max-xl:flex-none dark:border-zinc-800/80 dark:bg-zinc-900">
@@ -405,7 +418,12 @@ export default function WeeklyView({ currentDate, selectedDate, plans, hasAccept
                 {weekDays.map((day) => {
                   const isActive = dateKeyFromDate(day) === selectedKey;
                   return (
-                    <div key={day.toISOString()} className="flex min-w-0 flex-col items-center gap-[2px]">
+                    <button
+                      key={day.toISOString()}
+                      type="button"
+                      onClick={() => openDayInDaily(day)}
+                      className="flex min-w-0 cursor-pointer flex-col items-center gap-[2px] rounded-lg border-0 bg-transparent p-0"
+                    >
                       <p className="text-center text-[12px] font-medium leading-[1.5] whitespace-nowrap text-[#c2c2c2] dark:text-gray-500">
                         {day.toLocaleDateString('en-US', { weekday: 'short' })}
                       </p>
@@ -424,7 +442,7 @@ export default function WeeklyView({ currentDate, selectedDate, plans, hasAccept
                           {day.getDate()}
                         </p>
                       </div>
-                    </div>
+                    </button>
                   );
                 })}
               </div>
@@ -463,11 +481,23 @@ export default function WeeklyView({ currentDate, selectedDate, plans, hasAccept
                               <WeekCardAnchor
                                 key={item.id}
                                 top={scaleY(layout.top)}
-                                className={`pointer-events-auto ${
+                                className={`pointer-events-auto cursor-pointer ${
                                   item.aiScheduleState ? 'animate-fade-in' : ''
                                 }`}
                               >
-                                <WeekItemCard item={item} ghost={!hasAcceptedPlan} layout={layout} />
+                                <div
+                                  role="button"
+                                  tabIndex={0}
+                                  onClick={() => openDayInDaily(day)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                      e.preventDefault();
+                                      openDayInDaily(day);
+                                    }
+                                  }}
+                                >
+                                  <WeekItemCard item={item} ghost={!hasAcceptedPlan} layout={layout} />
+                                </div>
                               </WeekCardAnchor>
                             );
                           })}
