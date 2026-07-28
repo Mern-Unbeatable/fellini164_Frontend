@@ -250,8 +250,10 @@ export async function fetchGoalAiSuggestionsApi(goalId) {
   const response = await axiosInstance.get(`${BASE}/${goalId}/ai/suggestions`);
   const body = response?.data;
   if (Array.isArray(body?.suggestions)) return body.suggestions;
+  if (Array.isArray(body?.data?.suggestions)) return body.data.suggestions;
   if (Array.isArray(body?.data)) return body.data;
   if (Array.isArray(body?.items)) return body.items;
+  if (Array.isArray(body?.results)) return body.results;
   if (Array.isArray(body)) return body;
   return [];
 }
