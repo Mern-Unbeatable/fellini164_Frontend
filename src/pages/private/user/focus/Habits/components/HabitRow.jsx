@@ -194,6 +194,11 @@ export default function HabitRow({
           >
             {habit.description}
           </p>
+          {isPaused && (
+            <p className="text-xs font-medium leading-normal text-[#5d5d5d] dark:text-gray-400">
+              Check-ins are paused until you activate again.
+            </p>
+          )}
         </div>
         <HabitTagList
           tags={habit.tags || []}
@@ -254,7 +259,7 @@ export default function HabitRow({
                 habit.days?.[i] === 'today' && habit.todayProgress ? habit.todayProgress : null
               }
               dimmed={isPaused}
-              interactive={Boolean(onToggleDay) && !isCompleted && i === todayIndex}
+              interactive={Boolean(onToggleDay) && !isCompleted && !isPaused && i === todayIndex}
               onToggle={() => onToggleDay?.(habit.id, i)}
             />
           ))}
