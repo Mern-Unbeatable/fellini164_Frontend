@@ -99,9 +99,9 @@ export default function MonthlyView({
             {week.map((dayObj) => {
               const formattedDate = getFormattedDateString(dayObj);
               const dayPlans = plans[formattedDate] || [];
-              // Monthly is a compact overview — show up to 3 non-habit tasks (Figma May 13).
+              // Monthly overview — up to 3 items (tasks + habits from create-plan / board)
               const monthlyDisplayPlans = dayPlans
-                .filter((plan) => plan.kind !== 'habit' && plan.layout !== 'half')
+                .filter((plan) => plan.layout !== 'half')
                 .slice(0, 3);
               const isSelected = selectedDate.getDate() === dayObj.day &&
                                  selectedDate.getMonth() === dayObj.month &&
