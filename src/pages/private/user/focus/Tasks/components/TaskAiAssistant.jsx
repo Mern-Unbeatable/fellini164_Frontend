@@ -32,6 +32,20 @@ const QUICK_ACTIONS = [
   },
 ];
 
+/** Survive drawer/page remounts so Apply does not blank the chat. */
+const taskAiChatCache = new Map();
+
+function readChatCache(taskId) {
+  if (!taskId) return [];
+  const cached = taskAiChatCache.get(String(taskId));
+  return Array.isArray(cached) ? cached : [];
+}
+
+function writeChatCache(taskId, messages) {
+  if (!taskId) return;
+  taskAiChatCache.set(String(taskId), messages);
+}
+
 /** MVP allowlist — never apply due/status/priority from proposedTask. */
 function allowlistedFromProposedTask(proposed) {
   if (!proposed || typeof proposed !== 'object') return null;
@@ -141,8 +155,11 @@ export default function TaskAiAssistant({
   onAutoActionConsumed,
 }) {
   const [prompt, setPrompt] = useState('');
-  const [messages, setMessages] = useState([]);
-  const [historyLoading, setHistoryLoading] = useState(Boolean(taskId));
+  const [messages, setMessages] = useState(() => readChatCache(taskId));
+  const [historyLoading, setHistoryLoading] = useState(() => {
+    const cached = readChatCache(taskId);
+    return Boolean(taskId) && cached.length === 0;
+  });
   const [loading, setLoading] = useState(false);
   const [busyId, setBusyId] = useState(null);
   const [sessionStamp] = useState(formatSessionStamp);
@@ -153,6 +170,10 @@ export default function TaskAiAssistant({
   const messagesRef = useRef(messages);
   hasSubtasksRef.current = hasSubtasks;
   messagesRef.current = messages;
+
+  useEffect(() => {
+    writeChatCache(taskId, messages);
+  }, [taskId, messages]);
 
   const syncHistory = useCallback(
     async ({ requireSuggestionId } = {}) => {
@@ -169,6 +190,7 @@ export default function TaskAiAssistant({
           if (!found) return;
         }
         setMessages(next);
+        writeChatCache(taskId, next);
       } catch {
         // keep on-screen messages
       }
@@ -182,17 +204,25 @@ export default function TaskAiAssistant({
       setHistoryLoading(false);
       return;
     }
-    setHistoryLoading(true);
+    const cached = readChatCache(taskId);
+    // Remount mid-thread: show cache immediately, still try to sync in background
+    if (cached.length > 0) {
+      setMessages(cached);
+      setHistoryLoading(false);
+    } else {
+      setHistoryLoading(true);
+    }
     try {
       const data = await fetchTaskAiSuggestionsApi(taskId);
       const next = mapTaskAiSuggestionsToMessages(data);
       // Initial load may be empty; after a live thread, don't wipe on a bad/empty parse
-      if (next.length === 0 && messagesRef.current.length > 0) {
+      if (next.length === 0 && (messagesRef.current.length > 0 || cached.length > 0)) {
         return;
       }
       setMessages(next);
+      writeChatCache(taskId, next);
     } catch {
-      if (messagesRef.current.length === 0) setMessages([]);
+      if (messagesRef.current.length === 0 && cached.length === 0) setMessages([]);
     } finally {
       setHistoryLoading(false);
     }
@@ -232,6 +262,16 @@ export default function TaskAiAssistant({
     return suggestionId;
   }, []);
 
+  const applyingTargetForAction = useCallback((action, suggestion) => {
+    const key = String(action || suggestion?.action || '').toUpperCase();
+    const hasSubs =
+      Array.isArray(suggestion?.proposedSubtasks) && suggestion.proposedSubtasks.length > 0;
+    if (key === 'BREAKDOWN' || hasSubs) return 'subtasks';
+    if (key === 'IMPROVE_DESCRIPTION') return 'description';
+    if (suggestion?.proposedTask) return 'description';
+    return null;
+  }, []);
+
   const runSuggest = useCallback(
     async (action, message, options = {}) => {
       if (!taskId || loading) return;
@@ -241,7 +281,8 @@ export default function TaskAiAssistant({
         setMessages((prev) => [...prev, { id: `u-${Date.now()}`, role: 'user', text: userText }]);
       }
       setLoading(true);
-      onApplyingChange?.(true);
+      // Suggest phase: only pulse the section this action will change (not both).
+      onApplyingChange?.(applyingTargetForAction(action));
 
       try {
         const body = { action };
@@ -305,10 +346,17 @@ export default function TaskAiAssistant({
         ]);
       } finally {
         setLoading(false);
-        onApplyingChange?.(false);
+        onApplyingChange?.(null);
       }
     },
-    [taskId, loading, onApplyingChange, appendAssistantSuggestion, syncHistory]
+    [
+      taskId,
+      loading,
+      onApplyingChange,
+      applyingTargetForAction,
+      appendAssistantSuggestion,
+      syncHistory,
+    ]
   );
 
   useEffect(() => {
@@ -343,10 +391,10 @@ export default function TaskAiAssistant({
     if (!suggestionId || busyId) return;
     setBusyId(msg.id);
     setPrompt('');
-    onApplyingChange?.(true);
 
     const action = msg.action || msg.suggestion?.action;
     const doneText = doneMessageForAction(action);
+    onApplyingChange?.(applyingTargetForAction(action, msg.suggestion));
 
     // Figma: show purple "Yes, apply" bubble immediately (not only after history reload)
     setMessages((prev) => {
@@ -406,23 +454,9 @@ export default function TaskAiAssistant({
           onTaskUpdated?.(mapped);
         }
       }
+      // Refresh task data, but keep the optimistic Yes, apply + Done thread.
+      // Replacing from GET after accept often remounts/races and blanks the chat.
       await onRefreshTask?.();
-      // Sync chat from server only when history actually has this thread.
-      // Empty GET must NOT wipe Figma bubbles (Goals keeps history; Tasks was wiping).
-      try {
-        const history = await fetchTaskAiSuggestionsApi(taskId);
-        const next = mapTaskAiSuggestionsToMessages(history);
-        if (next.length === 0) {
-          // keep optimistic: Yes, apply + Done + Undo
-        } else {
-          const hasThisSuggestion = next.some(
-            (m) => String(m.suggestionId) === String(suggestionId)
-          );
-          if (hasThisSuggestion) setMessages(next);
-        }
-      } catch {
-        // keep optimistic Yes, apply + Done + Undo
-      }
     } catch (err) {
       const message = err?.response?.data?.message || err?.message || 'Failed to apply changes';
       toast.error(message);
@@ -443,7 +477,7 @@ export default function TaskAiAssistant({
       await onRefreshTask?.();
     } finally {
       setBusyId(null);
-      onApplyingChange?.(false);
+      onApplyingChange?.(null);
     }
   };
 

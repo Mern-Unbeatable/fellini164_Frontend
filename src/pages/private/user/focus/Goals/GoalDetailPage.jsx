@@ -37,10 +37,12 @@ import {
   updateGoalStatus,
 } from '../../../../../features/goals/goalsSlice';
 import {
+  completeHabitApi,
   completeTaskApi,
   deleteHabitApi,
   deleteTaskApi,
-  skipHabitApi,
+  pauseHabitApi,
+  undoHabitCompletionApi,
   updateHabitApi,
   updateTaskApi,
 } from '../../../../../features/goals/goalsAPI';
@@ -50,6 +52,7 @@ import {
   mapLinkedTaskFromApi,
   mapTaskUpdatePayload,
 } from '../../../../../features/goals/goalsMappers';
+import { getTodayIndex } from '../../../../../features/habits/habitsMappers';
 import GoalAiAssistant from './components/GoalAiAssistant';
 import LinkItemsModal from './components/LinkItemsModal';
 import GoalSparkLinkModal from './components/GoalSparkLinkModal';
@@ -76,8 +79,8 @@ const STATUS_PILL = {
   paused: 'bg-[rgba(93,93,93,0.05)] text-[#5d5d5d]',
 };
 
-// Figma Frame 5.1 + Habits board lock today to Wed (Mon=0).
-const TODAY_INDEX = 2;
+// Real calendar today (Mon=0), same as Habits board check-in.
+const TODAY_INDEX = getTodayIndex();
 
 function DueDetailPill({ goal }) {
   if (goal.dueDetail) {
@@ -384,7 +387,7 @@ function HabitDayCell({ state, todayProgress, onToggle }) {
   );
 }
 
-function HabitRowMenu({ onEdit, onSkip, onDelete, onClose, style }) {
+function HabitRowMenu({ onEdit, onPause, onDelete, onClose, style, isPaused = false }) {
   const itemBase =
     'flex w-full items-center gap-1.5 px-2.5 py-1.5 text-left text-[12px] font-medium whitespace-nowrap hover:bg-[#fcfcfc] dark:hover:bg-zinc-700';
   return (
@@ -406,13 +409,17 @@ function HabitRowMenu({ onEdit, onSkip, onDelete, onClose, style }) {
       <button
         type="button"
         onClick={() => {
-          onSkip?.();
+          onPause?.();
           onClose();
         }}
         className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}
       >
-        <Pause size={12} className="shrink-0" />
-        Skip today
+        {isPaused ? (
+          <Play size={12} className="shrink-0" />
+        ) : (
+          <Pause size={12} className="shrink-0" />
+        )}
+        {isPaused ? 'Activate' : 'Pause'}
       </button>
       <div className="h-px w-full bg-[#f2f2f2] dark:bg-zinc-700" />
       <button
@@ -430,73 +437,7 @@ function HabitRowMenu({ onEdit, onSkip, onDelete, onClose, style }) {
   );
 }
 
-function SkipHabitModal({ habitTitle, reason, onChangeReason, onClose, onConfirm, submitting }) {
-  const canSubmit = String(reason || '').trim().length > 0 && !submitting;
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div
-        className="flex w-full max-w-[400px] flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-900"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between border-b border-[#f2f2f2] px-3 py-2.5 dark:border-zinc-700">
-          <p className="text-[12px] font-medium text-[#5d5d5d] dark:text-gray-300">Skip today</p>
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={submitting}
-            className="text-[#5d5d5d] dark:text-gray-300"
-            aria-label="Close"
-          >
-            <CircleX size={14} />
-          </button>
-        </div>
-        <div className="flex flex-col gap-3 p-3">
-          {habitTitle && (
-            <p className="text-[13px] font-medium text-[#181818] dark:text-white">{habitTitle}</p>
-          )}
-          <label className="flex flex-col gap-1.5">
-            <span className="text-[12px] font-medium text-[#5d5d5d] dark:text-gray-300">
-              Why are you skipping today?
-            </span>
-            <input
-              type="text"
-              value={reason}
-              onChange={(e) => onChangeReason(e.target.value)}
-              placeholder="e.g. Travel day"
-              autoFocus
-              disabled={submitting}
-              className="rounded-lg border border-[#f2f2f2] bg-white px-3 py-2 text-[13px] text-[#181818] outline-none focus:border-[#8022fe] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
-            />
-          </label>
-        </div>
-        <div className="flex gap-2 border-t border-[#f2f2f2] p-3 dark:border-zinc-700">
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={submitting}
-            className="flex flex-1 items-center justify-center rounded-lg bg-[#f2f2f2] px-3 py-2 text-[12px] font-medium text-[#5d5d5d] dark:bg-zinc-700 dark:text-gray-300"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            disabled={!canSubmit}
-            onClick={onConfirm}
-            className={`flex flex-1 items-center justify-center rounded-lg px-3 py-2 text-[12px] font-semibold ${
-              canSubmit
-                ? 'bg-[#8022fe] text-white'
-                : 'cursor-not-allowed bg-[#f1f1f1] text-[#dedede]'
-            }`}
-          >
-            {submitting ? 'Skipping…' : 'Skip'}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function PageHabitRow({ habit, onEdit, onSkip, onDelete }) {
+function PageHabitRow({ habit, onEdit, onPause, onDelete, onToggleDay }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [menuPos, setMenuPos] = useState(null);
@@ -552,26 +493,20 @@ function PageHabitRow({ habit, onEdit, onSkip, onDelete }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [menuOpen]);
 
-  // Match Habits board: fractional habits stay on today (1/2, 2/3); others empty ↔ checked.
+  const isPaused = habit.status === 'paused';
+
+  // Today cell → POST/DELETE /habits/:id/complete (Habits board parity). Other days are view-only.
   const handleToggleDay = (dayIndex) => {
-    setDays((prev) => {
-      const current = prev[dayIndex];
-      if (current === 'unscheduled') return prev;
-      const next = [...prev];
-      if (habit.todayProgress && dayIndex === TODAY_INDEX) {
-        next[dayIndex] = current === 'today' ? 'empty' : 'today';
-        return next;
-      }
-      if (current === 'checked') {
-        next[dayIndex] = dayIndex === TODAY_INDEX ? 'today' : 'empty';
-      } else {
-        next[dayIndex] = 'checked';
-      }
-      return next;
-    });
+    if (isPaused) return;
+    if (dayIndex !== TODAY_INDEX) return;
+    const current = days[dayIndex];
+    if (current === 'unscheduled') return;
+    onToggleDay?.(habit, dayIndex, current);
   };
 
   const tags = Array.isArray(habit.tags) ? habit.tags : [];
+  // Match Habits board / Goals paused — ash fade + PAUSED badge (image 2).
+  const ash = isPaused ? 'opacity-50' : '';
 
   return (
     <div
@@ -581,11 +516,30 @@ function PageHabitRow({ habit, onEdit, onSkip, onDelete }) {
       className="relative flex flex-col gap-2 rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] p-3 dark:border-zinc-700 dark:bg-zinc-800"
     >
       {/* Main row: name col + desktop day cells (menu is absolute, not in flex) */}
-      <div className="flex items-start gap-3">
-        <div className="w-[220px] shrink-0 flex flex-col gap-2.5">
+      <div className={`flex items-start gap-3 ${ash}`}>
+        <div className="flex w-[220px] shrink-0 flex-col gap-2.5">
           <div className="flex flex-col gap-1">
-            <p className="text-[16px] font-medium text-[#181818] dark:text-white">{habit.title}</p>
-            <p className="truncate text-[12px] font-medium text-[#a3a3a3]">{habit.description}</p>
+            <div className="flex items-center gap-2">
+              <p
+                className={`text-[16px] font-medium ${
+                  isPaused ? 'text-[#5d5d5d] dark:text-gray-400' : 'text-[#181818] dark:text-white'
+                }`}
+              >
+                {habit.title}
+              </p>
+              {isPaused && (
+                <span className="rounded-[6px] bg-[rgba(93,93,93,0.05)] px-[6px] py-[2px] text-xs font-medium uppercase text-[#5d5d5d]">
+                  Paused
+                </span>
+              )}
+            </div>
+            <p
+              className={`truncate text-[12px] font-medium ${
+                isPaused ? 'text-[#c2c2c2]' : 'text-[#a3a3a3]'
+              }`}
+            >
+              {habit.description}
+            </p>
           </div>
           <div className="flex flex-wrap items-center gap-1">
             {tags.map((tag) => {
@@ -623,13 +577,15 @@ function PageHabitRow({ habit, onEdit, onSkip, onDelete }) {
         </div>
       </div>
       {/* Mobile: day labels row + day cells row (hidden on lg+) */}
-      <div className="flex flex-col gap-1.5 lg:hidden">
+      <div className={`flex flex-col gap-1.5 lg:hidden ${ash}`}>
         <div className="flex items-center justify-between">
           {WEEKDAY_LABELS.map((day, i) => (
             <span
               key={day}
               className={`w-[30px] text-center text-[12px] font-medium ${
-                i === TODAY_INDEX ? 'text-[#8022fe]' : 'text-[#5d5d5d] dark:text-gray-300'
+                i === TODAY_INDEX && !isPaused
+                  ? 'text-[#8022fe]'
+                  : 'text-[#5d5d5d] dark:text-gray-300'
               }`}
             >
               {day}
@@ -673,8 +629,9 @@ function PageHabitRow({ habit, onEdit, onSkip, onDelete }) {
               }}
               onClose={() => setMenuOpen(false)}
               onEdit={() => onEdit?.(habit)}
-              onSkip={() => onSkip?.(habit)}
+              onPause={() => onPause?.(habit)}
               onDelete={() => onDelete?.(habit)}
+              isPaused={isPaused}
             />
           </div>,
           document.body,
@@ -773,7 +730,6 @@ export default function GoalDetailPage() {
   const [showAllTasks, setShowAllTasks] = useState(false);
   const [editedLists, setEditedLists] = useState({ goalId: null, tasks: null, habits: null });
   const [habitModal, setHabitModal] = useState({ open: false, habit: null });
-  const [skipModal, setSkipModal] = useState({ open: false, habit: null, reason: 'Travel day' });
   const [habitActionBusy, setHabitActionBusy] = useState(null);
   const [taskModal, setTaskModal] = useState({ open: false, task: null });
   const [taskActionBusy, setTaskActionBusy] = useState(null);
@@ -783,6 +739,7 @@ export default function GoalDetailPage() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deletingGoal, setDeletingGoal] = useState(false);
   const [taskDeleteModal, setTaskDeleteModal] = useState({ open: false, task: null });
+  const [habitDeleteModal, setHabitDeleteModal] = useState({ open: false, habit: null });
   // Stay on detail URL until GET /goals/:id settles (refresh must not bounce to board).
   const [detailFetchDone, setDetailFetchDone] = useState(false);
 
@@ -897,6 +854,7 @@ export default function GoalDetailPage() {
     if (!habitModal.habit?.id) return;
     const habitId = habitModal.habit.id;
     try {
+      // PATCH /api/v1/habits/:id — includes targetDays (Sat/Sun), difficulty, reminderTime, goalId
       const payload = mapHabitUpdatePayload(data, { goalId: goal?.id });
       const updated = await updateHabitApi(habitId, payload);
       const nextDays =
@@ -938,6 +896,13 @@ export default function GoalDetailPage() {
         );
       }
       toast.success('Habit updated');
+      // Re-hydrate from GET /habits/:id via fetchGoalById so Sat/Sun + completions stick.
+      if (goal?.id) {
+        await dispatch(fetchGoalById(goal.id));
+        setEditedLists((prev) =>
+          prev.goalId === goalId ? { goalId, tasks: prev.tasks, habits: null } : prev,
+        );
+      }
     } catch (err) {
       const message =
         err?.response?.data?.message || err?.message || 'Failed to update habit';
@@ -946,58 +911,108 @@ export default function GoalDetailPage() {
     }
   };
 
-  const handleSkipHabit = (habit) => {
+  const handlePauseHabit = async (habit) => {
     if (!habit?.id || habitActionBusy) return;
-    setSkipModal({ open: true, habit, reason: 'Travel day' });
-  };
-
-  const closeSkipModal = () => {
-    if (habitActionBusy) return;
-    setSkipModal({ open: false, habit: null, reason: 'Travel day' });
-  };
-
-  const confirmSkipHabit = async () => {
-    const habit = skipModal.habit;
-    const trimmed = String(skipModal.reason || '').trim();
-    if (!habit?.id || !trimmed || habitActionBusy) return;
+    const wasPaused = habit.status === 'paused';
     setHabitActionBusy(habit.id);
     try {
-      const updated = await skipHabitApi(habit.id, { reason: trimmed });
+      // PATCH /api/v1/habits/:habitId/pause — toggles pause ↔ activate
+      const updated = await pauseHabitApi(habit.id);
       if (updated?.id) {
-        replaceHabitInList(updated);
+        replaceHabitInList(updated, {
+          status: wasPaused ? undefined : 'paused',
+        });
       } else {
-        const base = getCurrentHabits();
         mergeEditedHabits(
-          base.map((h) => {
-            if (h.id !== habit.id) return h;
-            const days =
-              Array.isArray(h.days) && h.days.length === 7
-                ? [...h.days]
-                : Array(7).fill('empty');
-            days[TODAY_INDEX] = 'empty';
-            return { ...h, days, todayProgress: undefined };
-          }),
+          getCurrentHabits().map((h) =>
+            h.id === habit.id
+              ? { ...h, status: wasPaused ? undefined : 'paused' }
+              : h,
+          ),
         );
       }
-      toast.success('Habit skipped for today');
-      setSkipModal({ open: false, habit: null, reason: 'Travel day' });
-      if (goal?.id) dispatch(fetchGoalById(goal.id));
+      toast.success(wasPaused ? 'Habit activated' : 'Habit paused');
+      if (goal?.id) {
+        await dispatch(fetchGoalById(goal.id));
+        setEditedLists((prev) =>
+          prev.goalId === goalId ? { goalId, tasks: prev.tasks, habits: null } : prev,
+        );
+      }
     } catch (err) {
       const message =
-        err?.response?.data?.message || err?.message || 'Failed to skip habit';
+        err?.response?.data?.message || err?.message || 'Failed to update habit status';
       toast.error(message);
     } finally {
       setHabitActionBusy(null);
     }
   };
 
-  const handleDeleteHabit = async (habit) => {
+  /** Today week-cell click — POST /habits/:id/complete or DELETE undo (Habits board parity). */
+  const handleToggleHabitDay = async (habit, dayIndex, currentState) => {
+    if (dayIndex !== TODAY_INDEX) return;
+    if (!habit?.id || habitActionBusy) return;
+    const statusKey = String(habit.status || '').toLowerCase();
+    if (statusKey === 'paused' || statusKey === 'completed') return;
+    if (currentState === 'unscheduled') return;
+
+    setHabitActionBusy(habit.id);
+    const isUndo = currentState === 'checked';
+    const nextDays = (
+      Array.isArray(habit.days) && habit.days.length === 7
+        ? [...habit.days]
+        : Array(7).fill('empty')
+    );
+    nextDays[TODAY_INDEX] = isUndo ? 'empty' : 'checked';
+
+    try {
+      const updated = isUndo
+        ? await undoHabitCompletionApi(habit.id)
+        : await completeHabitApi(habit.id);
+      if (updated?.id) {
+        replaceHabitInList(updated, { days: nextDays });
+      } else {
+        mergeEditedHabits(
+          getCurrentHabits().map((h) =>
+            h.id === habit.id ? { ...h, days: nextDays } : h,
+          ),
+        );
+      }
+      toast.success(isUndo ? 'Habit completion undone' : 'Habit completed');
+      // Enrich via GET /habits/:id so checkmark survives refresh.
+      if (goal?.id) {
+        await dispatch(fetchGoalById(goal.id));
+        setEditedLists((prev) =>
+          prev.goalId === goalId ? { goalId, tasks: prev.tasks, habits: null } : prev,
+        );
+      }
+    } catch (err) {
+      const message =
+        err?.response?.data?.message || err?.message || 'Failed to update habit check-in';
+      toast.error(message);
+    } finally {
+      setHabitActionBusy(null);
+    }
+  };
+
+  const handleRequestDeleteHabit = (habit) => {
+    if (!habit?.id) return;
+    setHabitDeleteModal({ open: true, habit });
+  };
+
+  const handleCloseHabitDeleteModal = () => {
+    if (habitActionBusy) return;
+    setHabitDeleteModal({ open: false, habit: null });
+  };
+
+  const handleConfirmDeleteHabit = async () => {
+    const habit = habitDeleteModal.habit;
     if (!habit?.id || habitActionBusy) return;
     setHabitActionBusy(habit.id);
     try {
       await deleteHabitApi(habit.id);
       mergeEditedHabits(getCurrentHabits().filter((h) => h.id !== habit.id));
       toast.success('Habit deleted');
+      setHabitDeleteModal({ open: false, habit: null });
       if (goal?.id) dispatch(fetchGoalById(goal.id));
     } catch (err) {
       const message =
@@ -1330,8 +1345,9 @@ export default function GoalDetailPage() {
                       key={habit.id}
                       habit={habit}
                       onEdit={openEditHabit}
-                      onSkip={handleSkipHabit}
-                      onDelete={handleDeleteHabit}
+                      onPause={handlePauseHabit}
+                      onDelete={handleRequestDeleteHabit}
+                      onToggleDay={handleToggleHabitDay}
                     />
                   ))}
                 </div>
@@ -1411,6 +1427,16 @@ export default function GoalDetailPage() {
         onConfirm={handleConfirmDeleteTask}
       />
 
+      <DeleteConfirmModal
+        open={habitDeleteModal.open}
+        title="Delete Habit"
+        itemName={habitDeleteModal.habit?.title}
+        entityLabel="habit"
+        submitting={Boolean(habitActionBusy && habitDeleteModal.habit?.id === habitActionBusy)}
+        onClose={handleCloseHabitDeleteModal}
+        onConfirm={handleConfirmDeleteHabit}
+      />
+
       {habitModal.open && (
         <NewHabitsModal
           key={habitModal.habit?.id ?? 'edit-habit'}
@@ -1419,17 +1445,6 @@ export default function GoalDetailPage() {
           initialHabit={habitModal.habit}
           onClose={closeHabitModal}
           onSave={handleSaveHabit}
-        />
-      )}
-
-      {skipModal.open && (
-        <SkipHabitModal
-          habitTitle={skipModal.habit?.title}
-          reason={skipModal.reason}
-          onChangeReason={(reason) => setSkipModal((prev) => ({ ...prev, reason }))}
-          onClose={closeSkipModal}
-          onConfirm={confirmSkipHabit}
-          submitting={Boolean(habitActionBusy)}
         />
       )}
 

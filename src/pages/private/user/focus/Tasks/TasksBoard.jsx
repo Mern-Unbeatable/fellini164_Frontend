@@ -30,7 +30,9 @@ import {
   selectCurrentTask,
   selectTaskColumns,
   selectTasksLoading,
+  completeTask,
   updateTask,
+  updateTaskStatus,
 } from '../../../../../features/tasks/tasksSlice';
 import { mapTaskFromApi, taskMatchesClientFilters } from '../../../../../features/tasks/tasksMappers';
 
@@ -210,16 +212,25 @@ export default function TasksBoard() {
   };
 
   const boardTask = selectedTaskId ? findTaskById(selectedTaskId) : null;
-  const selectedTask = boardTask
-    ? {
-        ...boardTask,
-        ...(currentTask && String(currentTask.id) === String(selectedTaskId) ? currentTask : {}),
-        subtasks:
-          currentTask && String(currentTask.id) === String(selectedTaskId)
-            ? currentSubtasks ?? currentTask.subtasks ?? []
-            : boardTask.subtasks || [],
-      }
-    : null;
+  const detailTask =
+    selectedTaskId && currentTask && String(currentTask.id) === String(selectedTaskId)
+      ? currentTask
+      : null;
+  // Prefer board card, but keep drawer open from currentTask during list refresh
+  // so the AI chat does not remount/blank after Apply.
+  const selectedTask = (() => {
+    if (!selectedTaskId) return null;
+    const base = boardTask || detailTask;
+    if (!base) return null;
+    return {
+      ...base,
+      ...(detailTask || {}),
+      subtasks:
+        detailTask != null
+          ? currentSubtasks ?? detailTask.subtasks ?? []
+          : boardTask?.subtasks || [],
+    };
+  })();
 
   useEffect(() => {
     // Drawer peek does not change the breadcrumb detail
@@ -301,6 +312,45 @@ export default function TasksBoard() {
     if (String(selectedTaskId) === String(taskId)) {
       await dispatch(fetchTaskById(taskId));
     }
+  };
+
+  const handleChangeStatus = async (taskId, status) => {
+    if (!taskId || !status) return null;
+    const result = await dispatch(updateTaskStatus({ taskId, status }));
+    await loadTasks();
+    await dispatch(fetchTasksSummary());
+    if (String(selectedTaskId) === String(taskId)) {
+      const byId = await dispatch(fetchTaskById(taskId));
+      if (fetchTaskById.fulfilled.match(byId)) {
+        return mapTaskFromApi(byId.payload) || result.payload;
+      }
+    }
+    return updateTaskStatus.fulfilled.match(result) ? result.payload : null;
+  };
+
+  const handleCompleteSubtask = async (subtask) => {
+    if (!subtask?.id || subtask.done || subtask.completed) return null;
+    const parentId = selectedTaskId;
+    if (!parentId) return null;
+    const mins = Number(subtask.estimatedMinutes ?? subtask.minutes);
+    await dispatch(
+      completeTask({
+        taskId: subtask.id,
+        actualMinutes: Number.isFinite(mins) && mins > 0 ? mins : undefined,
+      })
+    ).unwrap();
+    const subs = await dispatch(fetchSubtasks(parentId));
+    await loadTasks();
+    await dispatch(fetchTasksSummary());
+    const subtasks = fetchSubtasks.fulfilled.match(subs) ? subs.payload.subtasks : [];
+    return {
+      id: parentId,
+      subtasks,
+      steps:
+        subtasks.length > 0
+          ? `${subtasks.filter((s) => s.done).length}/${subtasks.length} Steps`
+          : undefined,
+    };
   };
 
   const openNewTaskModal = () => setTaskModal({ open: true, mode: 'create', task: null });
@@ -591,6 +641,8 @@ export default function TasksBoard() {
           onClose={closeTaskDetail}
           onOpenFullPage={() => openTaskFullPage(selectedTask)}
           onUpdateTaskFields={(fields) => handleUpdateTaskFields(selectedTask.id, fields)}
+          onChangeStatus={(status) => handleChangeStatus(selectedTask.id, status)}
+          onCompleteSubtask={handleCompleteSubtask}
           onEdit={openEditTaskModal}
           onDelete={(t) => {
             handleRequestDeleteTask(t);

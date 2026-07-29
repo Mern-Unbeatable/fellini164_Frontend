@@ -1,5 +1,7 @@
 /** Map Goals API payloads ↔ existing UI fields only (no extra API fields on cards). */
 
+import { buildWeekDayStates, targetDaysToApi } from '../habits/habitsMappers';
+
 const PRIORITY_FROM_API = {
   URGENT: 'URGENT',
   HIGH: 'HIGH',
@@ -435,6 +437,10 @@ export function mapHabitUpdatePayload(form, { goalId } = {}) {
   if (form.category) payload.category = categoryToApi(form.category);
   if (form.difficulty) payload.difficulty = String(form.difficulty).toUpperCase();
   else payload.difficulty = 'MEDIUM';
+  // Persist Mon–Sun schedule (Sat/Sun add must survive refresh).
+  if (Array.isArray(form.targetDays)) {
+    payload.targetDays = targetDaysToApi(form.targetDays);
+  }
   if (form.hour != null || form.reminderTime) {
     payload.reminderTime =
       form.reminderTime || reminderTimeToApi(form.hour, form.minute, form.period);
@@ -453,37 +459,57 @@ export function mapLinkedHabitFromApi(habit) {
     sourceRaw === 'AI' ||
     sourceRaw === 'AI_GENERATED';
 
-  const weekdayMap = {
-    MONDAY: 0,
-    TUESDAY: 1,
-    WEDNESDAY: 2,
-    THURSDAY: 3,
-    FRIDAY: 4,
-    SATURDAY: 5,
-    SUNDAY: 6,
-  };
   let days = Array.isArray(habit.days) ? habit.days : [];
-  if ((!days || days.length === 0) && Array.isArray(habit.targetDays) && habit.targetDays.length) {
+  // Prefer Habits-board week builder when API sends schedule / completions.
+  if (
+    Array.isArray(habit.targetDays) ||
+    Array.isArray(habit.completions) ||
+    habit.completedToday === true
+  ) {
+    days = buildWeekDayStates(habit);
+  } else if (!days.length) {
     days = Array(7).fill('empty');
-    habit.targetDays.forEach((d) => {
-      const idx = weekdayMap[String(d).toUpperCase()];
-      if (idx !== undefined) days[idx] = 'pending';
-    });
   }
 
   return {
     id: habit.id,
     title: habit.title || habit.name || '',
     description: habit.description || '',
-    tags: Array.isArray(habit.tags) ? habit.tags : [],
+    tags: Array.isArray(habit.tags) && habit.tags.length
+      ? habit.tags
+      : [
+          habit.category ? { label: categoryFromApi(habit.category) } : null,
+          habit.reminderTime
+            ? {
+                label: (() => {
+                  const m = String(habit.reminderTime).match(/^(\d{1,2}):(\d{2})$/);
+                  if (!m) return habit.reminderTime;
+                  let h = Number(m[1]);
+                  const min = m[2];
+                  const period = h >= 12 ? 'PM' : 'AM';
+                  h = h % 12;
+                  if (h === 0) h = 12;
+                  return `${h}:${min} ${period}`;
+                })(),
+              }
+            : null,
+        ].filter(Boolean),
     days,
+    targetDays: Array.isArray(habit.targetDays) ? habit.targetDays : [],
+    completions: Array.isArray(habit.completions) ? habit.completions : [],
+    completedToday: Boolean(habit.completedToday),
     todayProgress: habit.todayProgress || {
       done: 0,
       total: habit.targetTimesPerDay || 1,
     },
     stats: [{ label: habit.frequency ? String(habit.frequency).toLowerCase() : 'Today' }],
     source: isAi ? 'ai' : undefined,
-    status: habit.status === 'PAUSED' || habit.status === 'paused' ? 'paused' : undefined,
+    status:
+      habit.status === 'PAUSED' ||
+      habit.status === 'paused' ||
+      habit.isActive === false
+        ? 'paused'
+        : undefined,
   };
 }
 

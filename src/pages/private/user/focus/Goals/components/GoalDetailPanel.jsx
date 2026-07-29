@@ -6,8 +6,6 @@ import {
   Plus,
   X,
   ExternalLink,
-  Hourglass,
-  Flame,
   CircleX,
   Pencil,
   Pause,
@@ -28,75 +26,15 @@ const PRIORITY_LABELS = {
   LOW: 'Low',
 };
 
-// Figma frame 1255:19596 — linked items for "Improve Rate" (goal-1).
-const FIGMA_LINKED_TASKS = [
-  {
-    id: 'lt-1',
-    priority: 'URGENT',
-    source: 'ai',
-    status: 'to do',
-    statusUppercase: true,
-    title: 'Exercise Routine',
-    description: 'Follow your fitness routine or do a workout session.',
-    due: 'May 11, 2026',
-    overdueDays: 2,
-  },
-  {
-    id: 'lt-2',
-    priority: 'LOW',
-    status: 'In Progress',
-    statusUppercase: false,
-    title: 'Update Resume and LinkedIn Profile',
-    description:
-      'Communicate the expectations regarding maintaining a calm environment to the relevant individuals in a direct and respectful manner.',
-    due: 'Tomorrow',
-  },
-  {
-    id: 'lt-3',
-    priority: 'URGENT',
-    source: 'ai',
-    aiIcon: false,
-    status: 'to do',
-    statusUppercase: true,
-    title: 'Exercise Routine',
-    description: 'Follow your fitness routine or do a workout session.',
-    due: 'May 12, 2026',
-    overdueDays: 2,
-  },
-];
-
-const FIGMA_LINKED_HABITS = [
-  {
-    id: 'lh-1',
-    title: 'Drink Water',
-    description: 'Stay hydrated throughout the day Stay hydrated throughout the day',
-    stats: [
-      { icon: Hourglass, label: '12 days left' },
-      { icon: Flame, label: '4 days' },
-      { label: 'Today' },
-    ],
-    todayProgress: { done: 0, total: 2 },
-  },
-  {
-    id: 'lh-2',
-    title: 'Take Breaks',
-    description: 'Step away from your screen regularly',
-    stats: [{ icon: Flame, label: '7 days', accent: true }, { label: 'Today' }],
-  },
-];
-
+/** Prefer API-mapped arrays on the goal; never invent Figma placeholder cards. */
 export function getLinkedTasks(goal) {
   if (Array.isArray(goal?.linkedTasks)) return goal.linkedTasks;
-  if (!goal?.tasks) return [];
-  if (goal.id === 'goal-1') return FIGMA_LINKED_TASKS;
-  return FIGMA_LINKED_TASKS.slice(0, Math.min(goal.tasks, 3));
+  return [];
 }
 
 export function getLinkedHabits(goal) {
   if (Array.isArray(goal?.linkedHabits)) return goal.linkedHabits;
-  if (!goal?.habits) return [];
-  if (goal.id === 'goal-1') return FIGMA_LINKED_HABITS;
-  return FIGMA_LINKED_HABITS.slice(0, Math.min(goal.habits, 2));
+  return [];
 }
 
 function DueDetailPill({ goal }) {
@@ -220,7 +158,7 @@ function LinkedHabitCard({ habit, compact = false }) {
           <p className="truncate text-[10px] font-medium text-[#c2c2c2]">{habit.description}</p>
         </div>
         <div className="flex flex-wrap items-center gap-1">
-          {habit.stats.map((stat) => {
+          {(habit.stats || []).map((stat) => {
             const Icon = stat.icon;
             return (
               <span
