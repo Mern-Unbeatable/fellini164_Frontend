@@ -124,6 +124,7 @@ export const updateHabit = createAsyncThunk(
     try {
       const payload = mapUpdatePayload(formData);
       const data = await updateHabitApi(habitId, payload);
+      toast.success('Habit updated');
       return mapHabitFromApi(data, formData.source);
     } catch (error) {
       toast.error(error?.response?.data?.message || 'Failed to update habit');
