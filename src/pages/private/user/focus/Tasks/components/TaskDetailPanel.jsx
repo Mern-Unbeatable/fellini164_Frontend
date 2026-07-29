@@ -203,13 +203,13 @@ function TaskDetailMenu({ onClose, onEdit, onBreakIntoSubtasks, onImproveDescrip
 
 function SubtasksSection({
   task,
-  isApplyingAiEdit = false,
+  isApplyingAiSubtasks = false,
   onRequestBreakdown,
   onCompleteSubtask,
 }) {
   const subtasks = task.subtasks ?? [];
   const completedCount = subtasks.filter((s) => s.done || s.completed).length;
-  const showAiSkeleton = isApplyingAiEdit;
+  const showAiSkeleton = isApplyingAiSubtasks;
   const [busyId, setBusyId] = useState(null);
 
   return (
@@ -225,7 +225,7 @@ function SubtasksSection({
           <button
             type="button"
             onClick={() => onRequestBreakdown?.()}
-            disabled={isApplyingAiEdit}
+            disabled={isApplyingAiSubtasks}
             aria-label="Break into subtasks"
             className="rounded-md p-0.5 text-[#a3a3a3] hover:text-[#8022fe] disabled:opacity-50"
           >
@@ -234,7 +234,7 @@ function SubtasksSection({
           <button
             type="button"
             onClick={() => onRequestBreakdown?.()}
-            disabled={isApplyingAiEdit}
+            disabled={isApplyingAiSubtasks}
             aria-label="Generate subtasks with AI"
             className="rounded-md p-0.5 text-[#8022fe] disabled:opacity-50"
           >
@@ -314,7 +314,7 @@ function TaskDetailCard({
   onUpdateTaskFields,
   onChangeStatus,
   onCompleteSubtask,
-  isApplyingAiEdit = false,
+  aiApplyingTarget = null,
   onEdit,
   onDelete,
   onTriggerSubtasksAi,
@@ -327,6 +327,8 @@ function TaskDetailCard({
   const [statusBusy, setStatusBusy] = useState(false);
   const menuRef = useRef(null);
   const goalMenuRef = useRef(null);
+  const isApplyingDescription = aiApplyingTarget === 'description';
+  const isApplyingSubtasks = aiApplyingTarget === 'subtasks';
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -424,7 +426,7 @@ function TaskDetailCard({
           </div>
         </div>
         <div className={`relative flex flex-col ${isDrawer ? 'gap-1' : 'gap-2'}`}>
-          {isApplyingAiEdit ? (
+          {isApplyingDescription ? (
             <div className="flex flex-col gap-2">
               <SkeletonBar variant="ai" className="h-[31px] w-[241px] max-w-full rounded-[8px]" />
               <SkeletonBar variant="ai" className="h-4 w-[295px] max-w-full rounded-[5px]" />
@@ -574,7 +576,7 @@ function TaskDetailCard({
 
         <SubtasksSection
           task={task}
-          isApplyingAiEdit={isApplyingAiEdit}
+          isApplyingAiSubtasks={isApplyingSubtasks}
           onRequestBreakdown={onTriggerSubtasksAi}
           onCompleteSubtask={onCompleteSubtask}
         />
@@ -645,7 +647,7 @@ function TaskDetailDrawerInner({
   const [isDesktop, setIsDesktop] = useState(
     () => typeof window !== 'undefined' && window.innerWidth >= 1024
   );
-  const [isApplyingAiEdit, setIsApplyingAiEdit] = useState(false);
+  const [aiApplyingTarget, setAiApplyingTarget] = useState(null);
   const [isAssistantOpen, setIsAssistantOpen] = useState(Boolean(autoAiAction));
 
   const task = localTask || taskProp;
@@ -757,7 +759,7 @@ function TaskDetailDrawerInner({
               const updated = await onCompleteSubtask?.(subtask);
               if (updated) applyTaskUpdate(updated);
             }}
-            isApplyingAiEdit={isApplyingAiEdit}
+            aiApplyingTarget={aiApplyingTarget}
             onEdit={onEdit}
             onDelete={onDelete}
             onTriggerSubtasksAi={() => {
@@ -777,7 +779,7 @@ function TaskDetailDrawerInner({
                 onClose={() => setIsAssistantOpen(false)}
                 onRefreshTask={handleRefreshTask}
                 onTaskUpdated={applyTaskUpdate}
-                onApplyingChange={setIsApplyingAiEdit}
+                onApplyingChange={setAiApplyingTarget}
                 autoAction={autoAiAction}
                 onAutoActionConsumed={onAutoAiActionConsumed}
               />
@@ -803,7 +805,7 @@ export default function TaskDetailPanel({
   onAutoAiActionConsumed,
 }) {
   const [localTask, , applyTaskUpdate] = useLocalTask(taskProp);
-  const [isApplyingAiEdit, setIsApplyingAiEdit] = useState(false);
+  const [aiApplyingTarget, setAiApplyingTarget] = useState(null);
   const [isAssistantOpen, setIsAssistantOpen] = useState(true);
   const [isAssistantExpanded, setIsAssistantExpanded] = useState(false);
 
@@ -849,7 +851,7 @@ export default function TaskDetailPanel({
             const updated = await onCompleteSubtask?.(subtask);
             if (updated) applyTaskUpdate(updated);
           }}
-          isApplyingAiEdit={isApplyingAiEdit}
+          aiApplyingTarget={aiApplyingTarget}
           onEdit={onEdit}
           onDelete={onDelete}
           onTriggerSubtasksAi={() => {
@@ -873,7 +875,7 @@ export default function TaskDetailPanel({
             isExpanded={false}
             onRefreshTask={handleRefreshTask}
             onTaskUpdated={applyTaskUpdate}
-            onApplyingChange={setIsApplyingAiEdit}
+            onApplyingChange={setAiApplyingTarget}
             autoAction={autoAiAction}
             onAutoActionConsumed={onAutoAiActionConsumed}
           />
@@ -891,7 +893,7 @@ export default function TaskDetailPanel({
               isExpanded
               onRefreshTask={handleRefreshTask}
               onTaskUpdated={applyTaskUpdate}
-              onApplyingChange={setIsApplyingAiEdit}
+              onApplyingChange={setAiApplyingTarget}
               autoAction={autoAiAction}
               onAutoActionConsumed={onAutoAiActionConsumed}
             />

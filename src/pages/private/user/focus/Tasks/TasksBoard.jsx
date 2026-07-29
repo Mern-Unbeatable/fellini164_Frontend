@@ -212,16 +212,25 @@ export default function TasksBoard() {
   };
 
   const boardTask = selectedTaskId ? findTaskById(selectedTaskId) : null;
-  const selectedTask = boardTask
-    ? {
-        ...boardTask,
-        ...(currentTask && String(currentTask.id) === String(selectedTaskId) ? currentTask : {}),
-        subtasks:
-          currentTask && String(currentTask.id) === String(selectedTaskId)
-            ? currentSubtasks ?? currentTask.subtasks ?? []
-            : boardTask.subtasks || [],
-      }
-    : null;
+  const detailTask =
+    selectedTaskId && currentTask && String(currentTask.id) === String(selectedTaskId)
+      ? currentTask
+      : null;
+  // Prefer board card, but keep drawer open from currentTask during list refresh
+  // so the AI chat does not remount/blank after Apply.
+  const selectedTask = (() => {
+    if (!selectedTaskId) return null;
+    const base = boardTask || detailTask;
+    if (!base) return null;
+    return {
+      ...base,
+      ...(detailTask || {}),
+      subtasks:
+        detailTask != null
+          ? currentSubtasks ?? detailTask.subtasks ?? []
+          : boardTask?.subtasks || [],
+    };
+  })();
 
   useEffect(() => {
     // Drawer peek does not change the breadcrumb detail
