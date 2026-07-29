@@ -376,6 +376,17 @@ export async function undoHabitCompletionApi(habitId) {
 }
 
 /**
+ * PATCH /api/v1/habits/:habitId/pause
+ * Toggle pause ↔ activate (same route for both; Habits board contract).
+ */
+export async function pauseHabitApi(habitId) {
+  const response = await axiosInstance.patch(`/api/v1/habits/${habitId}/pause`);
+  const body = response?.data;
+  if (body?.habit) return body.habit;
+  return unwrapData(response);
+}
+
+/**
  * POST /api/v1/habits/:habitId/skip
  * Body: { reason }
  */

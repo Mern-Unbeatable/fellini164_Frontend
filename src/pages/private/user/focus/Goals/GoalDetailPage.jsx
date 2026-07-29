@@ -41,7 +41,7 @@ import {
   completeTaskApi,
   deleteHabitApi,
   deleteTaskApi,
-  skipHabitApi,
+  pauseHabitApi,
   undoHabitCompletionApi,
   updateHabitApi,
   updateTaskApi,
@@ -387,7 +387,7 @@ function HabitDayCell({ state, todayProgress, onToggle }) {
   );
 }
 
-function HabitRowMenu({ onEdit, onSkip, onDelete, onClose, style }) {
+function HabitRowMenu({ onEdit, onPause, onDelete, onClose, style, isPaused = false }) {
   const itemBase =
     'flex w-full items-center gap-1.5 px-2.5 py-1.5 text-left text-[12px] font-medium whitespace-nowrap hover:bg-[#fcfcfc] dark:hover:bg-zinc-700';
   return (
@@ -409,13 +409,17 @@ function HabitRowMenu({ onEdit, onSkip, onDelete, onClose, style }) {
       <button
         type="button"
         onClick={() => {
-          onSkip?.();
+          onPause?.();
           onClose();
         }}
         className={`${itemBase} text-[#5d5d5d] dark:text-gray-300`}
       >
-        <Pause size={12} className="shrink-0" />
-        Skip today
+        {isPaused ? (
+          <Play size={12} className="shrink-0" />
+        ) : (
+          <Pause size={12} className="shrink-0" />
+        )}
+        {isPaused ? 'Activate' : 'Pause'}
       </button>
       <div className="h-px w-full bg-[#f2f2f2] dark:bg-zinc-700" />
       <button
@@ -433,73 +437,7 @@ function HabitRowMenu({ onEdit, onSkip, onDelete, onClose, style }) {
   );
 }
 
-function SkipHabitModal({ habitTitle, reason, onChangeReason, onClose, onConfirm, submitting }) {
-  const canSubmit = String(reason || '').trim().length > 0 && !submitting;
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div
-        className="flex w-full max-w-[400px] flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-900"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between border-b border-[#f2f2f2] px-3 py-2.5 dark:border-zinc-700">
-          <p className="text-[12px] font-medium text-[#5d5d5d] dark:text-gray-300">Skip today</p>
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={submitting}
-            className="text-[#5d5d5d] dark:text-gray-300"
-            aria-label="Close"
-          >
-            <CircleX size={14} />
-          </button>
-        </div>
-        <div className="flex flex-col gap-3 p-3">
-          {habitTitle && (
-            <p className="text-[13px] font-medium text-[#181818] dark:text-white">{habitTitle}</p>
-          )}
-          <label className="flex flex-col gap-1.5">
-            <span className="text-[12px] font-medium text-[#5d5d5d] dark:text-gray-300">
-              Why are you skipping today?
-            </span>
-            <input
-              type="text"
-              value={reason}
-              onChange={(e) => onChangeReason(e.target.value)}
-              placeholder="e.g. Travel day"
-              autoFocus
-              disabled={submitting}
-              className="rounded-lg border border-[#f2f2f2] bg-white px-3 py-2 text-[13px] text-[#181818] outline-none focus:border-[#8022fe] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
-            />
-          </label>
-        </div>
-        <div className="flex gap-2 border-t border-[#f2f2f2] p-3 dark:border-zinc-700">
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={submitting}
-            className="flex flex-1 items-center justify-center rounded-lg bg-[#f2f2f2] px-3 py-2 text-[12px] font-medium text-[#5d5d5d] dark:bg-zinc-700 dark:text-gray-300"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            disabled={!canSubmit}
-            onClick={onConfirm}
-            className={`flex flex-1 items-center justify-center rounded-lg px-3 py-2 text-[12px] font-semibold ${
-              canSubmit
-                ? 'bg-[#8022fe] text-white'
-                : 'cursor-not-allowed bg-[#f1f1f1] text-[#dedede]'
-            }`}
-          >
-            {submitting ? 'Skipping…' : 'Skip'}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function PageHabitRow({ habit, onEdit, onSkip, onDelete, onToggleDay }) {
+function PageHabitRow({ habit, onEdit, onPause, onDelete, onToggleDay }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [menuPos, setMenuPos] = useState(null);
@@ -665,8 +603,9 @@ function PageHabitRow({ habit, onEdit, onSkip, onDelete, onToggleDay }) {
               }}
               onClose={() => setMenuOpen(false)}
               onEdit={() => onEdit?.(habit)}
-              onSkip={() => onSkip?.(habit)}
+              onPause={() => onPause?.(habit)}
               onDelete={() => onDelete?.(habit)}
+              isPaused={habit.status === 'paused'}
             />
           </div>,
           document.body,
@@ -765,7 +704,6 @@ export default function GoalDetailPage() {
   const [showAllTasks, setShowAllTasks] = useState(false);
   const [editedLists, setEditedLists] = useState({ goalId: null, tasks: null, habits: null });
   const [habitModal, setHabitModal] = useState({ open: false, habit: null });
-  const [skipModal, setSkipModal] = useState({ open: false, habit: null, reason: 'Travel day' });
   const [habitActionBusy, setHabitActionBusy] = useState(null);
   const [taskModal, setTaskModal] = useState({ open: false, task: null });
   const [taskActionBusy, setTaskActionBusy] = useState(null);
@@ -947,46 +885,36 @@ export default function GoalDetailPage() {
     }
   };
 
-  const handleSkipHabit = (habit) => {
+  const handlePauseHabit = async (habit) => {
     if (!habit?.id || habitActionBusy) return;
-    setSkipModal({ open: true, habit, reason: 'Travel day' });
-  };
-
-  const closeSkipModal = () => {
-    if (habitActionBusy) return;
-    setSkipModal({ open: false, habit: null, reason: 'Travel day' });
-  };
-
-  const confirmSkipHabit = async () => {
-    const habit = skipModal.habit;
-    const trimmed = String(skipModal.reason || '').trim();
-    if (!habit?.id || !trimmed || habitActionBusy) return;
+    const wasPaused = habit.status === 'paused';
     setHabitActionBusy(habit.id);
     try {
-      // POST /api/v1/habits/:habitId/skip  { reason }
-      const updated = await skipHabitApi(habit.id, { reason: trimmed });
+      // PATCH /api/v1/habits/:habitId/pause — toggles pause ↔ activate
+      const updated = await pauseHabitApi(habit.id);
       if (updated?.id) {
-        replaceHabitInList(updated);
+        replaceHabitInList(updated, {
+          status: wasPaused ? undefined : 'paused',
+        });
       } else {
-        const base = getCurrentHabits();
         mergeEditedHabits(
-          base.map((h) => {
-            if (h.id !== habit.id) return h;
-            const days =
-              Array.isArray(h.days) && h.days.length === 7
-                ? [...h.days]
-                : Array(7).fill('empty');
-            days[TODAY_INDEX] = 'empty';
-            return { ...h, days, todayProgress: undefined };
-          }),
+          getCurrentHabits().map((h) =>
+            h.id === habit.id
+              ? { ...h, status: wasPaused ? undefined : 'paused' }
+              : h,
+          ),
         );
       }
-      toast.success('Habit skipped for today');
-      setSkipModal({ open: false, habit: null, reason: 'Travel day' });
-      if (goal?.id) dispatch(fetchGoalById(goal.id));
+      toast.success(wasPaused ? 'Habit activated' : 'Habit paused');
+      if (goal?.id) {
+        await dispatch(fetchGoalById(goal.id));
+        setEditedLists((prev) =>
+          prev.goalId === goalId ? { goalId, tasks: prev.tasks, habits: null } : prev,
+        );
+      }
     } catch (err) {
       const message =
-        err?.response?.data?.message || err?.message || 'Failed to skip habit';
+        err?.response?.data?.message || err?.message || 'Failed to update habit status';
       toast.error(message);
     } finally {
       setHabitActionBusy(null);
@@ -1391,7 +1319,7 @@ export default function GoalDetailPage() {
                       key={habit.id}
                       habit={habit}
                       onEdit={openEditHabit}
-                      onSkip={handleSkipHabit}
+                      onPause={handlePauseHabit}
                       onDelete={handleRequestDeleteHabit}
                       onToggleDay={handleToggleHabitDay}
                     />
@@ -1491,17 +1419,6 @@ export default function GoalDetailPage() {
           initialHabit={habitModal.habit}
           onClose={closeHabitModal}
           onSave={handleSaveHabit}
-        />
-      )}
-
-      {skipModal.open && (
-        <SkipHabitModal
-          habitTitle={skipModal.habit?.title}
-          reason={skipModal.reason}
-          onChangeReason={(reason) => setSkipModal((prev) => ({ ...prev, reason }))}
-          onClose={closeSkipModal}
-          onConfirm={confirmSkipHabit}
-          submitting={Boolean(habitActionBusy)}
         />
       )}
 
