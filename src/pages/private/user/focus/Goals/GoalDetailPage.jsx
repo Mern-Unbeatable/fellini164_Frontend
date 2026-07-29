@@ -37,10 +37,12 @@ import {
   updateGoalStatus,
 } from '../../../../../features/goals/goalsSlice';
 import {
+  completeHabitApi,
   completeTaskApi,
   deleteHabitApi,
   deleteTaskApi,
   skipHabitApi,
+  undoHabitCompletionApi,
   updateHabitApi,
   updateTaskApi,
 } from '../../../../../features/goals/goalsAPI';
@@ -50,6 +52,7 @@ import {
   mapLinkedTaskFromApi,
   mapTaskUpdatePayload,
 } from '../../../../../features/goals/goalsMappers';
+import { getTodayIndex } from '../../../../../features/habits/habitsMappers';
 import GoalAiAssistant from './components/GoalAiAssistant';
 import LinkItemsModal from './components/LinkItemsModal';
 import GoalSparkLinkModal from './components/GoalSparkLinkModal';
@@ -76,8 +79,8 @@ const STATUS_PILL = {
   paused: 'bg-[rgba(93,93,93,0.05)] text-[#5d5d5d]',
 };
 
-// Figma Frame 5.1 + Habits board lock today to Wed (Mon=0).
-const TODAY_INDEX = 2;
+// Real calendar today (Mon=0), same as Habits board check-in.
+const TODAY_INDEX = getTodayIndex();
 
 function DueDetailPill({ goal }) {
   if (goal.dueDetail) {
@@ -496,7 +499,7 @@ function SkipHabitModal({ habitTitle, reason, onChangeReason, onClose, onConfirm
   );
 }
 
-function PageHabitRow({ habit, onEdit, onSkip, onDelete }) {
+function PageHabitRow({ habit, onEdit, onSkip, onDelete, onToggleDay }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [menuPos, setMenuPos] = useState(null);
@@ -552,23 +555,12 @@ function PageHabitRow({ habit, onEdit, onSkip, onDelete }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [menuOpen]);
 
-  // Match Habits board: fractional habits stay on today (1/2, 2/3); others empty ↔ checked.
+  // Today cell → POST/DELETE /habits/:id/complete (Habits board parity). Other days are view-only.
   const handleToggleDay = (dayIndex) => {
-    setDays((prev) => {
-      const current = prev[dayIndex];
-      if (current === 'unscheduled') return prev;
-      const next = [...prev];
-      if (habit.todayProgress && dayIndex === TODAY_INDEX) {
-        next[dayIndex] = current === 'today' ? 'empty' : 'today';
-        return next;
-      }
-      if (current === 'checked') {
-        next[dayIndex] = dayIndex === TODAY_INDEX ? 'today' : 'empty';
-      } else {
-        next[dayIndex] = 'checked';
-      }
-      return next;
-    });
+    if (dayIndex !== TODAY_INDEX) return;
+    const current = days[dayIndex];
+    if (current === 'unscheduled') return;
+    onToggleDay?.(habit, dayIndex, current);
   };
 
   const tags = Array.isArray(habit.tags) ? habit.tags : [];
@@ -898,6 +890,7 @@ export default function GoalDetailPage() {
     if (!habitModal.habit?.id) return;
     const habitId = habitModal.habit.id;
     try {
+      // PATCH /api/v1/habits/:id — includes targetDays (Sat/Sun), difficulty, reminderTime, goalId
       const payload = mapHabitUpdatePayload(data, { goalId: goal?.id });
       const updated = await updateHabitApi(habitId, payload);
       const nextDays =
@@ -939,6 +932,13 @@ export default function GoalDetailPage() {
         );
       }
       toast.success('Habit updated');
+      // Re-hydrate from GET /habits/:id via fetchGoalById so Sat/Sun + completions stick.
+      if (goal?.id) {
+        await dispatch(fetchGoalById(goal.id));
+        setEditedLists((prev) =>
+          prev.goalId === goalId ? { goalId, tasks: prev.tasks, habits: null } : prev,
+        );
+      }
     } catch (err) {
       const message =
         err?.response?.data?.message || err?.message || 'Failed to update habit';
@@ -963,6 +963,7 @@ export default function GoalDetailPage() {
     if (!habit?.id || !trimmed || habitActionBusy) return;
     setHabitActionBusy(habit.id);
     try {
+      // POST /api/v1/habits/:habitId/skip  { reason }
       const updated = await skipHabitApi(habit.id, { reason: trimmed });
       if (updated?.id) {
         replaceHabitInList(updated);
@@ -986,6 +987,53 @@ export default function GoalDetailPage() {
     } catch (err) {
       const message =
         err?.response?.data?.message || err?.message || 'Failed to skip habit';
+      toast.error(message);
+    } finally {
+      setHabitActionBusy(null);
+    }
+  };
+
+  /** Today week-cell click — POST /habits/:id/complete or DELETE undo (Habits board parity). */
+  const handleToggleHabitDay = async (habit, dayIndex, currentState) => {
+    if (dayIndex !== TODAY_INDEX) return;
+    if (!habit?.id || habitActionBusy) return;
+    const statusKey = String(habit.status || '').toLowerCase();
+    if (statusKey === 'paused' || statusKey === 'completed') return;
+    if (currentState === 'unscheduled') return;
+
+    setHabitActionBusy(habit.id);
+    const isUndo = currentState === 'checked';
+    const nextDays = (
+      Array.isArray(habit.days) && habit.days.length === 7
+        ? [...habit.days]
+        : Array(7).fill('empty')
+    );
+    nextDays[TODAY_INDEX] = isUndo ? 'empty' : 'checked';
+
+    try {
+      const updated = isUndo
+        ? await undoHabitCompletionApi(habit.id)
+        : await completeHabitApi(habit.id);
+      if (updated?.id) {
+        replaceHabitInList(updated, { days: nextDays });
+      } else {
+        mergeEditedHabits(
+          getCurrentHabits().map((h) =>
+            h.id === habit.id ? { ...h, days: nextDays } : h,
+          ),
+        );
+      }
+      toast.success(isUndo ? 'Habit completion undone' : 'Habit completed');
+      // Enrich via GET /habits/:id so checkmark survives refresh.
+      if (goal?.id) {
+        await dispatch(fetchGoalById(goal.id));
+        setEditedLists((prev) =>
+          prev.goalId === goalId ? { goalId, tasks: prev.tasks, habits: null } : prev,
+        );
+      }
+    } catch (err) {
+      const message =
+        err?.response?.data?.message || err?.message || 'Failed to update habit check-in';
       toast.error(message);
     } finally {
       setHabitActionBusy(null);
@@ -1345,6 +1393,7 @@ export default function GoalDetailPage() {
                       onEdit={openEditHabit}
                       onSkip={handleSkipHabit}
                       onDelete={handleRequestDeleteHabit}
+                      onToggleDay={handleToggleHabitDay}
                     />
                   ))}
                 </div>

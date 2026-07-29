@@ -355,6 +355,27 @@ export async function updateHabitApi(habitId, payload) {
 }
 
 /**
+ * POST /api/v1/habits/:habitId/complete
+ * Response: { success, message, habit }
+ */
+export async function completeHabitApi(habitId, payload = {}) {
+  const response = await axiosInstance.post(`/api/v1/habits/${habitId}/complete`, payload);
+  const body = response?.data;
+  if (body?.habit) return body.habit;
+  return unwrapData(response);
+}
+
+/**
+ * DELETE /api/v1/habits/:habitId/complete — undo today's completion
+ */
+export async function undoHabitCompletionApi(habitId) {
+  const response = await axiosInstance.delete(`/api/v1/habits/${habitId}/complete`);
+  const body = response?.data;
+  if (body?.habit) return body.habit;
+  return unwrapData(response);
+}
+
+/**
  * POST /api/v1/habits/:habitId/skip
  * Body: { reason }
  */

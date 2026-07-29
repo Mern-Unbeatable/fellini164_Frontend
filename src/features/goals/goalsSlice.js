@@ -13,6 +13,7 @@ import {
   updateGoalApi,
   updateGoalStatusApi,
 } from './goalsAPI';
+import { fetchHabitByIdApi } from '../habits/habitsAPI';
 import {
   buildGoalsQueryParams,
   categoryToApi,
@@ -70,6 +71,29 @@ export const fetchGoalById = createAsyncThunk(
   async (goalId, { rejectWithValue }) => {
     try {
       const data = await fetchGoalByIdApi(goalId);
+      // Goal payload often omits habit completions / full targetDays — hydrate from GET /habits/:id
+      // so week checkmarks + Sat/Sun schedule survive refresh.
+      const rawHabits = data?.linkedHabits || data?.habits || [];
+      if (Array.isArray(rawHabits) && rawHabits.length > 0) {
+        const enriched = await Promise.all(
+          rawHabits.map(async (h) => {
+            if (!h?.id) return h;
+            try {
+              const full = await fetchHabitByIdApi(h.id);
+              if (!full || typeof full !== 'object') return h;
+              return { ...h, ...full };
+            } catch {
+              return h;
+            }
+          }),
+        );
+        return {
+          ...data,
+          ...(Array.isArray(data?.linkedHabits)
+            ? { linkedHabits: enriched }
+            : { habits: enriched }),
+        };
+      }
       return data;
     } catch (error) {
       toast.error(error?.response?.data?.message || 'Failed to load goal');
