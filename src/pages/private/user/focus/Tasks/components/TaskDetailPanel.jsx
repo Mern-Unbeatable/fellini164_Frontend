@@ -12,6 +12,7 @@ import {
   MoreHorizontal,
   Pencil,
   Trash2,
+  Check,
 } from 'lucide-react';
 import SkeletonBar from '../../../../../../components/ui/SkeletonBar';
 import TaskAiAssistant from './TaskAiAssistant';
@@ -200,10 +201,16 @@ function TaskDetailMenu({ onClose, onEdit, onBreakIntoSubtasks, onImproveDescrip
   );
 }
 
-function SubtasksSection({ task, isApplyingAiEdit = false, onRequestBreakdown }) {
+function SubtasksSection({
+  task,
+  isApplyingAiEdit = false,
+  onRequestBreakdown,
+  onCompleteSubtask,
+}) {
   const subtasks = task.subtasks ?? [];
   const completedCount = subtasks.filter((s) => s.done || s.completed).length;
   const showAiSkeleton = isApplyingAiEdit;
+  const [busyId, setBusyId] = useState(null);
 
   return (
     <div className="flex w-full flex-col gap-1.5">
@@ -245,32 +252,50 @@ function SubtasksSection({ task, isApplyingAiEdit = false, onRequestBreakdown })
       ) : (
         <div className="overflow-hidden rounded-xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800">
           <div className="flex flex-col gap-2.5 px-3 py-2">
-            {subtasks.map((sub) => (
-              <div
-                key={sub.id}
-                className={`flex items-center gap-2 ${sub.done || sub.completed ? 'opacity-50' : ''}`}
-              >
-                <span
-                  className={`flex size-3.5 shrink-0 items-center justify-center rounded border ${
-                    sub.done || sub.completed
-                      ? 'border-[#8022fe] bg-[#8022fe] text-white'
-                      : 'border-[#e9e9e9]'
-                  }`}
-                />
-                <span
-                  className={`text-[14px] font-medium text-[#5d5d5d] dark:text-gray-300 ${
-                    sub.done || sub.completed ? 'line-through' : ''
-                  }`}
+            {subtasks.map((sub) => {
+              const isDone = Boolean(sub.done || sub.completed);
+              const isBusy = busyId === sub.id;
+              return (
+                <div
+                  key={sub.id}
+                  className={`flex items-center gap-2 ${isDone ? 'opacity-50' : ''}`}
                 >
-                  {sub.title || sub.label}{' '}
-                  {(sub.estimatedMinutes || sub.minutes) != null && (
-                    <span className="text-[12px] text-[#c2c2c2]">
-                      ({sub.estimatedMinutes || sub.minutes} Min)
-                    </span>
-                  )}
-                </span>
-              </div>
-            ))}
+                  <button
+                    type="button"
+                    disabled={isDone || isBusy || !onCompleteSubtask}
+                    aria-label={isDone ? 'Subtask completed' : 'Mark subtask complete'}
+                    onClick={async () => {
+                      if (isDone || isBusy || !onCompleteSubtask) return;
+                      setBusyId(sub.id);
+                      try {
+                        await onCompleteSubtask(sub);
+                      } finally {
+                        setBusyId(null);
+                      }
+                    }}
+                    className={`flex size-3.5 shrink-0 items-center justify-center rounded border transition-colors ${
+                      isDone
+                        ? 'border-[#8022fe] bg-[#8022fe] text-white'
+                        : 'border-[#e9e9e9] bg-white hover:border-[#8022fe] disabled:cursor-not-allowed dark:bg-zinc-800'
+                    }`}
+                  >
+                    {isDone && <Check size={8} strokeWidth={3} className="text-white" />}
+                  </button>
+                  <span
+                    className={`text-[14px] font-medium text-[#5d5d5d] dark:text-gray-300 ${
+                      isDone ? 'line-through' : ''
+                    }`}
+                  >
+                    {sub.title || sub.label}{' '}
+                    {(sub.estimatedMinutes || sub.minutes) != null && (
+                      <span className="text-[12px] text-[#c2c2c2]">
+                        ({sub.estimatedMinutes || sub.minutes} Min)
+                      </span>
+                    )}
+                  </span>
+                </div>
+              );
+            })}
           </div>
           <div className="border-t border-[#f2f2f2] px-3 py-2 dark:border-zinc-700">
             <p className="text-[12px] font-medium text-[#5d5d5d]">
@@ -288,6 +313,7 @@ function TaskDetailCard({
   task,
   onUpdateTaskFields,
   onChangeStatus,
+  onCompleteSubtask,
   isApplyingAiEdit = false,
   onEdit,
   onDelete,
@@ -550,6 +576,7 @@ function TaskDetailCard({
           task={task}
           isApplyingAiEdit={isApplyingAiEdit}
           onRequestBreakdown={onTriggerSubtasksAi}
+          onCompleteSubtask={onCompleteSubtask}
         />
       </div>
     </div>
@@ -567,6 +594,7 @@ export function TaskDetailDrawer({
   onOpenFullPage,
   onUpdateTaskFields,
   onChangeStatus,
+  onCompleteSubtask,
   onEdit,
   onDelete,
   onRefreshTask,
@@ -584,6 +612,7 @@ export function TaskDetailDrawer({
       onOpenFullPage={onOpenFullPage}
       onUpdateTaskFields={onUpdateTaskFields}
       onChangeStatus={onChangeStatus}
+      onCompleteSubtask={onCompleteSubtask}
       onEdit={onEdit}
       onDelete={onDelete}
       onRefreshTask={onRefreshTask}
@@ -601,6 +630,7 @@ function TaskDetailDrawerInner({
   onOpenFullPage,
   onUpdateTaskFields,
   onChangeStatus,
+  onCompleteSubtask,
   onEdit,
   onDelete,
   onRefreshTask,
@@ -723,6 +753,10 @@ function TaskDetailDrawerInner({
               const updated = await onChangeStatus?.(status);
               if (updated) applyTaskUpdate(updated);
             }}
+            onCompleteSubtask={async (subtask) => {
+              const updated = await onCompleteSubtask?.(subtask);
+              if (updated) applyTaskUpdate(updated);
+            }}
             isApplyingAiEdit={isApplyingAiEdit}
             onEdit={onEdit}
             onDelete={onDelete}
@@ -759,6 +793,7 @@ export default function TaskDetailPanel({
   task: taskProp,
   onUpdateTaskFields,
   onChangeStatus,
+  onCompleteSubtask,
   onEdit,
   onDelete,
   onRefreshTask,
@@ -808,6 +843,10 @@ export default function TaskDetailPanel({
           onUpdateTaskFields={onUpdateTaskFields}
           onChangeStatus={async (status) => {
             const updated = await onChangeStatus?.(status);
+            if (updated) applyTaskUpdate(updated);
+          }}
+          onCompleteSubtask={async (subtask) => {
+            const updated = await onCompleteSubtask?.(subtask);
             if (updated) applyTaskUpdate(updated);
           }}
           isApplyingAiEdit={isApplyingAiEdit}

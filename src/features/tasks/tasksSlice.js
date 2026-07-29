@@ -376,11 +376,38 @@ const tasksSlice = createSlice({
         mergeTaskIntoState(state, action.payload);
       })
       .addCase(completeTask.fulfilled, (state, action) => {
-        mergeTaskIntoState(state, {
+        const mapped = {
           ...action.payload,
           status: 'Done',
           columnKey: 'done',
-        });
+        };
+        const onBoard = state.items.some((t) => String(t.id) === String(mapped.id));
+        // Parent tasks stay on the board; subtask completes only update the steps list.
+        if (onBoard) {
+          mergeTaskIntoState(state, mapped);
+        }
+        const subIdx = state.currentSubtasks.findIndex(
+          (s) => String(s.id) === String(mapped.id)
+        );
+        if (subIdx !== -1) {
+          state.currentSubtasks[subIdx] = {
+            ...state.currentSubtasks[subIdx],
+            done: true,
+            status: 'Done',
+          };
+          const parent = state.currentTask;
+          if (parent) {
+            const nextSubs = state.currentSubtasks;
+            state.currentTask = {
+              ...parent,
+              subtasks: nextSubs,
+              steps:
+                nextSubs.length > 0
+                  ? `${nextSubs.filter((s) => s.done).length}/${nextSubs.length} Steps`
+                  : undefined,
+            };
+          }
+        }
       })
       .addCase(skipTask.fulfilled, (state, action) => {
         mergeTaskIntoState(state, action.payload);

@@ -30,6 +30,7 @@ import {
   selectCurrentTask,
   selectTaskColumns,
   selectTasksLoading,
+  completeTask,
   updateTask,
   updateTaskStatus,
 } from '../../../../../features/tasks/tasksSlice';
@@ -316,6 +317,31 @@ export default function TasksBoard() {
       }
     }
     return updateTaskStatus.fulfilled.match(result) ? result.payload : null;
+  };
+
+  const handleCompleteSubtask = async (subtask) => {
+    if (!subtask?.id || subtask.done || subtask.completed) return null;
+    const parentId = selectedTaskId;
+    if (!parentId) return null;
+    const mins = Number(subtask.estimatedMinutes ?? subtask.minutes);
+    await dispatch(
+      completeTask({
+        taskId: subtask.id,
+        actualMinutes: Number.isFinite(mins) && mins > 0 ? mins : undefined,
+      })
+    ).unwrap();
+    const subs = await dispatch(fetchSubtasks(parentId));
+    await loadTasks();
+    await dispatch(fetchTasksSummary());
+    const subtasks = fetchSubtasks.fulfilled.match(subs) ? subs.payload.subtasks : [];
+    return {
+      id: parentId,
+      subtasks,
+      steps:
+        subtasks.length > 0
+          ? `${subtasks.filter((s) => s.done).length}/${subtasks.length} Steps`
+          : undefined,
+    };
   };
 
   const openNewTaskModal = () => setTaskModal({ open: true, mode: 'create', task: null });
@@ -607,6 +633,7 @@ export default function TasksBoard() {
           onOpenFullPage={() => openTaskFullPage(selectedTask)}
           onUpdateTaskFields={(fields) => handleUpdateTaskFields(selectedTask.id, fields)}
           onChangeStatus={(status) => handleChangeStatus(selectedTask.id, status)}
+          onCompleteSubtask={handleCompleteSubtask}
           onEdit={openEditTaskModal}
           onDelete={(t) => {
             handleRequestDeleteTask(t);
