@@ -493,8 +493,11 @@ function PageHabitRow({ habit, onEdit, onPause, onDelete, onToggleDay }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [menuOpen]);
 
+  const isPaused = habit.status === 'paused';
+
   // Today cell → POST/DELETE /habits/:id/complete (Habits board parity). Other days are view-only.
   const handleToggleDay = (dayIndex) => {
+    if (isPaused) return;
     if (dayIndex !== TODAY_INDEX) return;
     const current = days[dayIndex];
     if (current === 'unscheduled') return;
@@ -502,6 +505,8 @@ function PageHabitRow({ habit, onEdit, onPause, onDelete, onToggleDay }) {
   };
 
   const tags = Array.isArray(habit.tags) ? habit.tags : [];
+  // Match Habits board / Goals paused — ash fade + PAUSED badge (image 2).
+  const ash = isPaused ? 'opacity-50' : '';
 
   return (
     <div
@@ -511,11 +516,30 @@ function PageHabitRow({ habit, onEdit, onPause, onDelete, onToggleDay }) {
       className="relative flex flex-col gap-2 rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] p-3 dark:border-zinc-700 dark:bg-zinc-800"
     >
       {/* Main row: name col + desktop day cells (menu is absolute, not in flex) */}
-      <div className="flex items-start gap-3">
-        <div className="w-[220px] shrink-0 flex flex-col gap-2.5">
+      <div className={`flex items-start gap-3 ${ash}`}>
+        <div className="flex w-[220px] shrink-0 flex-col gap-2.5">
           <div className="flex flex-col gap-1">
-            <p className="text-[16px] font-medium text-[#181818] dark:text-white">{habit.title}</p>
-            <p className="truncate text-[12px] font-medium text-[#a3a3a3]">{habit.description}</p>
+            <div className="flex items-center gap-2">
+              <p
+                className={`text-[16px] font-medium ${
+                  isPaused ? 'text-[#5d5d5d] dark:text-gray-400' : 'text-[#181818] dark:text-white'
+                }`}
+              >
+                {habit.title}
+              </p>
+              {isPaused && (
+                <span className="rounded-[6px] bg-[rgba(93,93,93,0.05)] px-[6px] py-[2px] text-xs font-medium uppercase text-[#5d5d5d]">
+                  Paused
+                </span>
+              )}
+            </div>
+            <p
+              className={`truncate text-[12px] font-medium ${
+                isPaused ? 'text-[#c2c2c2]' : 'text-[#a3a3a3]'
+              }`}
+            >
+              {habit.description}
+            </p>
           </div>
           <div className="flex flex-wrap items-center gap-1">
             {tags.map((tag) => {
@@ -553,13 +577,15 @@ function PageHabitRow({ habit, onEdit, onPause, onDelete, onToggleDay }) {
         </div>
       </div>
       {/* Mobile: day labels row + day cells row (hidden on lg+) */}
-      <div className="flex flex-col gap-1.5 lg:hidden">
+      <div className={`flex flex-col gap-1.5 lg:hidden ${ash}`}>
         <div className="flex items-center justify-between">
           {WEEKDAY_LABELS.map((day, i) => (
             <span
               key={day}
               className={`w-[30px] text-center text-[12px] font-medium ${
-                i === TODAY_INDEX ? 'text-[#8022fe]' : 'text-[#5d5d5d] dark:text-gray-300'
+                i === TODAY_INDEX && !isPaused
+                  ? 'text-[#8022fe]'
+                  : 'text-[#5d5d5d] dark:text-gray-300'
               }`}
             >
               {day}
@@ -605,7 +631,7 @@ function PageHabitRow({ habit, onEdit, onPause, onDelete, onToggleDay }) {
               onEdit={() => onEdit?.(habit)}
               onPause={() => onPause?.(habit)}
               onDelete={() => onDelete?.(habit)}
-              isPaused={habit.status === 'paused'}
+              isPaused={isPaused}
             />
           </div>,
           document.body,

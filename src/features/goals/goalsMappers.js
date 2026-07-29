@@ -504,7 +504,12 @@ export function mapLinkedHabitFromApi(habit) {
     },
     stats: [{ label: habit.frequency ? String(habit.frequency).toLowerCase() : 'Today' }],
     source: isAi ? 'ai' : undefined,
-    status: habit.status === 'PAUSED' || habit.status === 'paused' ? 'paused' : undefined,
+    status:
+      habit.status === 'PAUSED' ||
+      habit.status === 'paused' ||
+      habit.isActive === false
+        ? 'paused'
+        : undefined,
   };
 }
 
