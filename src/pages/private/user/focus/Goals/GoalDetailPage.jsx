@@ -783,6 +783,7 @@ export default function GoalDetailPage() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deletingGoal, setDeletingGoal] = useState(false);
   const [taskDeleteModal, setTaskDeleteModal] = useState({ open: false, task: null });
+  const [habitDeleteModal, setHabitDeleteModal] = useState({ open: false, habit: null });
   // Stay on detail URL until GET /goals/:id settles (refresh must not bounce to board).
   const [detailFetchDone, setDetailFetchDone] = useState(false);
 
@@ -991,13 +992,25 @@ export default function GoalDetailPage() {
     }
   };
 
-  const handleDeleteHabit = async (habit) => {
+  const handleRequestDeleteHabit = (habit) => {
+    if (!habit?.id) return;
+    setHabitDeleteModal({ open: true, habit });
+  };
+
+  const handleCloseHabitDeleteModal = () => {
+    if (habitActionBusy) return;
+    setHabitDeleteModal({ open: false, habit: null });
+  };
+
+  const handleConfirmDeleteHabit = async () => {
+    const habit = habitDeleteModal.habit;
     if (!habit?.id || habitActionBusy) return;
     setHabitActionBusy(habit.id);
     try {
       await deleteHabitApi(habit.id);
       mergeEditedHabits(getCurrentHabits().filter((h) => h.id !== habit.id));
       toast.success('Habit deleted');
+      setHabitDeleteModal({ open: false, habit: null });
       if (goal?.id) dispatch(fetchGoalById(goal.id));
     } catch (err) {
       const message =
@@ -1331,7 +1344,7 @@ export default function GoalDetailPage() {
                       habit={habit}
                       onEdit={openEditHabit}
                       onSkip={handleSkipHabit}
-                      onDelete={handleDeleteHabit}
+                      onDelete={handleRequestDeleteHabit}
                     />
                   ))}
                 </div>
@@ -1409,6 +1422,16 @@ export default function GoalDetailPage() {
         submitting={Boolean(taskActionBusy && taskDeleteModal.task?.id === taskActionBusy)}
         onClose={handleCloseTaskDeleteModal}
         onConfirm={handleConfirmDeleteTask}
+      />
+
+      <DeleteConfirmModal
+        open={habitDeleteModal.open}
+        title="Delete Habit"
+        itemName={habitDeleteModal.habit?.title}
+        entityLabel="habit"
+        submitting={Boolean(habitActionBusy && habitDeleteModal.habit?.id === habitActionBusy)}
+        onClose={handleCloseHabitDeleteModal}
+        onConfirm={handleConfirmDeleteHabit}
       />
 
       {habitModal.open && (
