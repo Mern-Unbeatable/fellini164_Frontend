@@ -75,6 +75,65 @@ const PRIORITY_LABELS = {
   LOW: 'Low',
 };
 
+const TASK_STATUSES = ['To Do', 'In Progress', 'Done'];
+
+function StatusDropdown({ value, onChange, disabled = false }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  const current = TASK_STATUSES.includes(value) ? value : 'To Do';
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const handleClickOutside = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative w-[120px]">
+      <button
+        type="button"
+        disabled={disabled}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => !disabled && setOpen((o) => !o)}
+        className="flex w-full items-center justify-between rounded-lg border border-[#f2f2f2] bg-[#fcfcfc] px-3 py-2 text-left dark:border-zinc-700 dark:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        <span className="text-[14px] font-medium text-[#181818] dark:text-white">{current}</span>
+        <ChevronDown size={12} className="shrink-0 text-[#a3a3a3]" aria-hidden="true" />
+      </button>
+      {open && (
+        <div
+          role="listbox"
+          className="absolute left-0 top-full z-30 mt-1 flex w-full flex-col overflow-hidden rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800"
+        >
+          {TASK_STATUSES.map((status) => (
+            <button
+              key={status}
+              type="button"
+              role="option"
+              aria-selected={status === current}
+              onClick={() => {
+                setOpen(false);
+                if (status !== current) onChange?.(status);
+              }}
+              className={`px-3 py-2 text-left text-[14px] font-medium transition-colors hover:bg-[#fcfcfc] dark:hover:bg-zinc-700 ${
+                status === current
+                  ? 'text-[#8022fe]'
+                  : 'text-[#181818] dark:text-white'
+              }`}
+            >
+              {status}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function isGoalTag(tag) {
   return Boolean(
     tag?.linkedGoal || tag?.iconKey === 'goal' || tag?.icon === Target || tag?.icon === TrendingUp
@@ -228,6 +287,7 @@ function SubtasksSection({ task, isApplyingAiEdit = false, onRequestBreakdown })
 function TaskDetailCard({
   task,
   onUpdateTaskFields,
+  onChangeStatus,
   isApplyingAiEdit = false,
   onEdit,
   onDelete,
@@ -238,6 +298,7 @@ function TaskDetailCard({
   const [menuOpen, setMenuOpen] = useState(false);
   const [goalMenuOpen, setGoalMenuOpen] = useState(false);
   const [goalOptions, setGoalOptions] = useState([]);
+  const [statusBusy, setStatusBusy] = useState(false);
   const menuRef = useRef(null);
   const goalMenuRef = useRef(null);
 
@@ -371,12 +432,19 @@ function TaskDetailCard({
             </>
           )}
         </div>
-        <div className="flex w-[120px] items-center justify-between rounded-lg border border-[#f2f2f2] bg-[#fcfcfc] px-3 py-2 dark:border-zinc-700 dark:bg-zinc-800">
-          <p className="text-[14px] font-medium text-[#181818] dark:text-white">
-            {task.status || 'To Do'}
-          </p>
-          <ChevronDown size={12} className="shrink-0 text-[#a3a3a3]" aria-hidden="true" />
-        </div>
+        <StatusDropdown
+          value={task.status || 'To Do'}
+          disabled={statusBusy || !onChangeStatus}
+          onChange={async (nextStatus) => {
+            if (!onChangeStatus || statusBusy) return;
+            setStatusBusy(true);
+            try {
+              await onChangeStatus(nextStatus);
+            } finally {
+              setStatusBusy(false);
+            }
+          }}
+        />
       </div>
 
       <div className="h-px w-full bg-[#f2f2f2] dark:bg-zinc-700" />
@@ -498,6 +566,7 @@ export function TaskDetailDrawer({
   onClose,
   onOpenFullPage,
   onUpdateTaskFields,
+  onChangeStatus,
   onEdit,
   onDelete,
   onRefreshTask,
@@ -514,6 +583,7 @@ export function TaskDetailDrawer({
       onClose={onClose}
       onOpenFullPage={onOpenFullPage}
       onUpdateTaskFields={onUpdateTaskFields}
+      onChangeStatus={onChangeStatus}
       onEdit={onEdit}
       onDelete={onDelete}
       onRefreshTask={onRefreshTask}
@@ -530,6 +600,7 @@ function TaskDetailDrawerInner({
   onClose,
   onOpenFullPage,
   onUpdateTaskFields,
+  onChangeStatus,
   onEdit,
   onDelete,
   onRefreshTask,
@@ -648,6 +719,10 @@ function TaskDetailDrawerInner({
             variant="drawer"
             task={task}
             onUpdateTaskFields={onUpdateTaskFields}
+            onChangeStatus={async (status) => {
+              const updated = await onChangeStatus?.(status);
+              if (updated) applyTaskUpdate(updated);
+            }}
             isApplyingAiEdit={isApplyingAiEdit}
             onEdit={onEdit}
             onDelete={onDelete}
@@ -683,6 +758,7 @@ function TaskDetailDrawerInner({
 export default function TaskDetailPanel({
   task: taskProp,
   onUpdateTaskFields,
+  onChangeStatus,
   onEdit,
   onDelete,
   onRefreshTask,
@@ -730,6 +806,10 @@ export default function TaskDetailPanel({
           variant="page"
           task={task}
           onUpdateTaskFields={onUpdateTaskFields}
+          onChangeStatus={async (status) => {
+            const updated = await onChangeStatus?.(status);
+            if (updated) applyTaskUpdate(updated);
+          }}
           isApplyingAiEdit={isApplyingAiEdit}
           onEdit={onEdit}
           onDelete={onDelete}

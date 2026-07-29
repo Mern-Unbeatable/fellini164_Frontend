@@ -31,6 +31,7 @@ import {
   selectTaskColumns,
   selectTasksLoading,
   updateTask,
+  updateTaskStatus,
 } from '../../../../../features/tasks/tasksSlice';
 import { mapTaskFromApi, taskMatchesClientFilters } from '../../../../../features/tasks/tasksMappers';
 
@@ -301,6 +302,20 @@ export default function TasksBoard() {
     if (String(selectedTaskId) === String(taskId)) {
       await dispatch(fetchTaskById(taskId));
     }
+  };
+
+  const handleChangeStatus = async (taskId, status) => {
+    if (!taskId || !status) return null;
+    const result = await dispatch(updateTaskStatus({ taskId, status }));
+    await loadTasks();
+    await dispatch(fetchTasksSummary());
+    if (String(selectedTaskId) === String(taskId)) {
+      const byId = await dispatch(fetchTaskById(taskId));
+      if (fetchTaskById.fulfilled.match(byId)) {
+        return mapTaskFromApi(byId.payload) || result.payload;
+      }
+    }
+    return updateTaskStatus.fulfilled.match(result) ? result.payload : null;
   };
 
   const openNewTaskModal = () => setTaskModal({ open: true, mode: 'create', task: null });
@@ -591,6 +606,7 @@ export default function TasksBoard() {
           onClose={closeTaskDetail}
           onOpenFullPage={() => openTaskFullPage(selectedTask)}
           onUpdateTaskFields={(fields) => handleUpdateTaskFields(selectedTask.id, fields)}
+          onChangeStatus={(status) => handleChangeStatus(selectedTask.id, status)}
           onEdit={openEditTaskModal}
           onDelete={(t) => {
             handleRequestDeleteTask(t);

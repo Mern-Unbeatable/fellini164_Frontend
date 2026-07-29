@@ -14,6 +14,7 @@ import {
   selectCurrentTask,
   selectTasksLoadingTask,
   updateTask,
+  updateTaskStatus,
 } from '../../../../../features/tasks/tasksSlice';
 import { mapTaskFromApi } from '../../../../../features/tasks/tasksMappers';
 
@@ -110,6 +111,14 @@ export default function TaskDetailPage() {
     await refreshTask();
   };
 
+  const handleChangeStatus = async (status) => {
+    if (!taskId || !status) return null;
+    const result = await dispatch(updateTaskStatus({ taskId, status }));
+    const refreshed = await refreshTask();
+    if (refreshed) return refreshed;
+    return updateTaskStatus.fulfilled.match(result) ? result.payload : null;
+  };
+
   const handleRequestDelete = (t) => {
     if (!t?.id) return;
     setDeleteModalOpen(true);
@@ -142,6 +151,7 @@ export default function TaskDetailPage() {
       <TaskDetailPanel
         task={task}
         onUpdateTaskFields={(fields) => handleUpdateTaskFields(task.id, fields)}
+        onChangeStatus={handleChangeStatus}
         onEdit={(t) => setTaskModal({ open: true, task: t })}
         onDelete={handleRequestDelete}
         onRefreshTask={refreshTask}
