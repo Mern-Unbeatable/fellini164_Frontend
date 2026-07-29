@@ -31,11 +31,16 @@ import { GHOST_GOALS } from './goalsData';
 import {
   completeGoal,
   createGoal,
+  clearCurrentGoal,
   deleteGoal,
+  fetchGoalById,
   fetchGoals,
   linkHabitsToGoal,
   linkTasksToGoal,
   selectBoardStats,
+  selectCurrentGoal,
+  selectCurrentGoalHabits,
+  selectCurrentGoalTasks,
   selectGoals,
   selectGoalsLoading,
   updateGoal,
@@ -736,6 +741,9 @@ export default function ActiveGoals() {
   const goals = useSelector(selectGoals);
   const boardStats = useSelector(selectBoardStats);
   const loadingList = useSelector(selectGoalsLoading);
+  const currentGoal = useSelector(selectCurrentGoal);
+  const currentGoalTasks = useSelector(selectCurrentGoalTasks);
+  const currentGoalHabits = useSelector(selectCurrentGoalHabits);
   const [modal, setModal] = useState(false);
   const [modalProgress, setModalProgress] = useState(false);
   const [ghostGoals, setGhostGoals] = useState(GHOST_GOALS);
@@ -754,24 +762,58 @@ export default function ActiveGoals() {
   const selectedGoal = useMemo(() => {
     const base = goals.find((g) => g.id === selectedGoalId) ?? null;
     if (!base) return null;
+
     const override = linkOverrides[base.id];
-    if (!override) return base;
+    const detailMatches =
+      currentGoal && String(currentGoal.id) === String(base.id);
+
+    const linkedTasks =
+      override?.tasks ??
+      (detailMatches ? currentGoalTasks : null) ??
+      (Array.isArray(base.linkedTasks) ? base.linkedTasks : null) ??
+      [];
+
+    const linkedHabits =
+      override?.habits ??
+      (detailMatches ? currentGoalHabits : null) ??
+      (Array.isArray(base.linkedHabits) ? base.linkedHabits : null) ??
+      [];
+
     return {
       ...base,
-      linkedTasks: override.tasks,
-      linkedHabits: override.habits,
-      tasks: override.tasks?.length ?? base.tasks,
-      habits: override.habits?.length ?? base.habits,
+      ...(detailMatches ? currentGoal : {}),
+      linkedTasks,
+      linkedHabits,
+      tasks: linkedTasks.length || base.tasks || 0,
+      habits: linkedHabits.length || base.habits || 0,
     };
-  }, [goals, selectedGoalId, linkOverrides]);
+  }, [
+    goals,
+    selectedGoalId,
+    linkOverrides,
+    currentGoal,
+    currentGoalTasks,
+    currentGoalHabits,
+  ]);
 
   const appendLinkedItems = (goalId, type, items) => {
     if (!goalId || !items?.length) return;
     setLinkOverrides((prev) => {
       const current = prev[goalId] || { tasks: null, habits: null };
       const baseGoal = goals.find((g) => g.id === goalId);
-      const existingTasks = current.tasks ?? (baseGoal ? getLinkedTasks(baseGoal) : []);
-      const existingHabits = current.habits ?? (baseGoal ? getLinkedHabits(baseGoal) : []);
+      const detailMatches =
+        currentGoal && String(currentGoal.id) === String(goalId);
+
+      const existingTasks =
+        current.tasks ??
+        (detailMatches ? currentGoalTasks : null) ??
+        (baseGoal ? getLinkedTasks(baseGoal) : []) ??
+        [];
+      const existingHabits =
+        current.habits ??
+        (detailMatches ? currentGoalHabits : null) ??
+        (baseGoal ? getLinkedHabits(baseGoal) : []) ??
+        [];
 
       if (type === 'tasks') {
         const merged = [...existingTasks];
@@ -1008,8 +1050,21 @@ export default function ActiveGoals() {
     }
   };
 
-  const handleSelectGoal = (goal) => setSelectedGoalId(goal.id);
-  const handleCloseGoalDetail = () => setSelectedGoalId(null);
+  const handleSelectGoal = (goal) => {
+    setSelectedGoalId(goal.id);
+    // Drop local overlays so GET /goals/:id is the source of truth (same as View Details).
+    setLinkOverrides((prev) => {
+      if (!prev[goal.id]) return prev;
+      const next = { ...prev };
+      delete next[goal.id];
+      return next;
+    });
+    dispatch(fetchGoalById(goal.id));
+  };
+  const handleCloseGoalDetail = () => {
+    setSelectedGoalId(null);
+    dispatch(clearCurrentGoal());
+  };
   const handleOpenGoalPage = (goal) => navigate(`/user/goals/${goal.id}`);
 
   const handleFilterChange = (key, value) => {
