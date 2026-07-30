@@ -408,118 +408,112 @@ export default function WeeklyView({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-white shadow-sm max-xl:h-auto max-xl:flex-none dark:border-zinc-800/80 dark:bg-zinc-900">
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-        <div className="flex min-h-0 w-full flex-1 flex-col p-3">
-          {/* Header + grid share ONE scroll container; both day-areas are flex-1 after the
-              same 50px time-column spacer, so their 7 columns are always identical width. */}
-          <div className="scrollbar-hidden relative min-h-0 flex-1 overflow-y-auto xl:min-h-0 max-xl:max-h-[min(70vh,560px)]">
-            {/* Weekday header — Figma 1264:27249 */}
-            <div className="sticky top-0 z-30 mb-3 flex w-full bg-white dark:bg-zinc-900">
-              <div aria-hidden className="shrink-0" style={{ width: GRID_LINE_LEFT }} />
-              <div className="grid min-w-0 flex-1" style={{ gridTemplateColumns: DAY_GRID_COLUMNS, columnGap: 0 }}>
-                {weekDays.map((day) => {
-                  const isActive = dateKeyFromDate(day) === selectedKey;
-                  return (
-                    <button
-                      key={day.toISOString()}
-                      type="button"
-                      onClick={() => openDayInDaily(day)}
-                      className="flex min-w-0 cursor-pointer flex-col items-center gap-[2px] rounded-lg border-0 bg-transparent p-0"
+      {/* Same scroll shell as DailyView: padding on the scroll container so the white
+          scrollbar sits on the card edge (not inset behind an outer p-3 wrapper). */}
+      <div className="scrollbar-white relative flex-1 overflow-y-auto p-3 max-xl:max-h-[min(70vh,560px)] xl:min-h-0">
+        {/* Weekday header — Figma 1264:27249 */}
+        <div className="sticky top-0 z-30 mb-3 flex w-full bg-white dark:bg-zinc-900">
+          <div aria-hidden className="shrink-0" style={{ width: GRID_LINE_LEFT }} />
+          <div className="grid min-w-0 flex-1" style={{ gridTemplateColumns: DAY_GRID_COLUMNS, columnGap: 0 }}>
+            {weekDays.map((day) => {
+              const isActive = dateKeyFromDate(day) === selectedKey;
+              return (
+                <button
+                  key={day.toISOString()}
+                  type="button"
+                  onClick={() => openDayInDaily(day)}
+                  className="flex min-w-0 cursor-pointer flex-col items-center gap-[2px] rounded-lg border-0 bg-transparent p-0"
+                >
+                  <p className="text-center text-[12px] font-medium leading-[1.5] whitespace-nowrap text-[#c2c2c2] dark:text-gray-500">
+                    {day.toLocaleDateString('en-US', { weekday: 'short' })}
+                  </p>
+                  <div
+                    className={`flex flex-col items-center rounded-[8px] px-[6px] py-[2px] ${
+                      isActive ? 'bg-[#f9f4ff] dark:bg-purple-950/40' : ''
+                    }`}
+                  >
+                    <p
+                      className={`text-center text-[16px] font-medium leading-[1.5] whitespace-nowrap ${
+                        isActive
+                          ? 'text-[#8022fe] dark:text-purple-400'
+                          : 'text-[#5d5d5d] dark:text-gray-200'
+                      }`}
                     >
-                      <p className="text-center text-[12px] font-medium leading-[1.5] whitespace-nowrap text-[#c2c2c2] dark:text-gray-500">
-                        {day.toLocaleDateString('en-US', { weekday: 'short' })}
-                      </p>
-                      <div
-                        className={`flex flex-col items-center rounded-[8px] px-[6px] py-[2px] ${
-                          isActive ? 'bg-[#f9f4ff] dark:bg-purple-950/40' : ''
-                        }`}
-                      >
-                        <p
-                          className={`text-center text-[16px] font-medium leading-[1.5] whitespace-nowrap ${
-                            isActive
-                              ? 'text-[#8022fe] dark:text-purple-400'
-                              : 'text-[#5d5d5d] dark:text-gray-200'
-                          }`}
-                        >
-                          {day.getDate()}
-                        </p>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+                      {day.getDate()}
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
-            <div className="relative w-full" style={{ minHeight: getGridMinHeight() }}>
-              {/* Hour rows — label(40) + gap(10) + line; line starts at the 50px grid line */}
-              <div className="relative z-0 flex flex-col" style={{ gap: ROW_GAP }}>
-                {isLoading
-                  ? PLANNER_HOURS.map((hour) => <HourRowSkeleton key={hour} />)
-                  : PLANNER_HOURS.map((hour) => <HourRow key={hour} hour={hour} />)}
-              </div>
+        <div className="relative w-full" style={{ minHeight: getGridMinHeight() }}>
+          {/* Hour rows — label(40) + gap(10) + line; line starts at the 50px grid line */}
+          <div className="relative z-0 flex flex-col" style={{ gap: ROW_GAP }}>
+            {isLoading
+              ? PLANNER_HOURS.map((hour) => <HourRowSkeleton key={hour} />)
+              : PLANNER_HOURS.map((hour) => <HourRow key={hour} hour={hour} />)}
+          </div>
 
-              {/* Day columns + cards overlay — same flex(50px spacer)+grid-cols-7 as the header */}
-              <div className="pointer-events-none absolute inset-0 z-[2] flex w-full">
-                <div aria-hidden className="shrink-0" style={{ width: GRID_LINE_LEFT }} />
-                <div className="grid min-w-0 flex-1" style={{ gridTemplateColumns: DAY_GRID_COLUMNS, columnGap: 0 }}>
-                  {weekDays.map((day) => {
-                    const dayKey = dateKeyFromDate(day);
-                    const dayItems = isLoading
-                      ? []
-                      : (plans[dayKey] || []).filter((item) => {
+          {/* Day columns + cards overlay — same flex(50px spacer)+grid-cols-7 as the header */}
+          <div className="pointer-events-none absolute inset-0 z-[2] flex w-full">
+            <div aria-hidden className="shrink-0" style={{ width: GRID_LINE_LEFT }} />
+            <div className="grid min-w-0 flex-1" style={{ gridTemplateColumns: DAY_GRID_COLUMNS, columnGap: 0 }}>
+              {weekDays.map((day) => {
+                const dayKey = dateKeyFromDate(day);
+                const dayItems = isLoading
+                  ? []
+                  : (plans[dayKey] || []).filter((item) => {
                       if (item.kind === 'habit' && item.layout === 'half') return false;
                       return getWeeklyCardLayout(item);
                     });
 
-                    return (
-                      <div
-                        key={`col-cards-${dayKey}`}
-                        className="relative min-w-0 overflow-visible border-l border-[#f2f2f2] dark:border-zinc-800/80"
-                      >
-                        {!isLoading &&
-                          dayItems.map((item) => {
-                            const layout = getWeeklyCardLayout(item);
-                            return (
-                              <WeekCardAnchor
-                                key={item.id}
-                                top={scaleY(layout.top)}
-                                className={`pointer-events-auto cursor-pointer ${
-                                  item.aiScheduleState ? 'animate-fade-in' : ''
-                                }`}
-                              >
-                                <div
-                                  role="button"
-                                  tabIndex={0}
-                                  onClick={() => openDayInDaily(day)}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter' || e.key === ' ') {
-                                      e.preventDefault();
-                                      openDayInDaily(day);
-                                    }
-                                  }}
-                                >
-                                  <WeekItemCard item={item} ghost={!hasAcceptedPlan} layout={layout} />
-                                </div>
-                              </WeekCardAnchor>
-                            );
-                          })}
-
-                        {!isLoading &&
-                          dayKey === SEED_DATE_KEY &&
-                          (
+                return (
+                  <div
+                    key={`col-cards-${dayKey}`}
+                    className="relative min-w-0 overflow-visible border-l border-[#f2f2f2] dark:border-zinc-800/80"
+                  >
+                    {!isLoading &&
+                      dayItems.map((item) => {
+                        const layout = getWeeklyCardLayout(item);
+                        return (
+                          <WeekCardAnchor
+                            key={item.id}
+                            top={scaleY(layout.top)}
+                            className={`pointer-events-auto cursor-pointer ${
+                              item.aiScheduleState ? 'animate-fade-in' : ''
+                            }`}
+                          >
                             <div
-                              className="pointer-events-none absolute inset-x-0 z-15"
-                              style={{ top: FOUR_AM_PURPLE_TOP }}
+                              role="button"
+                              tabIndex={0}
+                              onClick={() => openDayInDaily(day)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault();
+                                  openDayInDaily(day);
+                                }
+                              }}
                             >
-                              <div className="absolute inset-x-0 top-1/2 h-[1.5px] -translate-y-1/2 bg-[#8022fe]" />
-                              <div className="absolute left-0 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white bg-[#8022fe] shadow-sm dark:border-zinc-900" />
+                              <WeekItemCard item={item} ghost={!hasAcceptedPlan} layout={layout} />
                             </div>
-                          )}
+                          </WeekCardAnchor>
+                        );
+                      })}
+
+                    {!isLoading && dayKey === SEED_DATE_KEY && (
+                      <div
+                        className="pointer-events-none absolute inset-x-0 z-15"
+                        style={{ top: FOUR_AM_PURPLE_TOP }}
+                      >
+                        <div className="absolute inset-x-0 top-1/2 h-[1.5px] -translate-y-1/2 bg-[#8022fe]" />
+                        <div className="absolute left-0 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white bg-[#8022fe] shadow-sm dark:border-zinc-900" />
                       </div>
-                    );
-                  })}
-                </div>
-              </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
