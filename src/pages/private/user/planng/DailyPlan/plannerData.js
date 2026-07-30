@@ -93,13 +93,3 @@ export const INITIAL_DAILY_PLAN = [
   },
 ];
 
-export const INITIAL_MESSAGE = {
-  id: 'm1',
-  sender: 'ai',
-  text: "I've built a suggested plan for your day based on your tasks, habits, and priorities.\n\nDo you want to keep it?",
-  timestamp: 'Tuesday, May 5 • 7:39 PM',
-  actions: [
-    { label: 'Accept plan', actionId: 'accept_initial' },
-    { label: 'Dismiss', actionId: 'dismiss_initial' },
-  ],
-};

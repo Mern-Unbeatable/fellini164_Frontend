@@ -7,7 +7,7 @@ import PlannerBoard from './components/PlannerBoard';
 import AIAssistant from './components/AIAssistant';
 import PlannerHeader from './components/PlannerHeader';
 import PlannerControls from './components/PlannerControls';
-import { INITIAL_MESSAGE, dateKeyFromDate } from './plannerData';
+import { dateKeyFromDate } from './plannerData';
 import { clonePlans } from './plannerEngine';
 import { getStorage, setStorage } from '../../../../../utils/storage';
 import {
@@ -80,7 +80,7 @@ export default function DailyPlanner() {
   const [pendingProposal, setPendingProposal] = useState(null);
   const [planHistory, setPlanHistory] = useState([]);
   const [chatInput, setChatInput] = useState('');
-  const [messages, setMessages] = useState([INITIAL_MESSAGE]);
+  const [messages, setMessages] = useState([]);
   const chatContainerRef = useRef(null);
   const plansRef = useRef(plans);
   const hasAcceptedRef = useRef(hasAcceptedPlan);
@@ -130,8 +130,19 @@ export default function DailyPlanner() {
     }
   }, [messages]);
 
-  const timestamp = () =>
-    'Today • ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const timestamp = () => {
+    const now = new Date();
+    const dayPart = now.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'short',
+      day: 'numeric',
+    });
+    const timePart = now.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+    return `${dayPart} • ${timePart}`;
+  };
 
   const postMessages = (...msgs) => setMessages((prev) => [...prev, ...msgs]);
 
