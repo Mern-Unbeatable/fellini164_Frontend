@@ -40,13 +40,14 @@ const PRIORITY_STYLES = {
 };
 
 // Figma 1264:27350+ absolute card tops/heights on Wed column.
+// +ROW_STEP once 12 AM was prepended so seed cards keep the same offset to their hour lines.
 const WEEKLY_CARD_LAYOUT = {
-  '1': { top: 7, height: 37 },
-  '2': { top: 72, height: 37 },
-  '3': { top: 149, height: 64 },
-  '5': { top: 322, height: 120, showHabitBadge: true },
-  // Centered on the 11 AM line (index 10 → line at 557.5): top = 557.5 - height/2.
-  '4': { top: 552, height: 72 },
+  '1': { top: 7 + ROW_STEP, height: 37 },
+  '2': { top: 72 + ROW_STEP, height: 37 },
+  '3': { top: 149 + ROW_STEP, height: 64 },
+  '5': { top: 322 + ROW_STEP, height: 120, showHabitBadge: true },
+  // Centered on the 11 AM line: previous top 552 + one row for 12 AM.
+  '4': { top: 552 + ROW_STEP, height: 72 },
 };
 
 const ORIGINAL_TIME_BY_ID = {
@@ -57,7 +58,7 @@ const ORIGINAL_TIME_BY_ID = {
   '4': '11 AM',
 };
 
-const FOUR_AM_PURPLE_TOP = 199; // sits just below the URGENT/TO DO row of the Exercise Routine card
+const FOUR_AM_PURPLE_TOP = 199 + ROW_STEP; // sits just below the URGENT/TO DO row of the Exercise Routine card
 
 function scaleY(value) {
   return Math.round(value * GRID_SCALE);
