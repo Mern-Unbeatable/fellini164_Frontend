@@ -88,7 +88,13 @@ assert('API complete', apiSource.includes('/complete'));
 console.log('\n=== UI → API (#1–#11) existing UI only ===');
 assert('#1 summary fetched (no extra stats bar)', dailyPlannerSource.includes('fetchPlannerSummary') && !headerSource.includes('scheduledToday'));
 assert('#1 header is title only', headerSource.includes('Planner Board') && !headerSource.includes('Unscheduled'));
-assert('timeline hours unchanged (1–11 AM)', plannerDataSource.includes("'1 AM', '2 AM'") && !plannerDataSource.includes("'12 PM'"));
+assert(
+  'timeline hours full day 12 AM–11 PM (12-hour labels)',
+  plannerDataSource.includes("'12 AM'") &&
+    plannerDataSource.includes("'12 PM'") &&
+    plannerDataSource.includes("'11 PM'") &&
+    plannerDataSource.includes("'1 AM'")
+);
 assert('#2 fetchPlannerBoard on refresh', dailyPlannerSource.includes('fetchPlannerBoard({ viewType: viewMode'));
 assert('#3 fetchPlannerAvailable on refresh', dailyPlannerSource.includes('fetchPlannerAvailable(selectedDateKey)'));
 assert('#4 modal buildCreatePlanPayload', dailyPlannerSource.includes('buildCreatePlanPayload'));
