@@ -353,6 +353,34 @@ export default function TasksBoard() {
     };
   };
 
+  const handleAddSubtask = async (title) => {
+    const trimmed = String(title || '').trim();
+    const parentId = selectedTaskId;
+    if (!parentId || !trimmed) return null;
+    const parent = selectedTask;
+    await dispatch(
+      createTask({
+        title: trimmed,
+        description: trimmed,
+        category: parent?.category || 'Career',
+        priority: parent?.priority || 'MEDIUM',
+        parentId,
+        source: 'manual',
+      })
+    ).unwrap();
+    const subs = await dispatch(fetchSubtasks(parentId));
+    await loadTasks();
+    const subtasks = fetchSubtasks.fulfilled.match(subs) ? subs.payload.subtasks : [];
+    return {
+      id: parentId,
+      subtasks,
+      steps:
+        subtasks.length > 0
+          ? `${subtasks.filter((s) => s.done).length}/${subtasks.length} Steps`
+          : undefined,
+    };
+  };
+
   const openNewTaskModal = () => setTaskModal({ open: true, mode: 'create', task: null });
   const openEditTaskModal = (task) => setTaskModal({ open: true, mode: 'edit', task });
   const closeTaskModal = () => setTaskModal((prev) => ({ ...prev, open: false }));
@@ -643,6 +671,7 @@ export default function TasksBoard() {
           onUpdateTaskFields={(fields) => handleUpdateTaskFields(selectedTask.id, fields)}
           onChangeStatus={(status) => handleChangeStatus(selectedTask.id, status)}
           onCompleteSubtask={handleCompleteSubtask}
+          onAddSubtask={handleAddSubtask}
           onEdit={openEditTaskModal}
           onDelete={(t) => {
             handleRequestDeleteTask(t);

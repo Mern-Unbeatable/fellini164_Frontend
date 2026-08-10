@@ -306,6 +306,7 @@ export function mapCreatePayload(form) {
     const mins = Number(form.estMinutes);
     if (!Number.isNaN(mins)) payload.estimatedMinutes = mins;
   }
+  if (form.parentId && isUuid(form.parentId)) payload.parentId = form.parentId;
   const goalId = form.goalId || (form.linkedGoal && form.linkedGoal !== '__none__' && form.linkedGoal !== '__create_new__' ? form.linkedGoal : null);
   if (goalId && isUuid(goalId)) payload.goalId = goalId;
 

@@ -206,11 +206,80 @@ function SubtasksSection({
   isApplyingAiSubtasks = false,
   onRequestBreakdown,
   onCompleteSubtask,
+  onAddSubtask,
 }) {
   const subtasks = task.subtasks ?? [];
   const completedCount = subtasks.filter((s) => s.done || s.completed).length;
   const showAiSkeleton = isApplyingAiSubtasks;
   const [busyId, setBusyId] = useState(null);
+  const [adding, setAdding] = useState(false);
+  const [draft, setDraft] = useState('');
+  const [saving, setSaving] = useState(false);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (adding) inputRef.current?.focus();
+  }, [adding]);
+
+  const openAddInput = () => {
+    if (isApplyingAiSubtasks || saving) return;
+    setAdding(true);
+    setDraft('');
+  };
+
+  const cancelAdd = () => {
+    if (saving) return;
+    setAdding(false);
+    setDraft('');
+  };
+
+  const submitAdd = async () => {
+    const title = String(draft || '').trim();
+    if (!title || saving || !onAddSubtask) return;
+    setSaving(true);
+    try {
+      await onAddSubtask(title);
+      setDraft('');
+      setAdding(false);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const addRow = adding ? (
+    <div className="flex items-center gap-2">
+      <div
+        aria-hidden
+        className="size-3.5 shrink-0 rounded border border-[#e9e9e9] bg-white dark:border-zinc-600 dark:bg-zinc-800"
+      />
+      <input
+        ref={inputRef}
+        type="text"
+        value={draft}
+        disabled={saving}
+        placeholder="Add a subtask…"
+        aria-label="New subtask title"
+        onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            submitAdd();
+          } else if (e.key === 'Escape') {
+            e.preventDefault();
+            cancelAdd();
+          }
+        }}
+        onBlur={() => {
+          if (String(draft || '').trim()) {
+            submitAdd();
+          } else {
+            cancelAdd();
+          }
+        }}
+        className="min-w-0 flex-1 bg-transparent text-[14px] font-medium text-[#5d5d5d] outline-none placeholder:text-[#c2c2c2] disabled:opacity-50 dark:text-gray-300"
+      />
+    </div>
+  ) : null;
 
   return (
     <div className="flex w-full flex-col gap-1.5">
@@ -224,9 +293,9 @@ function SubtasksSection({
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => onRequestBreakdown?.()}
-            disabled={isApplyingAiSubtasks}
-            aria-label="Break into subtasks"
+            onClick={openAddInput}
+            disabled={isApplyingAiSubtasks || saving}
+            aria-label="Add subtask"
             className="rounded-md p-0.5 text-[#a3a3a3] hover:text-[#8022fe] disabled:opacity-50"
           >
             <Plus size={16} />
@@ -245,7 +314,7 @@ function SubtasksSection({
 
       {showAiSkeleton ? (
         <SkeletonBar variant="ai" className="h-[164px] w-full rounded-[10px]" />
-      ) : subtasks.length === 0 ? (
+      ) : subtasks.length === 0 && !adding ? (
         <div className="flex h-10 items-center justify-center rounded-xl border border-dashed border-[#f2f2f2]">
           <p className="text-[12px] font-medium text-[#c2c2c2]">No Subtasks yet</p>
         </div>
@@ -296,13 +365,16 @@ function SubtasksSection({
                 </div>
               );
             })}
+            {addRow}
           </div>
-          <div className="border-t border-[#f2f2f2] px-3 py-2 dark:border-zinc-700">
-            <p className="text-[12px] font-medium text-[#5d5d5d]">
-              <span className="text-[#c2c2c2]">Progress:</span> {completedCount}/{subtasks.length}{' '}
-              Steps
-            </p>
-          </div>
+          {subtasks.length > 0 && (
+            <div className="border-t border-[#f2f2f2] px-3 py-2 dark:border-zinc-700">
+              <p className="text-[12px] font-medium text-[#5d5d5d]">
+                <span className="text-[#c2c2c2]">Progress:</span> {completedCount}/{subtasks.length}{' '}
+                Steps
+              </p>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -314,6 +386,7 @@ function TaskDetailCard({
   onUpdateTaskFields,
   onChangeStatus,
   onCompleteSubtask,
+  onAddSubtask,
   aiApplyingTarget = null,
   onEdit,
   onDelete,
@@ -579,6 +652,7 @@ function TaskDetailCard({
           isApplyingAiSubtasks={isApplyingSubtasks}
           onRequestBreakdown={onTriggerSubtasksAi}
           onCompleteSubtask={onCompleteSubtask}
+          onAddSubtask={onAddSubtask}
         />
       </div>
     </div>
@@ -597,6 +671,7 @@ export function TaskDetailDrawer({
   onUpdateTaskFields,
   onChangeStatus,
   onCompleteSubtask,
+  onAddSubtask,
   onEdit,
   onDelete,
   onRefreshTask,
@@ -615,6 +690,7 @@ export function TaskDetailDrawer({
       onUpdateTaskFields={onUpdateTaskFields}
       onChangeStatus={onChangeStatus}
       onCompleteSubtask={onCompleteSubtask}
+      onAddSubtask={onAddSubtask}
       onEdit={onEdit}
       onDelete={onDelete}
       onRefreshTask={onRefreshTask}
@@ -633,6 +709,7 @@ function TaskDetailDrawerInner({
   onUpdateTaskFields,
   onChangeStatus,
   onCompleteSubtask,
+  onAddSubtask,
   onEdit,
   onDelete,
   onRefreshTask,
@@ -759,6 +836,10 @@ function TaskDetailDrawerInner({
               const updated = await onCompleteSubtask?.(subtask);
               if (updated) applyTaskUpdate(updated);
             }}
+            onAddSubtask={async (title) => {
+              const updated = await onAddSubtask?.(title);
+              if (updated) applyTaskUpdate(updated);
+            }}
             aiApplyingTarget={aiApplyingTarget}
             onEdit={onEdit}
             onDelete={onDelete}
@@ -796,6 +877,7 @@ export default function TaskDetailPanel({
   onUpdateTaskFields,
   onChangeStatus,
   onCompleteSubtask,
+  onAddSubtask,
   onEdit,
   onDelete,
   onRefreshTask,
@@ -849,6 +931,10 @@ export default function TaskDetailPanel({
           }}
           onCompleteSubtask={async (subtask) => {
             const updated = await onCompleteSubtask?.(subtask);
+            if (updated) applyTaskUpdate(updated);
+          }}
+          onAddSubtask={async (title) => {
+            const updated = await onAddSubtask?.(title);
             if (updated) applyTaskUpdate(updated);
           }}
           aiApplyingTarget={aiApplyingTarget}
