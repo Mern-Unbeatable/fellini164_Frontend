@@ -259,22 +259,7 @@ export default function DailyPlanner() {
         useApiUndo: true,
       });
 
-      postMessages(
-        {
-          id: `user_modal_create_${now}`,
-          sender: 'user',
-          text: `Create plan: ${payload.prompt}`,
-          timestamp: timestamp(),
-        },
-        {
-          id: `ai_modal_create_${now}`,
-          sender: 'ai',
-          text: result?.message || 'Your plan is ready! I scheduled your existing tasks and habits.',
-          timestamp: timestamp(),
-          links: [{ label: 'Undo changes', actionId: `undo:${transactionId}` }],
-        }
-      );
-
+      // Modal create-plan owns board state via Redux/local plans — do not post into AI Assistant chat.
       dispatch(fetchPlannerSummary(result?.date || selectedDateKey));
       dispatch(fetchPlannerAvailable(result?.date || selectedDateKey));
       setIsNewPlanModalOpen(false);
