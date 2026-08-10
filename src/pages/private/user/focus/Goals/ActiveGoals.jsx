@@ -15,7 +15,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import NewGoalModal from './components/NewGoalModal';
 import GoalProgressModal from './components/GoalProgressModal';
@@ -738,6 +738,7 @@ function goalMatchesSearch(goal, query) {
 export default function ActiveGoals() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { setGoalDetail, setBackToGoalsBoard } = useOutletContext() || {};
   const goals = useSelector(selectGoals);
   const boardStats = useSelector(selectBoardStats);
   const loadingList = useSelector(selectGoalsLoading);
@@ -1066,6 +1067,20 @@ export default function ActiveGoals() {
     dispatch(clearCurrentGoal());
   };
   const handleOpenGoalPage = (goal) => navigate(`/user/goals/${goal.id}`);
+
+  // Navbar breadcrumb: Work / Goals / {title} while drawer is open
+  useEffect(() => {
+    setGoalDetail?.(selectedGoal?.title ?? null);
+    return () => setGoalDetail?.(null);
+  }, [selectedGoal?.title, setGoalDetail]);
+
+  useEffect(() => {
+    setBackToGoalsBoard?.(() => {
+      setSelectedGoalId(null);
+      dispatch(clearCurrentGoal());
+    });
+    return () => setBackToGoalsBoard?.(null);
+  }, [setBackToGoalsBoard, dispatch]);
 
   const handleFilterChange = (key, value) => {
     setActiveFilters((prev) => ({ ...prev, [key]: value }));

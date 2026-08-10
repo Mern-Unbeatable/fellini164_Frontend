@@ -52,7 +52,7 @@ function getBreadcrumb(pathname, goals = [], currentGoal = null, currentTask = n
     return {
       section: 'Work',
       page: 'Goals',
-      detail: goal?.title ?? 'Goal',
+      detail: goal?.title || null,
     };
   }
   return BREADCRUMBS.find((b) => pathname.startsWith(b.prefix)) || { page: '' };
@@ -73,7 +73,9 @@ export default function PrivateNavbar({
   onOpenMobileSidebar,
   onLogout,
   taskDetail,
+  goalDetail,
   onBackToTasksBoard,
+  onBackToGoalsBoard,
 }) {
   const goals = useSelector(selectGoals);
   const currentGoal = useSelector(selectCurrentGoal);
@@ -84,11 +86,22 @@ export default function PrivateNavbar({
     currentGoal,
     currentTask
   );
-  // Prefer route-based detail for /user/tasks/:id; fall back to board-set title for legacy
-  const detail = routeDetail || (pathname.startsWith('/user/tasks') ? taskDetail : null);
+  // Prefer route-based detail; fall back to board/drawer-set title
+  const detail =
+    routeDetail ||
+    (pathname.startsWith('/user/tasks')
+      ? taskDetail
+      : pathname.startsWith('/user/goals')
+        ? goalDetail
+        : null);
   const canBackToTasks =
     Boolean(pathname.match(/^\/user\/tasks\/[^/]+$/)) ||
     (pathname.startsWith('/user/tasks') && Boolean(detail));
+  const canBackToGoals =
+    Boolean(pathname.match(/^\/user\/goals\/[^/]+$/)) ||
+    (pathname.startsWith('/user/goals') && Boolean(detail));
+  const canBackToBoard = canBackToTasks || canBackToGoals;
+  const onBackToBoard = canBackToGoals ? onBackToGoalsBoard : onBackToTasksBoard;
   const dispatch = useDispatch();
   const notifications = useSelector(selectNotifications);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -135,10 +148,10 @@ export default function PrivateNavbar({
               </span>
             </>
           )}
-          {canBackToTasks ? (
+          {canBackToBoard ? (
             <button
               type="button"
-              onClick={onBackToTasksBoard}
+              onClick={onBackToBoard}
               className="truncate text-[12px] font-medium whitespace-nowrap text-[#5d5d5d] hover:text-[#8022fe] dark:text-gray-300"
             >
               {page}
