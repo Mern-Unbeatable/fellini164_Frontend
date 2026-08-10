@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Sparkles, Clock, Target, BarChart2 } from 'lucide-react';
 import { PLANNER_HOURS, dateKeyFromDate } from '../plannerData';
 
@@ -39,27 +39,39 @@ function getNineAmCardTop() {
   return NINE_AM_HOUR_INDEX * ROW_STEP - 14;
 }
 
-// card begins 26px above the hour rule; purple rule sits a little below the hour line.
-const FOUR_AM_HOUR_INDEX = PLANNER_HOURS.indexOf('4 AM');
+// card begins 26px above the hour rule (4 AM card layout — unrelated to now-line).
 const FOUR_AM_CARD_ABOVE_HOUR_LINE = 26;
-const FOUR_AM_PURPLE_BELOW_HOUR_LINE = 18;
 
-function getFourAmCurrentTimeTop() {
-  return getHourLineTop(FOUR_AM_HOUR_INDEX) + FOUR_AM_PURPLE_BELOW_HOUR_LINE;
+/** Y position of "now" on the hour grid (12 AM–11 PM). */
+function getCurrentTimeTop(now = new Date()) {
+  const hourIndex = Math.min(23, Math.max(0, now.getHours()));
+  const minuteFrac = now.getMinutes() / 60 + now.getSeconds() / 3600;
+  return getHourLineTop(hourIndex) + minuteFrac * ROW_STEP;
 }
 
-function FourAmCurrentTimeIndicator() {
+function useNowTicker(enabled) {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    if (!enabled) return undefined;
+    setNow(new Date());
+    const id = window.setInterval(() => setNow(new Date()), 30_000);
+    return () => window.clearInterval(id);
+  }, [enabled]);
+  return now;
+}
+
+function CurrentTimeIndicator({ top }) {
   return (
     <>
       <div
         className="pointer-events-none absolute right-0 z-[15]"
-        style={{ left: GRID_LINE_LEFT, top: getFourAmCurrentTimeTop() }}
+        style={{ left: GRID_LINE_LEFT, top }}
       >
         <div className="absolute inset-x-0 top-1/2 h-[1.5px] -translate-y-1/2 bg-[#8022fe]" />
       </div>
       <div
         className="pointer-events-none absolute z-[16] h-0 w-0"
-        style={{ left: GRID_LINE_LEFT, top: getFourAmCurrentTimeTop() }}
+        style={{ left: GRID_LINE_LEFT, top }}
       >
         <div className="h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white bg-[#8022fe] shadow-sm dark:border-zinc-900" />
       </div>
@@ -574,6 +586,8 @@ export default function DailyView({
   const weekdayShort = dateToUse.toLocaleDateString('en-US', { weekday: 'short' });
   const dateNum = dateToUse.getDate();
   const dayItems = plans[dateKeyFromDate(dateToUse)] || [];
+  const isViewingToday = dateKeyFromDate(dateToUse) === dateKeyFromDate(new Date());
+  const now = useNowTicker(isViewingToday && !isLoading);
 
   if (isLoading) {
     return (
@@ -624,8 +638,8 @@ export default function DailyView({
             ))}
           </div>
 
-          {/* Current-time indicator remains stable when AI moves cards between slots. */}
-          <FourAmCurrentTimeIndicator />
+          {/* Google Calendar–style now line — only when viewing today */}
+          {isViewingToday && <CurrentTimeIndicator top={getCurrentTimeTop(now)} />}
 
           {/* Ghost / task cards — Figma 1264:24782+ absolute positioned */}
           {PLANNER_HOURS.map((hour, i) => {

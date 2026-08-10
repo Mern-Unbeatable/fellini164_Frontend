@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { RefreshCw, Clock } from 'lucide-react';
-import { PLANNER_HOURS, SEED_DATE_KEY, dateKeyFromDate, getWeekDays } from '../plannerData';
+import { PLANNER_HOURS, dateKeyFromDate, getWeekDays } from '../plannerData';
 
 // Weekly grid rhythm — time column matches DailyView exactly.
 const ROW_LABEL_HEIGHT = 15;
@@ -58,10 +58,30 @@ const ORIGINAL_TIME_BY_ID = {
   '4': '11 AM',
 };
 
-const FOUR_AM_PURPLE_TOP = 199 + ROW_STEP; // sits just below the URGENT/TO DO row of the Exercise Routine card
-
 function scaleY(value) {
   return Math.round(value * GRID_SCALE);
+}
+
+function getWeeklyHourLineTop(index) {
+  return index * ROW_STEP + ROW_LABEL_HEIGHT / 2;
+}
+
+/** Y position of "now" on the weekly hour grid (12 AM–11 PM). */
+function getWeeklyCurrentTimeTop(now = new Date()) {
+  const hourIndex = Math.min(23, Math.max(0, now.getHours()));
+  const minuteFrac = now.getMinutes() / 60 + now.getSeconds() / 3600;
+  return getWeeklyHourLineTop(hourIndex) + minuteFrac * ROW_STEP;
+}
+
+function useNowTicker(enabled) {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    if (!enabled) return undefined;
+    setNow(new Date());
+    const id = window.setInterval(() => setNow(new Date()), 30_000);
+    return () => window.clearInterval(id);
+  }, [enabled]);
+  return now;
 }
 
 function weekContentFade(ghost) {
@@ -400,6 +420,10 @@ export default function WeeklyView({
   const anchorDate = selectedDate || currentDate || new Date(2026, 4, 13);
   const weekDays = getWeekDays(anchorDate);
   const selectedKey = dateKeyFromDate(anchorDate);
+  const todayKey = dateKeyFromDate(new Date());
+  const weekIncludesToday = weekDays.some((day) => dateKeyFromDate(day) === todayKey);
+  const now = useNowTicker(weekIncludesToday && !isLoading);
+  const nowTop = scaleY(getWeeklyCurrentTimeTop(now));
 
   const openDayInDaily = (day) => {
     if (setSelectedDate) setSelectedDate(new Date(day.getFullYear(), day.getMonth(), day.getDate()));
@@ -502,10 +526,11 @@ export default function WeeklyView({
                         );
                       })}
 
-                    {!isLoading && dayKey === SEED_DATE_KEY && (
+                    {!isLoading && dayKey === todayKey && (
                       <div
                         className="pointer-events-none absolute inset-x-0 z-15"
-                        style={{ top: FOUR_AM_PURPLE_TOP }}
+                        style={{ top: nowTop }}
+                        aria-hidden
                       >
                         <div className="absolute inset-x-0 top-1/2 h-[1.5px] -translate-y-1/2 bg-[#8022fe]" />
                         <div className="absolute left-0 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white bg-[#8022fe] shadow-sm dark:border-zinc-900" />
