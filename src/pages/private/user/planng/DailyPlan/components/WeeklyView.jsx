@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { RefreshCw, Clock } from 'lucide-react';
 import { PLANNER_HOURS, dateKeyFromDate, getWeekDays } from '../plannerData';
 
-// Weekly grid rhythm — time column matches DailyView exactly.
-const ROW_LABEL_HEIGHT = 15;
-const ROW_GAP = 40;
+// Weekly grid rhythm — match DailyView so the present-time line lands on the same hour.
+const ROW_GAP = 48;
+const ROW_LABEL_HEIGHT = 18;
 const ROW_STEP = ROW_GAP + ROW_LABEL_HEIGHT;
 const TIME_COL_WIDTH = 40; // DailyView parity
 const TIME_COL_GAP = 10; // DailyView parity
@@ -66,7 +66,7 @@ function getWeeklyHourLineTop(index) {
   return index * ROW_STEP + ROW_LABEL_HEIGHT / 2;
 }
 
-/** Y position of "now" on the weekly hour grid (12 AM–11 PM). */
+/** Y of "now" — same formula as DailyView.getCurrentTimeTop (12 AM–11 PM). */
 function getWeeklyCurrentTimeTop(now = new Date()) {
   const hourIndex = Math.min(23, Math.max(0, now.getHours()));
   const minuteFrac = now.getMinutes() / 60 + now.getSeconds() / 3600;
@@ -215,7 +215,10 @@ function WeekGhostCompactBody({ title, ghost = false, paddingClass = 'py-[6px]' 
 
 function HourRow({ hour }) {
   return (
-    <div className="relative flex w-full items-center gap-[10px]">
+    <div
+      className="relative flex w-full items-center gap-[10px]"
+      style={{ height: ROW_LABEL_HEIGHT }}
+    >
       <span className={HOUR_LABEL} style={{ width: TIME_COL_WIDTH }}>
         {hour}
       </span>
@@ -231,7 +234,10 @@ function HourRow({ hour }) {
 
 function HourRowSkeleton() {
   return (
-    <div className="relative flex w-full animate-pulse items-center gap-[10px]">
+    <div
+      className="relative flex w-full animate-pulse items-center gap-[10px]"
+      style={{ height: ROW_LABEL_HEIGHT }}
+    >
       <div className="h-3 shrink-0 rounded bg-gray-200 dark:bg-zinc-800" style={{ width: TIME_COL_WIDTH }} />
       <div className="relative h-0 min-w-0 flex-1">
         <div
