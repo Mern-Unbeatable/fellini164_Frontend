@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { useDispatch } from 'react-redux';
 import {
   Sparkles,
   ChevronDown,
@@ -14,10 +15,16 @@ import {
   Trash2,
   Check,
 } from 'lucide-react';
+import { toast } from 'react-toastify';
 import SkeletonBar from '../../../../../../components/ui/SkeletonBar';
 import TaskAiAssistant from './TaskAiAssistant';
 import { fetchGoalsApi } from '../../../../../../features/goals/goalsAPI';
-import { mapTaskFromApi } from '../../../../../../features/tasks/tasksMappers';
+import { mapSubtaskFromApi, mapTaskFromApi } from '../../../../../../features/tasks/tasksMappers';
+import {
+  acceptTaskSuggestion,
+  dismissTaskSuggestion,
+  suggestTaskAi,
+} from '../../../../../../features/tasks/tasksSlice';
 
 /** Keep detail view on local state so AI apply updates the left panel immediately. */
 function useLocalTask(task) {
@@ -201,16 +208,227 @@ function TaskDetailMenu({ onClose, onEdit, onBreakIntoSubtasks, onImproveDescrip
   );
 }
 
+function unwrapSuggestPayload(data) {
+  if (!data || typeof data !== 'object') return data;
+  if (data.suggestionId || data.proposedTask || data.proposedSubtasks || data.message) {
+    return data;
+  }
+  if (data.data && typeof data.data === 'object') return data.data;
+  return data;
+}
+
+function mapProposedSubtasks(list) {
+  if (!Array.isArray(list)) return [];
+  return list
+    .map((s, i) =>
+      mapSubtaskFromApi({
+        id: s.id || `proposed-${i}`,
+        title: s.title || s.name || 'Subtask',
+        description: s.description || '',
+        status: s.status || 'TODO',
+        estimatedMinutes: s.estimatedMinutes ?? null,
+      })
+    )
+    .filter(Boolean);
+}
+
+function SubtaskActionPill({ children, onClick, disabled }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className="w-fit rounded-md bg-[#f9f4ff] px-2 pt-0.5 pb-0.75 text-[14px] font-medium text-[#8022fe] disabled:opacity-50"
+    >
+      {children}
+    </button>
+  );
+}
+
 function SubtasksSection({
   task,
   isApplyingAiSubtasks = false,
-  onRequestBreakdown,
   onCompleteSubtask,
+  onAddSubtask,
+  onRefreshTask,
 }) {
+  const dispatch = useDispatch();
   const subtasks = task.subtasks ?? [];
   const completedCount = subtasks.filter((s) => s.done || s.completed).length;
-  const showAiSkeleton = isApplyingAiSubtasks;
   const [busyId, setBusyId] = useState(null);
+  const [adding, setAdding] = useState(false);
+  const [draft, setDraft] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [sparkLoading, setSparkLoading] = useState(false);
+  const [sparkBusy, setSparkBusy] = useState(false);
+  const [proposal, setProposal] = useState(null); // { suggestionId, proposedSubtasks }
+  const inputRef = useRef(null);
+
+  const showAiSkeleton = isApplyingAiSubtasks || sparkLoading;
+  const proposedList = proposal?.proposedSubtasks || [];
+  const showingProposal = proposedList.length > 0;
+
+  useEffect(() => {
+    if (adding) inputRef.current?.focus();
+  }, [adding]);
+
+  // Reset inline spark state when switching tasks
+  useEffect(() => {
+    setProposal(null);
+    setSparkLoading(false);
+    setSparkBusy(false);
+  }, [task?.id]);
+
+  const openAddInput = () => {
+    if (showAiSkeleton || saving || sparkBusy || showingProposal) return;
+    setAdding(true);
+    setDraft('');
+  };
+
+  const cancelAdd = () => {
+    if (saving) return;
+    setAdding(false);
+    setDraft('');
+  };
+
+  const submitAdd = async () => {
+    const title = String(draft || '').trim();
+    if (!title || saving || !onAddSubtask) return;
+    setSaving(true);
+    try {
+      await onAddSubtask(title);
+      setDraft('');
+      setAdding(false);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const runBreakdownSuggest = useCallback(
+    async ({ regenerate = false } = {}) => {
+      if (!task?.id || sparkLoading || sparkBusy) return;
+      setProposal(null);
+      setSparkLoading(true);
+      try {
+        let result = await dispatch(
+          suggestTaskAi({
+            taskId: task.id,
+            action: 'BREAKDOWN',
+            regenerate: regenerate || undefined,
+          })
+        );
+        let data = suggestTaskAi.fulfilled.match(result)
+          ? unwrapSuggestPayload(result.payload)
+          : null;
+
+        if (
+          data &&
+          !data.success &&
+          data.success !== undefined &&
+          !regenerate &&
+          /regenerate\s*=\s*true/i.test(String(data.message || ''))
+        ) {
+          result = await dispatch(
+            suggestTaskAi({
+              taskId: task.id,
+              action: 'BREAKDOWN',
+              regenerate: true,
+            })
+          );
+          data = suggestTaskAi.fulfilled.match(result)
+            ? unwrapSuggestPayload(result.payload)
+            : null;
+        }
+
+        if (!suggestTaskAi.fulfilled.match(result) || !data) return;
+
+        if (!data.success && data.success !== undefined) {
+          toast.error(data.message || 'Suggestion failed');
+          return;
+        }
+
+        const suggestionId = data?.suggestionId || data?.id || null;
+        const proposedSubtasks = mapProposedSubtasks(data?.proposedSubtasks);
+        if (!suggestionId || proposedSubtasks.length === 0) {
+          toast.error(data?.message || 'No subtasks suggested');
+          return;
+        }
+        setProposal({ suggestionId, proposedSubtasks });
+      } finally {
+        setSparkLoading(false);
+      }
+    },
+    [dispatch, task?.id, sparkBusy, sparkLoading]
+  );
+
+  const handleSparkClick = () => {
+    if (showAiSkeleton || sparkBusy || showingProposal) return;
+    setAdding(false);
+    runBreakdownSuggest({ regenerate: subtasks.length > 0 });
+  };
+
+  const handleApplyProposal = async () => {
+    if (!proposal?.suggestionId || sparkBusy) return;
+    setSparkBusy(true);
+    try {
+      const result = await dispatch(acceptTaskSuggestion(proposal.suggestionId));
+      if (!acceptTaskSuggestion.fulfilled.match(result)) return;
+      setProposal(null);
+      await onRefreshTask?.();
+    } finally {
+      setSparkBusy(false);
+    }
+  };
+
+  const handleCancelProposal = async () => {
+    if (!proposal?.suggestionId || sparkBusy) return;
+    setSparkBusy(true);
+    try {
+      const result = await dispatch(dismissTaskSuggestion(proposal.suggestionId));
+      if (!dismissTaskSuggestion.fulfilled.match(result)) return;
+      setProposal(null);
+    } finally {
+      setSparkBusy(false);
+    }
+  };
+
+  const addRow = adding ? (
+    <div className="flex items-center gap-2">
+      <div
+        aria-hidden
+        className="size-3.5 shrink-0 rounded border border-[#e9e9e9] bg-white dark:border-zinc-600 dark:bg-zinc-800"
+      />
+      <input
+        ref={inputRef}
+        type="text"
+        value={draft}
+        disabled={saving}
+        placeholder="Add a subtask…"
+        aria-label="New subtask title"
+        onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            submitAdd();
+          } else if (e.key === 'Escape') {
+            e.preventDefault();
+            cancelAdd();
+          }
+        }}
+        onBlur={() => {
+          if (String(draft || '').trim()) {
+            submitAdd();
+          } else {
+            cancelAdd();
+          }
+        }}
+        className="min-w-0 flex-1 bg-transparent text-[14px] font-medium text-[#5d5d5d] outline-none placeholder:text-[#c2c2c2] disabled:opacity-50 dark:text-gray-300"
+      />
+    </div>
+  ) : null;
+
+  const displayList = showingProposal ? proposedList : subtasks;
+  const showEmpty = !showAiSkeleton && displayList.length === 0 && !adding;
 
   return (
     <div className="flex w-full flex-col gap-1.5">
@@ -218,23 +436,23 @@ function SubtasksSection({
         <div className="flex items-center gap-1.5">
           <p className="text-[12px] font-medium text-[#c2c2c2]">Subtasks</p>
           <span className="flex w-5 items-center justify-center rounded-[5px] bg-[#fcfcfc] px-1 py-px text-[12px] font-medium text-[#c2c2c2]">
-            {subtasks.length}
+            {showingProposal ? proposedList.length : subtasks.length}
           </span>
         </div>
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => onRequestBreakdown?.()}
-            disabled={isApplyingAiSubtasks}
-            aria-label="Break into subtasks"
+            onClick={openAddInput}
+            disabled={showAiSkeleton || saving || sparkBusy || showingProposal}
+            aria-label="Add subtask"
             className="rounded-md p-0.5 text-[#a3a3a3] hover:text-[#8022fe] disabled:opacity-50"
           >
             <Plus size={16} />
           </button>
           <button
             type="button"
-            onClick={() => onRequestBreakdown?.()}
-            disabled={isApplyingAiSubtasks}
+            onClick={handleSparkClick}
+            disabled={showAiSkeleton || sparkBusy || showingProposal}
             aria-label="Generate subtasks with AI"
             className="rounded-md p-0.5 text-[#8022fe] disabled:opacity-50"
           >
@@ -243,44 +461,62 @@ function SubtasksSection({
         </div>
       </div>
 
+      {/* Yes, apply / No, cancel — under spark */}
+      {showingProposal && (
+        <div className="flex items-center justify-end gap-2">
+          <SubtaskActionPill disabled={sparkBusy} onClick={handleApplyProposal}>
+            Yes, apply
+          </SubtaskActionPill>
+          <SubtaskActionPill disabled={sparkBusy} onClick={handleCancelProposal}>
+            No, cancel
+          </SubtaskActionPill>
+        </div>
+      )}
+
       {showAiSkeleton ? (
         <SkeletonBar variant="ai" className="h-[164px] w-full rounded-[10px]" />
-      ) : subtasks.length === 0 ? (
+      ) : showEmpty ? (
         <div className="flex h-10 items-center justify-center rounded-xl border border-dashed border-[#f2f2f2]">
           <p className="text-[12px] font-medium text-[#c2c2c2]">No Subtasks yet</p>
         </div>
       ) : (
         <div className="overflow-hidden rounded-xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800">
           <div className="flex flex-col gap-2.5 px-3 py-2">
-            {subtasks.map((sub) => {
-              const isDone = Boolean(sub.done || sub.completed);
+            {displayList.map((sub, index) => {
+              const isDone = !showingProposal && Boolean(sub.done || sub.completed);
               const isBusy = busyId === sub.id;
               return (
                 <div
-                  key={sub.id}
+                  key={sub.id || `sub-${index}`}
                   className={`flex items-center gap-2 ${isDone ? 'opacity-50' : ''}`}
                 >
-                  <button
-                    type="button"
-                    disabled={isDone || isBusy || !onCompleteSubtask}
-                    aria-label={isDone ? 'Subtask completed' : 'Mark subtask complete'}
-                    onClick={async () => {
-                      if (isDone || isBusy || !onCompleteSubtask) return;
-                      setBusyId(sub.id);
-                      try {
-                        await onCompleteSubtask(sub);
-                      } finally {
-                        setBusyId(null);
-                      }
-                    }}
-                    className={`flex size-3.5 shrink-0 items-center justify-center rounded border transition-colors ${
-                      isDone
-                        ? 'border-[#8022fe] bg-[#8022fe] text-white'
-                        : 'border-[#e9e9e9] bg-white hover:border-[#8022fe] disabled:cursor-not-allowed dark:bg-zinc-800'
-                    }`}
-                  >
-                    {isDone && <Check size={8} strokeWidth={3} className="text-white" />}
-                  </button>
+                  {showingProposal ? (
+                    <span className="w-4 shrink-0 text-[12px] font-medium text-[#c2c2c2]">
+                      {index + 1}.
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={isDone || isBusy || !onCompleteSubtask}
+                      aria-label={isDone ? 'Subtask completed' : 'Mark subtask complete'}
+                      onClick={async () => {
+                        if (isDone || isBusy || !onCompleteSubtask) return;
+                        setBusyId(sub.id);
+                        try {
+                          await onCompleteSubtask(sub);
+                        } finally {
+                          setBusyId(null);
+                        }
+                      }}
+                      className={`flex size-3.5 shrink-0 items-center justify-center rounded border transition-colors ${
+                        isDone
+                          ? 'border-[#8022fe] bg-[#8022fe] text-white'
+                          : 'border-[#e9e9e9] bg-white hover:border-[#8022fe] disabled:cursor-not-allowed dark:bg-zinc-800'
+                      }`}
+                    >
+                      {isDone && <Check size={8} strokeWidth={3} className="text-white" />}
+                    </button>
+                  )}
                   <span
                     className={`text-[14px] font-medium text-[#5d5d5d] dark:text-gray-300 ${
                       isDone ? 'line-through' : ''
@@ -296,13 +532,16 @@ function SubtasksSection({
                 </div>
               );
             })}
+            {!showingProposal && addRow}
           </div>
-          <div className="border-t border-[#f2f2f2] px-3 py-2 dark:border-zinc-700">
-            <p className="text-[12px] font-medium text-[#5d5d5d]">
-              <span className="text-[#c2c2c2]">Progress:</span> {completedCount}/{subtasks.length}{' '}
-              Steps
-            </p>
-          </div>
+          {!showingProposal && subtasks.length > 0 && (
+            <div className="border-t border-[#f2f2f2] px-3 py-2 dark:border-zinc-700">
+              <p className="text-[12px] font-medium text-[#5d5d5d]">
+                <span className="text-[#c2c2c2]">Progress:</span> {completedCount}/{subtasks.length}{' '}
+                Steps
+              </p>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -314,6 +553,8 @@ function TaskDetailCard({
   onUpdateTaskFields,
   onChangeStatus,
   onCompleteSubtask,
+  onAddSubtask,
+  onRefreshTask,
   aiApplyingTarget = null,
   onEdit,
   onDelete,
@@ -577,8 +818,9 @@ function TaskDetailCard({
         <SubtasksSection
           task={task}
           isApplyingAiSubtasks={isApplyingSubtasks}
-          onRequestBreakdown={onTriggerSubtasksAi}
           onCompleteSubtask={onCompleteSubtask}
+          onAddSubtask={onAddSubtask}
+          onRefreshTask={onRefreshTask}
         />
       </div>
     </div>
@@ -597,6 +839,7 @@ export function TaskDetailDrawer({
   onUpdateTaskFields,
   onChangeStatus,
   onCompleteSubtask,
+  onAddSubtask,
   onEdit,
   onDelete,
   onRefreshTask,
@@ -615,6 +858,7 @@ export function TaskDetailDrawer({
       onUpdateTaskFields={onUpdateTaskFields}
       onChangeStatus={onChangeStatus}
       onCompleteSubtask={onCompleteSubtask}
+      onAddSubtask={onAddSubtask}
       onEdit={onEdit}
       onDelete={onDelete}
       onRefreshTask={onRefreshTask}
@@ -633,6 +877,7 @@ function TaskDetailDrawerInner({
   onUpdateTaskFields,
   onChangeStatus,
   onCompleteSubtask,
+  onAddSubtask,
   onEdit,
   onDelete,
   onRefreshTask,
@@ -759,6 +1004,15 @@ function TaskDetailDrawerInner({
               const updated = await onCompleteSubtask?.(subtask);
               if (updated) applyTaskUpdate(updated);
             }}
+            onAddSubtask={async (title) => {
+              const updated = await onAddSubtask?.(title);
+              if (updated) applyTaskUpdate(updated);
+            }}
+            onRefreshTask={async () => {
+              const updated = await onRefreshTask?.();
+              if (updated) applyTaskUpdate(updated);
+              return updated;
+            }}
             aiApplyingTarget={aiApplyingTarget}
             onEdit={onEdit}
             onDelete={onDelete}
@@ -796,6 +1050,7 @@ export default function TaskDetailPanel({
   onUpdateTaskFields,
   onChangeStatus,
   onCompleteSubtask,
+  onAddSubtask,
   onEdit,
   onDelete,
   onRefreshTask,
@@ -851,6 +1106,11 @@ export default function TaskDetailPanel({
             const updated = await onCompleteSubtask?.(subtask);
             if (updated) applyTaskUpdate(updated);
           }}
+          onAddSubtask={async (title) => {
+            const updated = await onAddSubtask?.(title);
+            if (updated) applyTaskUpdate(updated);
+          }}
+          onRefreshTask={handleRefreshTask}
           aiApplyingTarget={aiApplyingTarget}
           onEdit={onEdit}
           onDelete={onDelete}

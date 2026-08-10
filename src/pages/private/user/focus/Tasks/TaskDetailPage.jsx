@@ -7,6 +7,7 @@ import DeleteConfirmModal from '../../../../../components/ui/DeleteConfirmModal'
 import {
   clearCurrentTask,
   completeTask,
+  createTask,
   deleteTask,
   fetchSubtasks,
   fetchTaskById,
@@ -141,6 +142,31 @@ export default function TaskDetailPage() {
     };
   };
 
+  const handleAddSubtask = async (title) => {
+    const trimmed = String(title || '').trim();
+    if (!taskId || !trimmed) return null;
+    await dispatch(
+      createTask({
+        title: trimmed,
+        description: trimmed,
+        category: task?.category || 'Career',
+        priority: task?.priority || 'MEDIUM',
+        parentId: taskId,
+        source: 'manual',
+      })
+    ).unwrap();
+    const subs = await dispatch(fetchSubtasks(taskId));
+    const subtasks = fetchSubtasks.fulfilled.match(subs) ? subs.payload.subtasks : [];
+    return {
+      id: taskId,
+      subtasks,
+      steps:
+        subtasks.length > 0
+          ? `${subtasks.filter((s) => s.done).length}/${subtasks.length} Steps`
+          : undefined,
+    };
+  };
+
   const handleRequestDelete = (t) => {
     if (!t?.id) return;
     setDeleteModalOpen(true);
@@ -175,6 +201,7 @@ export default function TaskDetailPage() {
         onUpdateTaskFields={(fields) => handleUpdateTaskFields(task.id, fields)}
         onChangeStatus={handleChangeStatus}
         onCompleteSubtask={handleCompleteSubtask}
+        onAddSubtask={handleAddSubtask}
         onEdit={(t) => setTaskModal({ open: true, task: t })}
         onDelete={handleRequestDelete}
         onRefreshTask={refreshTask}

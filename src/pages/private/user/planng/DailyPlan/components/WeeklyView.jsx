@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { RefreshCw, Clock } from 'lucide-react';
-import { PLANNER_HOURS, SEED_DATE_KEY, dateKeyFromDate, getWeekDays } from '../plannerData';
+import { PLANNER_HOURS, dateKeyFromDate, getWeekDays } from '../plannerData';
 
-// Weekly grid rhythm — time column matches DailyView exactly.
-const ROW_LABEL_HEIGHT = 15;
-const ROW_GAP = 40;
+// Weekly grid rhythm — match DailyView so the present-time line lands on the same hour.
+const ROW_GAP = 48;
+const ROW_LABEL_HEIGHT = 18;
 const ROW_STEP = ROW_GAP + ROW_LABEL_HEIGHT;
 const TIME_COL_WIDTH = 40; // DailyView parity
 const TIME_COL_GAP = 10; // DailyView parity
@@ -58,10 +58,30 @@ const ORIGINAL_TIME_BY_ID = {
   '4': '11 AM',
 };
 
-const FOUR_AM_PURPLE_TOP = 199 + ROW_STEP; // sits just below the URGENT/TO DO row of the Exercise Routine card
-
 function scaleY(value) {
   return Math.round(value * GRID_SCALE);
+}
+
+function getWeeklyHourLineTop(index) {
+  return index * ROW_STEP + ROW_LABEL_HEIGHT / 2;
+}
+
+/** Y of "now" — same formula as DailyView.getCurrentTimeTop (12 AM–11 PM). */
+function getWeeklyCurrentTimeTop(now = new Date()) {
+  const hourIndex = Math.min(23, Math.max(0, now.getHours()));
+  const minuteFrac = now.getMinutes() / 60 + now.getSeconds() / 3600;
+  return getWeeklyHourLineTop(hourIndex) + minuteFrac * ROW_STEP;
+}
+
+function useNowTicker(enabled) {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    if (!enabled) return undefined;
+    setNow(new Date());
+    const id = window.setInterval(() => setNow(new Date()), 30_000);
+    return () => window.clearInterval(id);
+  }, [enabled]);
+  return now;
 }
 
 function weekContentFade(ghost) {
@@ -69,8 +89,7 @@ function weekContentFade(ghost) {
 }
 
 function getGridMinHeight() {
-  const last = WEEKLY_CARD_LAYOUT['4'];
-  return scaleY(last.top + last.height) + 24;
+  return PLANNER_HOURS.length * ROW_STEP + 24;
 }
 
 function getWeeklyCardLayout(item) {
@@ -111,6 +130,69 @@ function getWeeklyCardLayout(item) {
   };
 }
 
+/**
+ * Weekly Figma 2 / 2.1 flow (not Daily two-up):
+ * - Same hour with task + habit → show task card(s) with details; habits collapse to top "N Habit" badge
+ * - Habit-only hour → habit card with badge
+ * - Multiple tasks same hour → stack vertically (no overlap)
+ */
+function buildWeeklyRenderSlots(dayItems) {
+  const groups = new Map();
+  const order = [];
+  (dayItems || []).forEach((item) => {
+    const key = item.time || `__id_${item.id}`;
+    if (!groups.has(key)) {
+      groups.set(key, []);
+      order.push(key);
+    }
+    groups.get(key).push(item);
+  });
+
+  const slots = [];
+  order.forEach((key) => {
+    const items = groups.get(key);
+    const habits = items.filter((item) => item.kind === 'habit');
+    const tasks = items.filter((item) => item.kind !== 'habit');
+    const habitCount = habits.length;
+    const displayItems = tasks.length > 0 ? tasks : habits;
+
+    let top = getWeeklyCardLayout(displayItems[0]).top;
+    displayItems.forEach((item, index) => {
+      const base = getWeeklyCardLayout(item);
+      const attachHabitBadge =
+        tasks.length > 0
+          ? index === 0 && (habitCount > 0 || Boolean(base.showHabitBadge))
+          : true;
+      const resolvedHabitCount = attachHabitBadge
+        ? Math.max(habitCount, base.showHabitBadge ? 1 : 0, item.kind === 'habit' ? 1 : 0)
+        : 0;
+      const needsDetailHeight =
+        resolvedHabitCount > 0 ||
+        Boolean(item.priority || item.status || item.category || item.durationLabel);
+      const height =
+        resolvedHabitCount > 0 && tasks.length > 0
+          ? Math.max(base.height, 120)
+          : needsDetailHeight
+            ? Math.max(base.height, item.kind === 'habit' ? 64 : 72)
+            : base.height;
+
+      slots.push({
+        item,
+        layout: {
+          ...base,
+          top,
+          height,
+          showHabitBadge: resolvedHabitCount > 0,
+          habitCount: resolvedHabitCount,
+        },
+      });
+      top += height + 6;
+    });
+  });
+
+  return slots;
+}
+
 // Card fills the day column (Figma card ≈ column width) with small equal side gaps.
 function WeekCardAnchor({ top, children, className = 'pointer-events-auto' }) {
   return (
@@ -133,7 +215,10 @@ function WeekGhostCompactBody({ title, ghost = false, paddingClass = 'py-[6px]' 
 
 function HourRow({ hour }) {
   return (
-    <div className="relative flex w-full items-center gap-[10px]">
+    <div
+      className="relative flex w-full items-center gap-[10px]"
+      style={{ height: ROW_LABEL_HEIGHT }}
+    >
       <span className={HOUR_LABEL} style={{ width: TIME_COL_WIDTH }}>
         {hour}
       </span>
@@ -149,7 +234,10 @@ function HourRow({ hour }) {
 
 function HourRowSkeleton() {
   return (
-    <div className="relative flex w-full animate-pulse items-center gap-[10px]">
+    <div
+      className="relative flex w-full animate-pulse items-center gap-[10px]"
+      style={{ height: ROW_LABEL_HEIGHT }}
+    >
       <div className="h-3 shrink-0 rounded bg-gray-200 dark:bg-zinc-800" style={{ width: TIME_COL_WIDTH }} />
       <div className="relative h-0 min-w-0 flex-1">
         <div
@@ -189,8 +277,9 @@ function WeekGhostFieldBorder({ radius = 8 }) {
   );
 }
 
-function WeekGhostCard({ ghost, className = '', style, children, habitBadge, radius = 8 }) {
+function WeekGhostCard({ ghost, className = '', style, children, habitBadge, habitCount = 1, radius = 8 }) {
   const active = !ghost;
+  const badgeLabel = habitCount === 1 ? '1 Habit' : `${habitCount} Habits`;
   return (
     <div
       className={`group relative box-border w-full overflow-visible transition-all duration-200 dark:bg-zinc-800 ${
@@ -215,7 +304,7 @@ function WeekGhostCard({ ghost, className = '', style, children, habitBadge, rad
           }`}
         >
           <RefreshCw size={12} className="text-[#5d5d5d]" />
-          <span className="text-[12px] font-medium leading-[1.5] text-[#5d5d5d]">1 Habit</span>
+          <span className="text-[12px] font-medium leading-[1.5] text-[#5d5d5d]">{badgeLabel}</span>
         </div>
       )}
       {/* Content is clipped in its own layer so it can never visually escape the card's
@@ -232,27 +321,82 @@ function WeekGhostCard({ ghost, className = '', style, children, habitBadge, rad
 }
 
 /** Monthly-style task chip row (Career / 480 Min) — never wraps under title. */
-function WeekTaskMetaChips({ item, fade, chipClass }) {
+function WeekTaskMetaChips({ item, fade, chipClass, stacked = false }) {
   if (!item.category && !item.durationLabel) return null;
   return (
     <div
-      className={`flex w-full min-w-0 shrink-0 flex-nowrap items-center justify-center gap-[4px] overflow-hidden ${fade}`}
+      className={`flex w-full min-w-0 shrink-0 overflow-hidden ${
+        stacked
+          ? 'flex-col items-start gap-[4px]'
+          : 'flex-nowrap items-center justify-center gap-[4px]'
+      } ${fade}`}
     >
       {item.category && (
         <span
-          className={`max-w-[50%] shrink truncate rounded-[4px] border border-[#f2f2f2] px-[6px] py-[2px] ${chipClass}`}
+          className={`max-w-full shrink truncate rounded-[4px] border border-[#f2f2f2] px-[6px] py-[2px] ${chipClass}`}
         >
           {item.category}
         </span>
       )}
       {item.durationLabel && (
         <span
-          className={`flex min-w-0 max-w-[50%] items-center gap-[4px] truncate rounded-[4px] border border-[#f2f2f2] px-[6px] py-[2px] ${chipClass}`}
+          className={`flex min-w-0 max-w-full items-center gap-[4px] truncate rounded-[4px] border border-[#f2f2f2] px-[6px] py-[2px] ${chipClass}`}
         >
           <Clock size={10} className="shrink-0" /> {item.durationLabel}
         </span>
       )}
     </div>
+  );
+}
+
+/**
+ * Weekly task with details (Figma 2.1 / image 2):
+ * optional top habit badge + title + priority/status + category/duration.
+ * Typography stays 12px (WEEKLY_TYPO) — do not shrink.
+ */
+function WeekTaskDetailCard({ item, ghost, height, habitBadge = false, habitCount = 1 }) {
+  const fade = weekContentFade(ghost);
+  const hasTags = Boolean(item.priority || item.status);
+  const hasMeta = Boolean(item.category || item.durationLabel);
+
+  return (
+    <WeekGhostCard
+      ghost={ghost}
+      habitBadge={habitBadge}
+      habitCount={habitCount}
+      style={{ height }}
+    >
+      <div
+        className={`box-border flex h-full w-full min-w-0 flex-col items-start justify-center gap-[4px] overflow-hidden px-[8px] text-left ${
+          habitBadge ? 'pt-[14px] pb-[6px]' : 'py-[6px]'
+        } ${fade}`}
+      >
+        <p className={WEEKLY_TYPO.habitTitle} title={item.title}>
+          {item.title}
+        </p>
+        {hasTags && (
+          <div className="flex w-full min-w-0 flex-nowrap items-center gap-[4px] overflow-hidden">
+            {item.priority && (
+              <span
+                className={`shrink-0 rounded-[4px] px-[3px] py-px ${WEEKLY_TYPO.badgeMd} ${PRIORITY_STYLES[item.priority]}`}
+              >
+                {item.priority}
+              </span>
+            )}
+            {item.status && (
+              <span
+                className={`min-w-0 truncate rounded-[4px] bg-[#f2f2f2] px-[3px] py-px uppercase text-[#a3a3a3] ${WEEKLY_TYPO.badgeMd}`}
+              >
+                {item.status}
+              </span>
+            )}
+          </div>
+        )}
+        {hasMeta && (
+          <WeekTaskMetaChips item={item} fade="" chipClass={WEEKLY_TYPO.chipMd} stacked />
+        )}
+      </div>
+    </WeekGhostCard>
   );
 }
 
@@ -283,6 +427,7 @@ function WeekItemCard({ item, ghost, layout }) {
   const isTiny = layout.height <= 20;
   const isCompact = layout.height <= 37 && !isTiny;
   const fade = weekContentFade(ghost);
+  const habitCount = layout.habitCount || (layout.showHabitBadge ? 1 : 0);
   const isTask = item.kind === 'task' || (!layout.showHabitBadge && item.kind !== 'habit');
 
   if (isTiny) {
@@ -301,7 +446,25 @@ function WeekItemCard({ item, ghost, layout }) {
     );
   }
 
-  // Real / API tasks — monthly-style truncated field (fixes long-title overlap into chips).
+  // Task + co-scheduled habit badge (Weekly Figma 2.1) — full details, original 12px type.
+  if (isTask && layout.showHabitBadge && habitCount > 0) {
+    return (
+      <WeekTaskDetailCard
+        item={item}
+        ghost={ghost}
+        height={height}
+        habitBadge
+        habitCount={habitCount}
+      />
+    );
+  }
+
+  // Real / API tasks with priority/status — same detail layout without habit badge.
+  if (isTask && !WEEKLY_CARD_LAYOUT[item.id] && (item.priority || item.status)) {
+    return <WeekTaskDetailCard item={item} ghost={ghost} height={height} />;
+  }
+
+  // Real / API tasks — monthly-style truncated field.
   if (isTask && !WEEKLY_CARD_LAYOUT[item.id]) {
     return <WeekTaskFieldCard item={item} ghost={ghost} height={height} />;
   }
@@ -330,10 +493,15 @@ function WeekItemCard({ item, ghost, layout }) {
     );
   }
 
-  // Habit cards — top padding clears floating "1 Habit" badge; title truncates like Monthly.
-  if (layout.showHabitBadge) {
+  // Habit-only cards — top "1 Habit" badge; title truncates like Monthly.
+  if (layout.showHabitBadge || item.kind === 'habit') {
     return (
-      <WeekGhostCard ghost={ghost} habitBadge style={{ height }}>
+      <WeekGhostCard
+        ghost={ghost}
+        habitBadge
+        habitCount={habitCount || 1}
+        style={{ height }}
+      >
         <div className="box-border flex h-full w-full flex-col items-start justify-center gap-[4px] overflow-hidden px-[8px] pt-[14px] pb-[6px] text-left">
           <p className={`${WEEKLY_TYPO.habitTitle} ${fade}`} title={item.title}>
             {item.title}
@@ -400,6 +568,10 @@ export default function WeeklyView({
   const anchorDate = selectedDate || currentDate || new Date(2026, 4, 13);
   const weekDays = getWeekDays(anchorDate);
   const selectedKey = dateKeyFromDate(anchorDate);
+  const todayKey = dateKeyFromDate(new Date());
+  const weekIncludesToday = weekDays.some((day) => dateKeyFromDate(day) === todayKey);
+  const now = useNowTicker(weekIncludesToday && !isLoading);
+  const nowTop = scaleY(getWeeklyCurrentTimeTop(now));
 
   const openDayInDaily = (day) => {
     if (setSelectedDate) setSelectedDate(new Date(day.getFullYear(), day.getMonth(), day.getDate()));
@@ -462,12 +634,8 @@ export default function WeeklyView({
             <div className="grid min-w-0 flex-1" style={{ gridTemplateColumns: DAY_GRID_COLUMNS, columnGap: 0 }}>
               {weekDays.map((day) => {
                 const dayKey = dateKeyFromDate(day);
-                const dayItems = isLoading
-                  ? []
-                  : (plans[dayKey] || []).filter((item) => {
-                      if (item.kind === 'habit' && item.layout === 'half') return false;
-                      return getWeeklyCardLayout(item);
-                    });
+                const dayItems = isLoading ? [] : plans[dayKey] || [];
+                const slots = buildWeeklyRenderSlots(dayItems);
 
                 return (
                   <div
@@ -475,37 +643,35 @@ export default function WeeklyView({
                     className="relative min-w-0 overflow-visible border-l border-[#f2f2f2] dark:border-zinc-800/80"
                   >
                     {!isLoading &&
-                      dayItems.map((item) => {
-                        const layout = getWeeklyCardLayout(item);
-                        return (
-                          <WeekCardAnchor
-                            key={item.id}
-                            top={scaleY(layout.top)}
-                            className={`pointer-events-auto cursor-pointer ${
-                              item.aiScheduleState ? 'animate-fade-in' : ''
-                            }`}
+                      slots.map(({ item, layout }) => (
+                        <WeekCardAnchor
+                          key={item.id}
+                          top={scaleY(layout.top)}
+                          className={`pointer-events-auto cursor-pointer ${
+                            item.aiScheduleState ? 'animate-fade-in' : ''
+                          }`}
+                        >
+                          <div
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => openDayInDaily(day)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                openDayInDaily(day);
+                              }
+                            }}
                           >
-                            <div
-                              role="button"
-                              tabIndex={0}
-                              onClick={() => openDayInDaily(day)}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                  e.preventDefault();
-                                  openDayInDaily(day);
-                                }
-                              }}
-                            >
-                              <WeekItemCard item={item} ghost={!hasAcceptedPlan} layout={layout} />
-                            </div>
-                          </WeekCardAnchor>
-                        );
-                      })}
+                            <WeekItemCard item={item} ghost={!hasAcceptedPlan} layout={layout} />
+                          </div>
+                        </WeekCardAnchor>
+                      ))}
 
-                    {!isLoading && dayKey === SEED_DATE_KEY && (
+                    {!isLoading && dayKey === todayKey && (
                       <div
                         className="pointer-events-none absolute inset-x-0 z-15"
-                        style={{ top: FOUR_AM_PURPLE_TOP }}
+                        style={{ top: nowTop }}
+                        aria-hidden
                       >
                         <div className="absolute inset-x-0 top-1/2 h-[1.5px] -translate-y-1/2 bg-[#8022fe]" />
                         <div className="absolute left-0 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white bg-[#8022fe] shadow-sm dark:border-zinc-900" />

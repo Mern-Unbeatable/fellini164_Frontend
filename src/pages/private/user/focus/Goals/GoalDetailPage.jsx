@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, useMemo, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { useParams, Navigate, useNavigate } from 'react-router-dom';
+import { useParams, Navigate, useNavigate, useOutletContext } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   Sparkles,
@@ -717,6 +717,7 @@ export default function GoalDetailPage() {
   const { goalId } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { setGoalDetail, setBackToGoalsBoard } = useOutletContext() || {};
   const goals = useSelector(selectGoals);
   const currentGoal = useSelector(selectCurrentGoal);
   const apiTasks = useSelector(selectCurrentGoalTasks);
@@ -770,6 +771,18 @@ export default function GoalDetailPage() {
       dispatch(clearCurrentGoal());
     };
   }, [dispatch, goalId]);
+
+  // Navbar: Work / Goals / {title}
+  useEffect(() => {
+    setGoalDetail?.(goal?.title ?? null);
+    return () => setGoalDetail?.(null);
+  }, [goal?.title, setGoalDetail]);
+
+  useEffect(() => {
+    const goToBoard = () => navigate('/user/goals');
+    setBackToGoalsBoard?.(goToBoard);
+    return () => setBackToGoalsBoard?.(null);
+  }, [setBackToGoalsBoard, navigate]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
