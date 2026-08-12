@@ -194,6 +194,17 @@ const OnboardingFlowView = () => {
     setStep((p) => Math.max(1, p - 1));
   };
 
+  const onSkip = () => {
+    if (step === 2) {
+      setStep2Phase(1);
+    }
+    if (step === 5) {
+      setIsGenerating(true);
+      return;
+    }
+    setStep((p) => p + 1);
+  };
+
   const onContinue = () => {
     if (!canContinue) return;
     if (step === 2 && step2Phase === 1) {
@@ -251,7 +262,7 @@ const OnboardingFlowView = () => {
                 selectedGoals={selectedGoals}
                 toggleGoal={toggleGoal}
                 onContinue={onContinue}
-                onBack={onBack}
+                onBack={onSkip}
                 canContinue={canContinue}
                 phase={step2Phase}
                 setPhase={setStep2Phase}
@@ -264,7 +275,7 @@ const OnboardingFlowView = () => {
                 routine={routine}
                 onSelectRoutine={onSelectRoutine}
                 onContinue={onContinue}
-                onBack={onBack}
+                onBack={onSkip}
                 canContinue={canContinue}
               />
             )}
@@ -279,7 +290,7 @@ const OnboardingFlowView = () => {
                 endMeridiem={endMeridiem}
                 setEndMeridiem={setEndMeridiem}
                 onContinue={onContinue}
-                onBack={onBack}
+                onBack={onSkip}
                 canContinue={canContinue}
               />
             )}
