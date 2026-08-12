@@ -731,3 +731,36 @@ export function mapGoalAiSuggestionsToMessages(list) {
   }
   return messages;
 }
+
+/**
+ * Map GET /onboarding/suggestions item → existing ghost-card fields only.
+ * UI: priority, title, description, category, tasks, habits, due, message.
+ */
+export function mapOnboardingGoalSuggestion(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+
+  const proposed = raw.proposedGoal && typeof raw.proposedGoal === 'object' ? raw.proposedGoal : {};
+  const suggestionId = raw.suggestionId || raw.id;
+  if (!suggestionId) return null;
+
+  const type = String(raw.type || '').toUpperCase();
+  if (type && type !== 'GOAL') return null;
+
+  const status = String(raw.status || '').toLowerCase();
+  if (status && status !== 'pending') return null;
+
+  const dueFields = proposed.targetDate ? formatRelativeDue(proposed.targetDate) : null;
+
+  return {
+    id: suggestionId,
+    suggestionId,
+    priority: priorityFromApi(proposed.priorityLevel),
+    title: proposed.title || raw.title || '',
+    description: proposed.description || '',
+    category: categoryFromApi(proposed.category),
+    tasks: Array.isArray(raw.proposedTasks) ? raw.proposedTasks.length : 0,
+    habits: Array.isArray(raw.proposedHabits) ? raw.proposedHabits.length : 0,
+    due: dueFields?.due || '',
+    message: raw.message || 'AI suggested based on your profile',
+  };
+}
