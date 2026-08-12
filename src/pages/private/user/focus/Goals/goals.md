@@ -102,15 +102,33 @@ Node IDs: `1250:6857`, `1250:7794`, `1250:8499`, `1250:10104`, `1250:13064`, `12
 
 ---
 
+## Empty board ↔ Ghost (AI suggestion) flow
+
+**Normal card** = real goal from `GET /api/v1/goals` (active / paused / completed).  
+**Ghost card** = same as empty-state AI suggestion card (dashed, ✦ AI Suggestions).
+
+| Step | What happens |
+|------|----------------|
+| Board has ≥1 normal card | Show normal cards only. No ghosts. |
+| User deletes every normal card (⋯ → **Delete** — completed or incomplete) | `GET /goals` returns `[]` → board empty → show **3 AI Suggestions** (ghosts). |
+| User accepts a ghost (**Accept Goal**) | `POST .../suggestions/:id/accept` (real UUID) or `POST /goals` for local Figma mocks → goal becomes a **normal card** → ghosts hide. |
+| User regenerates / dismisses a ghost | `POST .../regenerate` / `.../dismiss` when UUID; local swap/remove for Figma mock ids. |
+| DEV only | `/user/goals?empty=1` force-previews the ghost UI even if goals still exist. |
+
+Ghosts do **not** load from a list GET (none provided). Cards are Figma `GHOST_GOALS` until real suggestion UUIDs exist. Action APIs: accept / regenerate / dismiss only.
+
+---
+
 ## FLOW — how to verify in the app
 
 Build must flow from **Figma + Rules** (MVP = none). Verify full flow before done.
 
 | Step | URL / action | Matches |
 |------|----------------|---------|
-| Empty ghosts | `/user/goals?empty=1` | Frame 1 — Empty States (opacity 50%, dashed, ✦ 3) |
+| Empty ghosts | Delete all normal cards on `/user/goals`, or DEV `/user/goals?empty=1` | Frame 1 — Empty States (opacity 50%, dashed, ✦ 3). Ghosts = auto-suggest when normal board is empty. |
 | Ghost hover | Same → hover ghost | Frame 1 — Empty States - Hover (AI footer + Accept) |
-| Populated | `/user/goals` | Frame 1 |
+| Accept ghost → normal | Ghost **Accept Goal** | Ghost removed; new/updated goal on board via accept (or create for mock) |
+| Populated | `/user/goals` with ≥1 goal | Frame 1 — normal cards only |
 | Card ⋯ | Hover → ⋯ | Frame 1.1 — Edit / ✦ Add Task / ✦ Add Habit / Complete / Pause / Delete |
 | New Goal | **+ New Goal** | Frame 2 |
 | New Goal fields | Linked Tasks / Habits multi-select | Frame 2.1 / 2.1 Selected |

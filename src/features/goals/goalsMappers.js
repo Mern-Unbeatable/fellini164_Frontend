@@ -731,3 +731,103 @@ export function mapGoalAiSuggestionsToMessages(list) {
   }
   return messages;
 }
+
+const TERMINAL_SUGGESTION_STATUSES = new Set([
+  'ACCEPTED',
+  'DISMISSED',
+  'REJECTED',
+  'APPLIED',
+  'COMPLETED',
+]);
+
+function suggestionTypeOf(raw) {
+  return String(
+    raw?.type ||
+      raw?.itemType ||
+      raw?.suggestionType ||
+      raw?.kind ||
+      raw?.entityType ||
+      '',
+  ).toUpperCase();
+}
+
+/**
+ * Map GET/POST onboarding suggestion → Goals Board ghost card.
+ * Card `id` is the suggestionId used by accept / regenerate / dismiss.
+ */
+export function mapOnboardingGoalSuggestion(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+
+  const nested =
+    raw.goal ||
+    raw.proposedGoal ||
+    raw.payload ||
+    raw.preview ||
+    (raw.data && typeof raw.data === 'object' && !Array.isArray(raw.data)
+      ? raw.data
+      : null) ||
+    {};
+
+  const proposedTasks = raw.proposedTasks || nested.proposedTasks || nested.tasks;
+  const proposedHabits = raw.proposedHabits || nested.proposedHabits || nested.habits;
+
+  const type = suggestionTypeOf(raw) || suggestionTypeOf(nested);
+  if (type && type !== 'GOAL' && type !== 'GOALS') return null;
+
+  const status = String(raw.status || nested.status || '').toUpperCase();
+  if (TERMINAL_SUGGESTION_STATUSES.has(status)) return null;
+
+  const suggestionId =
+    raw.id ||
+    raw.suggestionId ||
+    nested.suggestionId ||
+    nested.id;
+  if (!suggestionId) return null;
+
+  const mapped = mapGoalFromApi(
+    {
+      ...nested,
+      id: suggestionId,
+      title: nested.title || raw.title,
+      description: nested.description || raw.description,
+      category: nested.category || raw.category,
+      priorityLevel:
+        nested.priorityLevel ||
+        nested.priority ||
+        raw.priorityLevel ||
+        raw.priority,
+      targetDate: nested.targetDate || raw.targetDate || nested.dueDate || raw.dueDate,
+      progress:
+        nested.progress ??
+        nested.progressPercent ??
+        raw.progress ??
+        raw.progressPercent ??
+        0,
+      _count: nested._count || {
+        tasks:
+          nested.taskCount ??
+          raw.taskCount ??
+          nested.tasksCount ??
+          raw.tasksCount ??
+          (Array.isArray(proposedTasks) ? proposedTasks.length : undefined),
+        habits:
+          nested.habitCount ??
+          raw.habitCount ??
+          nested.habitsCount ??
+          raw.habitsCount ??
+          (Array.isArray(proposedHabits) ? proposedHabits.length : undefined),
+      },
+    },
+    'ai',
+  );
+  if (!mapped) return null;
+
+  return {
+    ...mapped,
+    id: suggestionId,
+    suggestionId,
+    tasks: mapped.tasks ?? 0,
+    habits: mapped.habits ?? 0,
+    due: mapped.due || mapped.targetDate || '',
+  };
+}

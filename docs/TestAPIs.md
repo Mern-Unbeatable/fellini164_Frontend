@@ -166,6 +166,9 @@ If Postman has no valid response:
 | Dismiss AI suggestion | `POST /api/v1/goals/ai/suggestions/:suggestionId/dismiss` | AI Assistant **No, cancel** | Discards pending suggestion | **FULFILLED** |
 | Undo AI changes | `POST /api/v1/goals/:goalId/ai/undo` | AI Assistant **Undo changes** | Reverts last accepted suggestion; refetch goal | **FULFILLED** |
 | AI suggestion history | `GET /api/v1/goals/:goalId/ai/suggestions` | Goal detail AI Assistant open / refresh | Restores chat + pending **Yes, apply / No, cancel** | **FULFILLED** |
+| Accept empty-board suggestion | `POST /api/v1/onboarding/suggestions/:suggestionId/accept` | Ghost card **Accept Goal** | UUID suggestionId only; mock Figma ids stay local | **FULFILLED** |
+| Regenerate empty-board suggestion | `POST /api/v1/onboarding/suggestions/:suggestionId/regenerate` | Ghost ⋯ → **Regenerate suggestion** | UUID suggestionId only | **FULFILLED** |
+| Dismiss empty-board suggestion | `POST /api/v1/onboarding/suggestions/:suggestionId/dismiss` | Ghost ⋯ → **Dismiss** | UUID suggestionId only | **FULFILLED** |
 | Update linked task | `PATCH /api/v1/tasks/:taskId` | Goal detail Linked Tasks ⋯ → **Edit task** | Body e.g. `{ priority, status, title, … }`; response `{ task }` | **FULFILLED** |
 | Complete linked task | `POST /api/v1/tasks/:taskId/complete` | Goal detail Linked Tasks ⋯ → **Complete** | Body `{ actualMinutes }`; response `{ task }` | **FULFILLED** |
 | Delete linked task | `DELETE /api/v1/tasks/:taskId` | Goal detail Linked Tasks ⋯ → **Delete** | Removes card + refreshes goal | **FULFILLED** |
@@ -177,7 +180,7 @@ If Postman has no valid response:
 
 | UI | Notes | Status |
 |----|-------|--------|
-| Empty-board ghost goal cards | Local `GHOST_GOALS` — integrate later when suggestions API exists | **DEFERRED** |
+| Empty-board ghost cards | Local Figma `GHOST_GOALS` — no GET list provided; only accept/regenerate/dismiss POSTs | **DEFERRED** (visual) / **FULFILLED** (3 action POSTs when UUID) |
 
 ### A.1c GET /goals — Query Parameters
 
@@ -250,16 +253,16 @@ Goal fields mapped to UI: `id`, `title`, `description`, `category`, `status`, `p
 
 | Requirement | Result | Notes |
 |-------------|--------|-------|
-| Postman before integrate | **PASS** for list/create/AI/pause/update/complete/link | Ghosts still deferred |
+| Postman before integrate | **PASS** for list/create/AI/pause/update/complete/link | Empty ghosts: 3 action POSTs only; no GET list contract |
 | Exact method (no guessing) | **PASS** for contracted Goals APIs | Update=`PATCH`, Complete=`POST .../complete`, Link=`POST .../link-tasks|link-habits` |
-| Remove mock after connect | **PASS** for list/create/AI/link pickers/detail mutations; **DEFERRED** ghosts | See A.1b |
+| Remove mock after connect | **PASS** for list/create/AI/link pickers/detail mutations; ghosts still Figma mock cards | Empty cards are not from `GET /goals` |
 | Loading / empty / errors | **PASS** | Soft list reload; empty copy; toasts; 401 → login |
 | Mapper audit | **PASS** | `audit-goals-list.mjs` + `audit-link-pickers.mjs` — ALL PASS (2026-07-22) |
 | Logged-in Network QA | **Manual** | Engineer checklist in Appendix B (Plus + Spark + filters) |
 
 ### A.5 Blockers (need Postman evidence)
 
-1. **Ghost suggestions** — endpoints when backend ready (client will provide)
+1. Empty-board ghost **list GET** — not provided. Cards stay local `GHOST_GOALS`. Action POSTs: `accept` / `regenerate` / `dismiss`.
 
 If Postman has no response:
 

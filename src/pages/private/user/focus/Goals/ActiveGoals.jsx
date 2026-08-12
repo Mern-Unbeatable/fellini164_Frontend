@@ -17,6 +17,7 @@ import {
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
 import NewGoalModal from './components/NewGoalModal';
 import GoalProgressModal from './components/GoalProgressModal';
 import DeleteConfirmModal from '../../../../../components/ui/DeleteConfirmModal';
@@ -46,6 +47,12 @@ import {
   updateGoal,
   updateGoalStatus,
 } from '../../../../../features/goals/goalsSlice';
+import {
+  acceptOnboardingSuggestionApi,
+  dismissOnboardingSuggestionApi,
+  regenerateOnboardingSuggestionApi,
+} from '../../../../../features/goals/goalsAPI';
+import { isUuid, mapOnboardingGoalSuggestion } from '../../../../../features/goals/goalsMappers';
 
 // Rule 7 — hardcoded typewriter phrases (Figma empty frame also shows a static subtitle;
 // rotation uses the brief's suggested set).
@@ -114,6 +121,23 @@ function resolveForceEmptyBoard() {
   return import.meta.env.DEV && new URLSearchParams(window.location.search).get('empty') === '1';
 }
 
+function clearForceEmptyQuery() {
+  const url = new URL(window.location.href);
+  if (url.searchParams.get('empty') !== '1') return;
+  url.searchParams.delete('empty');
+  const search = url.searchParams.toString();
+  window.history.replaceState({}, '', `${url.pathname}${search ? `?${search}` : ''}${url.hash}`);
+}
+
+function suggestionErrorMessage(error, fallback) {
+  return (
+    error?.response?.data?.message ||
+    error?.response?.data?.error ||
+    error?.message ||
+    fallback
+  );
+}
+
 const STATUS_STYLES = {
   paused: 'bg-[rgba(93,93,93,0.05)] text-[#5d5d5d]',
   completed: 'bg-[rgba(42,157,0,0.05)] text-[#2a9d00]',
@@ -161,21 +185,23 @@ const FILTER_CONFIG = [
   },
 ];
 
-function GhostGoalMenu({ onRegenerate, onDismiss }) {
+function GhostGoalMenu({ busy, onRegenerate, onDismiss }) {
   return (
     <div className="absolute top-full right-0 z-30 mt-1 flex w-max flex-col overflow-hidden rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
       <button
         type="button"
+        disabled={busy}
         onClick={onRegenerate}
-        className="flex items-center gap-1.5 border-b border-[#f2f2f2] px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#8022fe] hover:bg-[#fcfcfc] dark:border-zinc-700 dark:hover:bg-zinc-700"
+        className="flex items-center gap-1.5 border-b border-[#f2f2f2] px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#8022fe] hover:bg-[#fcfcfc] disabled:opacity-50 dark:border-zinc-700 dark:hover:bg-zinc-700"
       >
         <Sparkles size={ICON.sparkles} className="shrink-0" />
         Regenerate suggestion
       </button>
       <button
         type="button"
+        disabled={busy}
         onClick={onDismiss}
-        className="flex items-center gap-1.5 px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#5d5d5d] hover:bg-[#fcfcfc] dark:text-gray-300 dark:hover:bg-zinc-700"
+        className="flex items-center gap-1.5 px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#5d5d5d] hover:bg-[#fcfcfc] disabled:opacity-50 dark:text-gray-300 dark:hover:bg-zinc-700"
       >
         <X size={ICON.menu} className="shrink-0" />
         Dismiss
@@ -234,7 +260,7 @@ function GhostGoalDashedDivider() {
   );
 }
 
-function GhostGoalCard({ goal, onDismiss, onRegenerate, onAccept }) {
+function GhostGoalCard({ goal, busy, onDismiss, onRegenerate, onAccept }) {
   const [isHovered, setIsHovered] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const cardRef = useRef(null);
@@ -330,11 +356,14 @@ function GhostGoalCard({ goal, onDismiss, onRegenerate, onAccept }) {
       {menuOpen && (
         <div className="absolute top-9 right-3 z-50">
           <GhostGoalMenu
+            busy={busy}
             onRegenerate={() => {
+              if (busy) return;
               setMenuOpen(false);
               onRegenerate(goal.id);
             }}
             onDismiss={() => {
+              if (busy) return;
               setMenuOpen(false);
               onDismiss(goal.id);
             }}
@@ -369,11 +398,13 @@ function GhostGoalCard({ goal, onDismiss, onRegenerate, onAccept }) {
           </p>
           <button
             type="button"
+            disabled={busy}
             onClick={(e) => {
               e.stopPropagation();
+              if (busy) return;
               onAccept?.(goal);
             }}
-            className="flex shrink-0 items-center gap-1.5 rounded-[6px] bg-[#f9f4ff] px-2 py-0.5 text-[12px] leading-[1.5] font-medium text-[#8022fe]"
+            className="flex shrink-0 items-center gap-1.5 rounded-[6px] bg-[#f9f4ff] px-2 py-0.5 text-[12px] leading-[1.5] font-medium text-[#8022fe] disabled:opacity-50"
           >
             Accept Goal
             <Check size={ICON.check} strokeWidth={2.5} className="shrink-0" />
@@ -748,6 +779,8 @@ export default function ActiveGoals() {
   const [modal, setModal] = useState(false);
   const [modalProgress, setModalProgress] = useState(false);
   const [ghostGoals, setGhostGoals] = useState(GHOST_GOALS);
+  const [busySuggestionId, setBusySuggestionId] = useState(null);
+  const wasBoardEmpty = useRef(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilters, setActiveFilters] = useState(DEFAULT_FILTERS);
   const [selectedGoalId, setSelectedGoalId] = useState(null);
@@ -867,7 +900,6 @@ export default function ActiveGoals() {
     }));
 
   const loadGoals = useCallback(() => {
-    if (resolveForceEmptyBoard()) return Promise.resolve();
     return dispatch(
       fetchGoals({
         filters: activeFilters,
@@ -879,13 +911,22 @@ export default function ActiveGoals() {
   }, [dispatch, activeFilters, searchQuery]);
 
   useEffect(() => {
-    if (resolveForceEmptyBoard()) return undefined;
     const delay = searchQuery.trim() ? 300 : 0;
     const timer = setTimeout(() => {
       loadGoals();
     }, delay);
     return () => clearTimeout(timer);
   }, [loadGoals, searchQuery]);
+
+  // Normal board empty (0 goals from GET /goals, or DEV ?empty=1) → reseed AI ghost suggestions once.
+  useEffect(() => {
+    const forceEmpty = resolveForceEmptyBoard();
+    const empty = forceEmpty || (!loadingList && goals.length === 0);
+    if (empty && !wasBoardEmpty.current) {
+      setGhostGoals(GHOST_GOALS);
+    }
+    wasBoardEmpty.current = empty;
+  }, [loadingList, goals.length]);
 
   const handleOpenModal = () => {
     setEditingGoal(null);
@@ -900,6 +941,7 @@ export default function ActiveGoals() {
     if (!data?.title && !data?.alreadyPersisted) return;
     // AI Generate already created the goal on the server — refresh list only.
     if (data.alreadyPersisted) {
+      clearForceEmptyQuery();
       await loadGoals();
       return;
     }
@@ -908,34 +950,94 @@ export default function ActiveGoals() {
     } else {
       await dispatch(createGoal(data));
     }
+    clearForceEmptyQuery();
     await loadGoals();
   };
 
-  const handleDismissGhost = (id) => {
-    setGhostGoals((prev) => prev.filter((g) => g.id !== id));
+  const handleDismissGhost = async (id) => {
+    if (!id || busySuggestionId) return;
+    if (!isUuid(id)) {
+      setGhostGoals((prev) => prev.filter((g) => g.id !== id));
+      return;
+    }
+    setBusySuggestionId(id);
+    try {
+      await dismissOnboardingSuggestionApi(id);
+      setGhostGoals((prev) => prev.filter((g) => String(g.id) !== String(id)));
+    } catch (error) {
+      toast.error(suggestionErrorMessage(error, 'Could not dismiss suggestion.'));
+    } finally {
+      setBusySuggestionId(null);
+    }
   };
 
-  const handleRegenerateGhost = (id) => {
-    const alternate = GHOST_REGENERATIONS[id];
-    if (!alternate) return;
-    setGhostGoals((prev) => prev.map((g) => (g.id === id ? { ...g, ...alternate } : g)));
+  const handleRegenerateGhost = async (id) => {
+    if (!id || busySuggestionId) return;
+    if (!isUuid(id)) {
+      const alternate = GHOST_REGENERATIONS[id];
+      if (!alternate) return;
+      setGhostGoals((prev) => prev.map((g) => (g.id === id ? { ...g, ...alternate } : g)));
+      return;
+    }
+    setBusySuggestionId(id);
+    try {
+      const data = await regenerateOnboardingSuggestionApi(id);
+      const next = mapOnboardingGoalSuggestion(data);
+      if (next) {
+        setGhostGoals((prev) =>
+          prev.map((g) => (String(g.id) === String(id) ? next : g)),
+        );
+      }
+    } catch (error) {
+      toast.error(suggestionErrorMessage(error, 'Could not regenerate suggestion.'));
+    } finally {
+      setBusySuggestionId(null);
+    }
   };
 
   const handleAcceptGhost = async (ghost) => {
-    await dispatch(
-      createGoal({
-        title: ghost.title,
-        description: ghost.description,
-        priority: ghost.priority,
-        category: ghost.category,
-        due: ghost.due,
-        linkedTasks: [],
-        linkedHabits: [],
-        source: 'ai',
-      })
-    );
-    setGhostGoals((prev) => prev.filter((g) => g.id !== ghost.id));
-    await loadGoals();
+    const suggestionId = ghost?.suggestionId || ghost?.id;
+    if (!suggestionId || busySuggestionId) return;
+
+    if (!isUuid(suggestionId)) {
+      await dispatch(
+        createGoal({
+          title: ghost.title,
+          description: ghost.description,
+          priority: ghost.priority,
+          category: ghost.category,
+          due: ghost.due,
+          linkedTasks: [],
+          linkedHabits: [],
+          source: 'ai',
+        }),
+      );
+      setGhostGoals((prev) => prev.filter((g) => g.id !== ghost.id));
+      clearForceEmptyQuery();
+      await loadGoals();
+      return;
+    }
+
+    setBusySuggestionId(suggestionId);
+    try {
+      await acceptOnboardingSuggestionApi(suggestionId);
+      setGhostGoals((prev) =>
+        prev.filter((g) => String(g.id) !== String(suggestionId)),
+      );
+      clearForceEmptyQuery();
+      await dispatch(
+        fetchGoals({
+          filters: activeFilters,
+          search: searchQuery,
+          page: 1,
+          limit: 50,
+        }),
+      );
+    } catch (error) {
+      toast.error(suggestionErrorMessage(error, 'Could not accept suggestion.'));
+    } finally {
+      setBusySuggestionId(null);
+    }
   };
 
   const handleEditGoal = (goal) => {
@@ -1091,7 +1193,8 @@ export default function ActiveGoals() {
     [ghostGoals, searchQuery]
   );
 
-  const boardIsEmpty = resolveForceEmptyBoard() ? true : !loadingList && goals.length === 0;
+  const forceEmptyBoard = resolveForceEmptyBoard();
+  const boardIsEmpty = forceEmptyBoard ? true : !loadingList && goals.length === 0;
   const isSearching = searchQuery.trim().length > 0;
   const hasActiveFilters = Object.entries(activeFilters).some(([key, value]) => {
     if (key === 'Status') return value !== 'All Statuses';
@@ -1193,6 +1296,7 @@ export default function ActiveGoals() {
                     <div key={goal.id} className="h-[186px] min-h-[186px]">
                       <GhostGoalCard
                       goal={goal}
+                      busy={String(busySuggestionId) === String(goal.id)}
                       onDismiss={handleDismissGhost}
                       onRegenerate={handleRegenerateGhost}
                       onAccept={handleAcceptGhost}
