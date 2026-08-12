@@ -28,7 +28,6 @@ import GoalDetailPanel, {
 import LinkItemsModal from './components/LinkItemsModal';
 import GoalSparkLinkModal from './components/GoalSparkLinkModal';
 import TypewriterText from '../../../../../components/ui/TypewriterText';
-import { GHOST_GOALS } from './goalsData';
 import {
   completeGoal,
   createGoal,
@@ -779,7 +778,10 @@ export default function ActiveGoals() {
   const currentGoalHabits = useSelector(selectCurrentGoalHabits);
   const [modal, setModal] = useState(false);
   const [modalProgress, setModalProgress] = useState(false);
-  const [ghostGoals, setGhostGoals] = useState(GHOST_GOALS);
+  const [ghostGoals, setGhostGoals] = useState([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(() =>
+    resolveForceEmptyBoard(),
+  );
   const [busySuggestionId, setBusySuggestionId] = useState(null);
   const wasBoardEmpty = useRef(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -912,12 +914,15 @@ export default function ActiveGoals() {
   }, [dispatch, activeFilters, searchQuery]);
 
   const loadSuggestions = useCallback(async () => {
+    setLoadingSuggestions(true);
     try {
       const list = await fetchOnboardingSuggestionsApi();
-      const mapped = list.map(mapOnboardingGoalSuggestion).filter(Boolean);
-      setGhostGoals(mapped.length ? mapped : GHOST_GOALS);
-    } catch {
-      setGhostGoals(GHOST_GOALS);
+      setGhostGoals(list.map(mapOnboardingGoalSuggestion).filter(Boolean));
+    } catch (error) {
+      setGhostGoals([]);
+      toast.error(suggestionErrorMessage(error, 'Could not load AI suggestions.'));
+    } finally {
+      setLoadingSuggestions(false);
     }
   }, []);
 
@@ -1219,6 +1224,12 @@ export default function ActiveGoals() {
     return false;
   });
   const showGhostCards = boardIsEmpty && !isSearching && !hasActiveFilters && filteredGhostGoals.length > 0;
+  const showSuggestionLoading =
+    boardIsEmpty &&
+    loadingSuggestions &&
+    !showGhostCards &&
+    !isSearching &&
+    !hasActiveFilters;
 
   const activeCount = boardStats.active;
   const pausedCount = boardStats.paused;
@@ -1318,6 +1329,10 @@ export default function ActiveGoals() {
                   ))}
                 </div>
             )
+          ) : showSuggestionLoading ? (
+            <p className="py-10 text-center text-sm font-medium text-[#c2c2c2] dark:text-gray-500">
+              Loading suggestions…
+            </p>
           ) : loadingList && goals.length === 0 ? (
             <p className="py-10 text-center text-sm font-medium text-[#c2c2c2] dark:text-gray-500">
               Loading goals…
