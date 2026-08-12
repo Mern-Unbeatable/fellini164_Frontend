@@ -138,6 +138,8 @@ const OnboardingFlowView = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [selectedGoals, setSelectedGoals] = useState([]);
+  const [step2Phase, setStep2Phase] = useState(1);
+  const [mainFocus, setMainFocus] = useState('');
   const [routine, setRoutine] = useState('');
   const [startTime, setStartTime] = useState('07:00');
   const [startMeridiem, setStartMeridiem] = useState('AM');
@@ -149,10 +151,16 @@ const OnboardingFlowView = () => {
 
   const canContinue =
     step === 1 ||
-    (step === 2 && selectedGoals.length > 0) ||
+    (step === 2 && (step2Phase === 1 ? selectedGoals.length === 2 : Boolean(mainFocus))) ||
     (step === 3 && Boolean(routine)) ||
     (step === 4 && Boolean(startTime) && Boolean(endTime)) ||
     (step === 5 && Boolean(style));
+
+  useEffect(() => {
+    if (mainFocus && !selectedGoals.includes(mainFocus)) {
+      setMainFocus('');
+    }
+  }, [selectedGoals, mainFocus]);
 
   useEffect(() => {
     if (!isGenerating) return;
@@ -175,6 +183,10 @@ const OnboardingFlowView = () => {
   }, [progress, isGenerating, navigate]);
 
   const onBack = () => {
+    if (step === 2 && step2Phase === 2) {
+      setStep2Phase(1);
+      return;
+    }
     if (step === 1) {
       navigate('/', { replace: true });
       return;
@@ -184,6 +196,10 @@ const OnboardingFlowView = () => {
 
   const onContinue = () => {
     if (!canContinue) return;
+    if (step === 2 && step2Phase === 1) {
+      setStep2Phase(2);
+      return;
+    }
     if (step === 5) {
       setIsGenerating(true);
       return;
@@ -237,6 +253,10 @@ const OnboardingFlowView = () => {
                 onContinue={onContinue}
                 onBack={onBack}
                 canContinue={canContinue}
+                phase={step2Phase}
+                setPhase={setStep2Phase}
+                mainFocus={mainFocus}
+                setMainFocus={setMainFocus}
               />
             )}
             {step === 3 && (
