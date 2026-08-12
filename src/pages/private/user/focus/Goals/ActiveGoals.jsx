@@ -50,6 +50,7 @@ import {
 import {
   acceptOnboardingSuggestionApi,
   dismissOnboardingSuggestionApi,
+  fetchOnboardingSuggestionsApi,
   regenerateOnboardingSuggestionApi,
 } from '../../../../../features/goals/goalsAPI';
 import { isUuid, mapOnboardingGoalSuggestion } from '../../../../../features/goals/goalsMappers';
@@ -394,7 +395,7 @@ function GhostGoalCard({ goal, busy, onDismiss, onRegenerate, onAccept }) {
           }`}
         >
           <p className="min-w-0 truncate text-[12px] leading-[1.5] font-medium text-[#c2c2c2]">
-            AI suggested based on your profile
+            {goal.message || 'AI suggested based on your profile'}
           </p>
           <button
             type="button"
@@ -910,6 +911,16 @@ export default function ActiveGoals() {
     );
   }, [dispatch, activeFilters, searchQuery]);
 
+  const loadSuggestions = useCallback(async () => {
+    try {
+      const list = await fetchOnboardingSuggestionsApi();
+      const mapped = list.map(mapOnboardingGoalSuggestion).filter(Boolean);
+      setGhostGoals(mapped.length ? mapped : GHOST_GOALS);
+    } catch {
+      setGhostGoals(GHOST_GOALS);
+    }
+  }, []);
+
   useEffect(() => {
     const delay = searchQuery.trim() ? 300 : 0;
     const timer = setTimeout(() => {
@@ -918,15 +929,15 @@ export default function ActiveGoals() {
     return () => clearTimeout(timer);
   }, [loadGoals, searchQuery]);
 
-  // Normal board empty (0 goals from GET /goals, or DEV ?empty=1) → reseed AI ghost suggestions once.
+  // Empty board (or DEV ?empty=1) → GET pending GOAL suggestions into ghost cards.
   useEffect(() => {
     const forceEmpty = resolveForceEmptyBoard();
     const empty = forceEmpty || (!loadingList && goals.length === 0);
     if (empty && !wasBoardEmpty.current) {
-      setGhostGoals(GHOST_GOALS);
+      loadSuggestions();
     }
     wasBoardEmpty.current = empty;
-  }, [loadingList, goals.length]);
+  }, [loadingList, goals.length, loadSuggestions]);
 
   const handleOpenModal = () => {
     setEditingGoal(null);
@@ -982,7 +993,9 @@ export default function ActiveGoals() {
     setBusySuggestionId(id);
     try {
       const data = await regenerateOnboardingSuggestionApi(id);
-      const next = mapOnboardingGoalSuggestion(data);
+      const next =
+        mapOnboardingGoalSuggestion(data) ||
+        mapOnboardingGoalSuggestion(data?.suggestions?.[0]);
       if (next) {
         setGhostGoals((prev) =>
           prev.map((g) => (String(g.id) === String(id) ? next : g)),

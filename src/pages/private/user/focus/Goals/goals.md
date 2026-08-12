@@ -110,12 +110,24 @@ Node IDs: `1250:6857`, `1250:7794`, `1250:8499`, `1250:10104`, `1250:13064`, `12
 | Step | What happens |
 |------|----------------|
 | Board has ≥1 normal card | Show normal cards only. No ghosts. |
-| User deletes every normal card (⋯ → **Delete** — completed or incomplete) | `GET /goals` returns `[]` → board empty → show **3 AI Suggestions** (ghosts). |
-| User accepts a ghost (**Accept Goal**) | `POST .../suggestions/:id/accept` (real UUID) or `POST /goals` for local Figma mocks → goal becomes a **normal card** → ghosts hide. |
-| User regenerates / dismisses a ghost | `POST .../regenerate` / `.../dismiss` when UUID; local swap/remove for Figma mock ids. |
-| DEV only | `/user/goals?empty=1` force-previews the ghost UI even if goals still exist. |
+| User deletes every normal card (⋯ → **Delete** — completed or incomplete) | `GET /goals` returns `[]` → `GET /onboarding/suggestions?type=GOAL&status=pending` → ghost cards. |
+| User accepts a ghost (**Accept Goal**) | `POST .../suggestions/:id/accept` → goal becomes a **normal card** → ghosts hide. |
+| User regenerates / dismisses a ghost | `POST .../regenerate` / `.../dismiss`. |
 
-Ghosts do **not** load from a list GET (none provided). Cards are Figma `GHOST_GOALS` until real suggestion UUIDs exist. Action APIs: accept / regenerate / dismiss only.
+Ghost card fields from GET `suggestions[]` only (no extra UI):
+
+| Ghost UI | API |
+|----------|-----|
+| Priority | `proposedGoal.priorityLevel` |
+| Title | `proposedGoal.title` |
+| Description | `proposedGoal.description` |
+| Category | `proposedGoal.category` |
+| Tasks | `proposedTasks.length` |
+| Habits | `proposedHabits.length` |
+| Date | `proposedGoal.targetDate` |
+| Footer | `message` |
+| Progress | always `0%` (UI) |
+| Accept / Regenerate / Dismiss | `suggestionId` |
 
 ---
 

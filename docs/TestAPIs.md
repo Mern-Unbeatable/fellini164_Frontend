@@ -166,7 +166,8 @@ If Postman has no valid response:
 | Dismiss AI suggestion | `POST /api/v1/goals/ai/suggestions/:suggestionId/dismiss` | AI Assistant **No, cancel** | Discards pending suggestion | **FULFILLED** |
 | Undo AI changes | `POST /api/v1/goals/:goalId/ai/undo` | AI Assistant **Undo changes** | Reverts last accepted suggestion; refetch goal | **FULFILLED** |
 | AI suggestion history | `GET /api/v1/goals/:goalId/ai/suggestions` | Goal detail AI Assistant open / refresh | Restores chat + pending **Yes, apply / No, cancel** | **FULFILLED** |
-| Accept empty-board suggestion | `POST /api/v1/onboarding/suggestions/:suggestionId/accept` | Ghost card **Accept Goal** | UUID suggestionId only; mock Figma ids stay local | **FULFILLED** |
+| Empty-board suggestion list | `GET /api/v1/onboarding/suggestions?type=GOAL&status=pending` | Empty board / `?empty=1` ghost cards | Envelope `{ suggestions }` → ghost fields only | **FULFILLED** |
+| Accept empty-board suggestion | `POST /api/v1/onboarding/suggestions/:suggestionId/accept` | Ghost card **Accept Goal** | UUID `suggestionId`; do **not** `POST /goals` after | **FULFILLED** |
 | Regenerate empty-board suggestion | `POST /api/v1/onboarding/suggestions/:suggestionId/regenerate` | Ghost ⋯ → **Regenerate suggestion** | UUID suggestionId only | **FULFILLED** |
 | Dismiss empty-board suggestion | `POST /api/v1/onboarding/suggestions/:suggestionId/dismiss` | Ghost ⋯ → **Dismiss** | UUID suggestionId only | **FULFILLED** |
 | Update linked task | `PATCH /api/v1/tasks/:taskId` | Goal detail Linked Tasks ⋯ → **Edit task** | Body e.g. `{ priority, status, title, … }`; response `{ task }` | **FULFILLED** |
