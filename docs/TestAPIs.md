@@ -634,13 +634,17 @@ Response envelope:
 | AI improve | `POST /api/v1/habits/:id/ai/improve` | Row ⋯ → **Improve habit** | `{ instructions }` | **FULFILLED** |
 | History | `GET /api/v1/habits/:id/history?days=30` | API wired (not on board UI yet) | Ready | **FULFILLED** (API) / board UI N/A |
 | Delete | `DELETE /api/v1/habits/:id` | Row ⋯ → **Delete** | No body | **FULFILLED** |
+| Empty-board suggestion list | `GET /api/v1/onboarding/suggestions?type=HABIT&status=pending` | Empty board / `?empty=1` ghost rows | Envelope `{ suggestions }` → ghost fields only | **FULFILLED** |
+| Accept empty-board suggestion | `POST /api/v1/onboarding/suggestions/:suggestionId/accept` | Ghost **Accept Habit** | UUID `suggestionId`; do **not** `POST /habits` after | **FULFILLED** |
+| Regenerate empty-board suggestion | `POST /api/v1/onboarding/suggestions/:suggestionId/regenerate` | Ghost ⋯ → **Regenerate suggestion** | UUID `suggestionId` | **FULFILLED** |
+| Dismiss empty-board suggestion | `POST /api/v1/onboarding/suggestions/:suggestionId/dismiss` | Ghost ⋯ → **Dismiss** | UUID `suggestionId` | **FULFILLED** |
 | Test email | `/habits/test/email` | Not used on board | Dev/test only | **DEFERRED** |
 
 ### C.1b Deferred / still mock
 
 | UI | Notes | Status |
 |----|-------|--------|
-| Empty-board ghost habits | Local `GHOST_HABITS` (`?empty=1` in DEV) until suggestions API exists | **DEFERRED** |
+| Empty-board ghost habits | `GET /api/v1/onboarding/suggestions?type=HABIT&status=pending` → ghost row fields only; Accept/Regenerate/Dismiss POSTs | **FULFILLED** |
 | Schedule → **Custom** | No `frequency=CUSTOM` in Postman; client filters partial week after list load | **CLIENT** |
 
 ### C.1c Toolbar mapping (New Habit + filters)
@@ -778,7 +782,7 @@ node scripts/audit-habits-error-handling.mjs
 |------|--------|-------|
 | Postman before integrate | **PASS** | List filters (streak/daysLeft), create, complete, pause toggle, AI generate/improve |
 | Exact method (no guessing) | **PASS** | Pause/Activate = `/pause` toggle only after `/activate` 404 confirmed |
-| Remove mock after connect | **PASS** for list/filters/create/AI/row actions; **DEFERRED** ghosts | See C.1b |
+| Remove mock after connect | **PASS** for list/filters/create/AI/row actions + empty ghosts | Ghosts from onboarding HABIT suggestions |
 | Loading / empty / errors | **PASS** | Soft list reload; empty copy; toasts |
 | Mapper audit | **PASS** | `audit-habits-board.mjs` — ALL PASS (2026-07-28) |
 | Error toasts + path contract | **PASS** | `audit-habits-error-handling.mjs` — ALL PASS (2026-07-28) |

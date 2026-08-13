@@ -4,21 +4,23 @@ import HabitTagList from './HabitTagList';
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-function GhostHabitMenu({ onRegenerate, onDismiss }) {
+function GhostHabitMenu({ busy, onRegenerate, onDismiss }) {
   return (
     <div className="absolute right-0 top-full z-30 mt-1 flex w-max flex-col overflow-hidden rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
       <button
         type="button"
+        disabled={busy}
         onClick={onRegenerate}
-        className="flex items-center gap-1.5 border-b border-[#f2f2f2] px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#8022fe] hover:bg-[#fcfcfc] dark:border-zinc-700 dark:hover:bg-zinc-700"
+        className="flex items-center gap-1.5 border-b border-[#f2f2f2] px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#8022fe] hover:bg-[#fcfcfc] disabled:opacity-50 dark:border-zinc-700 dark:hover:bg-zinc-700"
       >
         <Sparkles size={10} className="shrink-0" />
         Regenerate suggestion
       </button>
       <button
         type="button"
+        disabled={busy}
         onClick={onDismiss}
-        className="flex items-center gap-1.5 px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#5d5d5d] hover:bg-[#fcfcfc] dark:text-gray-300 dark:hover:bg-zinc-700"
+        className="flex items-center gap-1.5 px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#5d5d5d] hover:bg-[#fcfcfc] disabled:opacity-50 dark:text-gray-300 dark:hover:bg-zinc-700"
       >
         <X size={10} className="shrink-0" />
         Dismiss
@@ -27,7 +29,7 @@ function GhostHabitMenu({ onRegenerate, onDismiss }) {
   );
 }
 
-export default function GhostHabitRow({ habit, onAccept, onDismiss, onRegenerate }) {
+export default function GhostHabitRow({ habit, busy, onAccept, onDismiss, onRegenerate }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const rowRef = useRef(null);
@@ -74,14 +76,18 @@ export default function GhostHabitRow({ habit, onAccept, onDismiss, onRegenerate
         {isActive ? (
           <button
             type="button"
-            onClick={() => onAccept?.(habit)}
-            className="flex w-max items-center gap-1.5 rounded-[6px] bg-[#f9f4ff] px-[8px] py-[2px] text-xs font-medium text-[#8022fe]"
+            disabled={busy}
+            onClick={() => {
+              if (busy) return;
+              onAccept?.(habit);
+            }}
+            className="flex w-max items-center gap-1.5 rounded-[6px] bg-[#f9f4ff] px-[8px] py-[2px] text-xs font-medium text-[#8022fe] disabled:opacity-50"
           >
             Accept Habit
             <Check size={10} strokeWidth={2.5} />
           </button>
         ) : (
-          <HabitTagList tags={habit.tags} maxVisible={habit.tags.length} />
+          <HabitTagList tags={habit.tags || []} maxVisible={(habit.tags || []).length} />
         )}
       </div>
 
@@ -101,9 +107,9 @@ export default function GhostHabitRow({ habit, onAccept, onDismiss, onRegenerate
         {DAYS.map((day, i) => (
           <div
             key={day}
-            aria-hidden={!habit.scheduledDays[i]}
+            aria-hidden={!habit.scheduledDays?.[i]}
             className={`size-10 shrink-0 rounded-[10px] border border-[#e9e9e9] bg-white dark:border-zinc-600 dark:bg-zinc-700 max-lg:size-9 ${
-              habit.scheduledDays[i] ? '' : 'opacity-0'
+              habit.scheduledDays?.[i] ? '' : 'opacity-0'
             }`}
           />
         ))}
@@ -126,11 +132,14 @@ export default function GhostHabitRow({ habit, onAccept, onDismiss, onRegenerate
       {menuOpen && (
         <div className="absolute right-3 top-9 z-50">
           <GhostHabitMenu
+            busy={busy}
             onRegenerate={() => {
+              if (busy) return;
               setMenuOpen(false);
               onRegenerate(habit.id);
             }}
             onDismiss={() => {
+              if (busy) return;
               setMenuOpen(false);
               onDismiss(habit.id);
             }}

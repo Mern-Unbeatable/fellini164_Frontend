@@ -1,6 +1,6 @@
 # Habits Board — MVP, Rules, Flow, and Figma (Pixel-Perfect Contract)
 
-Status: Frontend API integration in progress (`src/features/habits/`); empty-board ghosts still local mock  
+Status: Frontend API integration in progress (`src/features/habits/`); empty-board ghosts from `GET /onboarding/suggestions?type=HABIT&status=pending`  
 Primary route: `/user/habits`  
 Frontend module: `src/pages/private/user/focus/Habits/` + `src/features/habits/`
 
@@ -99,8 +99,21 @@ Build must flow from **Figma + MVP + Rules**. Verify full flow before done.
 
 | Step | URL / action | Matches |
 |------|----------------|---------|
-| Empty | `/user/habits?empty=1` | Figma Empty States |
+| Empty | Delete all real habits on `/user/habits`, or DEV `/user/habits?empty=1` | Figma Empty States. Ghosts from `GET /onboarding/suggestions?type=HABIT&status=pending`. |
 | Empty hover | Same → hover ghost | Empty States — Hover (Accept Habit; tags hide) |
+
+Ghost row fields from GET `suggestions[]` only (no extra UI):
+
+| Ghost UI | API |
+|----------|-----|
+| Title | `proposedHabit.name` |
+| Description | `proposedHabit.description` |
+| Category tag | `proposedHabit.category` |
+| Reminder tag (bell) | `proposedHabit.reminderTime` |
+| Day boxes | `proposedHabit.targetDays` |
+| Streak | always `0 days` (UI) |
+| AI badge | UI only |
+| Accept / Regenerate / Dismiss | `suggestionId` |
 | Populated | `/user/habits` | Figma - 1 |
 | Row hover | Populated → hover row → ⋯ | 1.1 / 1.2 |
 | New Habit AI | **+ New Habit** → AI | Frame 2 |

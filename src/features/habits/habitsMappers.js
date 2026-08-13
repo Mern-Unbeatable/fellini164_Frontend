@@ -402,3 +402,44 @@ export function isUuid(value) {
     String(value)
   );
 }
+
+/**
+ * Map GET /onboarding/suggestions HABIT item → existing ghost-row fields only.
+ * UI: title, description, tags (category + reminder), scheduledDays.
+ */
+export function mapOnboardingHabitSuggestion(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+
+  const proposed =
+    raw.proposedHabit && typeof raw.proposedHabit === 'object' ? raw.proposedHabit : {};
+  const suggestionId = raw.suggestionId || raw.id;
+  if (!suggestionId) return null;
+
+  const type = String(raw.type || '').toUpperCase();
+  if (type && type !== 'HABIT') return null;
+
+  const status = String(raw.status || '').toLowerCase();
+  if (status && status !== 'pending') return null;
+
+  const category = categoryFromApi(proposed.category);
+  const tags = [];
+  if (category) tags.push({ label: category });
+  const timeLabel = reminderTimeFromApi(proposed.reminderTime);
+  if (timeLabel) tags.push({ label: timeLabel, iconKey: 'bell' });
+
+  const targetSet = new Set(
+    (Array.isArray(proposed.targetDays) ? proposed.targetDays : []).map((d) =>
+      String(d).toUpperCase(),
+    ),
+  );
+
+  return {
+    id: suggestionId,
+    suggestionId,
+    title: proposed.name || raw.title || '',
+    description: proposed.description || '',
+    category,
+    tags,
+    scheduledDays: INDEX_TO_WEEKDAY.map((day) => targetSet.has(day)),
+  };
+}
