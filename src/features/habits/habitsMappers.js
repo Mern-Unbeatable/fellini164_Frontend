@@ -427,6 +427,20 @@ export function mapOnboardingHabitSuggestion(raw) {
   const timeLabel = reminderTimeFromApi(proposed.reminderTime);
   if (timeLabel) tags.push({ label: timeLabel, iconKey: 'bell' });
 
+  const linkedGoal =
+    (raw.proposedGoal && typeof raw.proposedGoal === 'object' ? raw.proposedGoal : null) ||
+    proposed.goal ||
+    null;
+  const goalTitle = linkedGoal?.title || proposed.linkedGoalTitle;
+  if (goalTitle) tags.push({ label: goalTitle, iconKey: 'flag' });
+
+  const left = daysLeftLabel({
+    daysLeft: proposed.daysLeft ?? raw.daysLeft,
+    daysRemaining: proposed.daysRemaining ?? raw.daysRemaining,
+    goal: linkedGoal,
+  });
+  if (left) tags.push({ label: left, iconKey: 'hourglass' });
+
   const targetSet = new Set(
     (Array.isArray(proposed.targetDays) ? proposed.targetDays : []).map((d) =>
       String(d).toUpperCase(),

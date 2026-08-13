@@ -110,6 +110,8 @@ Ghost row fields from GET `suggestions[]` only (no extra UI):
 | Description | `proposedHabit.description` |
 | Category tag | `proposedHabit.category` |
 | Reminder tag (bell) | `proposedHabit.reminderTime` |
+| Goal tag (flag) | `proposedGoal.title` — hidden when `proposedGoal` is `null` |
+| Days left tag (hourglass) | `proposedHabit.daysLeft` or `proposedGoal.targetDate` — hidden when missing |
 | Day boxes | `proposedHabit.targetDays` |
 | Streak | always `0 days` (UI) |
 | AI badge | UI only |
