@@ -439,7 +439,9 @@ export default function TasksBoard() {
   const boardIsEmpty =
     columns.todo.length === 0 && columns.inProgress.length === 0 && columns.done.length === 0;
 
-  const showGhostCards = boardIsEmpty && filteredGhostTasks.length > 0;
+  // Ghosts only when every normal column is empty (or DEV ?empty=1), not when filters hide cards.
+  const showGhostCards =
+    boardIsEmpty && !isSearching && filteredGhostTasks.length > 0;
 
   const handleRequestDeleteTask = (task) => {
     if (!task?.id) return;
