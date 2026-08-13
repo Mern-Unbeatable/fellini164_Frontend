@@ -93,14 +93,20 @@ Node IDs: `1243:7175`, `1243:7663`, `1234:11897`, `1237:12542`, `1237:13017`, `1
 
 ---
 
-## FLOW — how to verify in the app
+## Empty board ↔ Ghost (AI suggestion) flow
 
-Build must flow from **Figma + MVP + Rules**. Verify full flow before done.
+Same as Goals Board.
 
-| Step | URL / action | Matches |
-|------|----------------|---------|
-| Empty | Delete all real habits on `/user/habits`, or DEV `/user/habits?empty=1` | Figma Empty States. Ghosts from `GET /onboarding/suggestions?type=HABIT&status=pending`. |
-| Empty hover | Same → hover ghost | Empty States — Hover (Accept Habit; tags hide) |
+**Normal card** = real habit from `GET /api/v1/habits` (active / paused / completed).  
+**Ghost card** = empty-state AI suggestion row (dashed, ✦ AI Suggestions).
+
+| Step | What happens |
+|------|----------------|
+| Board has ≥1 normal habit | Show normal rows only. No ghosts. |
+| User deletes every normal habit (⋯ → **Delete** — completed or incomplete) | `GET /habits` returns `[]` → `GET /onboarding/suggestions?type=HABIT&status=pending` → ghost rows. |
+| User accepts a ghost (**Accept Habit**) | `POST .../suggestions/:id/accept` → habit becomes a **normal row** → ghosts hide. |
+| User regenerates / dismisses a ghost | `POST .../regenerate` / `.../dismiss`. |
+| DEV only | `/user/habits?empty=1` force-previews the ghost UI even if habits still exist. |
 
 Ghost row fields from GET `suggestions[]` only (no extra UI):
 
@@ -116,7 +122,17 @@ Ghost row fields from GET `suggestions[]` only (no extra UI):
 | Streak | always `0 days` (UI) |
 | AI badge | UI only |
 | Accept / Regenerate / Dismiss | `suggestionId` |
-| Populated | `/user/habits` | Figma - 1 |
+
+## FLOW — how to verify in the app
+
+Build must flow from **Figma + MVP + Rules**. Verify full flow before done.
+
+| Step | URL / action | Matches |
+|------|----------------|---------|
+| Empty | Delete all real habits on `/user/habits`, or DEV `/user/habits?empty=1` | Figma Empty States. Ghosts = auto-suggest when normal board is empty. |
+| Empty hover | Same → hover ghost | Empty States — Hover (Accept Habit; tags hide) |
+| Accept ghost → normal | Ghost **Accept Habit** | Ghost removed; new habit on board via accept |
+| Populated | `/user/habits` with ≥1 habit | Figma - 1 — normal rows only |
 | Row hover | Populated → hover row → ⋯ | 1.1 / 1.2 |
 | New Habit AI | **+ New Habit** → AI | Frame 2 |
 | New Habit Manual | **+ New Habit** → Manual | Frame 2.1 — **one** Reminder Time, 12h |

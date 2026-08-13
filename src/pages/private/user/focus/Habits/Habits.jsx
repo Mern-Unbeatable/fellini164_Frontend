@@ -168,7 +168,6 @@ export default function Habits() {
   const forceEmpty = resolveForceEmptyBoard();
 
   const loadHabits = useCallback(() => {
-    if (forceEmpty) return Promise.resolve();
     return dispatch(
       fetchHabits({
         filters: activeFilters,
@@ -177,7 +176,7 @@ export default function Habits() {
         limit: 50,
       })
     );
-  }, [dispatch, activeFilters, searchQuery, forceEmpty]);
+  }, [dispatch, activeFilters, searchQuery]);
 
   const loadSuggestions = useCallback(async () => {
     setLoadingSuggestions(true);
@@ -193,7 +192,6 @@ export default function Habits() {
   }, []);
 
   useEffect(() => {
-    if (forceEmpty) return undefined;
     const delay = searchQuery.trim() ? 300 : 0;
     const timer = setTimeout(() => {
       loadHabits();
@@ -201,8 +199,9 @@ export default function Habits() {
       dispatch(fetchHabitsStatsOverview());
     }, delay);
     return () => clearTimeout(timer);
-  }, [loadHabits, searchQuery, dispatch, forceEmpty]);
+  }, [loadHabits, searchQuery, dispatch]);
 
+  // Empty board (0 habits from GET /habits, or DEV ?empty=1) → load AI ghost suggestions once.
   useEffect(() => {
     const empty = forceEmpty || (!loadingList && habits.length === 0);
     if (empty && !wasBoardEmpty.current) {
@@ -219,6 +218,7 @@ export default function Habits() {
   const handleSaveHabit = async (data) => {
     if (!data?.title && !data?.alreadyPersisted) return;
     if (data.alreadyPersisted) {
+      clearForceEmptyQuery();
       await loadHabits();
       await dispatch(fetchHabitsSummary());
       return;
@@ -228,6 +228,7 @@ export default function Habits() {
     } else {
       await dispatch(createHabit(data));
     }
+    clearForceEmptyQuery();
     await loadHabits();
     await dispatch(fetchHabitsSummary());
   };
@@ -383,6 +384,7 @@ export default function Habits() {
     try {
       await dispatch(deleteHabit(id)).unwrap();
       setDeleteModal({ open: false, habit: null });
+      await loadHabits();
       await dispatch(fetchHabitsSummary());
     } catch {
       /* toast from slice */
