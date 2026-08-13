@@ -843,12 +843,16 @@ If Postman has no response:
 | List suggestions | `GET /api/v1/tasks/:id/ai/suggestions` | AI chat history (full list; refresh-safe). Optional `?status=pending` for queue only | **FULFILLED** |
 | Accept / Dismiss | `POST /api/v1/tasks/ai/suggestions/:id/accept\|dismiss` | Yes, apply / No, cancel | Ready | **FULFILLED** |
 | Undo AI | `POST /api/v1/tasks/:id/ai/undo` | Undo changes | Ready | **FULFILLED** |
+| Empty-board suggestion list | `GET /api/v1/onboarding/suggestions?type=TASK&status=pending` | Empty board / `?empty=1` ghost cards | Envelope `{ suggestions }` → ghost fields only | **FULFILLED** |
+| Accept empty-board suggestion | `POST /api/v1/onboarding/suggestions/:suggestionId/accept` | Ghost **Accept Task** | UUID `suggestionId`; do **not** `POST /tasks` after | **FULFILLED** |
+| Regenerate empty-board suggestion | `POST /api/v1/onboarding/suggestions/:suggestionId/regenerate` | Ghost ⋯ → **Regenerate suggestion** | UUID `suggestionId` | **FULFILLED** |
+| Dismiss empty-board suggestion | `POST /api/v1/onboarding/suggestions/:suggestionId/dismiss` | Ghost ⋯ → **Dismiss** | UUID `suggestionId` | **FULFILLED** |
 
 ### D.1b Deferred / still mock
 
 | UI | Notes | Status |
 |----|-------|--------|
-| Empty-board ghost tasks | Local `GHOST_TASKS` (`?empty=1` in DEV) until suggestions API exists | **DEFERRED** |
+| Empty-board ghost tasks | `GET /api/v1/onboarding/suggestions?type=TASK&status=pending` → ghost fields only; Accept/Regenerate/Dismiss POSTs | **FULFILLED** |
 | Source filter | `GET /tasks?source=AI_GENERATED\|MANUAL` | **FULFILLED** |
 | Board ↔ List toggle | List non-functional in MVP | **DEFERRED** |
 

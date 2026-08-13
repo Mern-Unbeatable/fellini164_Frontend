@@ -134,7 +134,23 @@ Build must flow from **Figma + MVP + Rules**. Verify full flow before done.
 
 | Step | URL / action | Matches |
 |------|----------------|---------|
-| Empty ghosts | `/user/tasks?empty=1` | Frame 1 / 2 — Empty States |
+| Empty ghosts | Delete all real tasks on `/user/tasks`, or DEV `/user/tasks?empty=1` | Frame 1 / 2. Ghosts from `GET /onboarding/suggestions?type=TASK&status=pending`. |
+
+Ghost card fields from GET `suggestions[]` only (no extra UI):
+
+| Ghost UI | API |
+|----------|-----|
+| Priority | `proposedTask.priority` |
+| Title | `proposedTask.title` |
+| Description | `proposedTask.description` |
+| Category tag | `proposedTask.category` |
+| Goal tag | `proposedGoal.title` — hidden when `proposedGoal` is `null` |
+| Minutes tag | `proposedTask.estimatedMinutes` |
+| Steps tag | `proposedTasks.length` as `0/N Steps` — hidden when empty |
+| Due | `proposedTask.dueDate` |
+| Footer | `message` |
+| AI badge | UI only |
+| Accept / Regenerate / Dismiss | `suggestionId` |
 | Ghost hover | Same → hover ghost | Frame 2 — Hover (due fades; Accept footer) |
 | Ghost ⋯ | Hover → ⋯ | Frame 2.1 — Regenerate / Dismiss only |
 | Populated | `/user/tasks` | Frame 3 |

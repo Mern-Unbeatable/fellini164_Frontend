@@ -81,21 +81,23 @@ function GhostTaskDashedDivider() {
   );
 }
 
-function GhostTaskMenu({ onRegenerate, onDismiss }) {
+function GhostTaskMenu({ busy, onRegenerate, onDismiss }) {
   return (
     <div className="absolute right-0 top-full z-30 mt-1 flex w-max flex-col overflow-hidden rounded-lg border border-[#f2f2f2] bg-white shadow-[0px_2px_4px_0px_rgba(0,0,0,0.03)] dark:border-zinc-700 dark:bg-zinc-800">
       <button
         type="button"
+        disabled={busy}
         onClick={onRegenerate}
-        className="flex items-center gap-1.5 border-b border-[#f2f2f2] px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#8022fe] hover:bg-[#fcfcfc] dark:border-zinc-700 dark:hover:bg-zinc-700"
+        className="flex items-center gap-1.5 border-b border-[#f2f2f2] px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#8022fe] hover:bg-[#fcfcfc] disabled:opacity-50 dark:border-zinc-700 dark:hover:bg-zinc-700"
       >
         <Sparkles size={10} className="shrink-0" />
         Regenerate suggestion
       </button>
       <button
         type="button"
+        disabled={busy}
         onClick={onDismiss}
-        className="flex items-center gap-1.5 px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#5d5d5d] hover:bg-[#fcfcfc] dark:text-gray-300 dark:hover:bg-zinc-700"
+        className="flex items-center gap-1.5 px-[10px] py-1.5 text-left text-sm font-medium whitespace-nowrap text-[#5d5d5d] hover:bg-[#fcfcfc] disabled:opacity-50 dark:text-gray-300 dark:hover:bg-zinc-700"
       >
         <X size={10} className="shrink-0" />
         Dismiss
@@ -104,7 +106,7 @@ function GhostTaskMenu({ onRegenerate, onDismiss }) {
   );
 }
 
-export function GhostTaskCard({ task, onDismiss, onRegenerate, onAccept }) {
+export function GhostTaskCard({ task, busy, onDismiss, onRegenerate, onAccept }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const cardRef = useRef(null);
@@ -153,7 +155,7 @@ export function GhostTaskCard({ task, onDismiss, onRegenerate, onAccept }) {
           </div>
 
           <div className="flex items-center gap-1 overflow-hidden">
-            {task.tags.map((tag) => (
+            {(task.tags || []).map((tag) => (
               <span
                 key={tag.label}
                 className="flex shrink-0 items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] font-medium leading-normal text-[#5d5d5d]"
@@ -180,11 +182,14 @@ export function GhostTaskCard({ task, onDismiss, onRegenerate, onAccept }) {
         {menuOpen && (
           <div className="absolute right-[11px] top-[37px] z-50">
             <GhostTaskMenu
+              busy={busy}
               onRegenerate={() => {
+                if (busy) return;
                 setMenuOpen(false);
                 onRegenerate(task.id);
               }}
               onDismiss={() => {
+                if (busy) return;
                 setMenuOpen(false);
                 onDismiss(task.id);
               }}
@@ -194,12 +199,13 @@ export function GhostTaskCard({ task, onDismiss, onRegenerate, onAccept }) {
 
         <div className="flex h-[42px] w-full shrink-0 items-center justify-between border-t border-solid border-[#f2f2f2] px-3 py-[10px]">
           <p className="shrink-0 text-[12px] font-medium leading-normal text-[#c2c2c2]">
-            AI suggested based on your profile
+            {task.message || 'AI suggested based on your profile'}
           </p>
           <button
             type="button"
+            disabled={busy}
             onClick={onAccept}
-            className="flex shrink-0 items-center gap-1.5 rounded-[6px] bg-[#f9f4ff] px-[8px] py-[2px] text-[12px] font-medium leading-normal text-[#8022fe]"
+            className="flex shrink-0 items-center gap-1.5 rounded-[6px] bg-[#f9f4ff] px-[8px] py-[2px] text-[12px] font-medium leading-normal text-[#8022fe] disabled:opacity-50"
           >
             Accept Task
             <Check size={10} strokeWidth={2.5} />
@@ -241,7 +247,7 @@ export function GhostTaskCard({ task, onDismiss, onRegenerate, onAccept }) {
         </div>
 
         <div className="flex items-center gap-1 overflow-hidden opacity-40">
-          {task.tags.map((tag) => (
+          {(task.tags || []).map((tag) => (
             <span
               key={tag.label}
               className="flex shrink-0 items-center gap-1.5 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-[12px] font-medium leading-normal text-[#5d5d5d]"
