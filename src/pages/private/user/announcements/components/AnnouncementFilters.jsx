@@ -3,7 +3,7 @@ import React from 'react';
 const AnnouncementFilters = ({ filter, setFilter }) => {
   return (
     <div className="mb-6 flex flex-wrap gap-2.5">
-      {['ALL', 'INFO', 'FEATURE', 'ALERT'].map((type) => (
+      {['ALL', 'INFO', 'UPDATE', 'FEATURE', 'MAINTENANCE', 'PROMOTION'].map((type) => (
         <button
           key={type}
           onClick={() => setFilter(type)}
