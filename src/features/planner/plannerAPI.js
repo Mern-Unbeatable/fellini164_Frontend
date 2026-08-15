@@ -1,6 +1,7 @@
 import axiosInstance from '../../services/axiosInstance';
 
 const BASE = '/api/v1/planner';
+const ONBOARDING_SUGGESTIONS = '/api/v1/onboarding/suggestions';
 
 function cleanParams(params = {}) {
   const query = { ...params };
@@ -38,6 +39,23 @@ export async function fetchPlannerAvailableApi(date) {
     params: cleanParams({ date }),
   });
   return response?.data ?? { tasks: [], habits: [] };
+}
+
+/**
+ * GET /api/v1/onboarding/suggestions?type=PLAN_ADJUSTMENT&status=pending
+ * Empty Planner Board ghost placements.
+ */
+export async function fetchPlannerGhostSuggestionsApi() {
+  const response = await axiosInstance.get(ONBOARDING_SUGGESTIONS, {
+    params: { type: 'PLAN_ADJUSTMENT', status: 'pending' },
+  });
+  const body = response?.data;
+  if (Array.isArray(body?.suggestions)) return body.suggestions;
+  if (Array.isArray(body?.data?.suggestions)) return body.data.suggestions;
+  if (Array.isArray(body) && Array.isArray(body[0]?.suggestions)) {
+    return body[0].suggestions;
+  }
+  return [];
 }
 
 /**

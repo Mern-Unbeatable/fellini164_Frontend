@@ -231,6 +231,36 @@ export function mapPlannerItemsFromApi(list) {
     });
 }
 
+/**
+ * PLAN_ADJUSTMENT onboarding suggestions → existing date-keyed Planner card fields.
+ * Only planner.placements are used; suggestion metadata does not create new UI.
+ */
+export function plannerGhostSuggestionsToPlans(suggestions) {
+  const plans = {};
+  if (!Array.isArray(suggestions)) return plans;
+
+  suggestions.forEach((suggestion) => {
+    const placements = suggestion?.planner?.placements;
+    if (!Array.isArray(placements)) return;
+
+    placements.forEach((placement, index) => {
+      const mapped = mapPlannerItemFromApi({
+        ...placement,
+        id: `ghost-${suggestion.suggestionId || 'plan'}-${index}`,
+        aiScheduled: true,
+      });
+      if (!mapped?.date) return;
+      if (!plans[mapped.date]) plans[mapped.date] = [];
+      plans[mapped.date].push(mapped);
+    });
+  });
+
+  Object.values(plans).forEach((items) => {
+    items.sort((a, b) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0));
+  });
+  return plans;
+}
+
 /** Board envelope → { viewType, date, startDate, endDate, itemsByDate, items } */
 export function mapPlannerBoardFromApi(board) {
   if (!board) {

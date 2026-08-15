@@ -16,6 +16,7 @@ import {
   dismissPlannerSuggestion,
   fetchPlannerAvailable,
   fetchPlannerBoard,
+  fetchPlannerGhostSuggestions,
   fetchPlannerSuggestion,
   fetchPlannerSummary,
   suggestPlannerAi,
@@ -58,6 +59,7 @@ export default function DailyPlanner() {
   const dispatch = useDispatch();
   const {
     plans: storePlans,
+    ghostPlans,
     hasAcceptedPlan: storeHasAccepted,
     status: boardStatus,
     lastSuggestionId,
@@ -119,6 +121,10 @@ export default function DailyPlanner() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  useEffect(() => {
+    dispatch(fetchPlannerGhostSuggestions());
+  }, [dispatch]);
 
   useEffect(() => {
     refreshBoard();
@@ -907,6 +913,11 @@ export default function DailyPlanner() {
     onToggleExpand: toggleExpandAssistant,
   };
 
+  const hasVisiblePlanItems = Object.values(plans).some(
+    (items) => Array.isArray(items) && items.length > 0
+  );
+  const displayedPlans = hasVisiblePlanItems ? plans : ghostPlans || {};
+
   return (
     <div className="relative flex min-h-full flex-col py-7.5 max-lg:min-h-0 max-lg:py-4 max-lg:sm:py-6">
       <div className="mx-auto flex min-h-0 w-full min-w-0 flex-1 flex-col gap-6 xl:flex-row">
@@ -943,7 +954,7 @@ export default function DailyPlanner() {
             setSelectedDate={setSelectedDate}
             viewMode={viewMode}
             setViewMode={setViewMode}
-            plans={plans}
+            plans={displayedPlans}
             hasAcceptedPlan={hasAcceptedPlan}
             calendarDays={calendarDays}
             getFormattedDateString={getFormattedDateString}
