@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import { DELETE, GET, PATCH } from '../../../../services/httpMethods';
+import { selectIsAdmin } from '../../../../features/auth/authSlice';
 import { toast } from 'react-toastify';
 import { Info } from 'lucide-react';
 import AnnouncementHeader from './components/AnnouncementHeader';
@@ -8,6 +10,7 @@ import AnnouncementCard from './components/AnnouncementCard';
 import AnnouncementPagination from './components/AnnouncementPagination';
 
 const Announcements = () => {
+  const isAdmin = useSelector(selectIsAdmin);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('ALL');
@@ -56,11 +59,19 @@ const Announcements = () => {
   };
 
   const deleteAnnouncement = async (notification) => {
+    if (!isAdmin) return;
     const announcementId = notification?.announcementId || notification?.announcement?.id;
     if (!announcementId) return;
     try {
-      const response = await DELETE(`/api/v1/admin/announcements/${announcementId}`);
-      setNotifications((prev) => prev.filter((n) => n.id !== notification.id));
+      const response = await DELETE(`/api/v1/user/announcements/${announcementId}`);
+      setNotifications((prev) =>
+        prev.filter(
+          (n) =>
+            n.id !== notification.id &&
+            n.announcementId !== announcementId &&
+            n.announcement?.id !== announcementId
+        )
+      );
       toast.success(response?.message || 'Announcement deleted');
     } catch (error) {
       toast.error(error?.response?.data?.message || 'Failed to delete announcement');
@@ -112,6 +123,7 @@ const Announcements = () => {
             key={notification.id}
             notification={notification}
             markAsRead={markAsRead}
+            canDelete={isAdmin}
             deleteAnnouncement={deleteAnnouncement}
           />
         ))}
