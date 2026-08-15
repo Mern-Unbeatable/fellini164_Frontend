@@ -1,7 +1,7 @@
 import React from 'react';
 import { Calendar, Clock, CheckCircle, Circle, Trash2 } from 'lucide-react';
 
-const AnnouncementCard = ({ notification, markAsRead, deleteAnnouncement }) => {
+const AnnouncementCard = ({ notification, markAsRead, canDelete = false, deleteAnnouncement }) => {
   const announcement = notification.announcement;
   const isPinned = announcement?.isPinned;
 
@@ -13,6 +13,12 @@ const AnnouncementCard = ({ notification, markAsRead, deleteAnnouncement }) => {
         return 'bg-[#F973160D] text-[#F97316]';
       case 'INFO':
         return 'bg-[#F9F4FF] text-[#8022FE]';
+      case 'UPDATE':
+        return 'bg-[#2563EB0D] text-[#2563EB]';
+      case 'MAINTENANCE':
+        return 'bg-[#CA8A040D] text-[#CA8A04]';
+      case 'PROMOTION':
+        return 'bg-[#16A34A0D] text-[#16A34A]';
       default:
         return 'bg-gray-50 text-gray-700 dark:bg-gray-900/20 dark:text-gray-300';
     }
@@ -53,15 +59,17 @@ const AnnouncementCard = ({ notification, markAsRead, deleteAnnouncement }) => {
             Read
           </span>
         )}
-        <button
-          type="button"
-          onClick={() => deleteAnnouncement(notification.id)}
-          className="p-1 text-[#c2c2c2] opacity-0 transition-opacity duration-200 group-hover:opacity-100 hover:text-[#dc2626] dark:hover:text-red-400"
-          title="Delete announcement"
-          aria-label="Delete announcement"
-        >
-          <Trash2 className="h-4 w-4" />
-        </button>
+        {canDelete && (
+          <button
+            type="button"
+            onClick={() => deleteAnnouncement(notification)}
+            className="p-1 text-[#c2c2c2] opacity-0 transition-opacity duration-200 group-hover:opacity-100 hover:text-[#dc2626] dark:hover:text-red-400"
+            title="Delete announcement"
+            aria-label="Delete announcement"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        )}
       </div>
 
       <div className="flex items-start gap-3 pr-16 sm:pr-32">

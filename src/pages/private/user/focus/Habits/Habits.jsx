@@ -6,8 +6,9 @@ import {
   Flame,
   X,
 } from 'lucide-react';
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
 import NewHabitsModal from './components/NewHabitsModal';
 import HabitRow from './components/HabitRow';
 import GhostHabitRow from './components/GhostHabitRow';
@@ -37,7 +38,15 @@ import {
 import {
   getTodayIndex,
   habitMatchesClientFilters,
+  isUuid,
+  mapOnboardingHabitSuggestion,
 } from '../../../../../features/habits/habitsMappers';
+import {
+  acceptOnboardingSuggestionApi,
+  dismissOnboardingSuggestionApi,
+  fetchOnboardingHabitSuggestionsApi,
+  regenerateOnboardingSuggestionApi,
+} from '../../../../../features/habits/habitsAPI';
 
 const HABITS_SUBTITLE_PHRASES = [
   'Build daily habits and keep your streaks alive...',
@@ -48,40 +57,25 @@ const HABITS_SUBTITLE_PHRASES = [
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const TODAY_INDEX = getTodayIndex();
 
-// AI-suggested ghost habits — shown only when the board has no real habits yet.
-const GHOST_HABITS = [
-  {
-    id: 'ghost-1',
-    title: 'Drink Water',
-    description: 'Stay hydrated throughout the day',
-    tags: [{ label: 'Health' }, { label: '7:00 AM', iconKey: 'bell' }],
-    scheduledDays: [true, true, true, false, true, false, true],
-    category: 'Health',
-  },
-  {
-    id: 'ghost-2',
-    title: 'Take Breaks',
-    description: 'Step away from your screen regularly',
-    tags: [
-      { label: 'Productivity' },
-      { label: '6:30 PM', iconKey: 'bell' },
-      { label: 'New Job', iconKey: 'flag' },
-    ],
-    scheduledDays: [true, true, true, true, true, true, true],
-    category: 'Productivity',
-  },
-  {
-    id: 'ghost-3',
-    title: 'Meditate',
-    description: 'Practice mindfulness for mental clarity',
-    tags: [{ label: 'Wellness' }, { label: '12 days left', iconKey: 'hourglass' }],
-    scheduledDays: [true, false, true, false, true, true, false],
-    category: 'Wellness',
-  },
-];
-
 function resolveForceEmptyBoard() {
   return import.meta.env.DEV && new URLSearchParams(window.location.search).get('empty') === '1';
+}
+
+function clearForceEmptyQuery() {
+  const url = new URL(window.location.href);
+  if (url.searchParams.get('empty') !== '1') return;
+  url.searchParams.delete('empty');
+  const search = url.searchParams.toString();
+  window.history.replaceState({}, '', `${url.pathname}${search ? `?${search}` : ''}${url.hash}`);
+}
+
+function suggestionErrorMessage(error, fallback) {
+  return (
+    error?.response?.data?.message ||
+    error?.response?.data?.error ||
+    error?.message ||
+    fallback
+  );
 }
 
 function habitMatchesSearch(habit, query) {
@@ -162,14 +156,18 @@ export default function Habits() {
   const [improveSubmitting, setImproveSubmitting] = useState(false);
   const [deleteModal, setDeleteModal] = useState({ open: false, habit: null });
   const [deletingHabit, setDeletingHabit] = useState(false);
-  const [ghostHabits, setGhostHabits] = useState(GHOST_HABITS);
+  const [ghostHabits, setGhostHabits] = useState([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(() =>
+    resolveForceEmptyBoard(),
+  );
+  const [busySuggestionId, setBusySuggestionId] = useState(null);
+  const wasBoardEmpty = useRef(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilters, setActiveFilters] = useState(DEFAULT_FILTERS);
 
   const forceEmpty = resolveForceEmptyBoard();
 
   const loadHabits = useCallback(() => {
-    if (forceEmpty) return Promise.resolve();
     return dispatch(
       fetchHabits({
         filters: activeFilters,
@@ -178,10 +176,22 @@ export default function Habits() {
         limit: 50,
       })
     );
-  }, [dispatch, activeFilters, searchQuery, forceEmpty]);
+  }, [dispatch, activeFilters, searchQuery]);
+
+  const loadSuggestions = useCallback(async () => {
+    setLoadingSuggestions(true);
+    try {
+      const list = await fetchOnboardingHabitSuggestionsApi();
+      setGhostHabits(list.map(mapOnboardingHabitSuggestion).filter(Boolean));
+    } catch (error) {
+      setGhostHabits([]);
+      toast.error(suggestionErrorMessage(error, 'Could not load AI suggestions.'));
+    } finally {
+      setLoadingSuggestions(false);
+    }
+  }, []);
 
   useEffect(() => {
-    if (forceEmpty) return undefined;
     const delay = searchQuery.trim() ? 300 : 0;
     const timer = setTimeout(() => {
       loadHabits();
@@ -189,7 +199,16 @@ export default function Habits() {
       dispatch(fetchHabitsStatsOverview());
     }, delay);
     return () => clearTimeout(timer);
-  }, [loadHabits, searchQuery, dispatch, forceEmpty]);
+  }, [loadHabits, searchQuery, dispatch]);
+
+  // Empty board (0 habits from GET /habits, or DEV ?empty=1) → load AI ghost suggestions once.
+  useEffect(() => {
+    const empty = forceEmpty || (!loadingList && habits.length === 0);
+    if (empty && !wasBoardEmpty.current) {
+      loadSuggestions();
+    }
+    wasBoardEmpty.current = empty;
+  }, [forceEmpty, loadingList, habits.length, loadSuggestions]);
 
   const updateFilter = (key, value) => setActiveFilters((prev) => ({ ...prev, [key]: value }));
 
@@ -199,6 +218,7 @@ export default function Habits() {
   const handleSaveHabit = async (data) => {
     if (!data?.title && !data?.alreadyPersisted) return;
     if (data.alreadyPersisted) {
+      clearForceEmptyQuery();
       await loadHabits();
       await dispatch(fetchHabitsSummary());
       return;
@@ -208,27 +228,33 @@ export default function Habits() {
     } else {
       await dispatch(createHabit(data));
     }
+    clearForceEmptyQuery();
     await loadHabits();
     await dispatch(fetchHabitsSummary());
   };
 
   const handleAcceptGhost = async (ghost) => {
-    await dispatch(
-      createHabit({
-        title: ghost.title,
-        description: ghost.description,
-        category: ghost.category || 'Health',
-        targetDays: DAYS.filter((_, i) => ghost.scheduledDays?.[i]),
-        hour: 8,
-        minute: '00',
-        period: 'AM',
-        difficulty: 'MEDIUM',
-        source: 'ai',
-      })
-    );
-    setGhostHabits((prev) => prev.filter((h) => h.id !== ghost.id));
-    await loadHabits();
-    await dispatch(fetchHabitsSummary());
+    const suggestionId = ghost?.suggestionId || ghost?.id;
+    if (!suggestionId || busySuggestionId || !isUuid(suggestionId)) return;
+    setBusySuggestionId(suggestionId);
+    try {
+      await acceptOnboardingSuggestionApi(suggestionId);
+      setGhostHabits((prev) => prev.filter((h) => String(h.id) !== String(suggestionId)));
+      clearForceEmptyQuery();
+      await dispatch(
+        fetchHabits({
+          filters: activeFilters,
+          search: searchQuery,
+          page: 1,
+          limit: 50,
+        }),
+      );
+      await dispatch(fetchHabitsSummary());
+    } catch (error) {
+      toast.error(suggestionErrorMessage(error, 'Could not accept suggestion.'));
+    } finally {
+      setBusySuggestionId(null);
+    }
   };
 
   const handleToggleDay = async (habitId, dayIndex) => {
@@ -270,12 +296,37 @@ export default function Habits() {
   const pausedCount = boardStats.paused;
   const completedCount = boardStats.completed;
 
-  const handleDismissGhost = (id) => {
-    setGhostHabits((prev) => prev.filter((h) => h.id !== id));
+  const handleDismissGhost = async (id) => {
+    if (!id || busySuggestionId || !isUuid(id)) return;
+    setBusySuggestionId(id);
+    try {
+      await dismissOnboardingSuggestionApi(id);
+      setGhostHabits((prev) => prev.filter((h) => String(h.id) !== String(id)));
+    } catch (error) {
+      toast.error(suggestionErrorMessage(error, 'Could not dismiss suggestion.'));
+    } finally {
+      setBusySuggestionId(null);
+    }
   };
 
-  const handleRegenerateGhost = () => {
-    // Visual-only until empty-board suggestions API exists
+  const handleRegenerateGhost = async (id) => {
+    if (!id || busySuggestionId || !isUuid(id)) return;
+    setBusySuggestionId(id);
+    try {
+      const data = await regenerateOnboardingSuggestionApi(id);
+      const next =
+        mapOnboardingHabitSuggestion(data) ||
+        mapOnboardingHabitSuggestion(data?.suggestions?.[0]);
+      if (next) {
+        setGhostHabits((prev) =>
+          prev.map((h) => (String(h.id) === String(id) ? next : h)),
+        );
+      }
+    } catch (error) {
+      toast.error(suggestionErrorMessage(error, 'Could not regenerate suggestion.'));
+    } finally {
+      setBusySuggestionId(null);
+    }
   };
 
   const handleEditHabit = (habit) => {
@@ -333,6 +384,7 @@ export default function Habits() {
     try {
       await dispatch(deleteHabit(id)).unwrap();
       setDeleteModal({ open: false, habit: null });
+      await loadHabits();
       await dispatch(fetchHabitsSummary());
     } catch {
       /* toast from slice */
@@ -431,9 +483,13 @@ export default function Habits() {
         </div>
 
         <div className="scrollbar-hidden relative -mx-3 flex flex-1 flex-col gap-2.5 overflow-y-auto px-3 lg:min-h-0 max-lg:max-h-[min(70vh,560px)]">
-          {loadingList && boardIsEmpty ? (
+          {loadingList && boardIsEmpty && !forceEmpty ? (
             <p className="py-10 text-center text-sm font-medium text-[#c2c2c2] dark:text-gray-500">
               Loading habits...
+            </p>
+          ) : boardIsEmpty && loadingSuggestions && filteredGhostHabits.length === 0 ? (
+            <p className="py-10 text-center text-sm font-medium text-[#c2c2c2] dark:text-gray-500">
+              Loading suggestions…
             </p>
           ) : boardIsEmpty ? (
             filteredGhostHabits.length === 0 ? (
@@ -445,6 +501,7 @@ export default function Habits() {
                 <GhostHabitRow
                   key={habit.id}
                   habit={habit}
+                  busy={String(busySuggestionId) === String(habit.id)}
                   onAccept={handleAcceptGhost}
                   onDismiss={handleDismissGhost}
                   onRegenerate={handleRegenerateGhost}

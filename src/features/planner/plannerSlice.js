@@ -7,6 +7,7 @@ import {
   dismissPlannerSuggestionApi,
   fetchPlannerAvailableApi,
   fetchPlannerBoardApi,
+  fetchPlannerGhostSuggestionsApi,
   fetchPlannerSuggestionApi,
   fetchPlannerSummaryApi,
   suggestPlannerAiApi,
@@ -20,6 +21,7 @@ import {
   mapPlannerBoardFromApi,
   mapPlannerItemFromApi,
   normalizePlannerSummary,
+  plannerGhostSuggestionsToPlans,
   VIEW_UI_TO_API,
 } from './plannerMappers';
 
@@ -67,6 +69,19 @@ export const fetchPlannerAvailable = createAsyncThunk(
       return mapAvailableFromApi(envelope);
     } catch (error) {
       return rejectWithValue(error?.response?.data?.message || 'Failed to load available items');
+    }
+  }
+);
+
+export const fetchPlannerGhostSuggestions = createAsyncThunk(
+  'planner/fetchGhostSuggestions',
+  async (_, { rejectWithValue }) => {
+    try {
+      return await fetchPlannerGhostSuggestionsApi();
+    } catch (error) {
+      return rejectWithValue(
+        error?.response?.data?.message || 'Failed to load planner suggestions'
+      );
     }
   }
 );
@@ -178,12 +193,14 @@ const initialState = {
   summary: null,
   board: null,
   plans: {},
+  ghostPlans: {},
   available: { tasks: [], habits: [], date: null },
   hasAcceptedPlan: false,
   lastSuggestionId: null,
   status: 'idle',
   error: null,
   aiStatus: 'idle',
+  ghostStatus: 'idle',
 };
 
 const plannerSlice = createSlice({
@@ -219,6 +236,17 @@ const plannerSlice = createSlice({
       })
       .addCase(fetchPlannerAvailable.fulfilled, (state, action) => {
         state.available = action.payload;
+      })
+      .addCase(fetchPlannerGhostSuggestions.pending, (state) => {
+        state.ghostStatus = 'loading';
+      })
+      .addCase(fetchPlannerGhostSuggestions.fulfilled, (state, action) => {
+        state.ghostStatus = 'succeeded';
+        state.ghostPlans = plannerGhostSuggestionsToPlans(action.payload);
+      })
+      .addCase(fetchPlannerGhostSuggestions.rejected, (state) => {
+        state.ghostStatus = 'failed';
+        state.ghostPlans = {};
       })
       .addCase(createPlannerPlan.pending, (state) => {
         state.aiStatus = 'loading';

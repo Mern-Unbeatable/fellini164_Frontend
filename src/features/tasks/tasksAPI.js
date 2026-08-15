@@ -155,3 +155,69 @@ export async function undoTaskAiApi(taskId) {
   const response = await axiosInstance.post(`${BASE}/${taskId}/ai/undo`);
   return response?.data;
 }
+
+const ONBOARDING_SUGGESTIONS = '/api/v1/onboarding/suggestions';
+
+function unwrapSuggestionList(body) {
+  if (Array.isArray(body?.suggestions)) return body.suggestions;
+  if (Array.isArray(body?.data?.suggestions)) return body.data.suggestions;
+  if (Array.isArray(body) && Array.isArray(body[0]?.suggestions)) return body[0].suggestions;
+  if (Array.isArray(body) && (body[0]?.suggestionId || body[0]?.proposedTask)) return body;
+  if (Array.isArray(body?.data)) return body.data;
+  return [];
+}
+
+function unwrapSuggestionAction(body) {
+  if (!body || typeof body !== 'object') return body;
+  if (body.suggestion) return body.suggestion;
+  if (body.regenerated) return body.regenerated;
+  if (body.replacement) return body.replacement;
+  if (body.data?.suggestion) return body.data.suggestion;
+  if (body.proposedTask || body.suggestionId) return body;
+  if (body.data && typeof body.data === 'object' && !Array.isArray(body.data)) {
+    return body.data;
+  }
+  return body;
+}
+
+/**
+ * GET /api/v1/onboarding/suggestions?type=TASK&status=pending
+ * Empty-board ghost task cards. Envelope: { suggestions: [...] }.
+ */
+export async function fetchOnboardingTaskSuggestionsApi() {
+  const response = await axiosInstance.get(ONBOARDING_SUGGESTIONS, {
+    params: { type: 'TASK', status: 'pending' },
+  });
+  return unwrapSuggestionList(response?.data);
+}
+
+/**
+ * POST /api/v1/onboarding/suggestions/:suggestionId/accept
+ * Creates the real task — do not follow with POST /tasks.
+ */
+export async function acceptOnboardingSuggestionApi(suggestionId) {
+  const response = await axiosInstance.post(
+    `${ONBOARDING_SUGGESTIONS}/${suggestionId}/accept`,
+  );
+  return unwrapSuggestionAction(response?.data);
+}
+
+/**
+ * POST /api/v1/onboarding/suggestions/:suggestionId/regenerate
+ */
+export async function regenerateOnboardingSuggestionApi(suggestionId) {
+  const response = await axiosInstance.post(
+    `${ONBOARDING_SUGGESTIONS}/${suggestionId}/regenerate`,
+  );
+  return unwrapSuggestionAction(response?.data);
+}
+
+/**
+ * POST /api/v1/onboarding/suggestions/:suggestionId/dismiss
+ */
+export async function dismissOnboardingSuggestionApi(suggestionId) {
+  const response = await axiosInstance.post(
+    `${ONBOARDING_SUGGESTIONS}/${suggestionId}/dismiss`,
+  );
+  return unwrapSuggestionAction(response?.data);
+}

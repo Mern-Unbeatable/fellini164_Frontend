@@ -433,6 +433,55 @@ export function isUuid(value) {
   );
 }
 
+/**
+ * Map GET /onboarding/suggestions TASK item → existing ghost-card fields only.
+ * UI: priority, title, description, tags (category / goal / minutes / steps), due, message.
+ */
+export function mapOnboardingTaskSuggestion(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+
+  const proposed =
+    raw.proposedTask && typeof raw.proposedTask === 'object' ? raw.proposedTask : {};
+  const suggestionId = raw.suggestionId || raw.id;
+  if (!suggestionId) return null;
+
+  const type = String(raw.type || '').toUpperCase();
+  if (type && type !== 'TASK') return null;
+
+  const status = String(raw.status || '').toLowerCase();
+  if (status && status !== 'pending') return null;
+
+  const category = categoryFromApi(proposed.category);
+  const tags = [{ label: category }];
+
+  const linkedGoal =
+    raw.proposedGoal && typeof raw.proposedGoal === 'object' ? raw.proposedGoal : null;
+  if (linkedGoal?.title) {
+    tags.push({ label: linkedGoal.title, iconKey: 'goal' });
+  }
+
+  if (proposed.estimatedMinutes) {
+    tags.push({ label: `${proposed.estimatedMinutes} Min`, iconKey: 'clock' });
+  }
+
+  const stepCount = Array.isArray(raw.proposedTasks) ? raw.proposedTasks.length : 0;
+  if (stepCount > 0) {
+    tags.push({ label: `0/${stepCount} Steps` });
+  }
+
+  return {
+    id: suggestionId,
+    suggestionId,
+    priority: priorityFromApi(proposed.priority),
+    title: proposed.title || raw.title || '',
+    description: proposed.description || '',
+    category,
+    tags,
+    due: formatDueLabel(proposed.dueDate) || '',
+    message: raw.message || 'AI suggested based on your profile',
+  };
+}
+
 export function formatTaskSuggestionBody(data) {
   const lines = [data?.message || data?.assistantMessage || 'Here is what I suggest.'];
   const proposed = data?.proposedTask;

@@ -128,13 +128,44 @@ Node IDs: `1182:749`, `1213:16933`, `1200:8575`, `1213:17364`, `1172:738`, `1213
 
 ---
 
+## Empty board ↔ Ghost (AI suggestion) flow
+
+Same as Habits Board / Goals Board.
+
+**Normal card** = real task from `GET /api/v1/tasks` (To Do / In Progress / Done).  
+**Ghost card** = empty-state AI suggestion card (dashed, ✦ AI Suggestions in To Do).
+
+| Step | What happens |
+|------|----------------|
+| Board has ≥1 normal task in any column | Show normal cards only. No ghosts. |
+| User deletes every normal task (⋯ → **Delete** — Done or incomplete) | All three columns empty → `GET /onboarding/suggestions?type=TASK&status=pending` → ghost cards in **To Do**. |
+| User accepts a ghost (**Accept Task**) | `POST .../suggestions/:id/accept` → task becomes a **normal To Do card** → ghosts hide. |
+| User regenerates / dismisses a ghost | `POST .../regenerate` / `.../dismiss`. |
+| DEV only | `/user/tasks?empty=1` force-previews the ghost UI even if tasks still exist. |
+
+Ghost card fields from GET `suggestions[]` only (no extra UI):
+
+| Ghost UI | API |
+|----------|-----|
+| Priority | `proposedTask.priority` |
+| Title | `proposedTask.title` |
+| Description | `proposedTask.description` |
+| Category tag | `proposedTask.category` |
+| Goal tag | `proposedGoal.title` — hidden when `proposedGoal` is `null` |
+| Minutes tag | `proposedTask.estimatedMinutes` |
+| Steps tag | `proposedTasks.length` as `0/N Steps` — hidden when empty |
+| Due | `proposedTask.dueDate` |
+| Footer | `message` |
+| AI badge | UI only |
+| Accept / Regenerate / Dismiss | `suggestionId` |
+
 ## FLOW — how to verify in the app
 
 Build must flow from **Figma + MVP + Rules**. Verify full flow before done.
 
 | Step | URL / action | Matches |
 |------|----------------|---------|
-| Empty ghosts | `/user/tasks?empty=1` | Frame 1 / 2 — Empty States |
+| Empty ghosts | Delete all real tasks on `/user/tasks`, or DEV `/user/tasks?empty=1` | Frame 1 / 2. Ghosts = auto-suggest when To Do + In Progress + Done are all empty. |
 | Ghost hover | Same → hover ghost | Frame 2 — Hover (due fades; Accept footer) |
 | Ghost ⋯ | Hover → ⋯ | Frame 2.1 — Regenerate / Dismiss only |
 | Populated | `/user/tasks` | Frame 3 |

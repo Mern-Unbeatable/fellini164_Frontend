@@ -6,8 +6,9 @@ import {
   CheckCircle2,
   TrendingUp,
 } from 'lucide-react';
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import TaskFormModal from './components/TaskFormModal';
 import { TaskDetailDrawer } from './components/TaskDetailPanel';
@@ -34,7 +35,18 @@ import {
   updateTask,
   updateTaskStatus,
 } from '../../../../../features/tasks/tasksSlice';
-import { mapTaskFromApi, taskMatchesClientFilters } from '../../../../../features/tasks/tasksMappers';
+import {
+  isUuid,
+  mapOnboardingTaskSuggestion,
+  mapTaskFromApi,
+  taskMatchesClientFilters,
+} from '../../../../../features/tasks/tasksMappers';
+import {
+  acceptOnboardingSuggestionApi,
+  dismissOnboardingSuggestionApi,
+  fetchOnboardingTaskSuggestionsApi,
+  regenerateOnboardingSuggestionApi,
+} from '../../../../../features/tasks/tasksAPI';
 
 const TASKS_SUBTITLE_PHRASES = [
   'Plan, prioritize, and complete your tasks in one place...',
@@ -43,73 +55,22 @@ const TASKS_SUBTITLE_PHRASES = [
   'Stay on top of deadlines across all your columns...',
 ];
 
-const GHOST_TASKS = [
-  {
-    id: 'ghost-1',
-    priority: 'URGENT',
-    title: 'Exercise Routine',
-    description: 'Follow your fitness routine or do a workout session.',
-    tags: [
-      { label: 'Career' },
-      { label: 'Improve Rate', iconKey: 'goal' },
-      { label: '60 Min', iconKey: 'clock' },
-      { label: '0/4 Steps' },
-    ],
-    due: 'Today',
-    category: 'Career',
-  },
-  {
-    id: 'ghost-2',
-    priority: 'HIGH',
-    title: 'Deliver message',
-    description:
-      'Communicate the expectations regarding maintaining a calm environment to the relevant individuals in a direct and respectful manner.',
-    tags: [{ label: 'Health' }, { label: '0/8 Steps' }],
-    due: 'Today',
-    category: 'Health',
-  },
-  {
-    id: 'ghost-3',
-    priority: 'MEDIUM',
-    title: 'Complete Work Task',
-    description: 'Work on the main career task assigned for today.',
-    tags: [{ label: 'Finance' }, { label: '30 Min', iconKey: 'clock' }],
-    due: 'Tomorrow',
-    category: 'Finance',
-  },
-];
+function suggestionErrorMessage(error, fallback) {
+  return (
+    error?.response?.data?.message ||
+    error?.response?.data?.error ||
+    error?.message ||
+    fallback
+  );
+}
 
-const GHOST_REGENERATIONS = {
-  'ghost-1': {
-    priority: 'HIGH',
-    title: 'Morning Mobility Session',
-    description: 'Start with light stretches and a short cardio warm-up to build consistency.',
-    tags: [
-      { label: 'Health' },
-      { label: 'Improve Rate', iconKey: 'goal' },
-      { label: '30 Min', iconKey: 'clock' },
-      { label: '0/3 Steps' },
-    ],
-    due: 'Today',
-    category: 'Health',
-  },
-  'ghost-2': {
-    priority: 'MEDIUM',
-    title: 'Send weekly status update',
-    description: 'Share progress, blockers, and next steps with your team in a clear message.',
-    tags: [{ label: 'Career' }, { label: '0/4 Steps' }],
-    due: 'Today',
-    category: 'Career',
-  },
-  'ghost-3': {
-    priority: 'HIGH',
-    title: 'Prep tomorrow priorities',
-    description: 'List the top three outcomes for tomorrow and block focus time for each.',
-    tags: [{ label: 'Personal' }, { label: '20 Min', iconKey: 'clock' }],
-    due: 'Tomorrow',
-    category: 'Personal',
-  },
-};
+function clearForceEmptyQuery() {
+  const url = new URL(window.location.href);
+  if (url.searchParams.get('empty') !== '1') return;
+  url.searchParams.delete('empty');
+  const search = url.searchParams.toString();
+  window.history.replaceState({}, '', `${url.pathname}${search ? `?${search}` : ''}${url.hash}`);
+}
 
 function EmptyColumnPlaceholder({ text }) {
   return (
@@ -148,7 +109,12 @@ export default function TasksBoard() {
 
   const forceEmpty = resolveForceEmptyBoard();
 
-  const [ghostTasks, setGhostTasks] = useState(GHOST_TASKS);
+  const [ghostTasks, setGhostTasks] = useState([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(() =>
+    resolveForceEmptyBoard(),
+  );
+  const [busySuggestionId, setBusySuggestionId] = useState(null);
+  const wasBoardEmpty = useRef(false);
   const [taskModal, setTaskModal] = useState({ open: false, mode: 'create', task: null });
   const [enteringTaskIds, setEnteringTaskIds] = useState(() => new Set());
   const [selectedTaskId, setSelectedTaskId] = useState(null);
@@ -160,7 +126,6 @@ export default function TasksBoard() {
   const [deletingTask, setDeletingTask] = useState(false);
 
   const loadTasks = useCallback(() => {
-    if (forceEmpty) return Promise.resolve();
     return dispatch(
       fetchTasks({
         filters: activeFilters,
@@ -169,17 +134,40 @@ export default function TasksBoard() {
         limit: 50,
       })
     );
-  }, [dispatch, activeFilters, searchQuery, forceEmpty]);
+  }, [dispatch, activeFilters, searchQuery]);
+
+  const loadSuggestions = useCallback(async () => {
+    setLoadingSuggestions(true);
+    try {
+      const list = await fetchOnboardingTaskSuggestionsApi();
+      setGhostTasks(list.map(mapOnboardingTaskSuggestion).filter(Boolean));
+    } catch (error) {
+      setGhostTasks([]);
+      toast.error(suggestionErrorMessage(error, 'Could not load AI suggestions.'));
+    } finally {
+      setLoadingSuggestions(false);
+    }
+  }, []);
 
   useEffect(() => {
-    if (forceEmpty) return undefined;
     const delay = searchQuery.trim() ? 300 : 0;
     const timer = setTimeout(() => {
       loadTasks();
       dispatch(fetchTasksSummary());
     }, delay);
     return () => clearTimeout(timer);
-  }, [loadTasks, searchQuery, dispatch, forceEmpty]);
+  }, [loadTasks, searchQuery, dispatch]);
+
+  const realTaskCount =
+    reduxColumns.todo.length + reduxColumns.inProgress.length + reduxColumns.done.length;
+
+  useEffect(() => {
+    const empty = forceEmpty || (!loadingList && realTaskCount === 0);
+    if (empty && !wasBoardEmpty.current) {
+      loadSuggestions();
+    }
+    wasBoardEmpty.current = empty;
+  }, [forceEmpty, loadingList, realTaskCount, loadSuggestions]);
 
   const columns = forceEmpty ? EMPTY_COLUMNS : reduxColumns;
 
@@ -385,51 +373,62 @@ export default function TasksBoard() {
   const openEditTaskModal = (task) => setTaskModal({ open: true, mode: 'edit', task });
   const closeTaskModal = () => setTaskModal((prev) => ({ ...prev, open: false }));
 
-  const handleDismissGhost = (id) => {
-    setGhostTasks((prev) => prev.filter((t) => t.id !== id));
+  const handleDismissGhost = async (id) => {
+    if (!id || busySuggestionId || !isUuid(id)) return;
+    setBusySuggestionId(id);
+    try {
+      await dismissOnboardingSuggestionApi(id);
+      setGhostTasks((prev) => prev.filter((t) => String(t.id) !== String(id)));
+    } catch (error) {
+      toast.error(suggestionErrorMessage(error, 'Could not dismiss suggestion.'));
+    } finally {
+      setBusySuggestionId(null);
+    }
   };
 
-  const handleRegenerateGhost = (id) => {
-    setGhostTasks((prev) =>
-      prev.map((ghost) => {
-        if (ghost.id !== id) return ghost;
-        const alternate = GHOST_REGENERATIONS[id];
-        if (!alternate) return ghost;
-        return { ...ghost, ...alternate, id: ghost.id };
-      })
-    );
+  const handleRegenerateGhost = async (id) => {
+    if (!id || busySuggestionId || !isUuid(id)) return;
+    setBusySuggestionId(id);
+    try {
+      const data = await regenerateOnboardingSuggestionApi(id);
+      const next =
+        mapOnboardingTaskSuggestion(data) ||
+        mapOnboardingTaskSuggestion(data?.suggestions?.[0]);
+      if (next) {
+        setGhostTasks((prev) =>
+          prev.map((t) => (String(t.id) === String(id) ? next : t)),
+        );
+      }
+    } catch (error) {
+      toast.error(suggestionErrorMessage(error, 'Could not regenerate suggestion.'));
+    } finally {
+      setBusySuggestionId(null);
+    }
   };
 
   const handleAcceptGhost = async (ghost) => {
-    const category =
-      ghost.category ||
-      ghost.tags?.find((tag) => typeof tag.label === 'string' && !tag.label.includes('/'))?.label ||
-      'Career';
-    const result = await dispatch(
-      createTask({
-        title: ghost.title,
-        description: ghost.description,
-        category,
-        priority: ghost.priority || 'MEDIUM',
-        status: 'To Do',
-        source: 'ai',
-      })
-    );
-    if (createTask.fulfilled.match(result)) {
-      const taskId = result.payload?.id;
-      setGhostTasks((prev) => prev.filter((t) => t.id !== ghost.id));
-      if (taskId) {
-        setEnteringTaskIds((prev) => new Set(prev).add(taskId));
-        window.setTimeout(() => {
-          setEnteringTaskIds((prev) => {
-            const next = new Set(prev);
-            next.delete(taskId);
-            return next;
-          });
-        }, 300);
-      }
-      await loadTasks();
+    const suggestionId = ghost?.suggestionId || ghost?.id;
+    if (!suggestionId || busySuggestionId || !isUuid(suggestionId)) return;
+    setBusySuggestionId(suggestionId);
+    try {
+      await acceptOnboardingSuggestionApi(suggestionId);
+      setGhostTasks((prev) =>
+        prev.filter((t) => String(t.id) !== String(suggestionId)),
+      );
+      clearForceEmptyQuery();
+      await dispatch(
+        fetchTasks({
+          filters: activeFilters,
+          search: searchQuery,
+          page: 1,
+          limit: 50,
+        }),
+      );
       await dispatch(fetchTasksSummary());
+    } catch (error) {
+      toast.error(suggestionErrorMessage(error, 'Could not accept suggestion.'));
+    } finally {
+      setBusySuggestionId(null);
     }
   };
 
@@ -440,7 +439,9 @@ export default function TasksBoard() {
   const boardIsEmpty =
     columns.todo.length === 0 && columns.inProgress.length === 0 && columns.done.length === 0;
 
-  const showGhostCards = boardIsEmpty && filteredGhostTasks.length > 0 && !loadingList;
+  // Ghosts only when every normal column is empty (or DEV ?empty=1), not when filters hide cards.
+  const showGhostCards =
+    boardIsEmpty && !isSearching && filteredGhostTasks.length > 0;
 
   const handleRequestDeleteTask = (task) => {
     if (!task?.id) return;
@@ -459,6 +460,7 @@ export default function TasksBoard() {
     try {
       await dispatch(deleteTask(id)).unwrap();
       setDeleteModal({ open: false, task: null });
+      await loadTasks();
       await dispatch(fetchTasksSummary());
       if (String(selectedTaskId) === String(id)) closeTaskDetail();
     } catch {
@@ -470,6 +472,7 @@ export default function TasksBoard() {
 
   const handleSubmitTask = async (form) => {
     if (form?.alreadyPersisted) {
+      clearForceEmptyQuery();
       const taskId = form.id;
       if (taskId) {
         setEnteringTaskIds((prev) => new Set(prev).add(taskId));
@@ -506,6 +509,7 @@ export default function TasksBoard() {
         throw new Error('create failed');
       }
     }
+    clearForceEmptyQuery();
     await loadTasks();
     await dispatch(fetchTasksSummary());
   };
@@ -616,11 +620,16 @@ export default function TasksBoard() {
                 )}
               </div>
 
-              {isTodo && showGhostCards
+              {isTodo && boardIsEmpty && loadingSuggestions && !showGhostCards
+                ? (
+                    <EmptyColumnPlaceholder text="Loading suggestions…" />
+                  )
+                : isTodo && showGhostCards
                 ? filteredGhostTasks.map((task) => (
                     <GhostTaskCard
                       key={task.id}
                       task={task}
+                      busy={String(busySuggestionId) === String(task.id)}
                       onDismiss={handleDismissGhost}
                       onRegenerate={handleRegenerateGhost}
                       onAccept={() => handleAcceptGhost(task)}

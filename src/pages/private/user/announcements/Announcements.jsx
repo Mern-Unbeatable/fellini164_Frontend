@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { GET, PATCH } from '../../../../services/httpMethods';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useSelector } from 'react-redux';
+import { DELETE, GET, PATCH } from '../../../../services/httpMethods';
+import { selectIsAdmin } from '../../../../features/auth/authSlice';
 import { toast } from 'react-toastify';
 import { Info } from 'lucide-react';
 import AnnouncementHeader from './components/AnnouncementHeader';
@@ -8,25 +10,21 @@ import AnnouncementCard from './components/AnnouncementCard';
 import AnnouncementPagination from './components/AnnouncementPagination';
 
 const Announcements = () => {
+  const isAdmin = useSelector(selectIsAdmin);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('ALL');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
-  useEffect(() => {
-    fetchAnnouncements();
-  }, []);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [filter]);
-
-  const fetchAnnouncements = async () => {
+  const fetchAnnouncements = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await GET('/api/v1/user/announcements');
-      const notificationsData = response?.data?.notifications || [];
+      const params = filter === 'ALL' ? undefined : { type: filter };
+      const rawResponse = await GET('/api/v1/user/announcements', params);
+      const response = Array.isArray(rawResponse) ? rawResponse[0] : rawResponse;
+      const notificationsData =
+        response?.data?.notifications || response?.notifications || [];
       setNotifications(Array.isArray(notificationsData) ? notificationsData : []);
     } catch (error) {
       toast.error('Failed to load announcements');
@@ -35,7 +33,12 @@ const Announcements = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+    fetchAnnouncements();
+  }, [fetchAnnouncements]);
 
   const markAsRead = async (notificationId) => {
     try {
@@ -55,18 +58,29 @@ const Announcements = () => {
     }
   };
 
-  const deleteAnnouncement = (notificationId) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
-    toast.success('Announcement deleted');
+  const deleteAnnouncement = async (notification) => {
+    if (!isAdmin) return;
+    const announcementId = notification?.announcementId || notification?.announcement?.id;
+    if (!announcementId) return;
+    try {
+      const response = await DELETE(`/api/v1/user/announcements/${announcementId}`);
+      setNotifications((prev) =>
+        prev.filter(
+          (n) =>
+            n.id !== notification.id &&
+            n.announcementId !== announcementId &&
+            n.announcement?.id !== announcementId
+        )
+      );
+      toast.success(response?.message || 'Announcement deleted');
+    } catch (error) {
+      toast.error(error?.response?.data?.message || 'Failed to delete announcement');
+    }
   };
 
-  // Ensure notifications is always an array before filtering
+  // API already applies the selected type; retain this guard for response safety.
   const safeNotifications = Array.isArray(notifications) ? notifications : [];
-  const filteredNotifications = safeNotifications.filter((notification) => {
-    if (!notification.announcement) return false;
-    if (filter === 'ALL') return true;
-    return notification.announcement.type === filter;
-  });
+  const filteredNotifications = safeNotifications.filter((notification) => notification.announcement);
 
   const pinnedNotifications = filteredNotifications.filter((n) => n.announcement?.isPinned);
   const regularNotifications = filteredNotifications.filter((n) => !n.announcement?.isPinned);
@@ -109,6 +123,7 @@ const Announcements = () => {
             key={notification.id}
             notification={notification}
             markAsRead={markAsRead}
+            canDelete={isAdmin}
             deleteAnnouncement={deleteAnnouncement}
           />
         ))}

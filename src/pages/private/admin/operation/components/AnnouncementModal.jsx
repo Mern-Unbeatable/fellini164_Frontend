@@ -7,7 +7,7 @@ const AnnouncementModal = ({ open, onClose, onSave }) => {
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
   const [type, setType] = useState('INFO');
-  const [targetType, setTargetType] = useState('ALL_USERS');
+  const [targetType, setTargetType] = useState('');
   const [scheduledAt, setScheduledAt] = useState('');
   const [expiresAt, setExpiresAt] = useState('');
   const [isPinned, setIsPinned] = useState(false);
@@ -19,7 +19,7 @@ const AnnouncementModal = ({ open, onClose, onSave }) => {
     setTitle('');
     setMessage('');
     setType('INFO');
-    setTargetType('ALL_USERS');
+    setTargetType('');
     setScheduledAt('');
     setExpiresAt('');
     setIsPinned(false);
@@ -36,9 +36,14 @@ const AnnouncementModal = ({ open, onClose, onSave }) => {
       title: title.trim(),
       message: message.trim(),
       type,
-      targetType,
-      isPinned,
     };
+
+    if (targetType) {
+      payload.targetType = targetType;
+    }
+
+    // Always include isPinned as requested (can be true or false)
+    payload.isPinned = isPinned;
 
     if (scheduledAt) payload.scheduledAt = new Date(scheduledAt).toISOString();
     if (expiresAt) payload.expiresAt = new Date(expiresAt).toISOString();
@@ -136,8 +141,9 @@ const AnnouncementModal = ({ open, onClose, onSave }) => {
                 onChange={(e) => setTargetType(e.target.value)}
                 className={`${inputClasses} appearance-none cursor-pointer pr-10`}
               >
-                <option value="ALL_USERS">All users</option>
-                <option value="ALL_INCLUDING_WAITLIST">All including waitlist</option>
+                <option value="">Default (Omit targetType)</option>
+                <option value="ALL_USERS">All users (ALL_USERS)</option>
+                <option value="ALL_INCLUDING_WAITLIST">All including waitlist (ALL_INCLUDING_WAITLIST)</option>
               </select>
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-[#c2c2c2] pointer-events-none" size={14} />
             </div>
