@@ -125,12 +125,9 @@ const Step2 = ({
 
     try {
       setLoading(true);
-      console.log('[Onboarding Step 2] request body', payload);
-      const response = await PUT(API_ENDPOINTS.ONBOARDING.STEP, payload);
-      console.log('[Onboarding Step 2] response', response);
+      await PUT(API_ENDPOINTS.ONBOARDING.STEP, payload);
       onContinue?.();
-    } catch (error) {
-      console.error('[Onboarding Step 2]', error?.response?.data || error);
+    } catch {
     } finally {
       setLoading(false);
     }

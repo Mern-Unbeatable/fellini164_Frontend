@@ -20,6 +20,8 @@ export const API_ENDPOINTS = {
   },
   ONBOARDING: {
     STEP: '/api/v1/onboarding/step',
+    GENERATE: '/api/v1/onboarding/generate',
+    GENERATE_TIMEOUT_MS: 120000,
   },
 };
 

@@ -43,14 +43,12 @@ const Step1 = ({ onContinue }) => {
 
     try {
       setLoading(true);
-      const response = await PUT(API_ENDPOINTS.ONBOARDING.STEP, {
+      await PUT(API_ENDPOINTS.ONBOARDING.STEP, {
         step: 1,
         markStart: true,
       });
-      console.log('[Onboarding Step 1]', response);
       onContinue?.();
-    } catch (error) {
-      console.error('[Onboarding Step 1]', error?.response?.data || error);
+    } catch {
     } finally {
       setLoading(false);
     }

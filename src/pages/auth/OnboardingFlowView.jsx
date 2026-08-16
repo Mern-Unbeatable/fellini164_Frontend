@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import gsap from 'gsap';
 import { BACK_LABELS, ROUTINE_TIMES, STEP_META } from '../../constants';
+import { POST } from '../../services/httpMethods';
+import { API_ENDPOINTS } from '../../services/httpEndpoint';
 import Step1 from './steps/Step1';
 import Step2 from './steps/Step2';
 import Step3 from './steps/Step3';
@@ -134,6 +136,17 @@ const Glow = ({ step }) => {
   );
 };
 
+const extractGenerateProgress = (response) => {
+  const data = response?.data ?? response;
+  if (typeof data?.progress === 'number') {
+    return Math.min(100, Math.max(0, data.progress));
+  }
+  if (typeof response?.progress === 'number') {
+    return Math.min(100, Math.max(0, response.progress));
+  }
+  return 100;
+};
+
 const OnboardingFlowView = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
@@ -147,7 +160,8 @@ const OnboardingFlowView = () => {
   const [endMeridiem, setEndMeridiem] = useState('PM');
   const [style, setStyle] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [progress, setProgress] = useState(17);
+  const [progress, setProgress] = useState(0);
+  const generateStartedRef = useRef(false);
 
   const canContinue =
     step === 1 ||
@@ -163,17 +177,49 @@ const OnboardingFlowView = () => {
   }, [selectedGoals, mainFocus]);
 
   useEffect(() => {
-    if (!isGenerating) return;
-    const id = setInterval(() => {
-      setProgress((p) => {
-        if (p >= 100) {
-          clearInterval(id);
-          return 100;
-        }
-        return Math.min(p + 7, 100);
-      });
-    }, 260);
-    return () => clearInterval(id);
+    if (!isGenerating) {
+      generateStartedRef.current = false;
+      return;
+    }
+
+    if (generateStartedRef.current) return;
+    generateStartedRef.current = true;
+
+    let cancelled = false;
+    setProgress(0);
+
+    const creepInterval = setInterval(() => {
+      setProgress((p) => (p >= 90 ? 90 : p + 2));
+    }, 300);
+
+    const runGenerate = async () => {
+      try {
+        console.log('[Onboarding Generate] request');
+        const response = await POST(API_ENDPOINTS.ONBOARDING.GENERATE, undefined, {
+          timeout: API_ENDPOINTS.ONBOARDING.GENERATE_TIMEOUT_MS,
+        });
+        if (cancelled) return;
+
+        const nextProgress = extractGenerateProgress(response);
+        console.log('[Onboarding Generate] response', response);
+        setProgress(nextProgress >= 100 ? 100 : nextProgress);
+      } catch (error) {
+        if (cancelled) return;
+        console.error('[Onboarding Generate]', error?.response?.data || error);
+        generateStartedRef.current = false;
+        setIsGenerating(false);
+        setProgress(0);
+      } finally {
+        clearInterval(creepInterval);
+      }
+    };
+
+    runGenerate();
+
+    return () => {
+      cancelled = true;
+      clearInterval(creepInterval);
+    };
   }, [isGenerating]);
 
   useEffect(() => {

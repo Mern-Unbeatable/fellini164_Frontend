@@ -5,8 +5,8 @@ export const GET = async (url, params) => {
   return responseData;
 };
 
-export const POST = async (url, data) => {
-  const response = await axiosInstance.post(url, data);
+export const POST = async (url, data, config) => {
+  const response = await axiosInstance.post(url, data, config);
   return response.data;
 };
 

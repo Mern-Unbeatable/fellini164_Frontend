@@ -76,12 +76,9 @@ const Step3 = ({ routine, onSelectRoutine, onContinue, onBack, canContinue }) =>
 
     try {
       setLoading(true);
-      console.log('[Onboarding Step 3] request body', payload);
-      const response = await PUT(API_ENDPOINTS.ONBOARDING.STEP, payload);
-      console.log('[Onboarding Step 3] response', response);
+      await PUT(API_ENDPOINTS.ONBOARDING.STEP, payload);
       onContinue?.();
-    } catch (error) {
-      console.error('[Onboarding Step 3]', error?.response?.data || error);
+    } catch {
     } finally {
       setLoading(false);
     }

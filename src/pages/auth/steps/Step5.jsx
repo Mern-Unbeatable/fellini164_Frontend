@@ -1,4 +1,7 @@
+import { useState } from 'react';
 import { Grid, Heart, Target, Wind } from 'lucide-react';
+import { PUT } from '../../../services/httpMethods';
+import { API_ENDPOINTS } from '../../../services/httpEndpoint';
 
 const Accent = ({ children }) => <span className="text-[#8022FE]">{children}</span>;
 const Dot = () => <span className="text-[#14F1D9]">.</span>;
@@ -74,7 +77,31 @@ const StyleCard = ({ option, selected, onClick }) => {
   );
 };
 
-const Step5 = ({ style, onSelectStyle, onContinue, canContinue }) => (
+const Step5 = ({ style, onSelectStyle, onContinue, canContinue }) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleContinue = async () => {
+    if (loading || !style) return;
+
+    const selected = STYLE_OPTIONS.find((opt) => opt.id === style);
+    if (!selected) return;
+
+    const payload = {
+      step: 5,
+      aiCommunicationStyle: selected.title,
+    };
+
+    try {
+      setLoading(true);
+      await PUT(API_ENDPOINTS.ONBOARDING.STEP, payload);
+      onContinue?.();
+    } catch {
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
   <div className="flex w-full flex-col items-center gap-7.5">
     {/* Heading */}
     <div className="flex w-full flex-col items-center gap-2.5 text-center">
@@ -101,11 +128,12 @@ const Step5 = ({ style, onSelectStyle, onContinue, canContinue }) => (
 
     {/* Button */}
     <div className="flex w-full flex-col items-center gap-4 pb-16 md:w-auto md:pb-0">
-      <PrimaryBtn onClick={onContinue} disabled={!canContinue}>
-        Generate My Plan
+      <PrimaryBtn onClick={handleContinue} disabled={!canContinue || loading}>
+        {loading ? 'Saving…' : 'Generate My Plan'}
       </PrimaryBtn>
     </div>
   </div>
-);
+  );
+};
 
 export default Step5;
