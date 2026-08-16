@@ -7,10 +7,14 @@ const AnnouncementCard = ({ notification, markAsRead, deleteAnnouncement }) => {
 
   const getTypeColor = (type) => {
     switch (type) {
-      case 'ALERT':
-        return 'bg-[#DC26260D] text-[#DC2626]';
+      case 'UPDATE':
+        return 'bg-[#0EA5E90D] text-[#0EA5E9]';
       case 'FEATURE':
         return 'bg-[#F973160D] text-[#F97316]';
+      case 'MAINTENANCE':
+        return 'bg-[#DC26260D] text-[#DC2626]';
+      case 'PROMOTION':
+        return 'bg-[#2A9D000D] text-[#2A9D00]';
       case 'INFO':
         return 'bg-[#F9F4FF] text-[#8022FE]';
       default:
