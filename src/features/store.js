@@ -11,6 +11,7 @@ import themeReducer from '../features/theme/themeSlice';
 import aiChatReducer from './aiChat/aiChatSlice';
 import adminActivityLogReducer from './aiChat/adminActivityLog/adminActivityLogSlice';
 import notificationsReducer from './notifications/notificationsSlice';
+import activityLogReducer from './activityLog/activityLogSlice';
 import goalsReducer from './goals/goalsSlice';
 import habitsReducer from './habits/habitsSlice';
 import tasksReducer from './tasks/tasksSlice';
@@ -30,6 +31,7 @@ const store = configureStore({
     aiChat: aiChatReducer,
     adminActivityLog: adminActivityLogReducer,
     notifications: notificationsReducer,
+    activityLog: activityLogReducer,
     goals: goalsReducer,
     habits: habitsReducer,
     tasks: tasksReducer,

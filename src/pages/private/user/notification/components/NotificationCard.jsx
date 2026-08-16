@@ -1,11 +1,16 @@
 import React from 'react';
-import { AlertCircle, Star, Info, Check, Trash2, Clock } from 'lucide-react';
+import { AlertCircle, Star, Info, Check, Trash2, Clock, Bell } from 'lucide-react';
 
 const NOTIFICATION_TYPE_STYLES = {
   ALERT: 'bg-[#DC26260D] text-[#DC2626]',
   FEATURE: 'bg-[#F973160D] text-[#F97316]',
   INFO: 'bg-[#F9F4FF] text-[#8022FE]',
+  HABIT_REMINDER: 'bg-[#0596690D] text-[#059669]',
+  TASK_REMINDER: 'bg-[#2563EB0D] text-[#2563EB]',
+  GOAL_REMINDER: 'bg-[#D977060D] text-[#D97706]',
 };
+
+const formatTypeLabel = (type) => type.replace(/_/g, ' ');
 
 const NotificationCard = ({ notification, handleMarkAsRead, handleDelete }) => {
   const n = notification;
@@ -16,11 +21,14 @@ const NotificationCard = ({ notification, handleMarkAsRead, handleDelete }) => {
         return <AlertCircle size={12} />;
       case 'FEATURE':
         return <Star size={12} />;
+      case 'HABIT_REMINDER':
+        return <Bell size={12} />;
       default:
         return <Info size={12} />;
     }
   };
 
+  const typeStyle = NOTIFICATION_TYPE_STYLES[n.type] || NOTIFICATION_TYPE_STYLES.INFO;
   return (
     <div
       className={`relative flex items-start justify-between gap-4 rounded-xl border border-[#f2f2f2] p-4 transition-all dark:border-zinc-700 ${
@@ -41,11 +49,10 @@ const NotificationCard = ({ notification, handleMarkAsRead, handleDelete }) => {
             <h3 className={`text-[14px] font-semibold text-[#181818] dark:text-white truncate ${n.unread ? 'font-bold' : 'font-medium'}`}>
               {n.title}
             </h3>
-            <span className={`inline-flex items-center gap-1 rounded-[6px] px-[6px] py-[2px] text-xs font-medium uppercase lg:text-[12px] tracking-wide ${NOTIFICATION_TYPE_STYLES[n.type]}`}>
+            <span className={`inline-flex items-center gap-1 rounded-[6px] px-[6px] py-[2px] text-xs font-medium uppercase lg:text-[12px] tracking-wide ${typeStyle}`}>
               {getTypeIcon(n.type)}
-              {n.type}
-            </span>
-          </div>
+              {formatTypeLabel(n.type)}
+            </span>          </div>
           
           {/* Message */}
           <p className="text-[12px] leading-relaxed text-[#5d5d5d] dark:text-gray-300">

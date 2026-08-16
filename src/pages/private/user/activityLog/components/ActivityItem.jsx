@@ -1,14 +1,12 @@
 import React from 'react';
 import { 
-  MessageSquare, Calendar, Target, TrendingUp, ChevronRight, 
+  MessageSquare, Calendar, Target, TrendingUp, 
   LogIn, LogOut, Edit, CheckCircle, RotateCcw, CheckSquare,
   CreditCard, DollarSign, XCircle, Lightbulb, Settings,
   Lock, Mail
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 
 const ActivityItem = ({ activity }) => {
-  const navigate = useNavigate();
 
   const formatDistanceToNow = (date) => {
     const now = new Date();
@@ -144,35 +142,6 @@ const ActivityItem = ({ activity }) => {
     return labels[type] || type.replace(/_/g, ' ');
   };
 
-  const handleViewDetails = () => {
-    const { type, metadata } = activity;
-    
-    if (type === 'AI_CHAT' && metadata?.conversationId) {
-      navigate('/user/ai-coach');
-    } else if ((type === 'PLAN_CREATED' || type === 'PLAN_UPDATED') && metadata?.planId) {
-      const planType = activity.description?.toLowerCase();
-      if (planType?.includes('weekly')) {
-        navigate('/user/weekly-plan');
-      } else if (planType?.includes('monthly')) {
-        navigate('/user/monthly-plan');
-      } else if (planType?.includes('daily')) {
-        navigate('/user/daily-plan');
-      }
-    } else if ((type === 'TASK_CREATED' || type === 'TASK_COMPLETED') && metadata?.taskId) {
-      navigate('/user/tasks');
-    } else if ((type === 'HABIT_CREATED' || type === 'HABIT_COMPLETED') && metadata?.habitId) {
-      navigate('/user/habits');
-    } else if ((type === 'GOAL_CREATED' || type === 'GOAL_COMPLETED') && metadata?.goalId) {
-      navigate('/user/goals');
-    } else if (type.startsWith('SUBSCRIPTION_') || type.startsWith('PAYMENT_')) {
-      navigate('/user/subscription');
-    } else if (type === 'SETTINGS_UPDATED' || type === 'PASSWORD_CHANGED') {
-      navigate('/settings');
-    } else if (type === 'EMAIL_VERIFIED') {
-      navigate('/user/profile');
-    }
-  };
-
   const colors = getActivityColors(activity.type);
   const timeAgo = formatDistanceToNow(new Date(activity.createdAt));
 
@@ -255,6 +224,16 @@ const ActivityItem = ({ activity }) => {
           {/* Metadata */}
           {activity.metadata && (
             <div className="mt-2.5 flex flex-wrap items-center gap-2 text-xs font-medium text-[#5d5d5d] dark:text-gray-300">
+              {activity.metadata.title && (
+                <span className="flex items-center gap-1 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] dark:border-zinc-700">
+                  {activity.metadata.title}
+                </span>
+              )}
+              {activity.metadata.name && (
+                <span className="flex items-center gap-1 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] dark:border-zinc-700">
+                  {activity.metadata.name}
+                </span>
+              )}
               {activity.metadata.tokensUsed && (
                 <span className="flex items-center gap-1 rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] dark:border-zinc-700">
                   💬 {activity.metadata.tokensUsed.toLocaleString()} tokens
@@ -266,26 +245,6 @@ const ActivityItem = ({ activity }) => {
                 </span>
               )}
             </div>
-          )}
-
-          {/* View Details Button */}
-          {(activity.metadata?.conversationId || 
-            activity.metadata?.planId || 
-            activity.metadata?.taskId || 
-            activity.metadata?.habitId || 
-            activity.metadata?.goalId ||
-            activity.type.startsWith('SUBSCRIPTION_') ||
-            activity.type.startsWith('PAYMENT_') ||
-            activity.type === 'SETTINGS_UPDATED' ||
-            activity.type === 'PASSWORD_CHANGED' ||
-            activity.type === 'EMAIL_VERIFIED') && (
-            <button
-              onClick={handleViewDetails}
-              className="mt-3 flex items-center gap-1 text-[12px] font-semibold text-[#8022fe] transition hover:opacity-80"
-            >
-              <span>View Details</span>
-              <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-            </button>
           )}
         </div>
       </div>

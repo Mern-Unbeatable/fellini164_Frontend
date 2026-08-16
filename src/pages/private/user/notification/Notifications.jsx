@@ -1,11 +1,14 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Bell } from 'lucide-react';
 import NotificationHeader from './components/NotificationHeader';
 import NotificationActionRow from './components/NotificationActionRow';
 import NotificationCard from './components/NotificationCard';
+import AnnouncementPagination from '../announcements/components/AnnouncementPagination';
 import {
   selectNotifications,
+  selectNotificationsLoading,
+  fetchNotifications,
   markNotificationAsRead,
   markAllNotificationsAsRead,
   deleteNotification,
@@ -14,8 +17,19 @@ import {
 export default function Notifications() {
   const dispatch = useDispatch();
   const notifications = useSelector(selectNotifications);
+  const loading = useSelector(selectNotificationsLoading);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('ALL'); // ALL, UNREAD, READ
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  useEffect(() => {
+    dispatch(fetchNotifications());
+  }, [dispatch]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab, searchQuery]);
 
   const handleMarkAsRead = (id) => {
     dispatch(markNotificationAsRead(id));
@@ -49,6 +63,13 @@ export default function Notifications() {
     });
   }, [notifications, activeTab, searchQuery]);
 
+  const totalResults = filteredNotifications.length;
+  const totalPages = Math.ceil(totalResults / itemsPerPage);
+  const activePage = Math.min(currentPage, Math.max(1, totalPages || 1));
+  const indexOfLastItem = activePage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentNotifications = filteredNotifications.slice(indexOfFirstItem, indexOfLastItem);
+
   const hasUnread = notifications.some(n => n.unread);
 
   return (
@@ -66,7 +87,13 @@ export default function Notifications() {
 
       {/* Notification List */}
       <div className="space-y-3">
-        {filteredNotifications.map((n) => (
+        {loading && filteredNotifications.length === 0 && (
+          <div className="rounded-xl border border-[#f2f2f2] bg-white py-12 text-center dark:border-zinc-700 dark:bg-zinc-800">
+            <p className="text-[14px] font-medium text-[#5d5d5d] dark:text-gray-300">Loading notifications…</p>
+          </div>
+        )}
+
+        {!loading && currentNotifications.map((n) => (
           <NotificationCard
             key={n.id}
             notification={n}
@@ -76,7 +103,7 @@ export default function Notifications() {
         ))}
 
         {/* Empty State */}
-        {filteredNotifications.length === 0 && (
+        {!loading && filteredNotifications.length === 0 && (
           <div className="rounded-xl border border-[#f2f2f2] bg-white py-12 text-center dark:border-zinc-700 dark:bg-zinc-800">
             <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#f9f4ff] text-[#8022fe] dark:bg-purple-950/20">
               <Bell size={20} />
@@ -88,6 +115,12 @@ export default function Notifications() {
           </div>
         )}
       </div>
+
+      <AnnouncementPagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        setCurrentPage={setCurrentPage}
+      />
     </div>
   );
 }
