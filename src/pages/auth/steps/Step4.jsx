@@ -1,4 +1,7 @@
+import { useState } from 'react';
 import { Moon, Sun } from 'lucide-react';
+import { PUT } from '../../../services/httpMethods';
+import { API_ENDPOINTS } from '../../../services/httpEndpoint';
 
 const Accent = ({ children }) => <span className="text-[#8022FE]">{children}</span>;
 const Dot = () => <span className="text-[#14F1D9]">.</span>;
@@ -56,6 +59,22 @@ const TimeBox = ({ time, setTime, meridiem, setMeridiem }) => (
   </div>
 );
 
+const to24HourTime = (time, meridiem) => {
+  const [hoursStr, minutesStr = '00'] = time.split(':');
+  let hours = parseInt(hoursStr, 10);
+  const minutes = minutesStr.padEnd(2, '0').slice(0, 2);
+
+  if (Number.isNaN(hours)) return null;
+
+  if (meridiem === 'AM') {
+    if (hours === 12) hours = 0;
+  } else if (hours !== 12) {
+    hours += 12;
+  }
+
+  return `${String(hours).padStart(2, '0')}:${minutes}`;
+};
+
 const Step4 = ({
   startTime,
   setStartTime,
@@ -68,7 +87,36 @@ const Step4 = ({
   onContinue,
   onBack,
   canContinue,
-}) => (
+}) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleContinue = async () => {
+    if (loading || !canContinue) return;
+
+    const dayStartTime = to24HourTime(startTime, startMeridiem);
+    const dayEndTime = to24HourTime(endTime, endMeridiem);
+    if (!dayStartTime || !dayEndTime) return;
+
+    const payload = {
+      step: 4,
+      dayStartTime,
+      dayEndTime,
+    };
+
+    try {
+      setLoading(true);
+      console.log('[Onboarding Step 4] request body', payload);
+      const response = await PUT(API_ENDPOINTS.ONBOARDING.STEP, payload);
+      console.log('[Onboarding Step 4] response', response);
+      onContinue?.();
+    } catch (error) {
+      console.error('[Onboarding Step 4]', error?.response?.data || error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
   <div className="flex w-full flex-col items-center gap-7.5 sm:gap-12.5">
     {/* Heading */}
     <div className="flex w-full flex-col items-center gap-2.5 text-center sm:gap-7.5">
@@ -136,12 +184,13 @@ const Step4 = ({
 
     {/* Buttons */}
     <div className="flex w-full flex-col items-center gap-4 pb-16 md:w-auto md:flex-row-reverse md:items-center md:gap-5 md:pb-0">
-      <PrimaryBtn onClick={onContinue} disabled={!canContinue}>
-        Continue
+      <PrimaryBtn onClick={handleContinue} disabled={!canContinue || loading}>
+        {loading ? 'Saving…' : 'Continue'}
       </PrimaryBtn>
       <SkipBtn onClick={onBack} />
     </div>
   </div>
-);
+  );
+};
 
 export default Step4;

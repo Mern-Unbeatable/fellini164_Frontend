@@ -1,4 +1,7 @@
+import { useState } from 'react';
 import { ROUTINE_OPTIONS } from '../../../constants';
+import { PUT } from '../../../services/httpMethods';
+import { API_ENDPOINTS } from '../../../services/httpEndpoint';
 
 const Accent = ({ children }) => <span className="text-[#8022FE]">{children}</span>;
 const Dot = () => <span className="text-[#14F1D9]">.</span>;
@@ -57,7 +60,34 @@ const OptionCard = ({ selected, onClick, icon, title, description }) => {
   );
 };
 
-const Step3 = ({ routine, onSelectRoutine, onContinue, onBack, canContinue }) => (
+const Step3 = ({ routine, onSelectRoutine, onContinue, onBack, canContinue }) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleContinue = async () => {
+    if (loading || !routine) return;
+
+    const selected = ROUTINE_OPTIONS.find((opt) => opt.id === routine);
+    if (!selected) return;
+
+    const payload = {
+      step: 3,
+      routineType: selected.title,
+    };
+
+    try {
+      setLoading(true);
+      console.log('[Onboarding Step 3] request body', payload);
+      const response = await PUT(API_ENDPOINTS.ONBOARDING.STEP, payload);
+      console.log('[Onboarding Step 3] response', response);
+      onContinue?.();
+    } catch (error) {
+      console.error('[Onboarding Step 3]', error?.response?.data || error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
   <div className="flex w-full flex-col items-center gap-7.5">
     <div className="flex w-full flex-col items-center gap-2.5 text-center">
       <h1 className="font-['Inter',sans-serif] text-[26px] font-bold leading-[1.3] text-[#181818] sm:text-[clamp(32px,4vw,54px)]">
@@ -83,10 +113,13 @@ const Step3 = ({ routine, onSelectRoutine, onContinue, onBack, canContinue }) =>
     </div>
 
     <div className="flex w-full flex-col items-center gap-4 pb-16 md:w-auto md:flex-row-reverse md:items-center md:gap-5 md:pb-0">
-      <PrimaryBtn onClick={onContinue} disabled={!canContinue}>Continue</PrimaryBtn>
+      <PrimaryBtn onClick={handleContinue} disabled={!canContinue || loading}>
+        {loading ? 'Saving…' : 'Continue'}
+      </PrimaryBtn>
       <SkipBtn onClick={onBack} />
     </div>
   </div>
-);
+  );
+};
 
 export default Step3;
