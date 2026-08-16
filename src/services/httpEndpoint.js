@@ -1,4 +1,4 @@
-// Route Paths
+// Frontend route paths
 export const ROUTES_CONFIG = {
   public: {
     HOME: '/',
@@ -12,3 +12,14 @@ export const ROUTES_CONFIG = {
     SETTINGS: '/settings',
   },
 };
+
+// API endpoints
+export const API_ENDPOINTS = {
+  ADMIN: {
+    ANNOUNCEMENTS: '/api/v1/admin/announcements',
+  },
+};
+
+export function adminAnnouncementById(id) {
+  return `${API_ENDPOINTS.ADMIN.ANNOUNCEMENTS}/${id}`;
+}

@@ -1,6 +1,9 @@
 import React from 'react';
+import { ANNOUNCEMENT_TYPES } from '../../../admin/operation/announcementTypes';
 
 const AnnouncementFilters = ({ filter, setFilter }) => {
+  const filterTypes = ['ALL', ...ANNOUNCEMENT_TYPES.map((t) => t.value)];
+
   return (
     <div className="mb-6 flex flex-wrap gap-2.5">
       {['ALL', 'INFO', 'UPDATE', 'FEATURE', 'MAINTENANCE', 'PROMOTION'].map((type) => (

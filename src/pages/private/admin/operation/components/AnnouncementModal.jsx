@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { X, ChevronDown } from 'lucide-react';
 import { POST } from '../../../../../services/httpMethods';
+import { API_ENDPOINTS } from '../../../../../services/httpEndpoint';
 import { toast } from 'react-toastify';
+import { ANNOUNCEMENT_TYPES } from '../announcementTypes';
 
 const AnnouncementModal = ({ open, onClose, onSave }) => {
   const [title, setTitle] = useState('');
@@ -50,7 +52,7 @@ const AnnouncementModal = ({ open, onClose, onSave }) => {
 
     try {
       setLoading(true);
-      const response = await POST('/api/v1/admin/announcements', payload);
+      const response = await POST(API_ENDPOINTS.ADMIN.ANNOUNCEMENTS, payload);
       const created = response?.data?.announcement || response?.announcement || response?.data || response;
       toast.success(response?.message);
       if (onSave) onSave(created);
@@ -115,18 +117,20 @@ const AnnouncementModal = ({ open, onClose, onSave }) => {
             />
           </div>
 
-          {/* Status */}
+          {/* Type */}
           <div className="flex flex-col gap-1.5">
-            <p className="text-[12px] font-medium text-[#c2c2c2] dark:text-zinc-500">Status</p>
+            <p className="text-[12px] font-medium text-[#c2c2c2] dark:text-zinc-500">Type</p>
             <div className="relative">
               <select
                 value={type}
                 onChange={(e) => setType(e.target.value)}
                 className={`${inputClasses} appearance-none cursor-pointer pr-10`}
               >
-                <option value="INFO">INFO</option>
-                <option value="FEATURE">FEATURE</option>
-                <option value="ALERT">ALERT</option>
+                {ANNOUNCEMENT_TYPES.map(({ value, label }) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
               </select>
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-[#c2c2c2] pointer-events-none" size={14} />
             </div>

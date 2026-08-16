@@ -1,8 +1,63 @@
 import { MoreVertical, Plus } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { GET, DELETE } from '../../../../services/httpMethods';
+import { API_ENDPOINTS, adminAnnouncementById } from '../../../../services/httpEndpoint';
 import { toast } from 'react-toastify';
 import AnnouncementModal from './components/AnnouncementModal';
+import AllPagination from '../../../../components/common/AllPagination';
+
+const ITEMS_PER_PAGE = 12;
+const PAGINATION_MIN_ITEMS = 12;
+
+function toAnnouncementItem(ann) {
+  return {
+    id: ann.id,
+    title: ann.title,
+    subtitle: ann.message,
+    date: ann.scheduledAt
+      ? new Date(ann.scheduledAt).toLocaleString()
+      : new Date(ann.createdAt).toLocaleString(),
+    views: ann._count?.userNotifications || ann.recipientsCount || 0,
+    status: ann.status,
+    raw: ann,
+  };
+}
+
+function AnnouncementStatusBadge({ status }) {
+  const normalized = String(status || '').toUpperCase();
+
+  if (normalized === 'DRAFT') {
+    return (
+      <span className="inline-flex rounded-md bg-[rgba(202,138,4,0.05)] px-1.5 py-0.5 text-[12px] font-medium text-[#ca8a04] uppercase">
+        Scheduled
+      </span>
+    );
+  }
+
+  if (normalized === 'SENT') {
+    return (
+      <span className="inline-flex rounded-md bg-[#f9f4ff] px-1.5 py-0.5 text-[12px] font-medium text-[#8022fe] uppercase">
+        Published
+      </span>
+    );
+  }
+
+  if (normalized === 'SCHEDULED') {
+    return (
+      <span className="inline-flex rounded-md bg-[rgba(202,138,4,0.05)] px-1.5 py-0.5 text-[12px] font-medium text-[#ca8a04] uppercase">
+        Scheduled
+      </span>
+    );
+  }
+
+  if (!normalized) return null;
+
+  return (
+    <span className="inline-flex rounded-md bg-[rgba(107,114,128,0.05)] px-1.5 py-0.5 text-[12px] font-medium text-[#6b7280] uppercase">
+      {normalized}
+    </span>
+  );
+}
 
 export default function CMSAnnouncements() {
   const [modle, setModle] = useState(false);
@@ -24,23 +79,51 @@ export default function CMSAnnouncements() {
 
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalResults, setTotalResults] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const handleSavePlan = (createdAnnouncement) => {
-    const ann = createdAnnouncement?.announcement || createdAnnouncement;
-    if (!ann) return;
-    const id = ann.id || `local-${Date.now()}`;
-    const item = {
-      id,
-      title: ann.title || 'Untitled',
-      subtitle: ann.message || '',
-      date: ann.scheduledAt ? new Date(ann.scheduledAt).toLocaleString() : new Date().toLocaleDateString(),
-      views: ann.views || 0,
-      isScheduled: !!ann.scheduledAt,
-      status: ann.status || 'Published',
-      raw: ann,
-    };
+  const fetchAnnouncements = useCallback(async (page = 1) => {
+    try {
+      setLoading(true);
+      const body = await GET(API_ENDPOINTS.ADMIN.ANNOUNCEMENTS, {
+        page,
+        limit: ITEMS_PER_PAGE,
+      });
 
-    setAnnouncements((prev) => [item, ...prev]);
+      const anns = body?.data?.announcements || body?.announcements || body?.data || [];
+      const list = Array.isArray(anns) ? anns.map(toAnnouncementItem) : [];
+      const pagination = body?.data?.pagination || body?.pagination;
+
+      if (pagination && (pagination.total != null || pagination.totalPages != null)) {
+        setAnnouncements(list);
+        setTotalResults(pagination.total ?? list.length);
+        setTotalPages(Math.max(1, pagination.totalPages ?? 1));
+        setCurrentPage(pagination.page ?? page);
+        return;
+      }
+
+      const start = (page - 1) * ITEMS_PER_PAGE;
+      const paged = list.slice(start, start + ITEMS_PER_PAGE);
+      setAnnouncements(paged);
+      setTotalResults(list.length);
+      setTotalPages(Math.max(1, Math.ceil(list.length / ITEMS_PER_PAGE)));
+      setCurrentPage(page);
+    } catch (err) {
+      const msg = err?.response?.data?.message || err.message;
+      toast.error(msg);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchAnnouncements(currentPage);
+  }, [currentPage, fetchAnnouncements]);
+
+  const handleSavePlan = () => {
+    if (currentPage === 1) fetchAnnouncements(1);
+    else setCurrentPage(1);
   };
 
   const [confirmAnnouncement, setConfirmAnnouncement] = useState(null);
@@ -54,57 +137,37 @@ export default function CMSAnnouncements() {
     if (!confirmAnnouncement) return;
     const id = confirmAnnouncement.id;
     try {
-      const res = await DELETE(`/api/v1/admin/announcements/${id}`);
-      const msg = res?.message || 'Announcement deleted';
+      const res = await DELETE(adminAnnouncementById(id));
+      const msg = res?.message;
       toast.success(msg);
-      setAnnouncements((prev) => prev.filter((a) => a.id !== id));
+      const nextPage =
+        announcements.length === 1 && currentPage > 1 ? currentPage - 1 : currentPage;
+      if (nextPage !== currentPage) setCurrentPage(nextPage);
+      else fetchAnnouncements(currentPage);
     } catch (err) {
-      const msg = err?.response?.data?.message || err.message || 'Failed to delete announcement';
+      const msg = err?.response?.data?.message || err.message;
       toast.error(msg);
     } finally {
       setConfirmAnnouncement(null);
     }
   };
 
-  useEffect(() => {
-    const toItem = (ann) => ({
-      id: ann.id,
-      title: ann.title,
-      subtitle: ann.message,
-      date: ann.scheduledAt ? new Date(ann.scheduledAt).toLocaleString() : new Date(ann.createdAt).toLocaleString(),
-      views: ann._count?.userNotifications || ann.recipientsCount || 0,
-      isScheduled: !!ann.scheduledAt,
-      status: ann.status,
-      raw: ann,
-    });
+  const indexOfFirstItem = totalResults === 0 ? 0 : (currentPage - 1) * ITEMS_PER_PAGE;
+  const indexOfLastItem = indexOfFirstItem + announcements.length;
 
-    const fetchAnnouncements = async () => {
-      try {
-        setLoading(true);
-        const body = await GET('/api/v1/admin/announcements');
-        const anns = body?.data?.announcements || body?.announcements || body?.data || [];
-        const items = Array.isArray(anns) ? anns.map(toItem) : [];
-        setAnnouncements(items);
-      } catch (err) {
-        const msg = err?.response?.data?.message || err.message || 'Failed to load announcements';
-        toast.error(msg);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAnnouncements();
-  }, []);
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
 
   return (
     <div className="w-full py-7.5 max-lg:min-h-0 max-lg:py-4 max-lg:sm:py-6">
       <div className="">
         {/* Header */}
-        <div className="mb-5 flex w-full items-center justify-between max-lg:mb-4 gap-2">
+        <div className="mb-5 flex w-full items-center justify-between gap-2 max-lg:mb-4">
           <p className="text-[20px] font-medium text-[#181818] dark:text-white"> Announcements</p>
           <button
             onClick={handleOpenModal}
-            className="flex shrink-0 items-center gap-2 rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] font-semibold text-white hover:bg-[#6d18f5] transition-colors"
+            className="flex shrink-0 items-center gap-2 rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] font-semibold text-white transition-colors hover:bg-[#6d18f5]"
           >
             <Plus size={14} strokeWidth={2.5} className="shrink-0 text-white" />
             <span>Create New</span>
@@ -112,45 +175,49 @@ export default function CMSAnnouncements() {
         </div>
 
         {/* Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {announcements.map((announcement) => (
+        {loading ? (
+          <div className="flex items-center justify-center py-16">
+            <p className="text-[12px] font-medium text-[#c2c2c2] dark:text-zinc-500">
+              Loading announcements…
+            </p>
+          </div>
+        ) : announcements.length === 0 ? (
+          <div className="flex items-center justify-center py-16">
+            <p className="text-[12px] font-medium text-[#c2c2c2] dark:text-zinc-500">
+              No announcements yet.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {announcements.map((announcement) => (
             <div
               key={announcement.id}
               className="flex w-full flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-white p-3 dark:border-zinc-700 dark:bg-zinc-800"
             >
               {/* Card Header */}
-              <div className="flex justify-between items-start pb-2.5 border-b border-[#f2f2f2] dark:border-zinc-700">
+              <div className="flex items-start justify-between border-b border-[#f2f2f2] pb-2.5 dark:border-zinc-700">
                 <div>
-                  {announcement.isScheduled ? (
-                    <span className="inline-flex rounded-[6px] bg-[rgba(202,138,4,0.05)] text-[#ca8a04] px-1.5 py-0.5 text-[12px] font-medium uppercase">
-                      Scheduled
-                    </span>
-                  ) : announcement.status === 'Draft' ? (
-                    <span className="inline-flex rounded-[6px] bg-[rgba(107,114,128,0.05)] text-[#6b7280] px-1.5 py-0.5 text-[12px] font-medium uppercase">
-                      Draft
-                    </span>
-                  ) : (
-                    <span className="inline-flex rounded-[6px] bg-[#f9f4ff] text-[#8022fe] px-1.5 py-0.5 text-[12px] font-medium uppercase">
-                      Published
-                    </span>
-                  )}
+                  <AnnouncementStatusBadge status={announcement.status} />
                 </div>
 
                 {/* DROPDOWN CONTAINER */}
                 <div className="relative">
                   <button
                     onClick={(e) => toggleMenu(announcement.id, e)}
-                    className="text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-gray-400 p-1"
+                    className="p-1 text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-gray-400"
                   >
                     <MoreVertical size={16} />
                   </button>
 
                   {/* The Menu */}
                   {openMenuId === announcement.id && (
-                    <div className="absolute right-0 mt-1 w-24 bg-white border dark:bg-zinc-800 border-[#f2f2f2] dark:border-zinc-700 rounded-md shadow-lg z-50 overflow-hidden">
+                    <div className="absolute right-0 z-50 mt-1 w-24 overflow-hidden rounded-md border border-[#f2f2f2] bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-800">
                       <button
-                        className="w-full text-left px-3 py-2 text-[12px] font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 transition-colors"
-                        onClick={(e) => { e.stopPropagation(); openConfirm(announcement); }}
+                        className="w-full px-3 py-2 text-left text-[12px] font-semibold text-red-600 transition-colors hover:bg-red-50 dark:text-red-400"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openConfirm(announcement);
+                        }}
                       >
                         Delete
                       </button>
@@ -160,26 +227,42 @@ export default function CMSAnnouncements() {
               </div>
 
               {/* Card Body */}
-              <div className="py-2.5 flex flex-col gap-1">
-                <h3 className="text-[16px] font-medium text-[#181818] dark:text-white leading-normal">
+              <div className="flex flex-col gap-1 py-2.5">
+                <h3 className="text-[16px] leading-normal font-medium text-[#181818] dark:text-white">
                   {announcement.title}
                 </h3>
                 {announcement.subtitle && (
-                  <p className="text-[12px] font-medium text-[#a3a3a3] dark:text-zinc-500 leading-normal">
+                  <p className="text-[12px] leading-normal font-medium text-[#a3a3a3] dark:text-zinc-500">
                     {announcement.subtitle}
                   </p>
                 )}
               </div>
 
               {/* Card Footer */}
-              <div className="flex justify-between items-center pt-2.5 border-t border-[#f2f2f2] dark:border-zinc-700">
+              <div className="flex items-center justify-between border-t border-[#f2f2f2] pt-2.5 dark:border-zinc-700">
                 <span className="text-[12px] font-medium text-[#c2c2c2] dark:text-zinc-500">
                   {announcement.date}
                 </span>
               </div>
             </div>
           ))}
-        </div>
+          </div>
+        )}
+
+        {!loading && totalResults > PAGINATION_MIN_ITEMS && (
+          <div className="mt-6 rounded-2xl border border-[#f2f2f2] bg-white dark:border-zinc-700 dark:bg-zinc-800">
+            <AllPagination
+              indexOfFirstItem={indexOfFirstItem}
+              indexOfLastItem={indexOfLastItem}
+              totalResults={totalResults}
+              handlePrevious={() => handlePageChange(Math.max(1, currentPage - 1))}
+              currentPage={currentPage}
+              handleNext={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
+          </div>
+        )}
       </div>
       <AnnouncementModal open={modle} onClose={handleCloseModal} onSave={handleSavePlan} />
 
@@ -191,10 +274,12 @@ export default function CMSAnnouncements() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-md bg-[#fcfcfc] dark:bg-zinc-900 rounded-2xl border border-[#f2f2f2] dark:border-zinc-700 shadow-xl overflow-hidden font-sans flex flex-col"
+            className="flex w-full max-w-md flex-col overflow-hidden rounded-2xl border border-[#f2f2f2] bg-[#fcfcfc] font-sans shadow-xl dark:border-zinc-700 dark:bg-zinc-900"
           >
             <div className="flex items-center justify-between border-b border-[#f2f2f2] px-6 py-3.5 dark:border-zinc-700">
-              <h3 className="text-[16px] font-semibold text-[#181818] dark:text-white">Confirm delete</h3>
+              <h3 className="text-[16px] font-semibold text-[#181818] dark:text-white">
+                Confirm delete
+              </h3>
             </div>
             <div className="p-6">
               <p className="text-[12px] font-medium text-[#5d5d5d] dark:text-gray-300">
@@ -204,13 +289,13 @@ export default function CMSAnnouncements() {
             <div className="flex items-center gap-2 border-t border-[#f2f2f2] px-6 py-3.5 dark:border-zinc-700">
               <button
                 onClick={() => setConfirmAnnouncement(null)}
-                className="flex flex-1 items-center justify-center rounded-lg bg-[#f2f2f2] px-3 py-2 text-[12px] font-medium text-[#5d5d5d] dark:bg-zinc-700 dark:text-gray-300 transition-colors"
+                className="flex flex-1 items-center justify-center rounded-lg bg-[#f2f2f2] px-3 py-2 text-[12px] font-medium text-[#5d5d5d] transition-colors dark:bg-zinc-700 dark:text-gray-300"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDeleteConfirmed}
-                className="flex flex-1 items-center justify-center rounded-lg bg-red-600 px-3 py-2 text-[12px] font-semibold text-white hover:bg-red-700 transition-colors"
+                className="flex flex-1 items-center justify-center rounded-lg bg-red-600 px-3 py-2 text-[12px] font-semibold text-white transition-colors hover:bg-red-700"
               >
                 Delete
               </button>
