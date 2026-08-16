@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { LogOut, Bell, Settings, PanelLeft } from 'lucide-react';
 import {
   selectNotifications,
+  fetchNotifications,
   markNotificationAsRead,
   markAllNotificationsAsRead,
 } from '../../../features/notifications/notificationsSlice';
@@ -109,6 +110,10 @@ export default function PrivateNavbar({
   const menuRef = useRef(null);
   const notificationRef = useRef(null);
   const notificationRefMobile = useRef(null);
+
+  useEffect(() => {
+    dispatch(fetchNotifications());
+  }, [dispatch]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
