@@ -1,4 +1,7 @@
+import { useState } from 'react';
 import { GOAL_OPTIONS } from '../../../constants';
+import { PUT } from '../../../services/httpMethods';
+import { API_ENDPOINTS } from '../../../services/httpEndpoint';
 
 const Accent = ({ children }) => <span className="text-[#8022FE]">{children}</span>;
 
@@ -108,6 +111,36 @@ const Step2 = ({
   mainFocus,
   setMainFocus,
 }) => {
+  const [loading, setLoading] = useState(false);
+
+  // Phase 1 = focusAreas (2 picks). Phase 2 = primaryFocus. Both go in one Step 2 request.
+  const submitStep2 = async () => {
+    if (loading || selectedGoals.length !== 2 || !mainFocus) return;
+
+    const payload = {
+      step: 2,
+      focusAreas: selectedGoals,
+      primaryFocus: mainFocus,
+    };
+
+    try {
+      setLoading(true);
+      console.log('[Onboarding Step 2] request body', payload);
+      const response = await PUT(API_ENDPOINTS.ONBOARDING.STEP, payload);
+      console.log('[Onboarding Step 2] response', response);
+      onContinue?.();
+    } catch (error) {
+      console.error('[Onboarding Step 2]', error?.response?.data || error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const goToPhase2 = () => {
+    if (selectedGoals.length !== 2) return;
+    onContinue?.();
+  };
+
   if (phase === 2) {
     return (
       <div className="flex w-full flex-col gap-7.5 px-5 md:items-center md:px-0">
@@ -140,8 +173,8 @@ const Step2 = ({
         </div>
 
         <div className="flex w-full flex-col items-center gap-4 pb-16 md:w-auto md:flex-row-reverse md:justify-center md:gap-5 md:pb-0">
-          <PrimaryBtn onClick={onContinue} disabled={!mainFocus}>
-            Continue
+          <PrimaryBtn onClick={submitStep2} disabled={!mainFocus || loading}>
+            {loading ? 'Saving…' : 'Continue'}
           </PrimaryBtn>
           <SkipBtn onClick={onBack} />
         </div>
@@ -173,7 +206,7 @@ const Step2 = ({
       </div>
 
       <div className="flex w-full flex-col items-center gap-4 pb-16 md:w-auto md:flex-row-reverse md:justify-center md:gap-5 md:pb-0">
-        <PrimaryBtn onClick={onContinue} disabled={selectedGoals.length !== 2}>
+        <PrimaryBtn onClick={goToPhase2} disabled={selectedGoals.length !== 2}>
           Continue
         </PrimaryBtn>
         <SkipBtn onClick={onBack} />

@@ -18,6 +18,9 @@ export const API_ENDPOINTS = {
   ADMIN: {
     ANNOUNCEMENTS: '/api/v1/admin/announcements',
   },
+  ONBOARDING: {
+    STEP: '/api/v1/onboarding/step',
+  },
 };
 
 export function adminAnnouncementById(id) {
