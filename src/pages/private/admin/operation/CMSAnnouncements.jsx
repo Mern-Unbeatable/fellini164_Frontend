@@ -1,6 +1,7 @@
 import { MoreVertical, Plus } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import { GET, DELETE } from '../../../../services/httpMethods';
+import { API_ENDPOINTS, adminAnnouncementById } from '../../../../services/httpEndpoint';
 import { toast } from 'react-toastify';
 import AnnouncementModal from './components/AnnouncementModal';
 import AllPagination from '../../../../components/common/AllPagination';
@@ -85,7 +86,7 @@ export default function CMSAnnouncements() {
   const fetchAnnouncements = useCallback(async (page = 1) => {
     try {
       setLoading(true);
-      const body = await GET('/api/v1/admin/announcements', {
+      const body = await GET(API_ENDPOINTS.ADMIN.ANNOUNCEMENTS, {
         page,
         limit: ITEMS_PER_PAGE,
       });
@@ -136,7 +137,7 @@ export default function CMSAnnouncements() {
     if (!confirmAnnouncement) return;
     const id = confirmAnnouncement.id;
     try {
-      const res = await DELETE(`/api/v1/admin/announcements/${id}`);
+      const res = await DELETE(adminAnnouncementById(id));
       const msg = res?.message;
       toast.success(msg);
       const nextPage =
