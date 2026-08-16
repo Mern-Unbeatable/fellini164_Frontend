@@ -27,6 +27,10 @@ export const API_ENDPOINTS = {
     BASE: '/api/v1/notifications',
     READ_ALL: '/api/v1/notifications/read/all',
   },
+  USERS: {
+    ACTIVITY_LOGS: '/api/v1/users/activity-logs',
+    ACTIVITY_LOGS_STATS: '/api/v1/users/activity-logs/stats',
+  },
 };
 
 export function adminAnnouncementById(id) {

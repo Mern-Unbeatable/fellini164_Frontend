@@ -1,21 +1,42 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, createSelector } from '@reduxjs/toolkit';
 import { fetchActivityLogs, fetchActivityStats } from './activityLogAPI';
+import { parseActivityLogsResponse } from './activityLogMappers';
 import { toast } from 'react-toastify';
 
-// Async thunks
+const EMPTY_ACTIVITIES = [];
+const DEFAULT_STATS = {
+  totalActivities: 0,
+  aiChats: 0,
+  totalTokens: 0,
+  plansCreated: 0,
+};
+const DEFAULT_PAGINATION = {
+  total: 0,
+  limit: 8,
+  offset: 0,
+  page: 1,
+  totalPages: 1,
+  hasMore: false,
+  currentPage: 1,
+};
+const DEFAULT_FILTERS = {
+  type: 'ALL',
+  startDate: null,
+  endDate: null,
+};
+
 export const getActivityLogs = createAsyncThunk(
   'activityLog/getActivityLogs',
-  async ({ page = 1, limit = 10, type, startDate, endDate }, { rejectWithValue }) => {
+  async ({ type, startDate, endDate } = {}, { rejectWithValue }) => {
     try {
-      const response = await fetchActivityLogs({ page, limit, type, startDate, endDate });
-      return response;
+      const response = await fetchActivityLogs({ type, startDate, endDate });
+      return parseActivityLogsResponse(response);
     } catch (error) {
-      toast.error('Failed to load activity logs');
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch activity logs');
+      toast.error(error?.response?.data?.message || error.message || 'Failed to load activity logs');
+      return rejectWithValue(error?.response?.data?.message || error.message || 'Failed to fetch activity logs');
     }
   }
 );
-
 export const getActivityStats = createAsyncThunk(
   'activityLog/getActivityStats',
   async (_, { rejectWithValue }) => {
@@ -38,8 +59,10 @@ const initialState = {
   },
   pagination: {
     total: 0,
-    limit: 10,
+    limit: 8,
     offset: 0,
+    page: 1,
+    totalPages: 1,
     hasMore: false,
     currentPage: 1,
   },
@@ -66,7 +89,10 @@ const activityLogSlice = createSlice({
       state.pagination.currentPage = 1; // Reset to first page when filters are cleared
     },
     setPage: (state, action) => {
-      state.pagination.currentPage = action.payload;
+      const page = Number(action.payload);
+      if (!Number.isFinite(page) || page < 1) return;
+      state.pagination.currentPage = page;
+      state.pagination.offset = (page - 1) * state.pagination.limit;
     },
     resetActivityLog: () => initialState,
   },
@@ -79,13 +105,13 @@ const activityLogSlice = createSlice({
       })
       .addCase(getActivityLogs.fulfilled, (state, action) => {
         state.loading = false;
-        state.activities = action.payload.data || [];
-        // Update pagination data from API response, keeping currentPage from state
-        state.pagination.total = action.payload.pagination?.total || 0;
-        state.pagination.limit = action.payload.pagination?.limit || 10;
-        state.pagination.offset = action.payload.pagination?.offset || 0;
-        state.pagination.hasMore = action.payload.pagination?.hasMore || false;
-        // Don't recalculate currentPage from offset - keep the one we set
+        state.activities = action.payload.activities;
+        state.pagination.total = action.payload.total;
+        state.pagination.totalPages = Math.max(
+          1,
+          Math.ceil(action.payload.total / state.pagination.limit)
+        );
+        state.pagination.offset = (state.pagination.currentPage - 1) * state.pagination.limit;
       })
       .addCase(getActivityLogs.rejected, (state, action) => {
         state.loading = false;
@@ -107,12 +133,36 @@ const activityLogSlice = createSlice({
 
 export const { setActivityFilter, clearActivityFilters, setPage, resetActivityLog } = activityLogSlice.actions;
 
-// Selectors
-export const selectActivities = (state) => state.activityLog?.activities || [];
-export const selectActivityStats = (state) => state.activityLog?.stats || { totalActivities: 0, aiChats: 0, totalTokens: 0, plansCreated: 0 };
-export const selectActivityPagination = (state) => state.activityLog?.pagination || { total: 0, limit: 10, currentPage: 1, offset: 0 };
-export const selectActivityFilters = (state) => state.activityLog?.filters || { type: 'ALL', startDate: '', endDate: '' };
-export const selectActivityLoading = (state) => state.activityLog?.loading || false;
-export const selectStatsLoading = (state) => state.activityLog?.statsLoading || false;
+const selectActivityLogState = (state) => state.activityLog;
+
+export const selectActivities = createSelector(
+  [selectActivityLogState],
+  (activityLog) => activityLog?.activities ?? EMPTY_ACTIVITIES
+);
+
+export const selectActivityStats = createSelector(
+  [selectActivityLogState],
+  (activityLog) => activityLog?.stats ?? DEFAULT_STATS
+);
+
+export const selectActivityPagination = createSelector(
+  [selectActivityLogState],
+  (activityLog) => activityLog?.pagination ?? DEFAULT_PAGINATION
+);
+
+export const selectActivityFilters = createSelector(
+  [selectActivityLogState],
+  (activityLog) => activityLog?.filters ?? DEFAULT_FILTERS
+);
+
+export const selectActivityLoading = createSelector(
+  [selectActivityLogState],
+  (activityLog) => activityLog?.loading ?? false
+);
+
+export const selectStatsLoading = createSelector(
+  [selectActivityLogState],
+  (activityLog) => activityLog?.statsLoading ?? false
+);
 
 export default activityLogSlice.reducer;
