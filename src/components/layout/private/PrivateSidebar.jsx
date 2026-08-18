@@ -15,6 +15,7 @@ import {
   Sparkles,
   Activity,
   Bell,
+  User,
   X,
 } from 'lucide-react';
 
@@ -43,6 +44,7 @@ const TOOLS_ITEMS = [
   { label: 'AI Coach', icon: Sparkles,path: '/user/ai-coach', match: ['/user/ai-coach'] },
   { label: 'Activity', icon: Activity, path: '/user/activity-log', match: ['/user/activity-log'] },
   { label: 'Notification', icon: Bell, path: '/user/notifications', match: ['/user/notifications'] },
+  { label: 'Profile', icon: User, path: '/user/profile', match: ['/user/profile'] },
 ];
 
 function buildCalendarGrid(viewDate) {

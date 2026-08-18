@@ -24,7 +24,7 @@ import UserDashView from '../pages/private/user/userDashboard/UserDashView';
 import AdminDashView from '../pages/private/admin/AdminDashView';
 import Subscription from '../pages/private/user/account/Subscription';
 import ReferFriend from '../pages/private/user/account/ReferFriend';
-import Profile from '../pages/private/user/account/Profile';
+import ProfilePage from '../pages/private/user/profile/ProfilePage';
 import Settings from '../pages/private/user/account/Settings';
 import AiChat from '../pages/private/user/aichat/AiChat';
 import Analytics from '../pages/private/user/growth/Analytics';
@@ -101,7 +101,7 @@ const router = createBrowserRouter(
         <Route path="/user/notifications" element={<Notifications />} />
         <Route path="/user/ai-coach" element={<AiChat />} />
         <Route path="/user/analytics" element={<Analytics />} />
-        <Route path="/user/profile" element={<Profile />} />
+        <Route path="/user/profile" element={<ProfilePage />} />
         <Route path="/user/subscription" element={<Subscription />} />
         <Route path="/user/refer" element={<ReferFriend />} />
         <Route path="/user/daily-plan" element={<DailyPlanner />} />
