@@ -1,13 +1,21 @@
 export default function NormalInfoSection({
   inputClassName,
+  currentPlan,
   fullName,
   email,
   phone,
   setFullName,
-  setEmail,
   setPhone,
   onSubmit,
 }) {
+  const normalizedPlan = String(currentPlan || 'FREE').toUpperCase();
+  const planBadgeClass =
+    normalizedPlan === 'PRO'
+      ? 'bg-[rgba(128,34,254,0.1)] text-[#8022fe] dark:bg-purple-950/40 dark:text-purple-300'
+      : normalizedPlan === 'STARTER'
+        ? 'bg-[rgba(59,130,246,0.1)] text-[#2563eb] dark:bg-blue-950/40 dark:text-blue-300'
+        : 'bg-[rgba(107,114,128,0.12)] text-[#4b5563] dark:bg-zinc-700 dark:text-zinc-300';
+
   return (
     <form
       onSubmit={onSubmit}
@@ -15,6 +23,7 @@ export default function NormalInfoSection({
     >
       <h2 className="text-[16px] font-semibold text-[#181818] dark:text-white">Normal Info</h2>
       <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+   
         <div className="md:col-span-2">
           <label className="mb-1.5 block text-[12px] font-medium text-[#5d5d5d] dark:text-gray-300">
             Full Name
@@ -32,23 +41,23 @@ export default function NormalInfoSection({
           </label>
           <input
             type="email"
-            className={inputClassName}
+            className={`${inputClassName} cursor-not-allowed bg-[#f8f8f8] text-[#5d5d5d] dark:bg-zinc-800/70 dark:text-gray-300`}
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
+            readOnly
           />
         </div>
         <div>
           <label className="mb-1.5 block text-[12px] font-medium text-[#5d5d5d] dark:text-gray-300">
-            Phone
+            Current Plan
           </label>
-          <input
-            className={inputClassName}
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="+880..."
-          />
+          <div className="flex h-10.5 items-center rounded-xl border border-[#f2f2f2] bg-[#f8f8f8] px-3 dark:border-zinc-700 dark:bg-zinc-800/70">
+            <span className={`rounded-md px-2.5 py-1 text-[12px] font-semibold ${planBadgeClass}`}>
+              {normalizedPlan}
+            </span>
+          </div>
         </div>
+        <div />
       </div>
       <div className="mt-5 flex justify-end">
         <button

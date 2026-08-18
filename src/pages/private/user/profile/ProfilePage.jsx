@@ -10,6 +10,7 @@ const inputClassName =
 
 export default function ProfilePage() {
   const user = useSelector(selectUser);
+  const currentPlan = (user?.subscriptionPlan || user?.plan || 'FREE').toString().toUpperCase();
   const [fullName, setFullName] = useState(user?.fullName || user?.name || '');
   const [email, setEmail] = useState(user?.email || '');
   const [phone, setPhone] = useState(user?.phone || '');
@@ -56,11 +57,11 @@ export default function ProfilePage() {
 
       <NormalInfoSection
         inputClassName={inputClassName}
+        currentPlan={currentPlan}
         fullName={fullName}
         email={email}
         phone={phone}
         setFullName={setFullName}
-        setEmail={setEmail}
         setPhone={setPhone}
         onSubmit={handleInfoSubmit}
       />
