@@ -38,13 +38,11 @@ export default function NormalInfoSection({
           <label className="mb-1.5 block text-[12px] font-medium text-[#5d5d5d] dark:text-gray-300">
             Email
           </label>
-          <input
-            type="email"
-            className={`${inputClassName} cursor-not-allowed bg-[#f8f8f8] text-[#5d5d5d] dark:bg-zinc-800/70 dark:text-gray-300`}
-            value={email}
-            placeholder="you@example.com"
-            readOnly
-          />
+          <div className="flex h-10.5 items-center rounded-xl border border-[#f2f2f2] bg-[#f8f8f8] px-3 select-none dark:border-zinc-700 dark:bg-zinc-800/70">
+      
+              {email || '—'}
+            
+          </div>
         </div>
         <div>
           <label className="mb-1.5 block text-[12px] font-medium text-[#5d5d5d] dark:text-gray-300">
