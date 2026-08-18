@@ -15,13 +15,7 @@ const WeeklyFocus = ({ weekLabel, weekTotal }) => {
         </span>
       </div>
 
-      <div className="relative h-35 overflow-hidden rounded-xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-900/50">
-        <div className="absolute inset-x-4 top-5 bottom-5 flex flex-col justify-between">
-          {[0, 1, 2, 3].map((line) => (
-            <div key={line} className="h-px w-full bg-[#ececec] dark:bg-zinc-700" />
-          ))}
-        </div>
-      </div>
+      <div className="h-56 bg-white sm:h-64" />
     </div>
   );
 };
