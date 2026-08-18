@@ -3,9 +3,8 @@ export default function NormalInfoSection({
   currentPlan,
   fullName,
   email,
-  phone,
   setFullName,
-  setPhone,
+  saving = false,
   onSubmit,
 }) {
   const normalizedPlan = String(currentPlan || 'FREE').toUpperCase();
@@ -62,9 +61,10 @@ export default function NormalInfoSection({
       <div className="mt-5 flex justify-end">
         <button
           type="submit"
-          className="rounded-xl bg-[#8022fe] px-4 py-2 text-[13px] font-semibold text-white transition hover:opacity-90"
+          disabled={saving}
+          className="rounded-xl bg-[#8022fe] px-4 py-2 text-[13px] font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          Save Info
+          {saving ? 'Saving...' : 'Save Info'}
         </button>
       </div>
     </form>
