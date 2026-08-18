@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { selectUser, updateAuthUser } from '../../../../features/auth/authSlice';
-import { updateUserProfile } from '../../../../features/auth/profileApi';
+import { updateUserProfile, changePassword } from '../../../../features/auth/profileApi';
 import NormalInfoSection from './components/NormalInfoSection';
 import ChangePasswordSection from './components/ChangePasswordSection';
 
@@ -13,6 +13,7 @@ export default function ProfilePage() {
   const dispatch = useDispatch();
   const user = useSelector(selectUser);
   const savingInfo = useSelector((state) => state.profile?.loading);
+  const savingPassword = useSelector((state) => state.profile?.passwordLoading);
   const currentPlan = (user?.subscriptionPlan || user?.plan || 'FREE').toString().toUpperCase();
   const [fullName, setFullName] = useState(user?.fullName || user?.name || '');
   const [email, setEmail] = useState(user?.email || '');
@@ -40,7 +41,7 @@ export default function ProfilePage() {
     }
   };
 
-  const handlePasswordSubmit = (e) => {
+  const handlePasswordSubmit = async (e) => {
     e.preventDefault();
 
     if (!currentPassword || !newPassword || !confirmPassword) {
@@ -56,10 +57,21 @@ export default function ProfilePage() {
       return;
     }
 
-    toast.success('Password change form submitted (UI ready).');
-    setCurrentPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
+    try {
+      await dispatch(
+        changePassword({
+          currentPassword,
+          newPassword,
+          confirmPassword,
+        })
+      ).unwrap();
+      toast.success('Password changed');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (error) {
+      toast.error(error || 'Failed to change password');
+    }
   };
 
   return (
@@ -89,6 +101,7 @@ export default function ProfilePage() {
         setCurrentPassword={setCurrentPassword}
         setNewPassword={setNewPassword}
         setConfirmPassword={setConfirmPassword}
+        saving={savingPassword}
         onSubmit={handlePasswordSubmit}
       />
     </div>

@@ -38,6 +38,7 @@ export default function ChangePasswordSection({
   setCurrentPassword,
   setNewPassword,
   setConfirmPassword,
+  saving = false,
   onSubmit,
 }) {
   return (
@@ -72,9 +73,10 @@ export default function ChangePasswordSection({
       <div className="mt-5 flex justify-end">
         <button
           type="submit"
-          className="rounded-xl bg-[#8022fe] px-4 py-2 text-[13px] font-semibold text-white transition hover:opacity-90"
+          disabled={saving}
+          className="rounded-xl bg-[#8022fe] px-4 py-2 text-[13px] font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          Change Password
+          {saving ? 'Changing...' : 'Change Password'}
         </button>
       </div>
     </form>

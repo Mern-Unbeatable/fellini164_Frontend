@@ -29,6 +29,7 @@ export const API_ENDPOINTS = {
   },
   AUTH: {
     PROFILE: '/api/v1/auth/profile',
+    CHANGE_PASSWORD: '/api/v1/auth/change-password',
   },
   USERS: {
     ACTIVITY_LOGS: '/api/v1/users/activity-logs',

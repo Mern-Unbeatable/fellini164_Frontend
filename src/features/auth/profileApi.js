@@ -1,5 +1,5 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { GET, PUT } from '../../services/httpMethods';
+import { GET, PUT, POST } from '../../services/httpMethods';
 import { API_ENDPOINTS } from '../../services/httpEndpoint';
 
 // Get user profile
@@ -57,6 +57,29 @@ export const updateUserProfile = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message || error.message || 'Failed to update profile'
+      );
+    }
+  }
+);
+
+export const changePassword = createAsyncThunk(
+  'profile/changePassword',
+  async ({ currentPassword, newPassword, confirmPassword }, { rejectWithValue }) => {
+    try {
+      const response = await POST(API_ENDPOINTS.AUTH.CHANGE_PASSWORD, {
+        currentPassword,
+        newPassword,
+        confirmPassword,
+      });
+
+      if (response?.success === false) {
+        return rejectWithValue(response.message || 'Failed to change password');
+      }
+
+      return response?.data ?? response;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || error.message || 'Failed to change password'
       );
     }
   }

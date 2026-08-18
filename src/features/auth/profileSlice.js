@@ -1,10 +1,11 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { getUserProfile, updateUserProfile, getSubscriptionStatus } from './profileApi';
+import { getUserProfile, updateUserProfile, getSubscriptionStatus, changePassword } from './profileApi';
 
 const initialState = {
   profile: null,
   subscription: null,
   loading: false,
+  passwordLoading: false,
   error: null,
   updateSuccess: false,
 };
@@ -65,6 +66,18 @@ const profileSlice = createSlice({
       })
       .addCase(getSubscriptionStatus.rejected, (state, action) => {
         state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(changePassword.pending, (state) => {
+        state.passwordLoading = true;
+        state.error = null;
+      })
+      .addCase(changePassword.fulfilled, (state) => {
+        state.passwordLoading = false;
+        state.error = null;
+      })
+      .addCase(changePassword.rejected, (state, action) => {
+        state.passwordLoading = false;
         state.error = action.payload;
       });
   },
