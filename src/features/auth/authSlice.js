@@ -434,6 +434,11 @@ const authSlice = createSlice({
     clearForgotPassword: (state) => {
       state.forgotPasswordSuccess = false;
     },
+    updateAuthUser: (state, action) => {
+      if (!state.user) return;
+      state.user = { ...state.user, ...action.payload };
+      setStorage(AUTH_CONFIG.USER_KEY, state.user);
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -586,7 +591,7 @@ const authSlice = createSlice({
    Exports
 ======================= */
 
-export const { clearError, logout, clearForgotPassword } = authSlice.actions;
+export const { clearError, logout, clearForgotPassword, updateAuthUser } = authSlice.actions;
 
 // Selectors
 export const selectAuth = (state) => state.auth;
