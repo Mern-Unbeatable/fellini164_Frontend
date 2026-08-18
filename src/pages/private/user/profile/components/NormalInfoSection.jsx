@@ -19,9 +19,9 @@ export default function NormalInfoSection({
   return (
     <form
       onSubmit={onSubmit}
-      className="rounded-2xl border border-[#f2f2f2] bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900"
+      className="rounded-lg border border-[#f2f2f2] bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900"
     >
-      <h2 className="text-[16px] font-semibold text-[#181818] dark:text-white">Normal Info</h2>
+      <h2 className="text-[16px] font-semibold text-[#181818] dark:text-white">Profile Info</h2>
       <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
    
         <div className="md:col-span-2">
