@@ -1,12 +1,13 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { POST } from '../../services/httpMethods';
+import { API_ENDPOINTS } from '../../services/httpEndpoint';
 
 // Async action
 export const createCheckout = createAsyncThunk(
   'payments/createCheckout',
   async (payload, { rejectWithValue }) => {
     try {
-      const response = await POST('/api/v1/payments/create-checkout', payload);
+      const response = await POST(API_ENDPOINTS.PAYMENTS.CREATE_CHECKOUT, payload);
       if (response.success) return response.data;
       else return rejectWithValue(response.message || 'Checkout failed');
     } catch (err) {

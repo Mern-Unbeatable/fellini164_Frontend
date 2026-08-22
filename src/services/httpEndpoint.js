@@ -31,6 +31,9 @@ export const API_ENDPOINTS = {
     PROFILE: '/api/v1/auth/profile',
     CHANGE_PASSWORD: '/api/v1/auth/change-password',
   },
+  PAYMENTS: {
+    CREATE_CHECKOUT: '/api/v1/payments/create-checkout',
+  },
   USERS: {
     ACTIVITY_LOGS: '/api/v1/users/activity-logs',
     ACTIVITY_LOGS_STATS: '/api/v1/users/activity-logs/stats',

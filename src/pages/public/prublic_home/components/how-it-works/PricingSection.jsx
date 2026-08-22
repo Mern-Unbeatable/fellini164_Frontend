@@ -1,6 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { createCheckout, selectPaymentLoading } from '../../../../../features/users/paymentSlice';
+import { selectIsAuthenticated } from '../../../../../features/auth/authSlice';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -156,7 +161,7 @@ const PricingToggle = ({ billing, onChange }) => (
   </div>
 );
 
-const PricingCard = ({ plan, cardRef, billing }) => {
+const PricingCard = ({ plan, cardRef, billing, onCtaClick, loading }) => {
   const isYearly = billing === 'yearly';
   const showDiscount = isYearly && plan.originalPrice;
   const borderClass = plan.featured ? 'border-2 border-[#8022fe]' : 'border border-[#f2f2f2]';
@@ -214,13 +219,15 @@ const PricingCard = ({ plan, cardRef, billing }) => {
       <div className="px-5 pt-2.5 pb-5 md:p-6">
         <button
           type="button"
-          className={`w-full rounded-[10px] px-5 py-3 font-['Inter',sans-serif] text-[14px] font-semibold transition-colors md:text-[16px] ${
+          disabled={loading}
+          onClick={() => onCtaClick?.(plan)}
+          className={`w-full rounded-[10px] px-5 py-3 font-['Inter',sans-serif] text-[14px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 md:text-[16px] ${
             plan.ctaFilled
               ? 'bg-[#8022fe] text-white hover:bg-[#6b1bdb]'
               : 'border-2 border-[#8022fe] bg-white text-[#8022fe] hover:bg-[#f9f4ff]'
           }`}
         >
-          {plan.cta}
+          {loading ? 'Processing...' : plan.cta}
         </button>
       </div>
     </>
@@ -255,7 +262,12 @@ const PricingCard = ({ plan, cardRef, billing }) => {
 };
 
 const PricingHIW = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+  const paymentLoading = useSelector(selectPaymentLoading);
   const [billing, setBilling] = useState('yearly');
+  const [loadingPlanId, setLoadingPlanId] = useState(null);
   const plans = billing === 'yearly' ? YEARLY_PLANS : MONTHLY_PLANS;
   const secRef = useRef(null);
   const headRef = useRef(null);
@@ -280,6 +292,42 @@ const PricingHIW = () => {
     }, secRef);
     return () => ctx.revert();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handlePlanCta = async (plan) => {
+    if (paymentLoading || loadingPlanId) return;
+
+    if (plan.id === 'free') {
+      navigate(isAuthenticated ? '/dashboard' : '/signup');
+      return;
+    }
+
+    if (!isAuthenticated) {
+      toast.info('Please log in to continue checkout');
+      navigate('/login');
+      return;
+    }
+
+    setLoadingPlanId(plan.id);
+    try {
+      const data = await dispatch(
+        createCheckout({
+          plan: plan.name.toUpperCase(),
+          billingPeriod: billing,
+        })
+      ).unwrap();
+
+      if (data?.url) {
+        window.location.href = data.url;
+        return;
+      }
+
+      toast.error('Checkout URL missing');
+    } catch (error) {
+      toast.error(error || 'Failed to start checkout');
+    } finally {
+      setLoadingPlanId(null);
+    }
+  };
 
   return (
     <section ref={secRef} id="pricing" className="w-full border-y border-[#f2f2f2] bg-[#fcfcfc]">
@@ -308,7 +356,14 @@ const PricingHIW = () => {
           <div className="flex w-full flex-col items-center gap-5 md:gap-7.5">
             <div className="grid w-full grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4">
               {plans.map((plan, i) => (
-                <PricingCard key={plan.id} plan={plan} cardRef={cardRefs[i]} billing={billing} />
+                <PricingCard
+                  key={plan.id}
+                  plan={plan}
+                  cardRef={cardRefs[i]}
+                  billing={billing}
+                  onCtaClick={handlePlanCta}
+                  loading={loadingPlanId === plan.id}
+                />
               ))}
             </div>
 
