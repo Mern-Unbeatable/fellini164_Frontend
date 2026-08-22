@@ -35,6 +35,7 @@ export const API_ENDPOINTS = {
     CREATE_CHECKOUT: '/api/v1/payments/create-checkout',
   },
   USERS: {
+    DASHBOARD: '/api/v1/users/dashboard',
     ACTIVITY_LOGS: '/api/v1/users/activity-logs',
     ACTIVITY_LOGS_STATS: '/api/v1/users/activity-logs/stats',
   },

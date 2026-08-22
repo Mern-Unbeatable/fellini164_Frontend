@@ -1,45 +1,80 @@
 import React from 'react';
-import { Sparkles } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
-const WelcomeHeader = ({ user, tasksCount, completedTasksCount, progressPercent }) => {
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good Morning';
-    if (hour < 17) return 'Good Afternoon';
-    return 'Good Evening';
-  };
+function ProgressRing({ percent, size = 56, stroke = 4 }) {
+  const radius = (size - stroke) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (Math.min(100, Math.max(0, percent)) / 100) * circumference;
 
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#8B5CF6] via-[#8B5CF6] to-[#A78BFA] px-6 py-10 text-white shadow-md md:px-10 md:py-12 dark:from-[#6C3ADC] dark:to-[#4E2C9D]">
-      {/* Subtle Decorative Circles */}
-      <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-white/10 blur-xl"></div>
-      <div className="absolute -bottom-10 -left-10 h-48 w-48 rounded-full bg-black/10 blur-2xl"></div>
+    <div className="relative shrink-0" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="-rotate-90">
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="rgba(255,255,255,0.28)"
+          strokeWidth={stroke}
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="white"
+          strokeWidth={stroke}
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+        />
+      </svg>
+      <span className="absolute inset-0 flex items-center justify-center text-[13px] font-semibold text-white">
+        {percent}%
+      </span>
+    </div>
+  );
+}
 
-      <div className="relative z-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-        <div className="space-y-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-semibold backdrop-blur-md">
-            <Sparkles size={12} /> Today's Focus
+const WelcomeHeader = ({ greeting, dailyProgress, date }) => {
+  const dateLabel = date
+    ? new Date(`${date}T00:00:00`).toLocaleDateString('en-US', {
+        weekday: 'long',
+        month: 'short',
+        day: 'numeric',
+      })
+    : new Date().toLocaleDateString('en-US', {
+        weekday: 'long',
+        month: 'short',
+        day: 'numeric',
+      });
+
+  return (
+    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#8B5CF6] via-[#8B5CF6] to-[#A78BFA] px-5 py-6 text-white shadow-md sm:px-7 sm:py-7 dark:from-[#6C3ADC] dark:to-[#4E2C9D]">
+      <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-white/10 blur-xl" />
+      <div className="absolute -bottom-10 -left-10 h-48 w-48 rounded-full bg-black/10 blur-2xl" />
+      <div className="relative z-10 flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+        <div className="min-w-0 space-y-2.5">
+          <span className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-1 text-[12px] font-medium backdrop-blur-sm">
+            <Plus size={12} strokeWidth={2.5} />
+            {dateLabel}
           </span>
-          <h1 className="md:text-3.5xl text-2xl font-bold">
-            {getGreeting()},{' '}
-            {(user?.fullName || user?.firstName || user?.name || 'Achiever').split(' ')[0]}!
+          <h1 className="text-[28px] leading-tight font-semibold tracking-tight sm:text-[32px]">
+            {greeting?.text || 'Welcome back!'}
           </h1>
-          <p className="max-w-xl text-sm text-purple-100/90">
-            You have {tasksCount} core tasks planned for today. Let's aim to unlock your best
-            productivity state.
+          <p className="max-w-xl text-[13px] leading-relaxed text-white/85 sm:text-[14px]">
+            {greeting?.subtitle || 'A great day starts with one completed item.'}
           </p>
         </div>
 
-        {/* Quick Progress Badge */}
-        <div className="flex items-center gap-4 rounded-xl border border-white/10 bg-white/10 p-4 backdrop-blur-md">
-          <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-white/15">
-            <span className="text-sm font-bold">{progressPercent}%</span>
-          </div>
+        <div className="flex items-center gap-3.5 rounded-xl bg-black/15 px-4 py-3 backdrop-blur-sm">
+          <ProgressRing percent={dailyProgress?.percent || 0} />
           <div>
-            <div className="text-xs font-medium text-purple-200">Daily progress</div>
-            <div className="text-sm font-bold text-white">
-              {completedTasksCount} of {tasksCount} Completed
-            </div>
+            <p className="text-[12px] font-medium text-white/80">Daily progress</p>
+            <p className="text-[13px] font-semibold text-white">
+              {dailyProgress?.label ||
+                `${dailyProgress?.completed || 0} of ${dailyProgress?.total || 0} tasks completed`}
+            </p>
           </div>
         </div>
       </div>

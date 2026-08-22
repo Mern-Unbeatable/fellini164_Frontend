@@ -1,6 +1,5 @@
-import { useSelector } from 'react-redux';
-import { selectUser } from '../../../../features/auth/authSlice';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import WelcomeHeader from './components/WelcomeHeader';
 import DashboardStats from './components/DashboardStats';
 import TodayFocusTasks from './components/TodayFocusTasks';
@@ -9,55 +8,69 @@ import HabitTracker from './components/HabitTracker';
 import AiInsights from './components/AiInsights';
 import DashboardGoals from './components/DashboardGoals';
 import FocusTimeToday from './components/FocusTimeToday';
-
-function getWeekLabel() {
-  const now = new Date();
-  const day = now.getDay();
-  const mondayOffset = day === 0 ? -6 : 1 - day;
-  const monday = new Date(now);
-  monday.setDate(now.getDate() + mondayOffset);
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
-  const fmt = (d) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  return `${fmt(monday)} – ${fmt(sunday)}`;
-}
+import {
+  fetchDashboard,
+  selectDashboardData,
+  selectDashboardFocusTime,
+  selectDashboardGoals,
+  selectDashboardGreeting,
+  selectDashboardHabits,
+  selectDashboardHabitsMeta,
+  selectDashboardInsights,
+  selectDashboardLoading,
+  selectDashboardProgress,
+  selectDashboardSchedule,
+  selectDashboardScheduleMeta,
+  selectDashboardStats,
+  selectDashboardWeeklyFocus,
+} from '../../../../features/dashboard/dashboardSlice';
 
 const UserDashView = () => {
-  const user = useSelector(selectUser);
+  const dispatch = useDispatch();
+  const loading = useSelector(selectDashboardLoading);
+  const data = useSelector(selectDashboardData);
+  const greeting = useSelector(selectDashboardGreeting);
+  const dailyProgress = useSelector(selectDashboardProgress);
+  const stats = useSelector(selectDashboardStats);
+  const schedule = useSelector(selectDashboardSchedule);
+  const scheduleMeta = useSelector(selectDashboardScheduleMeta);
+  const weeklyFocus = useSelector(selectDashboardWeeklyFocus);
+  const habits = useSelector(selectDashboardHabits);
+  const habitsMeta = useSelector(selectDashboardHabitsMeta);
+  const insights = useSelector(selectDashboardInsights);
+  const goals = useSelector(selectDashboardGoals);
+  const focusTimeToday = useSelector(selectDashboardFocusTime);
+
   const [checkedTasks, setCheckedTasks] = useState({});
   const [checkedHabits, setCheckedHabits] = useState({});
 
-  const tasks = [
-    {
-      id: 1,
-      title: 'Interview preparation',
-      time: '8:00 AM',
-      duration: '30m',
-      category: 'Work',
-      extra: 'habit',
-    },
-    {
-      id: 2,
-      title: 'Research online courses for learning TypeScript',
-      time: '9:00 AM',
-      duration: '1h',
-      category: 'Education',
-      extra: 'low priority',
-      extraIsPriority: true,
-    },
-  ];
+  useEffect(() => {
+    dispatch(fetchDashboard());
+  }, [dispatch]);
 
-  const habits = [
-    {
-      id: 'h1',
-      title: 'Morning stretch routine',
-      category: 'Personal',
-      progress: '0/10',
-      streak: 0,
-    },
-    { id: 'h2', title: 'Evening stretch routine', category: 'Health', progress: '0/7', streak: 0 },
-    { id: 'h3', title: 'Mindful breathing breaks', category: 'Health', progress: '0/4', streak: 0 },
-  ];
+  useEffect(() => {
+    if (!schedule.length) {
+      setCheckedTasks({});
+      return;
+    }
+    const next = {};
+    schedule.forEach((item) => {
+      next[item.id] = Boolean(item.isCompleted);
+    });
+    setCheckedTasks(next);
+  }, [schedule]);
+
+  useEffect(() => {
+    if (!habits.length) {
+      setCheckedHabits({});
+      return;
+    }
+    const next = {};
+    habits.forEach((habit) => {
+      next[habit.id] = Boolean(habit.completedToday);
+    });
+    setCheckedHabits(next);
+  }, [habits]);
 
   const toggleTask = (id) => {
     setCheckedTasks((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -67,33 +80,25 @@ const UserDashView = () => {
     setCheckedHabits((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const completedTasksCount = Object.values(checkedTasks).filter(Boolean).length;
-  const progressPercent = Math.round((completedTasksCount / Math.max(tasks.length, 1)) * 100) || 0;
-  const completedHabits = Object.values(checkedHabits).filter(Boolean).length;
-  const habitPercent = Math.round((completedHabits / 6) * 100) || 0;
-
-  const stats = useMemo(
-    () => ({
-      tasksValue: `${completedTasksCount}/${tasks.length}`,
-      tasksSubtitle: `${progressPercent}% completed`,
-      focusValue: '0m',
-      focusSubtitle: 'Today · nothing logged yet',
-      habitValue: `${habitPercent}%`,
-      habitSubtitle: `Start today · 6 active habits`,
-      goalValue: '0%',
-      goalSubtitle: 'No active goals · 3 tracked',
-    }),
-    [completedTasksCount, habitPercent, progressPercent, tasks.length]
+  const doneCount = useMemo(
+    () => Object.values(checkedTasks).filter(Boolean).length,
+    [checkedTasks]
   );
+
+  if (loading && !data) {
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center py-6">
+        <p className="text-[14px] font-medium text-[#5d5d5d] dark:text-gray-300">Loading dashboard…</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4 py-6 max-lg:py-4 max-lg:sm:py-6">
       <WelcomeHeader
-        user={user}
-        tasksCount={tasks.length}
-        completedTasksCount={completedTasksCount}
-        progressPercent={progressPercent}
-        firstTask={tasks[0]}
+        greeting={greeting}
+        dailyProgress={dailyProgress}
+        date={data?.date}
       />
 
       <DashboardStats stats={stats} />
@@ -101,26 +106,33 @@ const UserDashView = () => {
       <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-3">
         <div className="flex flex-col gap-4 lg:col-span-2">
           <TodayFocusTasks
-            tasks={tasks}
+            tasks={schedule}
             checkedTasks={checkedTasks}
             toggleTask={toggleTask}
-            doneCount={completedTasksCount}
-            plannedLabel="1h 30m planned"
+            doneCount={doneCount}
+            plannedLabel={scheduleMeta.plannedLabel}
           />
-          <WeeklyFocus weekLabel={getWeekLabel()} weekTotal="0h 15m" />
+          <WeeklyFocus
+            weekLabel={weeklyFocus.weekLabel}
+            weekTotal={weeklyFocus.weekTotal}
+            days={weeklyFocus.days}
+          />
           <HabitTracker
             habits={habits}
             checkedHabits={checkedHabits}
             toggleHabit={toggleHabit}
-            shownOf={6}
-            todayPercent={habitPercent}
+            shownOf={habitsMeta.shownOf}
+            todayPercent={habitsMeta.todayPercent}
           />
         </div>
 
         <div className="flex flex-col gap-4 lg:col-span-1">
-          <AiInsights />
-          <DashboardGoals />
-          <FocusTimeToday loggedLabel="0m logged" footer="plan starts at 8:00 AM" />
+          <AiInsights insights={insights} />
+          <DashboardGoals activeGoals={goals.activeGoals} label={goals.label} />
+          <FocusTimeToday
+            loggedLabel={focusTimeToday.loggedLabel}
+            footer={focusTimeToday.footer}
+          />
         </div>
       </div>
     </div>
