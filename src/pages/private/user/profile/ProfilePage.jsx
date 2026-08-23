@@ -1,8 +1,12 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { selectUser, updateAuthUser } from '../../../../features/auth/authSlice';
-import { updateUserProfile, changePassword } from '../../../../features/auth/profileApi';
+import {
+  updateUserProfile,
+  changePassword,
+  getSubscriptionStatus,
+} from '../../../../features/auth/profileApi';
 import NormalInfoSection from './components/NormalInfoSection';
 import ChangePasswordSection from './components/ChangePasswordSection';
 
@@ -14,9 +18,21 @@ export default function ProfilePage() {
   const user = useSelector(selectUser);
   const savingInfo = useSelector((state) => state.profile?.loading);
   const savingPassword = useSelector((state) => state.profile?.passwordLoading);
-  const currentPlan = (user?.subscriptionPlan || user?.plan || 'FREE').toString().toUpperCase();
+  const subscription = useSelector((state) => state.profile?.subscription);
+  const currentPlan = (
+    subscription?.plan ||
+    user?.subscriptionPlan ||
+    user?.plan ||
+    'FREE'
+  )
+    .toString()
+    .toUpperCase();
   const [fullName, setFullName] = useState(user?.fullName || user?.name || '');
   const [email, setEmail] = useState(user?.email || '');
+
+  useEffect(() => {
+    dispatch(getSubscriptionStatus());
+  }, [dispatch]);
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');

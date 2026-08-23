@@ -6,6 +6,7 @@ const initialState = {
   subscription: null,
   loading: false,
   passwordLoading: false,
+  subscriptionLoading: false,
   error: null,
   updateSuccess: false,
 };
@@ -56,16 +57,14 @@ const profileSlice = createSlice({
       })
       // Get subscription status
       .addCase(getSubscriptionStatus.pending, (state) => {
-        state.loading = true;
-        state.error = null;
+        state.subscriptionLoading = true;
       })
       .addCase(getSubscriptionStatus.fulfilled, (state, action) => {
-        state.loading = false;
+        state.subscriptionLoading = false;
         state.subscription = action.payload;
-        state.error = null;
       })
       .addCase(getSubscriptionStatus.rejected, (state, action) => {
-        state.loading = false;
+        state.subscriptionLoading = false;
         state.error = action.payload;
       })
       .addCase(changePassword.pending, (state) => {

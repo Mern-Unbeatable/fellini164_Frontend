@@ -27,7 +27,7 @@ export const getSubscriptionStatus = createAsyncThunk(
   'profile/getSubscriptionStatus',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await GET('/api/v1/payments/subscription-status');
+      const response = await GET(API_ENDPOINTS.PAYMENTS.SUBSCRIPTION_STATUS);
 
       if (response.success) {
         return response.data;

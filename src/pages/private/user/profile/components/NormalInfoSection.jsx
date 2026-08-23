@@ -9,7 +9,7 @@ export default function NormalInfoSection({
 }) {
   const normalizedPlan = String(currentPlan || 'FREE').toUpperCase();
   const planBadgeClass =
-    normalizedPlan === 'PRO'
+    normalizedPlan === 'PRO' || normalizedPlan === 'ULTIMATE'
       ? 'bg-[rgba(128,34,254,0.1)] text-[#8022fe] dark:bg-purple-950/40 dark:text-purple-300'
       : normalizedPlan === 'STARTER'
         ? 'bg-[rgba(59,130,246,0.1)] text-[#2563eb] dark:bg-blue-950/40 dark:text-blue-300'
