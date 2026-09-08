@@ -97,9 +97,6 @@ const FinanceAndSubscriptions = () => {
             <div className="rounded-lg bg-[#F0FDF4] p-2">
               <DollarSign className="h-5 w-5 text-[#22A853]" />
             </div>
-            <span className="rounded-full bg-[#F0FDF4] px-2 py-0.75 text-[12px] font-medium text-[#22A853]">
-              +8.2%
-            </span>
           </div>
           <div className="mt-4">
             <h3 className="text-[20px] font-medium text-[#181818] dark:text-white leading-normal">$0</h3>
@@ -112,9 +109,6 @@ const FinanceAndSubscriptions = () => {
             <div className="rounded-lg bg-[#EFF6FF] p-2">
               <CreditCard className="h-5 w-5 text-[#2563EB]" />
             </div>
-            <span className="rounded-full bg-[#EFF6FF] px-2 py-0.75 text-[12px] font-medium text-[#2563EB]">
-              +120
-            </span>
           </div>
           <div className="mt-4">
             <h3 className="text-[20px] font-medium text-[#181818] dark:text-white leading-normal">0</h3>
