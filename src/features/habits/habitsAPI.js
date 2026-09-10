@@ -232,6 +232,8 @@ export async function improveHabitApi(habitId, payload) {
 }
 
 const ONBOARDING_SUGGESTIONS = '/api/v1/onboarding/suggestions';
+const ONBOARDING_GENERATE = '/api/v1/onboarding/generate';
+const ONBOARDING_GENERATE_TIMEOUT_MS = 120000;
 
 function unwrapSuggestionList(body) {
   if (Array.isArray(body?.suggestions)) return body.suggestions;
@@ -255,15 +257,43 @@ function unwrapSuggestionAction(body) {
   return body;
 }
 
+function filterPendingHabitSuggestions(list) {
+  if (!Array.isArray(list)) return [];
+  return list.filter((item) => {
+    if (!item || typeof item !== 'object') return false;
+    const type = String(item.type || '').toUpperCase();
+    if (type && type !== 'HABIT') return false;
+    const status = String(item.status || 'pending').toLowerCase();
+    return status === 'pending';
+  });
+}
+
 /**
- * GET /api/v1/onboarding/suggestions?type=HABIT&status=pending
- * Empty-board ghost habit rows. Envelope: { suggestions: [...] }.
+ * POST /api/v1/onboarding/generate
+ * Creates a batch of onboarding suggestions (goals/tasks/habits/planner).
+ * Habits Board empty state uses type=HABIT items only.
  */
-export async function fetchOnboardingHabitSuggestionsApi() {
-  const response = await axiosInstance.get(ONBOARDING_SUGGESTIONS, {
-    params: { type: 'HABIT', status: 'pending' },
+export async function generateOnboardingSuggestionsApi() {
+  const response = await axiosInstance.post(ONBOARDING_GENERATE, undefined, {
+    timeout: ONBOARDING_GENERATE_TIMEOUT_MS,
   });
   return unwrapSuggestionList(response?.data);
+}
+
+/**
+ * Empty-board habit ghosts:
+ * 1) GET pending HABIT suggestions
+ * 2) If none → POST /onboarding/generate → keep type=HABIT only
+ */
+export async function fetchOnboardingHabitSuggestionsApi() {
+  const pendingResponse = await axiosInstance.get(ONBOARDING_SUGGESTIONS, {
+    params: { type: 'HABIT', status: 'pending' },
+  });
+  const pending = filterPendingHabitSuggestions(unwrapSuggestionList(pendingResponse?.data));
+  if (pending.length > 0) return pending;
+
+  const generated = await generateOnboardingSuggestionsApi();
+  return filterPendingHabitSuggestions(generated);
 }
 
 /**
