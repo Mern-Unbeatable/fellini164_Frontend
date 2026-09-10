@@ -22,7 +22,27 @@ function DayCell({ state, progress, dimmed, interactive, onToggle }) {
 
   const done = Array.isArray(progress) ? Number(progress[0]) || 0 : 0;
   const total = Array.isArray(progress) ? Number(progress[1]) || 0 : 0;
-  const isPartial = total > 1 && done > 0 && done < total;
+  const isMultiSlot = total > 1;
+  const isPartial = isMultiSlot && done > 0 && done < total;
+  const isZeroProgress = isMultiSlot && done === 0 && state !== 'checked';
+
+  // 0/N before first click — empty box + label (no fill / no mini-check)
+  if (isZeroProgress) {
+    return (
+      <div className={`${wrapClass} gap-1`}>
+        <button
+          type="button"
+          disabled={!interactive || dimmed}
+          onClick={onToggle}
+          aria-label={`0 of ${total} completed`}
+          className={`border border-solid border-[#e9e9e9] bg-white disabled:cursor-default dark:border-zinc-600 dark:bg-zinc-700 ${boxClass}`}
+        />
+        <p className="text-[10px] font-medium whitespace-nowrap text-[#181818] dark:text-white">
+          0/{total}
+        </p>
+      </div>
+    );
+  }
 
   if (isPartial || (progress && state === 'partial')) {
     const fillPct = Math.min(100, Math.max(0, (done / Math.max(total, 1)) * 100));

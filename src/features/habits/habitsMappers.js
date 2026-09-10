@@ -185,7 +185,7 @@ export function buildWeekDayStates(habit) {
   });
 }
 
-/** Per-day [done, total] for multi-slot cells; null when not multi or empty. */
+/** Per-day [done, total] for multi-slot cells (includes 0/N before first click). */
 export function buildWeekDayProgress(habit) {
   const timesPerDay = resolveTimesPerDay(habit);
   if (timesPerDay <= 1) return Array(7).fill(null);
@@ -207,8 +207,10 @@ export function buildWeekDayProgress(habit) {
     cell.setDate(monday.getDate() + i);
     const key = localDateKey(cell);
     const done = Math.min(timesPerDay, counts.get(key) || 0);
-    if (done <= 0 || done >= timesPerDay) return null;
-    return [done, timesPerDay];
+    if (done >= timesPerDay) return null; // full → checked cell
+    if (done > 0) return [done, timesPerDay];
+    // 0/N only on today (before first click); other empty days stay blank
+    return key === todayKey ? [0, timesPerDay] : null;
   });
 }
 
@@ -314,13 +316,13 @@ export function mapHabitFromApi(apiHabit, preferredSource) {
     if (tp && typeof tp.completed === 'number' && typeof tp.total === 'number') {
       const done = Number(tp.completed) || 0;
       const total = Number(tp.total) || timesPerDay;
-      if (done > 0 && done < total) todayProgress = [done, total];
+      if (done < total) todayProgress = [done, total]; // includes 0/N
     } else {
       const todayIdx = (() => {
         const day = new Date().getDay();
         return day === 0 ? 6 : day - 1;
       })();
-      todayProgress = dayProgress[todayIdx] || undefined;
+      todayProgress = dayProgress[todayIdx] || [0, timesPerDay];
     }
   }
 
