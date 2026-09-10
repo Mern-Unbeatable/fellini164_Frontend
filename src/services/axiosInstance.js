@@ -5,11 +5,11 @@
 
 import axios from 'axios';
 import { API_CONFIG, AUTH_CONFIG } from '../config/constants';
-import { getStorage, removeStorage } from '../utils/storage';
+import { getAuthToken, removeAuthToken, removeStorage } from '../utils/storage';
 
-// Get token from storage
+// Get token from cookie
 const getToken = () => {
-  return getStorage(AUTH_CONFIG.TOKEN_KEY) || null;
+  return getAuthToken() || null;
 };
 
 /** Do not attach app JWT on public auth routes (stale token can cause 401 on Google login). */
@@ -66,7 +66,7 @@ axiosInstance.interceptors.response.use(
     // Handle specific error statuses
     if (response?.status === 401) {
       if (shouldClearSessionOn401(error.config?.url)) {
-        removeStorage(AUTH_CONFIG.TOKEN_KEY);
+        removeAuthToken();
         removeStorage(AUTH_CONFIG.USER_KEY);
 
         if (window.location.pathname !== '/login') {

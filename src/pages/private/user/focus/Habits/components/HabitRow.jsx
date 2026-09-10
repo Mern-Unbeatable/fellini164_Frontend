@@ -4,8 +4,8 @@ import HabitTagList from './HabitTagList';
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-// Day states: 'unscheduled' | 'empty' | 'checked' | 'today'
-// MVP: one click per day — no fractional todayProgress product behavior.
+// Day states: 'unscheduled' | 'empty' | 'partial' | 'checked'
+// Multi-slot (AI): click N times → fill 1/N … → full check when done === total
 function DayCell({ state, progress, dimmed, interactive, onToggle }) {
   if (state === 'unscheduled') {
     return (
@@ -20,22 +20,51 @@ function DayCell({ state, progress, dimmed, interactive, onToggle }) {
     interactive && !dimmed ? 'cursor-pointer' : ''
   }`;
 
-  if (progress && state === 'today') {
-    const [done, total] = progress;
-    const fillPct = Math.min(100, Math.max(0, (done / total) * 100));
+  const done = Array.isArray(progress) ? Number(progress[0]) || 0 : 0;
+  const total = Array.isArray(progress) ? Number(progress[1]) || 0 : 0;
+  const isMultiSlot = total > 1;
+  const isPartial = isMultiSlot && done > 0 && done < total;
+  const isZeroProgress = isMultiSlot && done === 0 && state !== 'checked';
+
+  // 0/N before first click — empty box + label (no fill / no mini-check)
+  if (isZeroProgress) {
     return (
-      <div className={`${wrapClass} gap-2`}>
+      <div className={`${wrapClass} gap-1`}>
         <button
           type="button"
           disabled={!interactive || dimmed}
           onClick={onToggle}
-          aria-label={`${done} of ${total} completed today`}
+          aria-label={`0 of ${total} completed`}
+          className={`border border-solid border-[#e9e9e9] bg-white disabled:cursor-default dark:border-zinc-600 dark:bg-zinc-700 ${boxClass}`}
+        />
+        <p className="text-[10px] font-medium whitespace-nowrap text-[#181818] dark:text-white">
+          0/{total}
+        </p>
+      </div>
+    );
+  }
+
+  if (isPartial || (progress && state === 'partial')) {
+    const fillPct = Math.min(100, Math.max(0, (done / Math.max(total, 1)) * 100));
+    return (
+      <div className={`${wrapClass} gap-1`}>
+        <button
+          type="button"
+          disabled={!interactive || dimmed}
+          onClick={onToggle}
+          aria-label={`${done} of ${total} completed`}
           className={`relative flex items-center overflow-hidden border border-solid border-[#e9e9e9] bg-white disabled:cursor-default dark:border-zinc-600 dark:bg-zinc-700 ${boxClass}`}
         >
           <span
             aria-hidden
             className="absolute top-0 left-0 h-full rounded-tr-[6px] rounded-br-[6px] bg-[#f9f4ff]"
             style={{ width: `${fillPct}%` }}
+          />
+          <Check
+            size={10}
+            strokeWidth={3}
+            className="absolute bottom-1 left-1 z-[1] text-[#8022fe]"
+            aria-hidden
           />
         </button>
         <p className="text-[10px] font-medium whitespace-nowrap text-[#181818] dark:text-white">
@@ -219,11 +248,25 @@ export default function HabitRow({
             {habit.description}
           </p>
         </div>
-        <HabitTagList
-          tags={habit.tags || []}
-          maxVisible={compact ? (habit.tags || []).length : 2}
-          wrap={compact}
-        />
+        <div className="flex flex-wrap items-center gap-1">
+          <HabitTagList
+            tags={habit.tags || []}
+            maxVisible={
+              // Manual: never show +N overflow. AI: keep Figma +N tag overflow.
+              habit.source === 'manual'
+                ? (habit.tags || []).length
+                : compact
+                  ? (habit.tags || []).length
+                  : 2
+            }
+            wrap={compact || habit.source === 'manual'}
+          />
+          {habit.timesPerDayBadge && (
+            <span className="flex shrink-0 items-center rounded-[6px] border border-[#f2f2f2] px-[6px] py-[2px] text-xs font-medium text-[#5d5d5d] dark:border-zinc-700 dark:text-gray-300">
+              {habit.timesPerDayBadge}
+            </span>
+          )}
+        </div>
       </div>
 
       {!compact && (
@@ -276,7 +319,8 @@ export default function HabitRow({
               key={day}
               state={habit.days?.[i] || 'empty'}
               progress={
-                habit.days?.[i] === 'today' && habit.todayProgress ? habit.todayProgress : null
+                habit.dayProgress?.[i] ||
+                (i === todayIndex && habit.todayProgress ? habit.todayProgress : null)
               }
               dimmed={false}
               interactive={Boolean(onToggleDay) && !isCompleted && !isPaused && i === todayIndex}

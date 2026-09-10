@@ -264,6 +264,7 @@ export default function Habits() {
     const current = habit.days?.[dayIndex];
     if (current === 'unscheduled') return;
 
+    // Multi-slot: only undo when fully checked; otherwise POST complete again
     if (current === 'checked') {
       await dispatch(undoHabitCompletion(habitId));
     } else {

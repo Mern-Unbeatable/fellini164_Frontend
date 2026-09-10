@@ -133,14 +133,15 @@ export const updateHabit = createAsyncThunk(
   }
 );
 
-/** Today's check-in — POST /habits/:id/complete */
+/** Today's check-in — POST /habits/:id/complete (supports multi-slot progress) */
 export const completeHabitToday = createAsyncThunk(
   'habits/completeHabitToday',
   async ({ habitId, notes }, { rejectWithValue }) => {
     try {
       const payload = notes ? { notes } : {};
-      const data = await completeHabitTodayApi(habitId, payload);
-      return mapHabitFromApi(data) || { id: habitId };
+      const result = await completeHabitTodayApi(habitId, payload);
+      if (result?.message) toast.success(result.message);
+      return mapHabitFromApi(result?.habit) || { id: habitId };
     } catch (error) {
       toast.error(error?.response?.data?.message || 'Failed to complete habit');
       return rejectWithValue(error?.response?.data?.message || 'Failed to complete habit');
@@ -308,15 +309,8 @@ const habitsSlice = createSlice({
 
       .addCase(completeHabitToday.fulfilled, (state, action) => {
         if (!action.payload?.id) return;
-        const todayIdx = (() => {
-          const day = new Date().getDay();
-          return day === 0 ? 6 : day - 1;
-        })();
-        const days = Array.isArray(action.payload.days)
-          ? [...action.payload.days]
-          : Array(7).fill('empty');
-        if (days[todayIdx] !== 'unscheduled') days[todayIdx] = 'checked';
-        mergeHabitIntoState(state, { ...action.payload, days });
+        // Mapper already sets days / dayProgress / todayProgress from API habit
+        mergeHabitIntoState(state, action.payload);
       })
 
       .addCase(undoHabitCompletion.fulfilled, (state, action) => {

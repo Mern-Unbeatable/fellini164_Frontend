@@ -271,11 +271,7 @@ export const fetchSubscriptionStatus = createAsyncThunk(
   'subscription/fetchStatus',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await GET('/api/v1/payments/subscription-status', {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
+      const response = await GET('/api/v1/payments/subscription-status');
 
       return response.data.data; // plan, status, startDate, endDate, etc
     } catch (error) {
