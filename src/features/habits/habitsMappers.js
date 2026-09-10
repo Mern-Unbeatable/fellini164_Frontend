@@ -120,6 +120,98 @@ function completionDateKeys(completions) {
   return keys;
 }
 
+/** Count completions per local YYYY-MM-DD (multi-slot days need N clicks). */
+function completionCountsByDate(completions) {
+  const counts = new Map();
+  if (!Array.isArray(completions)) return counts;
+  for (const entry of completions) {
+    if (!entry) continue;
+    const key =
+      toDateKey(entry.date) ||
+      toDateKey(entry.completedAt) ||
+      toDateKey(entry.completionDate) ||
+      toDateKey(entry.createdAt);
+    if (!key) continue;
+    counts.set(key, (counts.get(key) || 0) + 1);
+  }
+  return counts;
+}
+
+function resolveTimesPerDay(habit) {
+  const n = Number(habit?.targetTimesPerDay);
+  return Number.isFinite(n) && n > 1 ? Math.floor(n) : 1;
+}
+
+/**
+ * Build Mon–Sun day cell states from targetDays + completions.
+ * States: 'unscheduled' | 'empty' | 'partial' | 'checked'
+ * Multi-slot (AI targetTimesPerDay > 1): N completions per day before checked.
+ */
+export function buildWeekDayStates(habit) {
+  const monday = getWeekMonday();
+  const targetSet = new Set(
+    (Array.isArray(habit?.targetDays) ? habit.targetDays : []).map((d) => String(d).toUpperCase())
+  );
+  const timesPerDay = resolveTimesPerDay(habit);
+  const counts = completionCountsByDate(habit?.completions);
+  const completedKeys = completionDateKeys(habit?.completions);
+  const todayKey = localDateKey(new Date());
+
+  // Some list payloads omit today's completion in `completions` — honor explicit flags.
+  if (habit?.completedToday === true && !counts.has(todayKey)) {
+    counts.set(todayKey, timesPerDay);
+    completedKeys.add(todayKey);
+  }
+
+  // Prefer server todayProgress for today's count when present.
+  const tp = habit?.todayProgress;
+  if (tp && typeof tp.completed === 'number') {
+    counts.set(todayKey, Number(tp.completed) || 0);
+  }
+
+  return INDEX_TO_WEEKDAY.map((name, i) => {
+    if (targetSet.size > 0 && !targetSet.has(name)) return 'unscheduled';
+    const cell = new Date(monday);
+    cell.setDate(monday.getDate() + i);
+    const key = localDateKey(cell);
+    const done = counts.get(key) || 0;
+    if (timesPerDay > 1) {
+      if (done >= timesPerDay) return 'checked';
+      if (done > 0) return 'partial';
+      return 'empty';
+    }
+    if (completedKeys.has(key) || done >= 1) return 'checked';
+    return 'empty';
+  });
+}
+
+/** Per-day [done, total] for multi-slot cells; null when not multi or empty. */
+export function buildWeekDayProgress(habit) {
+  const timesPerDay = resolveTimesPerDay(habit);
+  if (timesPerDay <= 1) return Array(7).fill(null);
+
+  const monday = getWeekMonday();
+  const targetSet = new Set(
+    (Array.isArray(habit?.targetDays) ? habit.targetDays : []).map((d) => String(d).toUpperCase())
+  );
+  const counts = completionCountsByDate(habit?.completions);
+  const todayKey = localDateKey(new Date());
+  const tp = habit?.todayProgress;
+  if (tp && typeof tp.completed === 'number') {
+    counts.set(todayKey, Number(tp.completed) || 0);
+  }
+
+  return INDEX_TO_WEEKDAY.map((name, i) => {
+    if (targetSet.size > 0 && !targetSet.has(name)) return null;
+    const cell = new Date(monday);
+    cell.setDate(monday.getDate() + i);
+    const key = localDateKey(cell);
+    const done = Math.min(timesPerDay, counts.get(key) || 0);
+    if (done <= 0 || done >= timesPerDay) return null;
+    return [done, timesPerDay];
+  });
+}
+
 /** Convert API `HH:mm` (24h) → `h:mm AM/PM` tag label. */
 export function reminderTimeFromApi(reminderTime) {
   if (!reminderTime || typeof reminderTime !== 'string') return null;
@@ -159,32 +251,6 @@ export function targetDaysFromApi(apiDays) {
   if (!Array.isArray(apiDays) || apiDays.length === 0) return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   const reverse = Object.fromEntries(Object.entries(UI_DAY_TO_API).map(([k, v]) => [v, k]));
   return apiDays.map((d) => reverse[String(d).toUpperCase()]).filter(Boolean);
-}
-
-/**
- * Build Mon–Sun day cell states from targetDays + completions.
- * States: 'unscheduled' | 'empty' | 'checked'
- * MVP: one check/day — no fractional todayProgress.
- */
-export function buildWeekDayStates(habit) {
-  const monday = getWeekMonday();
-  const targetSet = new Set(
-    (Array.isArray(habit?.targetDays) ? habit.targetDays : []).map((d) => String(d).toUpperCase())
-  );
-  const completed = completionDateKeys(habit?.completions);
-  const todayKey = localDateKey(new Date());
-
-  // Some list payloads omit today's completion in `completions` — honor explicit flags.
-  if (habit?.completedToday === true) completed.add(todayKey);
-
-  return INDEX_TO_WEEKDAY.map((name, i) => {
-    if (targetSet.size > 0 && !targetSet.has(name)) return 'unscheduled';
-    const cell = new Date(monday);
-    cell.setDate(monday.getDate() + i);
-    const key = localDateKey(cell);
-    if (completed.has(key)) return 'checked';
-    return 'empty';
-  });
 }
 
 function daysLeftLabel(habit) {
@@ -234,11 +300,29 @@ export function mapHabitFromApi(apiHabit, preferredSource) {
   if (!apiHabit) return null;
 
   const sourceRaw = String(apiHabit.source || '').toUpperCase();
+  const timesPerDay = resolveTimesPerDay(apiHabit);
   const isAi =
     preferredSource === 'ai' ||
     Boolean(apiHabit.aiSuggested) ||
     sourceRaw === 'AI' ||
     sourceRaw === 'AI_GENERATED';
+
+  const dayProgress = buildWeekDayProgress(apiHabit);
+  let todayProgress;
+  if (timesPerDay > 1) {
+    const tp = apiHabit.todayProgress;
+    if (tp && typeof tp.completed === 'number' && typeof tp.total === 'number') {
+      const done = Number(tp.completed) || 0;
+      const total = Number(tp.total) || timesPerDay;
+      if (done > 0 && done < total) todayProgress = [done, total];
+    } else {
+      const todayIdx = (() => {
+        const day = new Date().getDay();
+        return day === 0 ? 6 : day - 1;
+      })();
+      todayProgress = dayProgress[todayIdx] || undefined;
+    }
+  }
 
   return {
     id: apiHabit.id,
@@ -248,7 +332,7 @@ export function mapHabitFromApi(apiHabit, preferredSource) {
     frequency: apiHabit.frequency || 'DAILY',
     difficulty: apiHabit.difficulty || 'MEDIUM',
     targetDays: Array.isArray(apiHabit.targetDays) ? apiHabit.targetDays : [],
-    targetTimesPerDay: apiHabit.targetTimesPerDay ?? 1,
+    targetTimesPerDay: timesPerDay,
     reminderTime: apiHabit.reminderTime || null,
     streak: Number(apiHabit.currentStreak) || 0,
     longestStreak: Number(apiHabit.longestStreak) || 0,
@@ -261,9 +345,11 @@ export function mapHabitFromApi(apiHabit, preferredSource) {
     goal: apiHabit.goal || null,
     completions: Array.isArray(apiHabit.completions) ? apiHabit.completions : [],
     tags: buildTags(apiHabit),
+    // AI multi-slot only — Manual stays 1x/day (no +N)
+    timesPerDayBadge: isAi && timesPerDay > 1 ? `+${timesPerDay}` : null,
     days: buildWeekDayStates(apiHabit),
-    // MVP: no fractional multi-check
-    todayProgress: undefined,
+    dayProgress,
+    todayProgress,
   };
 }
 
@@ -276,7 +362,10 @@ export function mapAiGeneratedHabitForPreview(apiHabit) {
   };
 }
 
-/** Map New Habit modal → POST /habits body. */
+/** Map New Habit modal → POST /habits body.
+ * Manual create: do NOT send targetTimesPerDay (backend defaults to 1).
+ * Multi-slot is AI-only via POST /habits/ai/generate.
+ */
 export function mapCreatePayload(form) {
   const payload = {
     name: String(form.title || form.name || '').trim(),
@@ -285,7 +374,6 @@ export function mapCreatePayload(form) {
     frequency: String(form.frequency || 'DAILY').toUpperCase(),
     difficulty: String(form.difficulty || 'MEDIUM').toUpperCase(),
     targetDays: targetDaysToApi(form.targetDays),
-    targetTimesPerDay: 1,
     reminderTime:
       form.reminderTime || reminderTimeToApi(form.hour, form.minute, form.period),
   };

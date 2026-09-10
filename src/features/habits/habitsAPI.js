@@ -58,7 +58,8 @@ export async function fetchHabitByIdApi(habitId) {
 
 /**
  * POST /api/v1/habits
- * Body: { name, description, category, frequency, difficulty, targetDays, targetTimesPerDay, reminderTime, goalId? }
+ * Body: { name, description, category, frequency, difficulty, targetDays, reminderTime, goalId? }
+ * Do not send targetTimesPerDay on manual create (backend defaults to 1).
  */
 export async function createHabitApi(payload) {
   const response = await axiosInstance.post(BASE, payload);
@@ -76,11 +77,19 @@ export async function updateHabitApi(habitId, payload) {
 
 /**
  * POST /api/v1/habits/:habitId/complete
+ * Multi-slot: each call increments todayProgress (e.g. 1/4 → 2/4).
  * Body: { notes? }
+ * Returns { habit, message, progress, alreadyCompleted }
  */
 export async function completeHabitTodayApi(habitId, payload = {}) {
   const response = await axiosInstance.post(`${BASE}/${habitId}/complete`, payload);
-  return unwrapData(response);
+  const body = response?.data;
+  return {
+    habit: body?.habit ?? unwrapData(response),
+    message: body?.message || null,
+    progress: body?.progress || body?.habit?.todayProgress || null,
+    alreadyCompleted: Boolean(body?.alreadyCompleted),
+  };
 }
 
 /** DELETE /api/v1/habits/:habitId/complete — Undo today's completion */
