@@ -18,6 +18,7 @@ export const API_ENDPOINTS = {
   ADMIN: {
     ANNOUNCEMENTS: '/api/v1/admin/announcements',
     STATS: '/api/v1/admin/stats',
+    USERS: '/api/v1/admin/users',
   },
   ONBOARDING: {
     STEP: '/api/v1/onboarding/step',
@@ -45,6 +46,10 @@ export const API_ENDPOINTS = {
 
 export function adminAnnouncementById(id) {
   return `${API_ENDPOINTS.ADMIN.ANNOUNCEMENTS}/${id}`;
+}
+
+export function adminUserById(id) {
+  return `${API_ENDPOINTS.ADMIN.USERS}/${id}`;
 }
 
 export function notificationById(id, suffix) {

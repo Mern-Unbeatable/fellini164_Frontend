@@ -1,5 +1,6 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { GET } from '../../services/httpMethods';
+import { GET, DELETE } from '../../services/httpMethods';
+import { adminUserById } from '../../services/httpEndpoint';
 
 // Fetch mapped users (used by some UI views)
 export const fetchUsers = createAsyncThunk(
@@ -138,9 +139,31 @@ export const fetchAdminStats = createAsyncThunk(
   }
 );
 
+// Delete user by admin — DELETE /api/v1/admin/users/:userId
+export const deleteAdminUser = createAsyncThunk(
+  'users/deleteAdminUser',
+  async (userId, { rejectWithValue }) => {
+    try {
+      const response = await DELETE(adminUserById(userId));
+
+      if (!response || !response.success) {
+        return rejectWithValue(response?.message || 'Failed to delete user');
+      }
+
+      return {
+        id: response.data?.id || userId,
+        message: response.message || 'User deleted successfully',
+      };
+    } catch (err) {
+      return rejectWithValue(err.message || 'Network error');
+    }
+  }
+);
+
 export default {
   fetchUsers,
   fetchAdminUsers,
   fetchWaitlistUsers,
   fetchAdminStats,
+  deleteAdminUser,
 };

@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { fetchUsers, fetchAdminUsers, fetchWaitlistUsers } from './usersApi';
+import { fetchUsers, fetchAdminUsers, fetchWaitlistUsers, deleteAdminUser } from './usersApi';
 
 // thunks moved to UsersApi.js
 
@@ -79,6 +79,15 @@ const usersSlice = createSlice({
         state.loading = false;
         state.error = action.payload || action.error?.message || 'Failed to load waitlist users';
       });
+
+    builder.addCase(deleteAdminUser.fulfilled, (state, action) => {
+      const id = action.payload?.id;
+      if (!id) return;
+      state.list = state.list.filter((u) => u.id !== id);
+      state.adminList = state.adminList.filter((u) => u.id !== id);
+      if (state.pagination.total > 0) state.pagination.total -= 1;
+      if (state.adminPagination.total > 0) state.adminPagination.total -= 1;
+    });
   },
 });
 

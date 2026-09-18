@@ -1,11 +1,14 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
+import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { ChevronDown, Download, Search, MoreVertical, Eye, Pencil, Trash2, X } from 'lucide-react';
+import { toast } from 'react-toastify';
 import AllPagination from '../../../../../components/common/AllPagination';
 import EditUserModal from './EditUserModal';
 import ViewUserModal from './ViewUserModal';
 import ActionDropdown from './ActionDropdown';
 import DeleteConfirmModal from './DeleteConfirmModal';
+import { deleteAdminUser } from '../../../../../features/users/usersApi';
 
 const MobileCard = ({
   user,
@@ -202,6 +205,7 @@ const UserTable = ({
       .toUpperCase();
 
   const getAvatarColor = () => 'bg-purple-200';
+  const dispatch = useDispatch();
   const [statusFilter, setStatusFilter] = useState('All Status');
   const [localUsers, setLocalUsers] = useState(users);
 
@@ -242,6 +246,7 @@ const UserTable = ({
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const handleDelete = (userId) => {
     const userObj = localUsers.find((u) => u.id === userId);
@@ -251,11 +256,20 @@ const UserTable = ({
     }
   };
 
-  const handleConfirmDelete = () => {
-    if (userToDelete) {
+  const handleConfirmDelete = async () => {
+    if (!userToDelete?.id || deleting) return;
+
+    setDeleting(true);
+    try {
+      const result = await dispatch(deleteAdminUser(userToDelete.id)).unwrap();
       setLocalUsers((prev) => prev.filter((u) => u.id !== userToDelete.id));
+      toast.success(result?.message || 'User deleted successfully');
       setDeleteModalOpen(false);
       setUserToDelete(null);
+    } catch (err) {
+      toast.error(err || 'Failed to delete user');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -454,11 +468,13 @@ const UserTable = ({
       <DeleteConfirmModal
         isOpen={deleteModalOpen}
         onClose={() => {
+          if (deleting) return;
           setDeleteModalOpen(false);
           setUserToDelete(null);
         }}
         onConfirm={handleConfirmDelete}
         userName={userToDelete?.name || ''}
+        loading={deleting}
       />
     </div>
   );

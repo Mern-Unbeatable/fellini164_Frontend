@@ -1,7 +1,7 @@
 import React from 'react';
 import { AlertCircle, X } from 'lucide-react';
 
-export default function DeleteConfirmModal({ isOpen, onClose, onConfirm, userName }) {
+export default function DeleteConfirmModal({ isOpen, onClose, onConfirm, userName, loading = false }) {
   if (!isOpen) return null;
 
   return (
@@ -15,15 +15,18 @@ export default function DeleteConfirmModal({ isOpen, onClose, onConfirm, userNam
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1 text-[#a3a3a3] hover:bg-[#f2f2f2] dark:hover:bg-zinc-700"
+            disabled={loading}
+            className="rounded-lg p-1 text-[#a3a3a3] hover:bg-[#f2f2f2] dark:hover:bg-zinc-700 disabled:opacity-50"
           >
             <X size={16} />
           </button>
         </div>
-        
+
         <div className="mt-4">
           <p className="text-sm text-[#5d5d5d] dark:text-gray-300">
-            Are you sure you want to delete <span className="font-semibold text-[#181818] dark:text-white">{userName}</span>? This action cannot be undone.
+            Are you sure you want to delete{' '}
+            <span className="font-semibold text-[#181818] dark:text-white">{userName}</span>? This
+            action cannot be undone.
           </p>
         </div>
 
@@ -31,16 +34,18 @@ export default function DeleteConfirmModal({ isOpen, onClose, onConfirm, userNam
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg border border-[#f2f2f2] bg-white px-4 py-2 text-sm font-medium text-[#5d5d5d] hover:bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+            disabled={loading}
+            className="rounded-lg border border-[#f2f2f2] bg-white px-4 py-2 text-sm font-medium text-[#5d5d5d] hover:bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-900 dark:text-white disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={onConfirm}
-            className="rounded-lg bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600 transition"
+            disabled={loading}
+            className="rounded-lg bg-red-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-600 disabled:opacity-50"
           >
-            Delete
+            {loading ? 'Deleting…' : 'Delete'}
           </button>
         </div>
       </div>
