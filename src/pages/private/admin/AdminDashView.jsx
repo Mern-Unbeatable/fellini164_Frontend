@@ -1,42 +1,55 @@
-import { useSelector } from 'react-redux';
-import { selectUser } from '../../../features/auth/authSlice';
 import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import StatsCards from './components/StatsCards';
 import RevenueChart from './components/RevenueChart';
 import PlanDistribution from './components/PlanDistribution';
+import LatestActiveUsers from './components/LatestActiveUsers';
 import { fetchAdminStats } from '../../../features/users/usersApi';
 
 const AdminDashView = () => {
-    // eslint-disable-next-line no-unused-vars
-    const user = useSelector(selectUser);
-    const dispatch = useDispatch();
-    const [stats, setStats] = useState({});
+  const dispatch = useDispatch();
+  const [stats, setStats] = useState({});
+  const [period, setPeriod] = useState('7d');
+  const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        let mounted = true;
-        dispatch(fetchAdminStats())
-            .unwrap()
-            .then((data) => {
-                if (mounted) setStats(data || {});
-            })
-            .catch(() => {});
+  useEffect(() => {
+    let mounted = true;
+    setLoading(true);
 
-        return () => {
-            mounted = false;
-        };
-    }, [dispatch]);
+    dispatch(fetchAdminStats({ period }))
+      .unwrap()
+      .then((data) => {
+        if (mounted) setStats(data || {});
+      })
+      .catch(() => {
+        if (mounted) setStats({});
+      })
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
 
-    return (
-        <div className=" py-7.5 max-lg:min-h-0 max-lg:py-4 max-lg:sm:py-6 ">
-            <StatsCards stats={stats} />
-            <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
-                <RevenueChart />
-                <PlanDistribution stats={stats} />
-            </div>
-        </div>
-    );
+    return () => {
+      mounted = false;
+    };
+  }, [dispatch, period]);
+
+  return (
+    <div className="py-7.5 max-lg:min-h-0 max-lg:py-4 max-lg:sm:py-6">
+      <StatsCards stats={stats} />
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <RevenueChart
+          series={stats?.revenueAndUserGrowth?.series}
+          period={period}
+          onPeriodChange={setPeriod}
+          loading={loading}
+        />
+        <PlanDistribution planDistribution={stats?.planDistribution} />
+      </div>
+
+      <LatestActiveUsers users={stats?.latestActiveUsers} />
+    </div>
+  );
 };
 
 export default AdminDashView;
- 

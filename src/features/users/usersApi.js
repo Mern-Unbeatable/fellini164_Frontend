@@ -123,16 +123,14 @@ export const fetchWaitlistUsers = createAsyncThunk(
 // Fetch admin dashboard stats from /api/v1/admin/stats
 export const fetchAdminStats = createAsyncThunk(
   'users/fetchAdminStats',
-  async (_, { rejectWithValue }) => {
+  async ({ period = '7d' } = {}, { rejectWithValue }) => {
     try {
-      const url = `/api/v1/admin/stats`;
-      const response = await GET(url);
+      const response = await GET('/api/v1/admin/stats', { period });
 
       if (!response || !response.success) {
         return rejectWithValue(response?.message || 'Failed to load admin stats');
       }
 
-      // Return raw stats payload for dashboard components to consume
       return response.data || {};
     } catch (err) {
       return rejectWithValue(err.message || 'Network error');

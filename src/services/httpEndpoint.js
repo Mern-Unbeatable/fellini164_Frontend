@@ -17,6 +17,7 @@ export const ROUTES_CONFIG = {
 export const API_ENDPOINTS = {
   ADMIN: {
     ANNOUNCEMENTS: '/api/v1/admin/announcements',
+    STATS: '/api/v1/admin/stats',
   },
   ONBOARDING: {
     STEP: '/api/v1/onboarding/step',
