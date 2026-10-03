@@ -148,10 +148,7 @@ export default function TaskDetailPage() {
     await dispatch(
       createTask({
         title: trimmed,
-        description: trimmed,
-        category: task?.category || 'Career',
-        priority: task?.priority || 'MEDIUM',
-        parentId: taskId,
+        parentTaskId: taskId,
         source: 'manual',
       })
     ).unwrap();

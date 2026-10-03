@@ -290,6 +290,15 @@ export function formatTaskDueDateLabel(dueDate) {
 }
 
 export function mapCreatePayload(form) {
+  const parentTaskId = form.parentTaskId || form.parentId;
+  // Manual subtask: POST /tasks with only title + parentTaskId.
+  if (parentTaskId) {
+    return {
+      title: String(form.title || '').trim(),
+      parentTaskId: String(parentTaskId),
+    };
+  }
+
   const payload = {
     title: String(form.title || '').trim(),
     description: String(form.description || '').trim() || 'New task',
@@ -306,7 +315,6 @@ export function mapCreatePayload(form) {
     const mins = Number(form.estMinutes);
     if (!Number.isNaN(mins)) payload.estimatedMinutes = mins;
   }
-  if (form.parentId && isUuid(form.parentId)) payload.parentId = form.parentId;
   const goalId = form.goalId || (form.linkedGoal && form.linkedGoal !== '__none__' && form.linkedGoal !== '__create_new__' ? form.linkedGoal : null);
   if (goalId && isUuid(goalId)) payload.goalId = goalId;
 

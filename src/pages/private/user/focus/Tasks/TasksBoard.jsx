@@ -345,14 +345,10 @@ export default function TasksBoard() {
     const trimmed = String(title || '').trim();
     const parentId = selectedTaskId;
     if (!parentId || !trimmed) return null;
-    const parent = selectedTask;
     await dispatch(
       createTask({
         title: trimmed,
-        description: trimmed,
-        category: parent?.category || 'Career',
-        priority: parent?.priority || 'MEDIUM',
-        parentId,
+        parentTaskId: parentId,
         source: 'manual',
       })
     ).unwrap();
