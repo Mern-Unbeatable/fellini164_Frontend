@@ -43,6 +43,20 @@ const MONTHS = [
 
 const VIEW_MODE_STORAGE_KEY = 'planner_view_mode';
 const VIEW_MODES = ['Daily', 'Weekly', 'Monthly'];
+const EMPTY_PLAN_PROMPT =
+  "I've built a suggested plan for your day based on your tasks, habits, and priorities.";
+const EMPTY_PLAN_QUESTION = 'Do you want to keep it?';
+
+function emptyPlanPrompt(apiMessage) {
+  const message = String(apiMessage || '').trim();
+  const base = message || EMPTY_PLAN_PROMPT;
+  if (/do you want to keep it\??/i.test(base)) return base;
+  return `${base}\n\n${EMPTY_PLAN_QUESTION}`;
+}
+
+function plansHaveItems(plans) {
+  return Object.values(plans || {}).some((items) => Array.isArray(items) && items.length > 0);
+}
 
 function getInitialViewMode() {
   const saved = getStorage(VIEW_MODE_STORAGE_KEY);
@@ -84,6 +98,7 @@ export default function DailyPlanner() {
   const chatContainerRef = useRef(null);
   const plansRef = useRef(plans);
   const hasAcceptedRef = useRef(hasAcceptedPlan);
+  const emptySuggestRequested = useRef(false);
 
   useEffect(() => {
     plansRef.current = plans;
@@ -402,6 +417,60 @@ export default function DailyPlanner() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (emptySuggestRequested.current || pendingProposal) return;
+    if (boardStatus !== 'succeeded') return;
+    if (plansHaveItems(storePlans)) return;
+
+    emptySuggestRequested.current = true;
+    const transactionId = `ghost_suggest_${Date.now()}`;
+    const beforePlans = clonePlans(plansRef.current);
+
+    (async () => {
+      try {
+        const result = await dispatch(
+          suggestPlannerAi({
+            payload: {
+              action: 'GENERATE_PLAN',
+              viewType: VIEW_UI_TO_API[viewMode] || 'DAILY',
+              date: selectedDateKey,
+              message:
+                'Build a suggested plan for my day based on my tasks, habits, and priorities.',
+            },
+          })
+        ).unwrap();
+
+        const suggestionId = result?.suggestionId;
+        if (!suggestionId) return;
+
+        setPendingProposal({
+          id: transactionId,
+          suggestionId,
+          label: 'Suggested plan',
+          beforePlans,
+          beforeAccepted: false,
+          afterPlans: null,
+          afterAccepted: true,
+          type: 'ai_suggest',
+          result,
+        });
+        postMessages({
+          id: `ai_ghost_${transactionId}`,
+          sender: 'ai',
+          text: emptyPlanPrompt(result?.message),
+          timestamp: timestamp(),
+          suggestionId,
+          actions: [
+            { label: 'Accept plan', actionId: `accept_change:${transactionId}` },
+            { label: 'Dismiss', actionId: `dismiss_change:${transactionId}` },
+          ],
+        });
+      } catch {
+        emptySuggestRequested.current = false;
+      }
+    })();
+  }, [boardStatus, storePlans, pendingProposal, viewMode, selectedDateKey, dispatch]);
 
   const handleQuickAction = (actionType) => {
     setIsAssistantOpen(true);
