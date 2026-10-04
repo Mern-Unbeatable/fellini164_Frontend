@@ -25,8 +25,6 @@ import {
 } from '../../../../../features/planner/plannerSlice';
 import {
   AI_ACTION_TO_API,
-  DATE_RANGE_FROM_VIEW,
-  ENERGY_TO_API,
   VIEW_FROM_DATE_RANGE,
   VIEW_UI_TO_API,
   boardToPlansMap,
@@ -305,85 +303,11 @@ export default function DailyPlanner() {
   const getFormattedDateString = (dayObj) =>
     `${dayObj.year}-${String(dayObj.month + 1).padStart(2, '0')}-${String(dayObj.day).padStart(2, '0')}`;
 
-  const startPlanGeneration = async (mode) => {
-    const userText = `Generate ${mode} Plan`;
-    if (isLoading || pendingProposal) {
-      pendingNotice(userText);
-      return;
-    }
-
-    const now = Date.now();
-    const transactionId = `generate_${mode.toLowerCase()}_${now}`;
-    const beforePlans = clonePlans(plansRef.current);
-    const beforeAccepted = hasAcceptedRef.current;
-
-    setIsLoading(true);
-    postMessages(
-      { id: `user_generate_${now}`, sender: 'user', text: userText, timestamp: timestamp() },
-      {
-        id: `ai_generate_loading_${now}`,
-        sender: 'ai',
-        text: `Building a ${mode.toLowerCase()} schedule from your existing tasks and habits...`,
-        timestamp: timestamp(),
-      }
-    );
-
-    try {
-      const result = await dispatch(
-        createPlannerPlan({
-          prompt: createPlanPromptForView(mode),
-          dateRange: DATE_RANGE_FROM_VIEW[mode] || 'TODAY',
-        })
-      ).unwrap();
-
-      setViewMode(mode);
-      const mappedBoard = mapPlannerBoardFromApi(result?.board);
-      const nextPlans = boardToPlansMap(mappedBoard, result?.date || selectedDateKey);
-      setPlans(nextPlans);
-      setHasAcceptedPlan(true);
-      dispatch(setHasAcceptedPlanLocal(true));
-      setPendingProposal(null);
-
-      recordCommittedChange({
-        id: transactionId,
-        label: `Generate ${mode} Plan`,
-        beforePlans,
-        beforeAccepted,
-        afterPlans: clonePlans(nextPlans),
-        afterAccepted: true,
-        type: 'generation',
-        useApiUndo: true,
-      });
-
-      postMessages({
-        id: `ai_generate_done_${now}`,
-        sender: 'ai',
-        text:
-          result?.message ||
-          `Your ${mode.toLowerCase()} plan is ready. I scheduled your existing tasks and habits.`,
-        timestamp: timestamp(),
-        links: [{ label: 'Undo changes', actionId: `undo:${transactionId}` }],
-      });
-
-      dispatch(fetchPlannerSummary(selectedDateKey));
-      dispatch(fetchPlannerAvailable(selectedDateKey));
-    } catch {
-      postMessages({
-        id: `ai_generate_err_${now}`,
-        sender: 'ai',
-        text: 'I could not create that plan. Please try again.',
-        timestamp: timestamp(),
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const runAiSuggest = async ({
     actionKey,
     userText,
-    energyLevel,
     message,
+    viewType,
   }) => {
     if (isLoading || pendingProposal) {
       pendingNotice(userText);
@@ -410,15 +334,17 @@ export default function DailyPlanner() {
     try {
       const payload = {
         action: apiAction,
-        viewType: VIEW_UI_TO_API[viewMode] || 'DAILY',
+        viewType: viewType || VIEW_UI_TO_API[viewMode] || 'DAILY',
         date: selectedDateKey,
-        message: message || userText,
       };
-      if (energyLevel) payload.energyLevel = ENERGY_TO_API[energyLevel] || energyLevel;
+      if (
+        (apiAction === 'CHAT' || apiAction === 'GENERATE_PLAN') &&
+        (message || userText)
+      ) {
+        payload.message = message || userText;
+      }
 
-      const result = await dispatch(
-        suggestPlannerAi({ payload, dateQuery: selectedDateKey })
-      ).unwrap();
+      const result = await dispatch(suggestPlannerAi({ payload })).unwrap();
 
       let previewPlans;
       try {
@@ -560,15 +486,30 @@ export default function DailyPlanner() {
     }
 
     if (actionType === 'generate_daily_plan') {
-      startPlanGeneration('Daily');
+      runAiSuggest({
+        actionKey: 'GENERATE_PLAN',
+        userText: 'Generate Daily Plan',
+        message: createPlanPromptForView('Daily'),
+        viewType: 'DAILY',
+      });
       return;
     }
     if (actionType === 'generate_weekly_plan') {
-      startPlanGeneration('Weekly');
+      runAiSuggest({
+        actionKey: 'GENERATE_PLAN',
+        userText: 'Generate Weekly Plan',
+        message: createPlanPromptForView('Weekly'),
+        viewType: 'WEEKLY',
+      });
       return;
     }
     if (actionType === 'generate_monthly_plan' || actionType === 'monthly_plan') {
-      startPlanGeneration('Monthly');
+      runAiSuggest({
+        actionKey: 'GENERATE_PLAN',
+        userText: 'Generate Monthly Plan',
+        message: createPlanPromptForView('Monthly'),
+        viewType: 'MONTHLY',
+      });
       return;
     }
 
@@ -585,8 +526,6 @@ export default function DailyPlanner() {
       runAiSuggest({
         actionKey: 'free_evening',
         userText: 'Free up my evening',
-        message: 'Free up my evening',
-        energyLevel: 'MEDIUM',
       });
       return;
     }
@@ -612,13 +551,9 @@ export default function DailyPlanner() {
     }
 
     if (actionType === 'recalibrate_day') {
-      // API #5: call ai/suggest directly.
-      // Remove extra "energy" prompt from the AI Actions flow; use default MEDIUM.
       runAiSuggest({
         actionKey: 'recalibrate_day',
         userText: 'Recalibrate My Day',
-        energyLevel: 'MEDIUM',
-        message: 'Recalibrate my day',
       });
       return;
     }
@@ -627,8 +562,6 @@ export default function DailyPlanner() {
       runAiSuggest({
         actionKey: 'reduce_overload',
         userText: 'Reduce Overload',
-        message: 'Reduce overload',
-        energyLevel: 'MEDIUM',
       });
       return;
     }
@@ -637,8 +570,6 @@ export default function DailyPlanner() {
       runAiSuggest({
         actionKey: 'optimize_schedule',
         userText: 'Optimize Schedule',
-        message: 'Optimize schedule',
-        energyLevel: 'MEDIUM',
       });
       return;
     }
@@ -647,8 +578,6 @@ export default function DailyPlanner() {
       runAiSuggest({
         actionKey: 'balance',
         userText: 'Balance Schedule',
-        message: 'Balance my schedule',
-        energyLevel: 'MEDIUM',
       });
       return;
     }
@@ -690,8 +619,6 @@ export default function DailyPlanner() {
       await runAiSuggest({
         actionKey: 'recalibrate_day',
         userText: label,
-        energyLevel: energy,
-        message: 'Recalibrate my day',
       });
       return;
     }
@@ -729,9 +656,18 @@ export default function DailyPlanner() {
 
       setIsLoading(true);
       try {
-        await dispatch(acceptPlannerSuggestion(suggestionId)).unwrap();
+        const accepted = await dispatch(acceptPlannerSuggestion(suggestionId)).unwrap();
+        const mappedBoard = accepted?.board ? mapPlannerBoardFromApi(accepted.board) : null;
+        const acceptedPlans = mappedBoard
+          ? boardToPlansMap(mappedBoard, accepted?.date || selectedDateKey)
+          : null;
+        const acceptedHasItems =
+          acceptedPlans &&
+          Object.values(acceptedPlans).some((items) => Array.isArray(items) && items.length > 0);
         const afterPlans = proposal?.afterPlans;
-        if (afterPlans) {
+        if (acceptedHasItems) {
+          setPlans(acceptedPlans);
+        } else if (afterPlans) {
           setPlans(afterPlans);
         } else {
           await dispatch(

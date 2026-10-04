@@ -68,16 +68,31 @@ export async function createPlannerPlanApi(payload) {
 }
 
 /**
- * POST /api/v1/planner/ai/suggest
- * Body: { action, viewType, date, energyLevel?, message? }
- * Actions: RECALIBRATE_DAY | REDUCE_OVERLOAD | OPTIMIZE_SCHEDULE | BALANCE_SCHEDULE | FREE_EVENING | CHAT
+ * POST /api/v1/planner — schedule one existing task or habit.
+ * Body: { itemType, taskId|habitId, date, startTime, endTime, viewType, orderIndex? }
  */
-export async function suggestPlannerAiApi(payload, dateQuery) {
-  const response = await axiosInstance.post(
-    `${BASE}/ai/suggest`,
-    payload,
-    { params: cleanParams({ date: dateQuery }) }
-  );
+export async function schedulePlannerItemApi(payload) {
+  const response = await axiosInstance.post(BASE, payload);
+  return response?.data;
+}
+
+/**
+ * POST /api/v1/planner/bulk/schedule
+ * Body: { viewType, placements: [{ itemType, taskId|habitId, date, startTime, endTime }] }
+ */
+export async function bulkSchedulePlannerApi(payload) {
+  const response = await axiosInstance.post(`${BASE}/bulk/schedule`, payload);
+  return response?.data;
+}
+
+/**
+ * POST /api/v1/planner/ai/suggest
+ * Body: { action, viewType, date, message? }
+ * message only for GENERATE_PLAN and CHAT.
+ * Actions: GENERATE_PLAN | RECALIBRATE_DAY | REDUCE_OVERLOAD | OPTIMIZE_SCHEDULE | BALANCE_SCHEDULE | FREE_EVENING | CHAT
+ */
+export async function suggestPlannerAiApi(payload) {
+  const response = await axiosInstance.post(`${BASE}/ai/suggest`, payload);
   return response?.data;
 }
 
@@ -111,8 +126,14 @@ export async function updatePlannerItemApi(plannerItemId, payload) {
   return response?.data;
 }
 
-/** PATCH /api/v1/planner/:plannerItemId/complete */
+/** PATCH /api/v1/planner/:plannerItemId/complete — planner slot only, not the task/habit */
 export async function completePlannerItemApi(plannerItemId) {
   const response = await axiosInstance.patch(`${BASE}/${plannerItemId}/complete`);
+  return response?.data;
+}
+
+/** DELETE /api/v1/planner/:plannerItemId — remove from the schedule */
+export async function deletePlannerItemApi(plannerItemId) {
+  const response = await axiosInstance.delete(`${BASE}/${plannerItemId}`);
   return response?.data;
 }

@@ -102,9 +102,9 @@ export const createPlannerPlan = createAsyncThunk(
 
 export const suggestPlannerAi = createAsyncThunk(
   'planner/suggestAi',
-  async ({ payload, dateQuery }, { rejectWithValue }) => {
+  async ({ payload }, { rejectWithValue }) => {
     try {
-      return await suggestPlannerAiApi(payload, dateQuery);
+      return await suggestPlannerAiApi(payload);
     } catch (error) {
       const message = error?.response?.data?.message || 'Failed to get AI suggestion';
       toast.error(message);
