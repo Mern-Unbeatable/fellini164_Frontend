@@ -12,7 +12,7 @@ const PaymentCancelView = () => {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-white">
-      <div className="mx-auto flex max-w-480 justify-center px-4 pt-6 sm:justify-end sm:px-7 sm:pt-7">
+      <div className="mx-auto flex max-w-480 justify-start px-4 pt-6 sm:px-7 sm:pt-7">
         <Link to="/">
           <img src="/logo.png" alt="Elyxa.Ai" className="h-9 w-auto sm:h-12" />
         </Link>
