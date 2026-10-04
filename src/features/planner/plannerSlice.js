@@ -5,6 +5,8 @@ import {
   completePlannerItemApi,
   createPlannerPlanApi,
   dismissPlannerSuggestionApi,
+  acceptOnboardingPlanSuggestionApi,
+  dismissOnboardingPlanSuggestionApi,
   fetchPlannerAvailableApi,
   fetchPlannerBoardApi,
   fetchPlannerGhostSuggestionsApi,
@@ -102,11 +104,37 @@ export const createPlannerPlan = createAsyncThunk(
 
 export const suggestPlannerAi = createAsyncThunk(
   'planner/suggestAi',
-  async ({ payload }, { rejectWithValue }) => {
+  async ({ payload, silent }, { rejectWithValue }) => {
     try {
       return await suggestPlannerAiApi(payload);
     } catch (error) {
       const message = error?.response?.data?.message || 'Failed to get AI suggestion';
+      if (!silent) toast.error(message);
+      return rejectWithValue(message);
+    }
+  }
+);
+
+export const acceptOnboardingPlanSuggestion = createAsyncThunk(
+  'planner/acceptOnboardingPlanSuggestion',
+  async (suggestionId, { rejectWithValue }) => {
+    try {
+      return await acceptOnboardingPlanSuggestionApi(suggestionId);
+    } catch (error) {
+      const message = error?.response?.data?.message || 'Failed to accept plan';
+      toast.error(message);
+      return rejectWithValue(message);
+    }
+  }
+);
+
+export const dismissOnboardingPlanSuggestion = createAsyncThunk(
+  'planner/dismissOnboardingPlanSuggestion',
+  async (suggestionId, { rejectWithValue }) => {
+    try {
+      return await dismissOnboardingPlanSuggestionApi(suggestionId);
+    } catch (error) {
+      const message = error?.response?.data?.message || 'Failed to dismiss suggestion';
       toast.error(message);
       return rejectWithValue(message);
     }
@@ -194,6 +222,7 @@ const initialState = {
   board: null,
   plans: {},
   ghostPlans: {},
+  ghostSuggestions: [],
   available: { tasks: [], habits: [], date: null },
   hasAcceptedPlan: false,
   lastSuggestionId: null,
@@ -242,11 +271,13 @@ const plannerSlice = createSlice({
       })
       .addCase(fetchPlannerGhostSuggestions.fulfilled, (state, action) => {
         state.ghostStatus = 'succeeded';
+        state.ghostSuggestions = Array.isArray(action.payload) ? action.payload : [];
         state.ghostPlans = plannerGhostSuggestionsToPlans(action.payload);
       })
       .addCase(fetchPlannerGhostSuggestions.rejected, (state) => {
         state.ghostStatus = 'failed';
         state.ghostPlans = {};
+        state.ghostSuggestions = [];
       })
       .addCase(createPlannerPlan.pending, (state) => {
         state.aiStatus = 'loading';

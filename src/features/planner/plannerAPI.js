@@ -45,6 +45,20 @@ export async function fetchPlannerAvailableApi(date) {
  * GET /api/v1/onboarding/suggestions?type=PLAN_ADJUSTMENT&status=pending
  * Empty Planner Board ghost placements.
  */
+export async function acceptOnboardingPlanSuggestionApi(suggestionId) {
+  const response = await axiosInstance.post(
+    `${ONBOARDING_SUGGESTIONS}/${suggestionId}/accept`
+  );
+  return response?.data;
+}
+
+export async function dismissOnboardingPlanSuggestionApi(suggestionId) {
+  const response = await axiosInstance.post(
+    `${ONBOARDING_SUGGESTIONS}/${suggestionId}/dismiss`
+  );
+  return response?.data;
+}
+
 export async function fetchPlannerGhostSuggestionsApi() {
   const response = await axiosInstance.get(ONBOARDING_SUGGESTIONS, {
     params: { type: 'PLAN_ADJUSTMENT', status: 'pending' },
@@ -105,12 +119,14 @@ export async function fetchPlannerSuggestionApi(suggestionId) {
 /** POST /api/v1/planner/ai/suggestions/:suggestionId/accept */
 export async function acceptPlannerSuggestionApi(suggestionId) {
   const response = await axiosInstance.post(`${BASE}/ai/suggestions/${suggestionId}/accept`);
+  console.log(`POST /planner/ai/suggestions/${suggestionId}/accept`, response?.data);
   return response?.data;
 }
 
 /** POST /api/v1/planner/ai/suggestions/:suggestionId/dismiss */
 export async function dismissPlannerSuggestionApi(suggestionId) {
   const response = await axiosInstance.post(`${BASE}/ai/suggestions/${suggestionId}/dismiss`);
+  console.log(`POST /planner/ai/suggestions/${suggestionId}/dismiss`, response?.data);
   return response?.data;
 }
 

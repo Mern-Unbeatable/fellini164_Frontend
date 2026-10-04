@@ -43,19 +43,26 @@ const MONTHS = [
 
 const VIEW_MODE_STORAGE_KEY = 'planner_view_mode';
 const VIEW_MODES = ['Daily', 'Weekly', 'Monthly'];
-const EMPTY_PLAN_PROMPT =
-  "I've built a suggested plan for your day based on your tasks, habits, and priorities.";
-const EMPTY_PLAN_QUESTION = 'Do you want to keep it?';
 
-function emptyPlanPrompt(apiMessage) {
-  const message = String(apiMessage || '').trim();
-  const base = message || EMPTY_PLAN_PROMPT;
-  if (/do you want to keep it\??/i.test(base)) return base;
-  return `${base}\n\n${EMPTY_PLAN_QUESTION}`;
+function plansHaveItems(planMap) {
+  return Object.values(planMap || {}).some((items) => Array.isArray(items) && items.length > 0);
 }
 
-function plansHaveItems(plans) {
-  return Object.values(plans || {}).some((items) => Array.isArray(items) && items.length > 0);
+function ghostPlacementList(suggestions) {
+  const placements = [];
+  (suggestions || []).forEach((suggestion) => {
+    const list = suggestion?.planner?.placements;
+    if (Array.isArray(list)) placements.push(...list);
+  });
+  return placements;
+}
+
+function ghostBackendMessage(suggestions) {
+  for (const suggestion of suggestions || []) {
+    const message = suggestion?.message || suggestion?.planner?.message;
+    if (String(message || '').trim()) return String(message).trim();
+  }
+  return '';
 }
 
 function getInitialViewMode() {
@@ -72,6 +79,8 @@ export default function DailyPlanner() {
   const {
     plans: storePlans,
     ghostPlans,
+    ghostSuggestions,
+    ghostStatus,
     hasAcceptedPlan: storeHasAccepted,
     status: boardStatus,
     lastSuggestionId,
@@ -420,57 +429,84 @@ export default function DailyPlanner() {
 
   useEffect(() => {
     if (emptySuggestRequested.current || pendingProposal) return;
-    if (boardStatus !== 'succeeded') return;
+    if (boardStatus !== 'succeeded' || ghostStatus !== 'succeeded') return;
     if (plansHaveItems(storePlans)) return;
+
+    const placements = ghostPlacementList(ghostSuggestions);
+    const onboardMessage = ghostBackendMessage(ghostSuggestions);
+    const ghostSuggestion =
+      (ghostSuggestions || []).find(
+        (item) =>
+          item?.suggestionId &&
+          Array.isArray(item?.planner?.placements) &&
+          item.planner.placements.length > 0
+      ) || (ghostSuggestions || []).find((item) => item?.suggestionId);
+    const suggestionId = ghostSuggestion?.suggestionId;
+    if (!suggestionId || (!placements.length && !onboardMessage)) return;
 
     emptySuggestRequested.current = true;
     const transactionId = `ghost_suggest_${Date.now()}`;
     const beforePlans = clonePlans(plansRef.current);
 
     (async () => {
-      try {
-        const result = await dispatch(
-          suggestPlannerAi({
-            payload: {
-              action: 'GENERATE_PLAN',
-              viewType: VIEW_UI_TO_API[viewMode] || 'DAILY',
-              date: selectedDateKey,
-              message:
-                'Build a suggested plan for my day based on my tasks, habits, and priorities.',
-            },
-          })
-        ).unwrap();
+      let text = onboardMessage;
 
-        const suggestionId = result?.suggestionId;
-        if (!suggestionId) return;
-
-        setPendingProposal({
-          id: transactionId,
-          suggestionId,
-          label: 'Suggested plan',
-          beforePlans,
-          beforeAccepted: false,
-          afterPlans: null,
-          afterAccepted: true,
-          type: 'ai_suggest',
-          result,
-        });
-        postMessages({
-          id: `ai_ghost_${transactionId}`,
-          sender: 'ai',
-          text: emptyPlanPrompt(result?.message),
-          timestamp: timestamp(),
-          suggestionId,
-          actions: [
-            { label: 'Accept plan', actionId: `accept_change:${transactionId}` },
-            { label: 'Dismiss', actionId: `dismiss_change:${transactionId}` },
-          ],
-        });
-      } catch {
-        emptySuggestRequested.current = false;
+      if (placements.length) {
+        try {
+          const result = await dispatch(
+            suggestPlannerAi({
+              silent: true,
+              payload: {
+                action: 'GENERATE_PLAN',
+                viewType: VIEW_UI_TO_API[viewMode] || 'DAILY',
+                date: selectedDateKey,
+                message:
+                  'Build a suggested plan for my day based on my tasks, habits, and priorities.',
+                placements,
+              },
+            })
+          ).unwrap();
+          text = String(result?.message || onboardMessage || '').trim();
+        } catch {
+          text = onboardMessage;
+        }
       }
+
+      if (!text) return;
+
+      setPendingProposal({
+        id: transactionId,
+        suggestionId,
+        source: 'planner',
+        label: 'Suggested plan',
+        beforePlans,
+        beforeAccepted: false,
+        afterPlans: null,
+        afterAccepted: true,
+        type: 'ai_suggest',
+      });
+      postMessages({
+        id: `ai_ghost_${transactionId}`,
+        sender: 'ai',
+        text,
+        timestamp: timestamp(),
+        suggestionId,
+        actions: [
+          { label: 'Accept plan', actionId: `accept_change:${transactionId}` },
+          { label: 'Dismiss', actionId: `dismiss_change:${transactionId}` },
+        ],
+      });
     })();
-  }, [boardStatus, storePlans, pendingProposal, viewMode, selectedDateKey, dispatch]);
+  }, [
+    boardStatus,
+    ghostStatus,
+    ghostSuggestions,
+    storePlans,
+    pendingProposal,
+    viewMode,
+    selectedDateKey,
+    dispatch,
+  ]);
 
   const handleQuickAction = (actionType) => {
     setIsAssistantOpen(true);
@@ -726,23 +762,21 @@ export default function DailyPlanner() {
       setIsLoading(true);
       try {
         const accepted = await dispatch(acceptPlannerSuggestion(suggestionId)).unwrap();
-        const mappedBoard = accepted?.board ? mapPlannerBoardFromApi(accepted.board) : null;
-        const acceptedPlans = mappedBoard
-          ? boardToPlansMap(mappedBoard, accepted?.date || selectedDateKey)
-          : null;
-        const acceptedHasItems =
-          acceptedPlans &&
-          Object.values(acceptedPlans).some((items) => Array.isArray(items) && items.length > 0);
+        console.log('Accept plan response', accepted);
+        const mappedBoard = mapPlannerBoardFromApi(accepted?.board || accepted);
+        const acceptedPlans = boardToPlansMap(mappedBoard, accepted?.date || selectedDateKey);
+        const acceptedHasItems = Object.values(acceptedPlans).some(
+          (items) => Array.isArray(items) && items.length > 0
+        );
         const afterPlans = proposal?.afterPlans;
         if (acceptedHasItems) {
           setPlans(acceptedPlans);
         } else if (afterPlans) {
           setPlans(afterPlans);
-        } else {
-          await dispatch(
-            fetchPlannerBoard({ viewType: viewMode, date: selectedDateKey })
-          ).unwrap();
         }
+        await dispatch(
+          fetchPlannerBoard({ viewType: viewMode, date: selectedDateKey })
+        ).unwrap();
         setHasAcceptedPlan(true);
         dispatch(setHasAcceptedPlanLocal(true));
         if (proposal) {
@@ -765,6 +799,7 @@ export default function DailyPlanner() {
           }
         );
         dispatch(fetchPlannerSummary(selectedDateKey));
+        dispatch(fetchPlannerGhostSuggestions());
       } catch {
         postMessages({
           id: `ai_accept_err_${Date.now()}`,
@@ -798,7 +833,9 @@ export default function DailyPlanner() {
 
       if (suggestionId) {
         try {
-          await dispatch(dismissPlannerSuggestion(suggestionId)).unwrap();
+          const dismissed = await dispatch(dismissPlannerSuggestion(suggestionId)).unwrap();
+          console.log('Dismiss plan response', dismissed);
+          dispatch(fetchPlannerGhostSuggestions());
         } catch {
           /* local restore already done when proposal existed */
         }
