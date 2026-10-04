@@ -363,8 +363,8 @@ const tasksSlice = createSlice({
       })
       .addCase(createTask.fulfilled, (state, action) => {
         state.creating = false;
-        // Manual subtasks use parentId — keep them off the parent-only board list.
-        if (action.meta.arg?.parentId) return;
+        // Manual subtasks use parentTaskId — keep them off the parent-only board list.
+        if (action.meta.arg?.parentTaskId || action.meta.arg?.parentId) return;
         mergeTaskIntoState(state, action.payload);
       })
       .addCase(createTask.rejected, (state) => {

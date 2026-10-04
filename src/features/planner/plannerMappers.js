@@ -54,6 +54,11 @@ export function buildCreatePlanPayload({
 }
 
 export const AI_ACTION_TO_API = {
+  GENERATE_PLAN: 'GENERATE_PLAN',
+  generate_plan: 'GENERATE_PLAN',
+  generate_daily_plan: 'GENERATE_PLAN',
+  generate_weekly_plan: 'GENERATE_PLAN',
+  generate_monthly_plan: 'GENERATE_PLAN',
   recalibrate_day: 'RECALIBRATE_DAY',
   reduce_overload: 'REDUCE_OVERLOAD',
   optimize_schedule: 'OPTIMIZE_SCHEDULE',
@@ -246,10 +251,12 @@ export function plannerGhostSuggestionsToPlans(suggestions) {
     placements.forEach((placement, index) => {
       const mapped = mapPlannerItemFromApi({
         ...placement,
+        date: placement?.date || suggestion?.planner?.date || suggestion?.date,
         id: `ghost-${suggestion.suggestionId || 'plan'}-${index}`,
         aiScheduled: true,
       });
       if (!mapped?.date) return;
+      mapped.date = plannerDateKey(mapped.date) || mapped.date;
       if (!plans[mapped.date]) plans[mapped.date] = [];
       plans[mapped.date].push(mapped);
     });
@@ -261,44 +268,91 @@ export function plannerGhostSuggestionsToPlans(suggestions) {
   return plans;
 }
 
+/** "2026-05-13" or ISO datetime → "YYYY-MM-DD" so Daily/Weekly/Monthly share one key. */
+export function plannerDateKey(value) {
+  if (!value) return null;
+  const match = String(value).match(/^(\d{4}-\d{2}-\d{2})/);
+  return match ? match[1] : null;
+}
+
+function unwrapBoardEnvelope(board) {
+  if (!board || typeof board !== 'object') return null;
+  if (Array.isArray(board)) return { items: board };
+  if (board.board && typeof board.board === 'object') return unwrapBoardEnvelope(board.board);
+  if (
+    board.data &&
+    typeof board.data === 'object' &&
+    !Array.isArray(board.data) &&
+    (board.data.board || board.data.items || board.data.days || board.data.viewType)
+  ) {
+    return unwrapBoardEnvelope(board.data.board || board.data);
+  }
+  return board;
+}
+
+function rawItemsFromDay(entry) {
+  if (Array.isArray(entry)) return entry;
+  if (!entry || typeof entry !== 'object') return [];
+  if (Array.isArray(entry.items)) return entry.items;
+  if (Array.isArray(entry.plannerItems)) return entry.plannerItems;
+  if (Array.isArray(entry.placements)) return entry.placements;
+  if (entry.itemType || entry.taskId || entry.habitId || entry.title) return [entry];
+  return [];
+}
+
 /** Board envelope → { viewType, date, startDate, endDate, itemsByDate, items } */
 export function mapPlannerBoardFromApi(board) {
-  if (!board) {
-    return {
-      viewType: 'DAILY',
-      date: null,
-      startDate: null,
-      endDate: null,
-      items: [],
-      itemsByDate: {},
-      days: {},
-    };
-  }
+  const empty = {
+    viewType: 'DAILY',
+    date: null,
+    startDate: null,
+    endDate: null,
+    items: [],
+    itemsByDate: {},
+    days: {},
+  };
+  const source = unwrapBoardEnvelope(board);
+  if (!source) return empty;
 
-  const viewType = String(board.viewType || 'DAILY').toUpperCase();
-  const flatItems = mapPlannerItemsFromApi(board.items || []);
-
+  const viewType = String(source.viewType || 'DAILY').toUpperCase();
   const itemsByDate = {};
-  if (board.days && typeof board.days === 'object') {
-    Object.entries(board.days).forEach(([dateKey, dayItems]) => {
-      itemsByDate[dateKey] = mapPlannerItemsFromApi(dayItems);
+
+  const addRaw = (raw, fallbackDate) => {
+    if (!raw || typeof raw !== 'object') return;
+    const date = plannerDateKey(raw.date) || plannerDateKey(fallbackDate);
+    const mapped = mapPlannerItemFromApi({ ...raw, date });
+    if (!mapped) return;
+    const key = plannerDateKey(mapped.date) || date;
+    if (!key) return;
+    mapped.date = key;
+    if (!itemsByDate[key]) itemsByDate[key] = [];
+    const id = mapped.plannerItemId || mapped.id;
+    if (itemsByDate[key].some((item) => (item.plannerItemId || item.id) === id)) return;
+    itemsByDate[key].push(mapped);
+  };
+
+  const days = source.days;
+  if (Array.isArray(days)) {
+    days.forEach((day) => {
+      const dayDate = plannerDateKey(day?.date);
+      rawItemsFromDay(day).forEach((item) => addRaw(item, dayDate));
+    });
+  } else if (days && typeof days === 'object') {
+    Object.entries(days).forEach(([dateKey, dayItems]) => {
+      rawItemsFromDay(dayItems).forEach((item) => addRaw(item, dateKey));
     });
   }
 
-  flatItems.forEach((item) => {
-    if (!item.date) return;
-    if (!itemsByDate[item.date]) itemsByDate[item.date] = [];
-    if (!itemsByDate[item.date].some((x) => x.id === item.id)) {
-      itemsByDate[item.date].push(item);
-    }
-  });
+  (source.items || []).forEach((item) => addRaw(item, source.date));
+
+  const items = Object.values(itemsByDate).flat();
 
   return {
     viewType,
-    date: board.date || null,
-    startDate: board.startDate || board.date || null,
-    endDate: board.endDate || board.date || null,
-    items: flatItems,
+    date: plannerDateKey(source.date),
+    startDate: plannerDateKey(source.startDate) || plannerDateKey(source.date),
+    endDate: plannerDateKey(source.endDate) || plannerDateKey(source.date),
+    items,
     itemsByDate,
     days: itemsByDate,
   };
@@ -421,4 +475,110 @@ export function createPlanPromptForView(viewMode) {
 export function formatIsoDate(date) {
   if (!(date instanceof Date) || Number.isNaN(date.getTime())) return null;
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+function plannerChatList(envelope) {
+  if (Array.isArray(envelope)) return envelope;
+  if (Array.isArray(envelope?.messages)) return envelope.messages;
+  if (Array.isArray(envelope?.chat)) return envelope.chat;
+  if (Array.isArray(envelope?.history)) return envelope.history;
+  if (Array.isArray(envelope?.items)) return envelope.items;
+  if (Array.isArray(envelope?.data?.messages)) return envelope.data.messages;
+  if (Array.isArray(envelope?.data?.chat)) return envelope.data.chat;
+  if (Array.isArray(envelope?.data?.history)) return envelope.data.history;
+  if (Array.isArray(envelope?.data)) return envelope.data;
+  return [];
+}
+
+function plannerChatTimestamp(value) {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  const dayPart = date.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'short',
+    day: 'numeric',
+  });
+  const timePart = date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+  return `${dayPart} • ${timePart}`;
+}
+
+function plannerChatResolved(status) {
+  return ['ACCEPTED', 'APPLIED', 'COMPLETED', 'DONE', 'DISMISSED', 'REJECTED', 'CANCELLED', 'CANCELED'].includes(
+    status
+  );
+}
+
+/**
+ * GET /planner/ai/chat → existing AI Assistant bubbles.
+ * Pending suggestions keep Accept plan / Dismiss.
+ */
+export function mapPlannerChatToMessages(envelope) {
+  const list = plannerChatList(envelope);
+  const sorted = [...list].sort((a, b) => {
+    const ta = new Date(a?.createdAt || a?.timestamp || a?.sentAt || 0).getTime();
+    const tb = new Date(b?.createdAt || b?.timestamp || b?.sentAt || 0).getTime();
+    return ta - tb;
+  });
+
+  const messages = [];
+  let pending = null;
+
+  sorted.forEach((item, index) => {
+    if (!item || typeof item !== 'object') return;
+    const role = String(item.role || item.sender || item.from || item.author || '').toLowerCase();
+    const sender = role === 'user' || role === 'human' ? 'user' : 'ai';
+    const text = String(item.text || item.message || item.content || item.body || '').trim();
+    if (!text) return;
+
+    const suggestionId = item.suggestionId || item.suggestion?.id || item.suggestion?.suggestionId || null;
+    const status = String(item.status || item.suggestionStatus || '').toUpperCase();
+    const resolved = plannerChatResolved(status) || item.isApplied === true || item.isDismissed === true;
+    const id = String(item.id || item.messageId || `planner-chat-${index}`);
+
+    const message = {
+      id,
+      sender,
+      text,
+      timestamp: plannerChatTimestamp(item.createdAt || item.timestamp || item.sentAt),
+      suggestionId: suggestionId || undefined,
+      resolved: resolved || undefined,
+    };
+
+    const canAct = sender === 'ai' && suggestionId && !resolved;
+    if (canAct) {
+      const transactionId = `history_${suggestionId}`;
+      message.actions = [
+        { label: 'Accept plan', actionId: `accept_change:${transactionId}` },
+        { label: 'Dismiss', actionId: `dismiss_change:${transactionId}` },
+      ];
+      pending = {
+        id: transactionId,
+        suggestionId,
+        source: 'planner',
+        label: 'Suggested plan',
+        beforePlans: {},
+        beforeAccepted: false,
+        afterPlans: null,
+        afterAccepted: true,
+        type: 'ai_suggest',
+      };
+    }
+
+    messages.push(message);
+  });
+
+  if (pending) {
+    messages.forEach((message) => {
+      if (message.suggestionId && message.suggestionId !== pending.suggestionId && message.actions) {
+        message.resolved = true;
+        message.actions = undefined;
+      }
+    });
+  }
+
+  return { messages, pending };
 }

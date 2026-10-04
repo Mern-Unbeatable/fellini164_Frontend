@@ -54,6 +54,20 @@ assert('Create: dueTime 9:00', create.dueTime === '9:00');
 assert('Create: estimatedMinutes 36', create.estimatedMinutes === 36);
 assert('Create: no goalId by default', create.goalId === undefined);
 
+const subtask = mapCreatePayload({
+  title: 'Imcrease writing skill',
+  description: 'should not be sent',
+  category: 'Career',
+  priority: 'MEDIUM',
+  parentTaskId: '11111111-1111-4111-8111-111111111111',
+});
+assert('Subtask: title only plus parent', subtask.title === 'Imcrease writing skill');
+assert('Subtask: parentTaskId', subtask.parentTaskId === '11111111-1111-4111-8111-111111111111');
+assert('Subtask: no description', subtask.description === undefined);
+assert('Subtask: no category', subtask.category === undefined);
+assert('Subtask: no priority', subtask.priority === undefined);
+assert('Subtask: no parentId key', subtask.parentId === undefined);
+
 console.log('\n=== dueTime 12h → API ===');
 assert('9:00 AM → 9:00', dueTimeToApi(9, '00', 'AM') === '9:00');
 assert('9:00 PM → 21:00', dueTimeToApi(9, '00', 'PM') === '21:00');

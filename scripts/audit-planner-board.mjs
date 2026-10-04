@@ -19,6 +19,7 @@ import {
   createPlanPromptForView,
   displayTimeToStartTime,
   mapPlannerBoardFromApi,
+  mapPlannerChatToMessages,
   mapPlannerItemFromApi,
   normalizePlannerSummary,
   startTimeToDisplay,
@@ -59,6 +60,11 @@ const PATHS = [
   ['#9 patch item', 'patch(`${BASE}/${plannerItemId}`'],
   ['#10 get suggestion', '/ai/suggestions/${suggestionId}'],
   ['#11 complete', '/complete'],
+  ['schedule single POST /planner', 'export async function schedulePlannerItemApi'],
+  ['bulk schedule', '/bulk/schedule'],
+  ['delete planner item', 'delete(`${BASE}/${plannerItemId}`)'],
+  ['suggest has no date query', 'suggestPlannerAiApi(payload)'],
+  ['planner chat history', '/ai/chat'],
 ];
 for (const [label, needle] of PATHS) {
   assert(label, apiSource.includes(needle));
@@ -176,6 +182,46 @@ const board = mapPlannerBoardFromApi({
   items: [],
 });
 assert('board days map', (boardToPlansMap(board, '2026-07-26')['2026-07-26'] || []).length === 1);
+
+const weeklyBoard = mapPlannerBoardFromApi({
+  success: true,
+  board: {
+    viewType: 'WEEKLY',
+    days: [
+      {
+        date: '2026-05-13T00:00:00.000Z',
+        items: [
+          { id: 'p1', itemType: 'TASK', title: 'Complete Work Task', startTime: '02:00' },
+          { id: 'p2', itemType: 'HABIT', title: 'Drink Water', startTime: '07:00' },
+        ],
+      },
+    ],
+  },
+});
+const weeklyPlans = boardToPlansMap(weeklyBoard, '2026-05-13');
+assert('weekly days array lands on 2026-05-13', (weeklyPlans['2026-05-13'] || []).length === 2);
+assert(
+  'weekly keeps task and habit',
+  (weeklyPlans['2026-05-13'] || []).some((item) => item.kind === 'task') &&
+    (weeklyPlans['2026-05-13'] || []).some((item) => item.kind === 'habit')
+);
+
+const chat = mapPlannerChatToMessages({
+  messages: [
+    { id: 'u1', role: 'user', message: 'Free up my evening', createdAt: '2026-05-13T10:00:00.000Z' },
+    {
+      id: 'a1',
+      role: 'assistant',
+      message: 'I reused your existing habits and added the missing tasks. Accept to save.',
+      suggestionId: 'sug-1',
+      status: 'PENDING',
+      createdAt: '2026-05-13T10:00:02.000Z',
+    },
+  ],
+});
+assert('chat history keeps user and assistant', chat.messages.length === 2 && chat.messages[0].sender === 'user');
+assert('pending chat keeps Accept plan', chat.messages[1].actions?.[0]?.label === 'Accept plan');
+assert('pending chat suggestion id', chat.pending?.suggestionId === 'sug-1');
 
 console.log(`\n=== Result: ${failed === 0 ? 'ALL PASS (APIs #1–#11 UI wired)' : `${failed} FAILED`} ===\n`);
 process.exit(failed === 0 ? 0 : 1);
