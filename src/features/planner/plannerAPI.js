@@ -110,6 +110,12 @@ export async function suggestPlannerAiApi(payload) {
   return response?.data;
 }
 
+/** GET /api/v1/planner/ai/chat — Planner AI Assistant history only. */
+export async function fetchPlannerChatApi() {
+  const response = await axiosInstance.get(`${BASE}/ai/chat`);
+  return response?.data;
+}
+
 /** GET /api/v1/planner/ai/suggestions/:suggestionId */
 export async function fetchPlannerSuggestionApi(suggestionId) {
   const response = await axiosInstance.get(`${BASE}/ai/suggestions/${suggestionId}`);

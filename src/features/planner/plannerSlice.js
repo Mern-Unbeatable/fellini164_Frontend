@@ -9,6 +9,7 @@ import {
   dismissOnboardingPlanSuggestionApi,
   fetchPlannerAvailableApi,
   fetchPlannerBoardApi,
+  fetchPlannerChatApi,
   fetchPlannerGhostSuggestionsApi,
   fetchPlannerSuggestionApi,
   fetchPlannerSummaryApi,
@@ -98,6 +99,17 @@ export const createPlannerPlan = createAsyncThunk(
       const message = error?.response?.data?.message || 'Failed to create plan';
       toast.error(message);
       return rejectWithValue(message);
+    }
+  }
+);
+
+export const fetchPlannerChat = createAsyncThunk(
+  'planner/fetchChat',
+  async (_, { rejectWithValue }) => {
+    try {
+      return await fetchPlannerChatApi();
+    } catch (error) {
+      return rejectWithValue(error?.response?.data?.message || 'Failed to load planner chat');
     }
   }
 );

@@ -476,3 +476,109 @@ export function formatIsoDate(date) {
   if (!(date instanceof Date) || Number.isNaN(date.getTime())) return null;
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
+
+function plannerChatList(envelope) {
+  if (Array.isArray(envelope)) return envelope;
+  if (Array.isArray(envelope?.messages)) return envelope.messages;
+  if (Array.isArray(envelope?.chat)) return envelope.chat;
+  if (Array.isArray(envelope?.history)) return envelope.history;
+  if (Array.isArray(envelope?.items)) return envelope.items;
+  if (Array.isArray(envelope?.data?.messages)) return envelope.data.messages;
+  if (Array.isArray(envelope?.data?.chat)) return envelope.data.chat;
+  if (Array.isArray(envelope?.data?.history)) return envelope.data.history;
+  if (Array.isArray(envelope?.data)) return envelope.data;
+  return [];
+}
+
+function plannerChatTimestamp(value) {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  const dayPart = date.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'short',
+    day: 'numeric',
+  });
+  const timePart = date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+  return `${dayPart} • ${timePart}`;
+}
+
+function plannerChatResolved(status) {
+  return ['ACCEPTED', 'APPLIED', 'COMPLETED', 'DONE', 'DISMISSED', 'REJECTED', 'CANCELLED', 'CANCELED'].includes(
+    status
+  );
+}
+
+/**
+ * GET /planner/ai/chat → existing AI Assistant bubbles.
+ * Pending suggestions keep Accept plan / Dismiss.
+ */
+export function mapPlannerChatToMessages(envelope) {
+  const list = plannerChatList(envelope);
+  const sorted = [...list].sort((a, b) => {
+    const ta = new Date(a?.createdAt || a?.timestamp || a?.sentAt || 0).getTime();
+    const tb = new Date(b?.createdAt || b?.timestamp || b?.sentAt || 0).getTime();
+    return ta - tb;
+  });
+
+  const messages = [];
+  let pending = null;
+
+  sorted.forEach((item, index) => {
+    if (!item || typeof item !== 'object') return;
+    const role = String(item.role || item.sender || item.from || item.author || '').toLowerCase();
+    const sender = role === 'user' || role === 'human' ? 'user' : 'ai';
+    const text = String(item.text || item.message || item.content || item.body || '').trim();
+    if (!text) return;
+
+    const suggestionId = item.suggestionId || item.suggestion?.id || item.suggestion?.suggestionId || null;
+    const status = String(item.status || item.suggestionStatus || '').toUpperCase();
+    const resolved = plannerChatResolved(status) || item.isApplied === true || item.isDismissed === true;
+    const id = String(item.id || item.messageId || `planner-chat-${index}`);
+
+    const message = {
+      id,
+      sender,
+      text,
+      timestamp: plannerChatTimestamp(item.createdAt || item.timestamp || item.sentAt),
+      suggestionId: suggestionId || undefined,
+      resolved: resolved || undefined,
+    };
+
+    const canAct = sender === 'ai' && suggestionId && !resolved;
+    if (canAct) {
+      const transactionId = `history_${suggestionId}`;
+      message.actions = [
+        { label: 'Accept plan', actionId: `accept_change:${transactionId}` },
+        { label: 'Dismiss', actionId: `dismiss_change:${transactionId}` },
+      ];
+      pending = {
+        id: transactionId,
+        suggestionId,
+        source: 'planner',
+        label: 'Suggested plan',
+        beforePlans: {},
+        beforeAccepted: false,
+        afterPlans: null,
+        afterAccepted: true,
+        type: 'ai_suggest',
+      };
+    }
+
+    messages.push(message);
+  });
+
+  if (pending) {
+    messages.forEach((message) => {
+      if (message.suggestionId && message.suggestionId !== pending.suggestionId && message.actions) {
+        message.resolved = true;
+        message.actions = undefined;
+      }
+    });
+  }
+
+  return { messages, pending };
+}

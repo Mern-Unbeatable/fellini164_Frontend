@@ -19,6 +19,7 @@ import {
   createPlanPromptForView,
   displayTimeToStartTime,
   mapPlannerBoardFromApi,
+  mapPlannerChatToMessages,
   mapPlannerItemFromApi,
   normalizePlannerSummary,
   startTimeToDisplay,
@@ -63,6 +64,7 @@ const PATHS = [
   ['bulk schedule', '/bulk/schedule'],
   ['delete planner item', 'delete(`${BASE}/${plannerItemId}`)'],
   ['suggest has no date query', 'suggestPlannerAiApi(payload)'],
+  ['planner chat history', '/ai/chat'],
 ];
 for (const [label, needle] of PATHS) {
   assert(label, apiSource.includes(needle));
@@ -203,6 +205,23 @@ assert(
   (weeklyPlans['2026-05-13'] || []).some((item) => item.kind === 'task') &&
     (weeklyPlans['2026-05-13'] || []).some((item) => item.kind === 'habit')
 );
+
+const chat = mapPlannerChatToMessages({
+  messages: [
+    { id: 'u1', role: 'user', message: 'Free up my evening', createdAt: '2026-05-13T10:00:00.000Z' },
+    {
+      id: 'a1',
+      role: 'assistant',
+      message: 'I reused your existing habits and added the missing tasks. Accept to save.',
+      suggestionId: 'sug-1',
+      status: 'PENDING',
+      createdAt: '2026-05-13T10:00:02.000Z',
+    },
+  ],
+});
+assert('chat history keeps user and assistant', chat.messages.length === 2 && chat.messages[0].sender === 'user');
+assert('pending chat keeps Accept plan', chat.messages[1].actions?.[0]?.label === 'Accept plan');
+assert('pending chat suggestion id', chat.pending?.suggestionId === 'sug-1');
 
 console.log(`\n=== Result: ${failed === 0 ? 'ALL PASS (APIs #1–#11 UI wired)' : `${failed} FAILED`} ===\n`);
 process.exit(failed === 0 ? 0 : 1);

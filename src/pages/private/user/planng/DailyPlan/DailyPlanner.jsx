@@ -16,6 +16,7 @@ import {
   dismissPlannerSuggestion,
   fetchPlannerAvailable,
   fetchPlannerBoard,
+  fetchPlannerChat,
   fetchPlannerGhostSuggestions,
   fetchPlannerSuggestion,
   fetchPlannerSummary,
@@ -33,6 +34,7 @@ import {
   buildCreatePlanPayload,
   createPlanPromptForView,
   mapPlannerBoardFromApi,
+  mapPlannerChatToMessages,
   mapPlannerItemsFromApi,
 } from '../../../../../features/planner/plannerMappers';
 
@@ -104,6 +106,7 @@ export default function DailyPlanner() {
   const [planHistory, setPlanHistory] = useState([]);
   const [chatInput, setChatInput] = useState('');
   const [messages, setMessages] = useState([]);
+  const [chatHistoryReady, setChatHistoryReady] = useState(false);
   const chatContainerRef = useRef(null);
   const plansRef = useRef(plans);
   const hasAcceptedRef = useRef(hasAcceptedPlan);
@@ -146,6 +149,34 @@ export default function DailyPlanner() {
 
   useEffect(() => {
     dispatch(fetchPlannerGhostSuggestions());
+  }, [dispatch]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const raw = await dispatch(fetchPlannerChat()).unwrap();
+        if (cancelled) return;
+        const mapped = mapPlannerChatToMessages(raw);
+        if (mapped.messages.length) {
+          setMessages(mapped.messages);
+          emptySuggestRequested.current = true;
+          if (mapped.pending) {
+            setPendingProposal({
+              ...mapped.pending,
+              beforePlans: clonePlans(plansRef.current),
+            });
+          }
+        }
+      } catch {
+        /* Planner chat history is optional until the first saved turn. */
+      } finally {
+        if (!cancelled) setChatHistoryReady(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [dispatch]);
 
   useEffect(() => {
@@ -428,7 +459,7 @@ export default function DailyPlanner() {
   };
 
   useEffect(() => {
-    if (emptySuggestRequested.current || pendingProposal) return;
+    if (!chatHistoryReady || emptySuggestRequested.current || pendingProposal) return;
     if (boardStatus !== 'succeeded' || ghostStatus !== 'succeeded') return;
     if (plansHaveItems(storePlans)) return;
 
@@ -500,6 +531,7 @@ export default function DailyPlanner() {
   }, [
     boardStatus,
     ghostStatus,
+    chatHistoryReady,
     ghostSuggestions,
     storePlans,
     pendingProposal,
