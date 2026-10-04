@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
+import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import gsap from 'gsap';
 import { BACK_LABELS, ROUTINE_TIMES, STEP_META } from '../../constants';
 import { POST } from '../../services/httpMethods';
 import { API_ENDPOINTS } from '../../services/httpEndpoint';
+import { updateAuthUser } from '../../features/auth/authSlice';
 import Step1 from './steps/Step1';
 import Step2 from './steps/Step2';
 import Step3 from './steps/Step3';
@@ -149,6 +151,7 @@ const extractGenerateProgress = (response) => {
 
 const OnboardingFlowView = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [step, setStep] = useState(1);
   const [selectedGoals, setSelectedGoals] = useState([]);
   const [step2Phase, setStep2Phase] = useState(1);
@@ -202,6 +205,7 @@ const OnboardingFlowView = () => {
 
         const nextProgress = extractGenerateProgress(response);
         console.log('[Onboarding Generate] response', response);
+        dispatch(updateAuthUser({ onboardingCompleted: true }));
         setProgress(nextProgress >= 100 ? 100 : nextProgress);
       } catch (error) {
         if (cancelled) return;
@@ -220,7 +224,7 @@ const OnboardingFlowView = () => {
       cancelled = true;
       clearInterval(creepInterval);
     };
-  }, [isGenerating]);
+  }, [isGenerating, dispatch]);
 
   useEffect(() => {
     if (progress < 100 || !isGenerating) return;

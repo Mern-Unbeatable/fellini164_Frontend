@@ -50,6 +50,8 @@ export const loginWithGoogle = createAsyncThunk(
 
       const response = await POST(url, body);
 
+      console.log('[Google Login] backend response', response);
+      console.log('[Google Login] user', response?.data?.user);
       logGoogleAuth(6, 'Backend response', response);
 
       if (response.success) {
@@ -66,6 +68,7 @@ export const loginWithGoogle = createAsyncThunk(
       logGoogleAuth(6, 'Backend returned success: false', response);
       return rejectWithValue(response.message || 'Google login failed');
     } catch (error) {
+      console.log('[Google Login] backend error response', error.response?.data);
       logGoogleAuth('ERR', 'Request failed', {
         message: error.message,
         status: error.response?.status,

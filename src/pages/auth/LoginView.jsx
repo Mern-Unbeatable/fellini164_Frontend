@@ -9,6 +9,7 @@ import { FcGoogle } from 'react-icons/fc';
 import { FaApple } from 'react-icons/fa';
 import gsap from 'gsap';
 import { useGoogleAuth } from '../../hooks/useGoogleAuth';
+import { getPostLoginPath } from '../../features/auth/authRedirect';
 
 const LoginView = () => {
   const [email, setEmail] = useState('');
@@ -41,11 +42,7 @@ const LoginView = () => {
 
   useEffect(() => {
     if (isAuthenticated && user) {
-      if (user.role === 'ADMIN') {
-        navigate('/admin/dashboard', { replace: true });
-      } else {
-        navigate('/dashboard', { replace: true });
-      }
+      navigate(getPostLoginPath(user), { replace: true });
     }
   }, [isAuthenticated, user, navigate]);
 
