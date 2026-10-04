@@ -20,6 +20,8 @@ import LoginView from '../pages/auth/LoginView';
 import RegisterView from '../pages/auth/RegisterView';
 import OTPVerifyView from '../pages/auth/OTPVerifyView';
 import OnboardingFlowView from '../pages/auth/OnboardingFlowView';
+import PaymentSuccessView from '../pages/payment/PaymentSuccessView';
+import PaymentCancelView from '../pages/payment/PaymentCancelView';
 import UserDashView from '../pages/private/user/userDashboard/UserDashView';
 import AdminDashView from '../pages/private/admin/AdminDashView';
 import Subscription from '../pages/private/user/account/Subscription';
@@ -84,6 +86,8 @@ const router = createBrowserRouter(
         <Route path="/signup" element={<RegisterView />} />
         <Route path="/verify-otp" element={<OTPVerifyView />} />
         <Route path="/onboarding-setup" element={<OnboardingFlowView />} />
+        <Route path="/payment/success" element={<PaymentSuccessView />} />
+        <Route path="/payment/cancel" element={<PaymentCancelView />} />
       </Route>
 
       {/* User Dashboard (Protected) */}
