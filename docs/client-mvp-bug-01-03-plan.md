@@ -183,7 +183,18 @@ Client জানিয়েছে Bug 01 (Global Search), 02 (Settings gear) �
 
 **কেন দরকার:** Client চায় Settings page-এ notification preference দেখানো হোক। এখন frontend-এ যে toggle আছে সেটা কোথাও save হয় না। শুধু notification-এর list (`GET /api/v1/notifications`) আছে।
 
-**না থাকলে:** Settings page-এ toggle দেখানো হবে না। Client বলেছে "শুধু যা কাজ করে সেগুলোই দেখাও"।
+**এখনকার অবস্থা:** Profile page-এ তিনটা toggle বানানো হয়েছে। API না থাকায় আপাতত পছন্দগুলো browser-এর localStorage-এ save হয়, backend-এ যায় না:
+
+| Toggle | Key | কোন notification type |
+|---|---|---|
+| Habit reminders | `habitReminders` | `HABIT_REMINDER` |
+| Alerts | `alerts` | `ALERT` |
+| Product updates & announcements | `productUpdates` | `FEATURE` |
+
+**Backend-এর কাছে চাওয়া:**
+- `GET /api/v1/users/notification-settings` → `{ habitReminders, alerts, productUpdates }` (সব boolean)
+- `PATCH` একই shape দিয়ে
+- কোনো toggle বন্ধ থাকলে backend সেই type-এর notification পাঠাবে না।
 
 ### ৩. Account management (Bug 02, Settings page)
 
@@ -193,10 +204,18 @@ Client জানিয়েছে Bug 01 (Global Search), 02 (Settings gear) �
 
 **না থাকলে:** শুধু Logout দেখানো হবে।
 
-### ৪. Profile (Bug 02, শুধু নিশ্চিত হওয়ার জন্য)
+### ৪. Subscription / billing management (Bug 02, Settings page)
+
+**যা জানা দরকার:** subscription cancel বা payment method পরিবর্তনের কোনো API আছে কি? যেমন `POST /api/v1/payments/cancel-subscription`, অথবা Stripe Customer Portal-এর link দেওয়া `POST /api/v1/payments/portal`।
+
+**কেন দরকার:** Client "subscription/billing management" চেয়েছে। এখন frontend-এ শুধু `create-checkout` আর `subscription-status` আছে।
+
+**না থাকলে:** Settings-এ শুধু বর্তমান plan আর upgrade-এর option দেখানো হবে।
+
+### ৫. Profile (Bug 02, শুধু নিশ্চিত হওয়ার জন্য)
 
 `GET` আর `PUT /api/v1/auth/profile` এবং `POST /api/v1/auth/change-password` আগে থেকে ব্যবহার হচ্ছে। এগুলোর জন্য নতুন কিছু লাগবে না।
 
-### ৫. Create বাটন (Bug 03)
+### ৬. Create বাটন (Bug 03)
 
 আগের create API-গুলো ব্যবহার হবে: `POST /api/v1/tasks`, `/habits`, `/goals`। **Backend-এর কিছু করতে হবে না।**

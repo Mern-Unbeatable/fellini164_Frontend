@@ -9,6 +9,8 @@ import {
 } from '../../../../features/auth/profileApi';
 import NormalInfoSection from './components/NormalInfoSection';
 import ChangePasswordSection from './components/ChangePasswordSection';
+import NotificationPreferencesSection from './components/NotificationPreferencesSection';
+import SubscriptionSection from './components/SubscriptionSection';
 
 const inputClassName =
   'w-full rounded-xl border border-[#f2f2f2] bg-white px-3 py-2.5 text-[14px] font-medium text-[#181818] outline-none transition focus:border-[#8022fe] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white';
@@ -28,7 +30,7 @@ export default function ProfilePage() {
     .toString()
     .toUpperCase();
   const [fullName, setFullName] = useState(user?.fullName || user?.name || '');
-  const [email, setEmail] = useState(user?.email || '');
+  const email = user?.email || '';
 
   useEffect(() => {
     dispatch(getSubscriptionStatus());
@@ -90,36 +92,54 @@ export default function ProfilePage() {
     }
   };
 
+  const rawStatus =
+    typeof subscription?.status === 'string' ? subscription.status.replace(/_/g, ' ').toLowerCase() : '';
+  const subscriptionStatus = rawStatus ? rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1) : null;
+
   return (
-    <div className="space-y-5 py-7.5 max-lg:py-4 max-lg:sm:py-6">
+    <div className="py-7.5 max-lg:py-4 max-lg:sm:py-6">
       <div>
-        <h1 className="text-[20px] font-medium text-[#181818] dark:text-white">Profile</h1>
+        <h1 className="text-[20px] font-medium text-[#181818] dark:text-white">Profile & Settings</h1>
         <p className="mt-1 text-[12px] font-medium text-[#c2c2c2] dark:text-gray-400">
-          Manage your personal information and password
+          Manage your account, security, subscription and notifications
         </p>
       </div>
 
-      <NormalInfoSection
-        inputClassName={inputClassName}
-        currentPlan={currentPlan}
-        fullName={fullName}
-        email={email}
-        setFullName={setFullName}
-        saving={savingInfo}
-        onSubmit={handleInfoSubmit}
-      />
+      <div className="mt-5">
+        <div className="flex min-w-0 flex-col gap-5">
+          <NormalInfoSection
+            id="account"
+            inputClassName={inputClassName}
+            currentPlan={currentPlan}
+            fullName={fullName}
+            email={email}
+            setFullName={setFullName}
+            saving={savingInfo}
+            onSubmit={handleInfoSubmit}
+          />
 
-      <ChangePasswordSection
-        inputClassName={inputClassName}
-        currentPassword={currentPassword}
-        newPassword={newPassword}
-        confirmPassword={confirmPassword}
-        setCurrentPassword={setCurrentPassword}
-        setNewPassword={setNewPassword}
-        setConfirmPassword={setConfirmPassword}
-        saving={savingPassword}
-        onSubmit={handlePasswordSubmit}
-      />
+          <ChangePasswordSection
+            id="security"
+            inputClassName={inputClassName}
+            currentPassword={currentPassword}
+            newPassword={newPassword}
+            confirmPassword={confirmPassword}
+            setCurrentPassword={setCurrentPassword}
+            setNewPassword={setNewPassword}
+            setConfirmPassword={setConfirmPassword}
+            saving={savingPassword}
+            onSubmit={handlePasswordSubmit}
+          />
+
+          <SubscriptionSection
+            id="subscription"
+            currentPlan={currentPlan}
+            subscriptionStatus={subscriptionStatus}
+          />
+
+          <NotificationPreferencesSection id="notifications" userId={user?.id ?? user?._id} />
+        </div>
+      </div>
     </div>
   );
 }

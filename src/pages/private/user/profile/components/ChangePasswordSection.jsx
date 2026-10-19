@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, ShieldCheck } from 'lucide-react';
+import SettingsCard from './SettingsCard';
 
 function PasswordField({ label, value, onChange, placeholder, inputClassName }) {
   const [visible, setVisible] = useState(false);
@@ -31,6 +32,7 @@ function PasswordField({ label, value, onChange, placeholder, inputClassName }) 
 }
 
 export default function ChangePasswordSection({
+  id,
   inputClassName,
   currentPassword,
   newPassword,
@@ -42,12 +44,16 @@ export default function ChangePasswordSection({
   onSubmit,
 }) {
   return (
-    <form
+    <SettingsCard
+      as="form"
+      id={id}
       onSubmit={onSubmit}
-      className="rounded-lg border border-[#f2f2f2] bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900"
+      icon={ShieldCheck}
+      title="Password & Security"
+      description="Update your password to keep your account secure"
     >
-      <h2 className="text-[16px] font-semibold text-[#181818] dark:text-white">Change Password</h2>
-      <div className="mt-4 flex flex-col gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="md:col-span-2">
         <PasswordField
           label="Current Password"
           value={currentPassword}
@@ -55,6 +61,7 @@ export default function ChangePasswordSection({
           placeholder="Current password"
           inputClassName={inputClassName}
         />
+        </div>
         <PasswordField
           label="New Password"
           value={newPassword}
@@ -79,6 +86,6 @@ export default function ChangePasswordSection({
           {saving ? 'Changing...' : 'Change Password'}
         </button>
       </div>
-    </form>
+    </SettingsCard>
   );
 }
