@@ -167,6 +167,9 @@ export default function Habits() {
   const [activeFilters, setActiveFilters] = useState(DEFAULT_FILTERS);
 
   const forceEmpty = resolveForceEmptyBoard();
+  const isNarrowed =
+    searchQuery.trim() !== '' ||
+    Object.keys(DEFAULT_FILTERS).some((key) => activeFilters[key] !== DEFAULT_FILTERS[key]);
 
   const loadHabits = useCallback(() => {
     return dispatch(
@@ -204,12 +207,12 @@ export default function Habits() {
 
   // Empty board (0 habits from GET /habits, or DEV ?empty=1) → load AI ghost suggestions once.
   useEffect(() => {
-    const empty = forceEmpty || (!loadingList && habits.length === 0);
+    const empty = forceEmpty || (!loadingList && habits.length === 0 && !isNarrowed);
     if (empty && !wasBoardEmpty.current) {
       loadSuggestions();
     }
     wasBoardEmpty.current = empty;
-  }, [forceEmpty, loadingList, habits.length, loadSuggestions]);
+  }, [forceEmpty, loadingList, habits.length, isNarrowed, loadSuggestions]);
 
   const updateFilter = (key, value) => setActiveFilters((prev) => ({ ...prev, [key]: value }));
 
@@ -277,7 +280,8 @@ export default function Habits() {
   };
 
   const boardHabits = useMemo(() => (forceEmpty ? [] : habits), [forceEmpty, habits]);
-  const boardIsEmpty = boardHabits.length === 0;
+  // A search/filter with zero hits is "no matches", not an empty board.
+  const boardIsEmpty = forceEmpty || (boardHabits.length === 0 && !isNarrowed);
 
   const filteredGhostHabits = useMemo(
     () =>
@@ -486,7 +490,7 @@ export default function Habits() {
         </div>
 
         <div className="scrollbar-hidden relative -mx-3 flex flex-1 flex-col gap-2.5 overflow-y-auto px-3 lg:min-h-0 max-lg:max-h-[min(70vh,560px)]">
-          {loadingList && boardIsEmpty && !forceEmpty ? (
+          {loadingList && boardHabits.length === 0 && !forceEmpty ? (
             <p className="py-10 text-center text-sm font-medium text-[#c2c2c2] dark:text-gray-500">
               Loading habits...
             </p>
@@ -513,7 +517,7 @@ export default function Habits() {
             )
           ) : filteredHabits.length === 0 ? (
             <p className="py-10 text-center text-sm font-medium text-[#c2c2c2] dark:text-gray-500">
-              No habits match your search.
+              No matching habits.
             </p>
           ) : (
             filteredHabits.map((habit) => (
