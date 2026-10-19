@@ -19,6 +19,7 @@ import { useNavigate, useOutletContext } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import NewGoalModal from './components/NewGoalModal';
+import { useCreateQueryParam } from '../../../../../hooks/useCreateQueryParam';
 import GoalProgressModal from './components/GoalProgressModal';
 import DeleteConfirmModal from '../../../../../components/ui/DeleteConfirmModal';
 import GoalDetailPanel, {
@@ -952,6 +953,7 @@ export default function ActiveGoals() {
     setModal(false);
     setEditingGoal(null);
   };
+  useCreateQueryParam(handleOpenModal);
   const handleCloseModalProgress = () => setModalProgress(false);
   const handleSavePlan = async (data) => {
     if (!data?.title && !data?.alreadyPersisted) return;

@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { LogOut, Bell, Settings, PanelLeft } from 'lucide-react';
+import { LogOut, Bell, Settings, PanelLeft, Search } from 'lucide-react';
 import {
   selectNotifications,
   fetchNotifications,
@@ -11,6 +11,11 @@ import {
 import { selectCurrentGoal, selectGoals } from '../../../features/goals/goalsSlice';
 import { selectCurrentTask } from '../../../features/tasks/tasksSlice';
 import NotificationPanel from './NotificationPanel';
+import GlobalSearch from './GlobalSearch';
+
+const IS_MAC =
+  typeof navigator !== 'undefined' && /Mac|iPhone|iPad/i.test(navigator.platform || navigator.userAgent);
+const SEARCH_SHORTCUT_LABEL = IS_MAC ? '⌘ K' : 'Ctrl + K';
 
 const BREADCRUMBS = [
   { prefix: '/user/tasks', section: 'Work', page: 'Tasks' },
@@ -107,9 +112,23 @@ export default function PrivateNavbar({
   const notifications = useSelector(selectNotifications);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const openSearch = useCallback(() => setIsSearchOpen(true), []);
+  const closeSearch = useCallback(() => setIsSearchOpen(false), []);
   const menuRef = useRef(null);
   const notificationRef = useRef(null);
   const notificationRefMobile = useRef(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key?.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsSearchOpen(true);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   useEffect(() => {
     dispatch(fetchNotifications());
@@ -185,15 +204,19 @@ export default function PrivateNavbar({
 
       <div className="flex shrink-0 items-center gap-5">
         <div className="flex items-center gap-5 max-lg:hidden">
-          {/* Go to — visible per Figma, non-functional in MVP */}
-          <div className="flex w-26.25 shrink-0 items-center gap-1.5 rounded-lg border border-[#f2f2f2] bg-[#fcfcfc] px-2.5 py-1.25 dark:border-zinc-700 dark:bg-zinc-800">
+          <button
+            type="button"
+            onClick={openSearch}
+            aria-label="Search"
+            className="flex w-26.25 shrink-0 items-center gap-1.5 rounded-lg border border-[#f2f2f2] bg-[#fcfcfc] px-2.5 py-1.25 text-left hover:border-[#e5d4ff] dark:border-zinc-700 dark:bg-zinc-800"
+          >
             <p className="min-w-0 flex-1 text-[12px] font-medium whitespace-nowrap text-[#5d5d5d] dark:text-gray-300">
               Go to...
             </p>
             <p className="shrink-0 text-[10px] font-medium whitespace-nowrap text-[#c2c2c2] dark:text-zinc-500">
-              Ctrl + K
+              {SEARCH_SHORTCUT_LABEL}
             </p>
-          </div>
+          </button>
 
           <div className="flex w-12.75 items-center justify-between">
             {/* Notifications */}
@@ -225,14 +248,17 @@ export default function PrivateNavbar({
 
         {/* Mobile only */}
         <div className="hidden items-center gap-1.5 max-lg:flex">
-          <div className="flex w-[105px] shrink-0 items-center gap-1 rounded-lg border border-[#f2f2f2] bg-[#fcfcfc] px-2 py-[5px] dark:border-zinc-700 dark:bg-zinc-800">
+          <button
+            type="button"
+            onClick={openSearch}
+            aria-label="Search"
+            className="flex w-[105px] shrink-0 items-center gap-1 rounded-lg border border-[#f2f2f2] bg-[#fcfcfc] px-2 py-[5px] text-left dark:border-zinc-700 dark:bg-zinc-800"
+          >
+            <Search size={12} className="shrink-0 text-[#c2c2c2] dark:text-zinc-500" strokeWidth={1.75} />
             <p className="min-w-0 flex-1 truncate text-[11px] font-medium whitespace-nowrap text-[#5d5d5d] dark:text-gray-300">
               Go to...
             </p>
-            <p className="shrink-0 text-[9px] font-medium whitespace-nowrap text-[#c2c2c2] dark:text-zinc-500">
-              Ctrl + K
-            </p>
-          </div>
+          </button>
           <div ref={notificationRefMobile} className="relative text-[#5d5d5d] dark:text-gray-300">
             <button 
               onClick={() => setIsNotificationOpen((o) => !o)}
@@ -280,6 +306,8 @@ export default function PrivateNavbar({
           )}
         </div>
       </div>
+
+      {isSearchOpen && <GlobalSearch onClose={closeSearch} />}
     </div>
   );
 }

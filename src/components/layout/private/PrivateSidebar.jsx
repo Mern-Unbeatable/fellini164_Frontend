@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import {
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   ListTodo,
@@ -141,6 +142,83 @@ function MiniCalendar() {
   );
 }
 
+const CREATE_OPTIONS = [
+  { label: 'Create Task', icon: ListTodo, path: '/user/tasks?create=1' },
+  { label: 'Create Habit', icon: RotateCcw, path: '/user/habits?create=1' },
+  { label: 'Create Goal', icon: Target, path: '/user/goals?create=1' },
+];
+
+function CreateMenu({ open, setOpen, onSelect }) {
+  const menuRef = useRef(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setOpen(false);
+    };
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [open, setOpen]);
+
+  const handleSelect = (path) => {
+    setOpen(false);
+    navigate(path);
+    onSelect?.();
+  };
+
+  return (
+    <div ref={menuRef} className="relative w-full">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        className="flex h-[33px] w-full items-center gap-2 rounded-[10px] border border-[#f2f2f2] bg-[#fcfcfc] px-2.5 py-1.5 text-left hover:bg-[#f9f4ff] dark:border-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-700"
+      >
+        <PenSquare size={18} className="shrink-0 text-[#5d5d5d] dark:text-gray-300" strokeWidth={1.75} />
+        <p className="min-w-0 flex-1 text-[14px] font-medium whitespace-nowrap text-[#5d5d5d] dark:text-gray-300">
+          Create
+        </p>
+        <ChevronDown
+          size={14}
+          className={`shrink-0 text-[#c2c2c2] transition-transform dark:text-zinc-500 ${open ? 'rotate-180' : ''}`}
+        />
+      </button>
+
+      {open && (
+        <div
+          role="menu"
+          className="absolute top-[37px] left-0 z-50 w-full rounded-[10px] border border-[#f2f2f2] bg-white p-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-800"
+        >
+          {CREATE_OPTIONS.map((option) => {
+            const Icon = option.icon;
+            return (
+              <button
+                key={option.label}
+                type="button"
+                role="menuitem"
+                onClick={() => handleSelect(option.path)}
+                className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-[13px] font-medium text-[#5d5d5d] hover:bg-[#f9f4ff] hover:text-[#8022fe] dark:text-gray-300 dark:hover:bg-zinc-700"
+              >
+                <Icon size={16} className="shrink-0" strokeWidth={1.75} />
+                {option.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SectionSubtitle({ children }) {
   return (
     <div className="flex w-full items-center px-2.5">
@@ -205,7 +283,20 @@ export default function PrivateSidebar({
   hasTaskDetail = false,
 }) {
   const [collapsed, setCollapsed] = useState(false);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
   const showExpanded = !collapsed || isMobileOpen;
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.code === 'KeyC') {
+        e.preventDefault();
+        setCollapsed(false);
+        setIsCreateOpen((o) => !o);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const isItemActive = (item) => item.match.some((p) => pathname.startsWith(p));
 
@@ -260,7 +351,10 @@ export default function PrivateSidebar({
           </button>
           <button
             type="button"
-            onClick={() => setCollapsed((c) => !c)}
+            onClick={() => {
+              setCollapsed((c) => !c);
+              setIsCreateOpen(false);
+            }}
             aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             className="hidden shrink-0 text-[#c2c2c2] hover:text-[#5d5d5d] dark:text-zinc-500 dark:hover:text-gray-300 lg:flex"
           >
@@ -276,16 +370,7 @@ export default function PrivateSidebar({
           <div className="flex w-full flex-col items-start gap-2 p-[8px]">
             <MiniCalendar />
 
-            {/* Create — visible per Figma, non-functional in MVP */}
-            <div className="flex h-[33px] w-full items-center gap-2 rounded-[10px] border border-[#f2f2f2] bg-[#fcfcfc] px-2.5 py-1.5 dark:border-zinc-700 dark:bg-zinc-800">
-              <PenSquare size={18} className="shrink-0 text-[#5d5d5d] dark:text-gray-300" strokeWidth={1.75} />
-              <p className="min-w-0 flex-1 text-[14px] font-medium whitespace-nowrap text-[#5d5d5d] dark:text-gray-300">
-                Create
-              </p>
-              <p className="shrink-0 text-[10px] font-medium whitespace-nowrap text-[#c2c2c2] dark:text-zinc-500">
-                Ctrl + Shift + C
-              </p>
-            </div>
+            <CreateMenu open={isCreateOpen} setOpen={setIsCreateOpen} onSelect={onCloseMobile} />
           </div>
         )}
 

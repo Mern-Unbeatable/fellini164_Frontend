@@ -10,6 +10,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import NewHabitsModal from './components/NewHabitsModal';
+import { useCreateQueryParam } from '../../../../../hooks/useCreateQueryParam';
 import HabitRow from './components/HabitRow';
 import GhostHabitRow from './components/GhostHabitRow';
 import DeleteConfirmModal from '../../../../../components/ui/DeleteConfirmModal';
@@ -214,6 +215,7 @@ export default function Habits() {
 
   const handleOpenModal = () => setHabitModal({ open: true, mode: 'create', habit: null });
   const handleCloseModal = () => setHabitModal({ open: false, mode: 'create', habit: null });
+  useCreateQueryParam(handleOpenModal);
 
   const handleSaveHabit = async (data) => {
     if (!data?.title && !data?.alreadyPersisted) return;

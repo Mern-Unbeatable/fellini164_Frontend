@@ -11,6 +11,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import TaskFormModal from './components/TaskFormModal';
+import { useCreateQueryParam } from '../../../../../hooks/useCreateQueryParam';
 import { TaskDetailDrawer } from './components/TaskDetailPanel';
 import { TaskCard, GhostTaskCard } from './components/TaskCard';
 import {
@@ -368,6 +369,7 @@ export default function TasksBoard() {
   const openNewTaskModal = () => setTaskModal({ open: true, mode: 'create', task: null });
   const openEditTaskModal = (task) => setTaskModal({ open: true, mode: 'edit', task });
   const closeTaskModal = () => setTaskModal((prev) => ({ ...prev, open: false }));
+  useCreateQueryParam(openNewTaskModal);
 
   const handleDismissGhost = async (id) => {
     if (!id || busySuggestionId || !isUuid(id)) return;
