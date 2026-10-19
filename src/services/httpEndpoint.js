@@ -36,6 +36,7 @@ export const API_ENDPOINTS = {
   PAYMENTS: {
     CREATE_CHECKOUT: '/api/v1/payments/create-checkout',
     SUBSCRIPTION_STATUS: '/api/v1/payments/subscription-status',
+    CANCEL_SUBSCRIPTION: '/api/v1/payments/cancel-subscription',
   },
   USERS: {
     DASHBOARD: '/api/v1/users/dashboard',

@@ -134,6 +134,7 @@ export default function ProfilePage() {
           <SubscriptionSection
             id="subscription"
             currentPlan={currentPlan}
+            subscription={subscription}
             subscriptionStatus={subscriptionStatus}
           />
 

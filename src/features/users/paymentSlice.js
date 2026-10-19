@@ -16,9 +16,23 @@ export const createCheckout = createAsyncThunk(
   }
 );
 
+export const cancelSubscription = createAsyncThunk(
+  'payments/cancelSubscription',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await POST(API_ENDPOINTS.PAYMENTS.CANCEL_SUBSCRIPTION);
+      if (response.success) return { data: response.data, message: response.message };
+      return rejectWithValue(response.message || 'Failed to cancel subscription');
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message || 'Failed to cancel subscription');
+    }
+  }
+);
+
 const initialState = {
   checkoutData: null,
   loading: false,
+  cancelling: false,
   error: null,
 };
 
@@ -41,6 +55,12 @@ const paymentSlice = createSlice({
       .addCase(createCheckout.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      .addCase(cancelSubscription.pending, (state) => { state.cancelling = true; state.error = null; })
+      .addCase(cancelSubscription.fulfilled, (state) => { state.cancelling = false; })
+      .addCase(cancelSubscription.rejected, (state, action) => {
+        state.cancelling = false;
+        state.error = action.payload;
       });
   },
 });
@@ -50,6 +70,7 @@ export const { clearCheckout } = paymentSlice.actions;
 // Selectors
 export const selectCheckoutData = (state) => state.payments.checkoutData;
 export const selectPaymentLoading = (state) => state.payments.loading;
+export const selectCancellingSubscription = (state) => state.payments.cancelling;
 export const selectPaymentError = (state) => state.payments.error;
 
 export default paymentSlice.reducer;
