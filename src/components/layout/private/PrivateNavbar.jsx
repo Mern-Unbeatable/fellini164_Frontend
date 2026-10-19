@@ -215,8 +215,9 @@ export default function PrivateNavbar({
                 onMarkOneRead={(id) => dispatch(markNotificationAsRead(id))}
               />
             </div>
-            {/* Settings — visible per Figma, non-functional in MVP */}
-            <Settings size={18} className="text-[#5d5d5d] dark:text-gray-300 cursor-pointer" strokeWidth={1.75} />
+            <Link to="/user/profile" aria-label="Settings" className="flex">
+              <Settings size={18} className="text-[#5d5d5d] dark:text-gray-300 cursor-pointer" strokeWidth={1.75} />
+            </Link>
           </div>
         </div>
 
@@ -250,7 +251,9 @@ export default function PrivateNavbar({
               onMarkOneRead={(id) => dispatch(markNotificationAsRead(id))}
             />
           </div>
-          <Settings size={18} className="text-[#5d5d5d] dark:text-gray-300 cursor-pointer" strokeWidth={1.75} />
+          <Link to="/user/profile" aria-label="Settings" className="flex">
+            <Settings size={18} className="text-[#5d5d5d] dark:text-gray-300 cursor-pointer" strokeWidth={1.75} />
+          </Link>
         </div>
 
         <div ref={menuRef} className="relative">
