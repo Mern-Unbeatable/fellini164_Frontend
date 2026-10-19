@@ -30,7 +30,12 @@ import {
  */
 function discardGeneratedGoal(goalId) {
   if (!goalId) return;
-  deleteGoalApi(goalId).catch(() => {});
+  console.log('[BUG08] discarding generated goal', goalId);
+  deleteGoalApi(goalId)
+    .then(() => console.log('[BUG08] discarded', goalId))
+    .catch((error) => {
+      console.warn('[BUG08] discard failed', goalId, error?.response?.status, error?.response?.data);
+    });
 }
 
 const PRIORITIES = ['Low', 'Medium', 'High', 'Urgent'];
@@ -72,6 +77,16 @@ function formatDueDate(value) {
   const date = new Date(`${value}T00:00:00`);
   if (Number.isNaN(date.getTime())) return value;
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function todayYmd() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
+
+function isPastYmd(value) {
+  if (!value) return false;
+  return String(value).slice(0, 10) < todayYmd();
 }
 
 function Field({ label, required = false, children }) {
@@ -361,7 +376,7 @@ function AiPreviewChangeSection({ changeRequest, onChange, onUpdate }) {
   );
 }
 
-function DueDateField({ value, onChange }) {
+function DueDateField({ value, onChange, error }) {
   const inputRef = useRef(null);
 
   const openPicker = () => {
@@ -383,7 +398,9 @@ function DueDateField({ value, onChange }) {
       <button
         type="button"
         onClick={openPicker}
-        className={`${inputClasses} flex w-full items-center justify-between gap-2 text-left`}
+        className={`${inputClasses} flex w-full items-center justify-between gap-2 text-left ${
+          error ? 'border-red-400 focus:border-red-400' : ''
+        }`}
       >
         <span className={value ? 'text-[#181818] dark:text-white' : 'text-[#c2c2c2]'}>
           {value ? formatDueDate(value) : ''}
@@ -395,11 +412,13 @@ function DueDateField({ value, onChange }) {
         ref={inputRef}
         type="date"
         value={value}
+        min={todayYmd()}
         onChange={(e) => onChange(e.target.value)}
         tabIndex={-1}
         aria-hidden
         className="pointer-events-none absolute top-[calc(100%+4px)] right-0 h-px w-[220px] max-w-full overflow-hidden border-0 p-0 opacity-0"
       />
+      {error ? <p className="mt-1 text-[11px] font-medium text-red-500">{error}</p> : null}
     </div>
   );
 }
@@ -414,6 +433,7 @@ function ManualFormFields({
   taskOptions = [],
   habitOptions = [],
   linksLoading = false,
+  dueDateError = '',
 }) {
   return (
     <div className="flex flex-col gap-[16px]">
@@ -465,7 +485,11 @@ function ManualFormFields({
       </div>
 
       <Field label="Due Date">
-        <DueDateField value={form.dueDate} onChange={(next) => update('dueDate', next)} />
+        <DueDateField
+          value={form.dueDate}
+          onChange={(next) => update('dueDate', next)}
+          error={dueDateError}
+        />
       </Field>
 
       <LinkedMultiSelect
@@ -693,6 +717,11 @@ export default function NewGoalModal({ open, onClose, onSave, mode = 'create', i
 
   const update = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
 
+  // Editing an already-overdue goal is allowed as long as its due date isn't changed to another past date.
+  const unchangedEditDueDate = isEdit && form.dueDate === (initialGoal.targetDate || '');
+  const dueDateError =
+    isPastYmd(form.dueDate) && !unchangedEditDueDate ? 'The selected date is in the past.' : '';
+
   const runAiGeneration = async (prompt) => {
     setPendingGoal(
       generatedGoal || {
@@ -720,6 +749,7 @@ export default function NewGoalModal({ open, onClose, onSave, mode = 'create', i
         return;
       }
       const previousId = unsavedGeneratedIdRef.current;
+      console.log('[BUG08] generated', { nextId, previousId, payload: result.payload });
       unsavedGeneratedIdRef.current = nextId;
       if (previousId && String(previousId) !== String(nextId)) {
         discardGeneratedGoal(previousId);
@@ -786,7 +816,7 @@ export default function NewGoalModal({ open, onClose, onSave, mode = 'create', i
   };
 
   const handleManualSubmit = () => {
-    if (!form.title.trim() || !form.description.trim()) return;
+    if (!form.title.trim() || !form.description.trim() || dueDateError) return;
     onSave({
       title: form.title,
       description: form.description,
@@ -809,7 +839,8 @@ export default function NewGoalModal({ open, onClose, onSave, mode = 'create', i
     if (tab === 'ai') setAiPhase(generatedGoal ? 'preview' : 'input');
   };
 
-  const canSubmitManual = form.title.trim().length > 0 && form.description.trim().length > 0;
+  const canSubmitManual =
+    form.title.trim().length > 0 && form.description.trim().length > 0 && !dueDateError;
   const canGenerate = aiPrompt.trim().length > 0 && !isRevealing;
   const showAiPreview = activeTab === 'ai' && aiPhase === 'preview';
   const showAiGenerating = activeTab === 'ai' && aiPhase === 'generating';
@@ -835,6 +866,7 @@ export default function NewGoalModal({ open, onClose, onSave, mode = 'create', i
           taskOptions={taskOptions}
           habitOptions={habitOptions}
           linksLoading={linksLoading}
+          dueDateError={dueDateError}
         />
       );
     }
