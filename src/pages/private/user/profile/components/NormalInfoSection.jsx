@@ -13,6 +13,7 @@ export default function NormalInfoSection({
   email,
   setFullName,
   saving = false,
+  canSave = true,
   onSubmit,
 }) {
   return (
@@ -56,7 +57,7 @@ export default function NormalInfoSection({
       <div className="mt-5 flex justify-end">
         <button
           type="submit"
-          disabled={saving}
+          disabled={saving || !canSave}
           className="rounded-xl bg-[#8022fe] px-4 py-2 text-[13px] font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {saving ? 'Saving...' : 'Save Info'}

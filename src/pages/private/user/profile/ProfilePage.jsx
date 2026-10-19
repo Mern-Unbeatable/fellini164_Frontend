@@ -29,8 +29,10 @@ export default function ProfilePage() {
   )
     .toString()
     .toUpperCase();
-  const [fullName, setFullName] = useState(user?.fullName || user?.name || '');
+  const savedFullName = user?.fullName || user?.name || '';
+  const [fullName, setFullName] = useState(savedFullName);
   const email = user?.email || '';
+  const infoChanged = fullName.trim() !== savedFullName.trim();
 
   useEffect(() => {
     dispatch(getSubscriptionStatus());
@@ -47,6 +49,7 @@ export default function ProfilePage() {
       toast.error('Please enter your full name.');
       return;
     }
+    if (!infoChanged) return;
 
     try {
       const updated = await dispatch(updateUserProfile({ fullName: name })).unwrap();
@@ -115,6 +118,7 @@ export default function ProfilePage() {
             email={email}
             setFullName={setFullName}
             saving={savingInfo}
+            canSave={infoChanged}
             onSubmit={handleInfoSubmit}
           />
 
