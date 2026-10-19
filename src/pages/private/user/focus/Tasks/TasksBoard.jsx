@@ -554,6 +554,7 @@ export default function TasksBoard() {
         </button>
 
         <div className="flex items-center gap-2 max-lg:w-full max-lg:flex-col max-lg:gap-3 lg:flex-1 2xl:flex-none 2xl:gap-5">
+          {/* Board/List toggle hidden — List view is out of MVP scope (QA BUG 06).
           <div className="flex shrink-0 items-center gap-1 rounded-lg border border-[#f2f2f2] bg-white p-1 dark:border-zinc-700 max-lg:w-full">
             <span className="rounded px-2 py-0.75 text-[12px] font-medium text-[#181818] bg-[#f2f2f2] dark:bg-zinc-700 dark:text-white max-lg:flex-1 max-lg:py-2 max-lg:text-center max-lg:text-base">
               Board
@@ -564,6 +565,7 @@ export default function TasksBoard() {
           </div>
 
           <div className="h-4 w-px shrink-0 bg-[#f2f2f2] dark:bg-zinc-700 max-lg:hidden" />
+          */}
 
           <div className="flex items-center gap-1 max-lg:w-full max-lg:flex-col max-lg:gap-2 lg:flex-1 2xl:flex-none 2xl:gap-2.5">
             {FILTER_CONFIG.map(({ key, defaultLabel, options }) => (

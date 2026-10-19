@@ -894,6 +894,7 @@ function TaskDetailDrawerInner({
   );
   const [aiApplyingTarget, setAiApplyingTarget] = useState(null);
   const [isAssistantOpen, setIsAssistantOpen] = useState(Boolean(autoAiAction));
+  const [isAssistantExpanded, setIsAssistantExpanded] = useState(false);
 
   const task = localTask || taskProp;
 
@@ -902,6 +903,11 @@ function TaskDetailDrawerInner({
     if (updated) applyTaskUpdate(updated);
     return updated;
   }, [onRefreshTask, applyTaskUpdate]);
+
+  const closeAssistant = () => {
+    setIsAssistantOpen(false);
+    setIsAssistantExpanded(false);
+  };
 
   useEffect(() => {
     if (autoAiAction) setIsAssistantOpen(true);
@@ -915,11 +921,16 @@ function TaskDetailDrawerInner({
 
   useEffect(() => {
     const handleEscape = (e) => {
-      if (e.key === 'Escape') onClose?.();
+      if (e.key !== 'Escape') return;
+      if (isAssistantExpanded) {
+        setIsAssistantExpanded(false);
+        return;
+      }
+      onClose?.();
     };
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
-  }, [onClose]);
+  }, [onClose, isAssistantExpanded]);
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -1026,17 +1037,35 @@ function TaskDetailDrawerInner({
             }}
           />
           {isAssistantOpen && (
-            <div className="mt-4 h-80 shrink-0">
-              <TaskAiAssistant
-                taskId={task.id}
-                hasSubtasks={Array.isArray(task.subtasks) && task.subtasks.length > 0}
-                onClose={() => setIsAssistantOpen(false)}
-                onRefreshTask={handleRefreshTask}
-                onTaskUpdated={applyTaskUpdate}
-                onApplyingChange={setAiApplyingTarget}
-                autoAction={autoAiAction}
-                onAutoActionConsumed={onAutoAiActionConsumed}
-              />
+            // Same element tree in both states so the chat (and any in-flight AI request) isn't remounted.
+            <div
+              className={
+                isAssistantExpanded
+                  ? 'fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4'
+                  : 'mt-4 h-80 shrink-0'
+              }
+              onMouseDown={
+                isAssistantExpanded
+                  ? (e) => {
+                      if (e.target === e.currentTarget) setIsAssistantExpanded(false);
+                    }
+                  : undefined
+              }
+            >
+              <div className={isAssistantExpanded ? 'h-[85vh] w-full max-w-2xl' : 'h-full'}>
+                <TaskAiAssistant
+                  taskId={task.id}
+                  hasSubtasks={Array.isArray(task.subtasks) && task.subtasks.length > 0}
+                  onClose={closeAssistant}
+                  onToggleExpand={() => setIsAssistantExpanded((e) => !e)}
+                  isExpanded={isAssistantExpanded}
+                  onRefreshTask={handleRefreshTask}
+                  onTaskUpdated={applyTaskUpdate}
+                  onApplyingChange={setAiApplyingTarget}
+                  autoAction={autoAiAction}
+                  onAutoActionConsumed={onAutoAiActionConsumed}
+                />
+              </div>
             </div>
           )}
         </div>
