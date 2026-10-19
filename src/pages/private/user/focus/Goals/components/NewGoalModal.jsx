@@ -14,6 +14,7 @@ import SkeletonBar from '../../../../../../components/ui/SkeletonBar';
 import { useAiGenerationReveal } from '../../../../../../hooks/useAiGenerationReveal';
 import { generateGoal } from '../../../../../../features/goals/goalsSlice';
 import {
+  deleteGoalApi,
   fetchHabitsForLinkApi,
   fetchTasksForLinkApi,
 } from '../../../../../../features/goals/goalsAPI';
@@ -21,6 +22,16 @@ import {
   normalizeLinkPickerOptions,
   orderedLinkPickerOptions,
 } from '../../../../../../features/goals/goalsMappers';
+
+/**
+ * POST /goals/ai/generate persists the goal immediately, so a preview that gets replaced
+ * (Update / Regenerate) or abandoned (modal closed without "Add to Board") must be deleted.
+ * Silent on purpose: the user never "created" this goal from their point of view.
+ */
+function discardGeneratedGoal(goalId) {
+  if (!goalId) return;
+  deleteGoalApi(goalId).catch(() => {});
+}
 
 const PRIORITIES = ['Low', 'Medium', 'High', 'Urgent'];
 const CATEGORIES = ['Career', 'Health', 'Finance', 'Personal', 'Education'];
@@ -624,9 +635,24 @@ export default function NewGoalModal({ open, onClose, onSave, mode = 'create', i
   const [habitOptions, setHabitOptions] = useState([]);
   const [linksLoading, setLinksLoading] = useState(false);
   const { revealStep, isRevealing, startReveal, resetReveal } = useAiGenerationReveal();
+  // Id of the AI goal the server has saved but the user hasn't added to the board yet.
+  const unsavedGeneratedIdRef = useRef(null);
+  // Bumped on every close so a generate request that finishes after closing is thrown away.
+  const sessionRef = useRef(0);
+
+  useEffect(
+    () => () => {
+      sessionRef.current += 1;
+      discardGeneratedGoal(unsavedGeneratedIdRef.current);
+      unsavedGeneratedIdRef.current = null;
+    },
+    []
+  );
 
   useEffect(() => {
     if (!open) return undefined;
+    discardGeneratedGoal(unsavedGeneratedIdRef.current);
+    unsavedGeneratedIdRef.current = null;
     setForm(buildInitialForm());
     setActiveTab(isEdit ? 'manual' : 'ai');
     setAiPhase('input');
@@ -679,6 +705,7 @@ export default function NewGoalModal({ open, onClose, onSave, mode = 'create', i
     );
     setAiPhase('generating');
     setChangeRequest('');
+    const session = sessionRef.current;
     const revealPromise = startReveal();
     const result = await dispatch(
       generateGoal({ prompt, category: form.category || 'Career' })
@@ -686,18 +713,38 @@ export default function NewGoalModal({ open, onClose, onSave, mode = 'create', i
     await revealPromise;
 
     if (generateGoal.fulfilled.match(result)) {
+      const nextId = result.payload.id;
+      if (session !== sessionRef.current) {
+        // Modal was closed while generating — nobody will ever add this goal.
+        discardGeneratedGoal(nextId);
+        return;
+      }
+      const previousId = unsavedGeneratedIdRef.current;
+      unsavedGeneratedIdRef.current = nextId;
+      if (previousId && String(previousId) !== String(nextId)) {
+        discardGeneratedGoal(previousId);
+      }
       setGeneratedGoal(result.payload);
       setPendingGoal(null);
       setAiPhase('preview');
       return;
     }
 
+    if (session !== sessionRef.current) return;
     setPendingGoal(null);
+    // Update/Regenerate failed: keep showing the previous (still saved) preview instead of losing it.
+    if (generatedGoal) {
+      setAiPhase('preview');
+      return;
+    }
     setGeneratedGoal(null);
     setAiPhase('input');
   };
 
   const handleClose = () => {
+    sessionRef.current += 1;
+    discardGeneratedGoal(unsavedGeneratedIdRef.current);
+    unsavedGeneratedIdRef.current = null;
     resetReveal();
     onClose();
   };
@@ -720,6 +767,8 @@ export default function NewGoalModal({ open, onClose, onSave, mode = 'create', i
   const handleAddGeneratedToBoard = () => {
     if (!generatedGoal) return;
     // POST /goals/ai/generate already persisted the goal — only refresh the board.
+    // Clear the tracked id first so handleClose() below doesn't delete the goal we're keeping.
+    unsavedGeneratedIdRef.current = null;
     onSave({
       id: generatedGoal.id,
       title: generatedGoal.title,

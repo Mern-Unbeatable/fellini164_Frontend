@@ -7,6 +7,15 @@ import { useAiGenerationReveal } from '../../../../../../hooks/useAiGenerationRe
 import { generateTask } from '../../../../../../features/tasks/tasksSlice';
 import { formatTaskDueDateLabel } from '../../../../../../features/tasks/tasksMappers';
 import { fetchGoalsApi } from '../../../../../../features/goals/goalsAPI';
+import { deleteTaskApi } from '../../../../../../features/tasks/tasksAPI';
+
+// AI generate persists the task server-side; drop it when the user moves past it without adding.
+function discardGeneratedTask(taskId) {
+  if (!taskId) return;
+  deleteTaskApi(taskId).catch((error) => {
+    console.warn('Failed to discard AI-generated task', taskId, error?.response?.status);
+  });
+}
 
 const PRIORITIES = ['Low', 'Medium', 'High', 'Urgent'];
 const CATEGORIES = ['Career', 'Health', 'Finance', 'Personal', 'Education'];
@@ -442,6 +451,17 @@ export default function TaskFormModal({ mode = 'create', initialTask, onClose, o
   const [goalOptions, setGoalOptions] = useState([]);
   const [addingToBoard, setAddingToBoard] = useState(false);
   const { revealStep, isRevealing, startReveal } = useAiGenerationReveal();
+  const unsavedGeneratedIdRef = useRef(null);
+  const sessionRef = useRef(0);
+
+  useEffect(
+    () => () => {
+      sessionRef.current += 1;
+      discardGeneratedTask(unsavedGeneratedIdRef.current);
+      unsavedGeneratedIdRef.current = null;
+    },
+    []
+  );
 
   const [form, setForm] = useState(() => (isEdit && initialTask ? formFromTask(initialTask) : EMPTY_FORM));
 
@@ -486,6 +506,7 @@ export default function TaskFormModal({ mode = 'create', initialTask, onClose, o
     });
     setAiPhase('generating');
     setChangeRequest('');
+    const session = sessionRef.current;
     const revealPromise = startReveal();
     const result = await dispatch(
       generateTask({
@@ -497,6 +518,13 @@ export default function TaskFormModal({ mode = 'create', initialTask, onClose, o
     await revealPromise;
     if (generateTask.fulfilled.match(result)) {
       const task = result.payload;
+      if (session !== sessionRef.current) {
+        discardGeneratedTask(task.id);
+        return;
+      }
+      const previousId = unsavedGeneratedIdRef.current;
+      unsavedGeneratedIdRef.current = task.id;
+      if (previousId && previousId !== task.id) discardGeneratedTask(previousId);
       setGeneratedTask({
         ...task,
         priority: task.priority || 'MEDIUM',
@@ -510,8 +538,9 @@ export default function TaskFormModal({ mode = 'create', initialTask, onClose, o
       setAiPhase('preview');
       return;
     }
+    if (session !== sessionRef.current) return;
     setPendingTask(null);
-    setAiPhase('input');
+    setAiPhase(generatedTask ? 'preview' : 'input');
   };
 
   const handleManualSubmit = async () => {
@@ -547,6 +576,7 @@ export default function TaskFormModal({ mode = 'create', initialTask, onClose, o
   const handleAddGeneratedToBoard = async () => {
     if (!generatedTask?.id || addingToBoard) return;
     setAddingToBoard(true);
+    unsavedGeneratedIdRef.current = null;
     try {
       await Promise.resolve(
         onSubmit({ ...generatedTask, alreadyPersisted: true, source: 'ai' })
