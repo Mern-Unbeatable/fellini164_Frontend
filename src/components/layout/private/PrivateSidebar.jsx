@@ -60,19 +60,25 @@ function buildCalendarGrid(viewDate) {
 
   const cells = [];
   for (let i = leadingBlank - 1; i >= 0; i--) {
-    cells.push({ day: daysInPrevMonth - i, faded: true });
+    cells.push({ day: daysInPrevMonth - i, faded: true, date: new Date(year, month - 1, daysInPrevMonth - i) });
   }
   for (let d = 1; d <= daysInMonth; d++) {
-    cells.push({ day: d, faded: false });
+    cells.push({ day: d, faded: false, date: new Date(year, month, d) });
   }
   let nextDay = 1;
   while (cells.length % 7 !== 0) {
-    cells.push({ day: nextDay++, faded: true });
+    cells.push({ day: nextDay, faded: true, date: new Date(year, month + 1, nextDay) });
+    nextDay++;
   }
   return cells;
 }
 
-function MiniCalendar() {
+function toDateParam(date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+function MiniCalendar({ onSelectDate }) {
+  const navigate = useNavigate();
   const today = new Date();
   const [viewDate, setViewDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
 
@@ -122,19 +128,26 @@ function MiniCalendar() {
         ))}
         {cells.map((cell, i) => {
           const isToday = isCurrentMonth && !cell.faded && cell.day === today.getDate();
+          const dateParam = toDateParam(cell.date);
           return (
-            <div
+            <button
               key={i}
-              className={`mx-auto flex size-[20px] items-center justify-center rounded-[5px] text-[10px] font-medium ${
+              type="button"
+              onClick={() => {
+                navigate(`/user/daily-plan?date=${dateParam}`);
+                onSelectDate?.();
+              }}
+              aria-label={`Open planner for ${cell.date.toDateString()}`}
+              className={`mx-auto flex size-[20px] cursor-pointer items-center justify-center rounded-[5px] text-[10px] font-medium transition-colors ${
                 isToday
-                  ? 'bg-[#f9f4ff] text-[#8022fe] dark:bg-purple-950 dark:text-purple-300'
+                  ? 'bg-[#f9f4ff] text-[#8022fe] hover:bg-[#efe3ff] dark:bg-purple-950 dark:text-purple-300'
                   : cell.faded
-                    ? 'text-[#c2c2c2] dark:text-zinc-600'
-                    : 'text-[#5d5d5d] dark:text-gray-300'
+                    ? 'text-[#c2c2c2] hover:bg-[#f2f2f2] dark:text-zinc-600 dark:hover:bg-zinc-700'
+                    : 'text-[#5d5d5d] hover:bg-[#f2f2f2] dark:text-gray-300 dark:hover:bg-zinc-700'
               }`}
             >
               {cell.day}
-            </div>
+            </button>
           );
         })}
       </div>
@@ -368,7 +381,7 @@ export default function PrivateSidebar({
 
         {showExpanded && (
           <div className="flex w-full flex-col items-start gap-2 p-[8px]">
-            <MiniCalendar />
+            <MiniCalendar onSelectDate={onCloseMobile} />
 
             <CreateMenu open={isCreateOpen} setOpen={setIsCreateOpen} onSelect={onCloseMobile} />
           </div>

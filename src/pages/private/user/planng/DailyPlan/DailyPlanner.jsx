@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useSearchParams } from 'react-router-dom';
 import { Sparkles } from 'lucide-react';
 import { toast } from 'react-toastify';
 import NewPlanModal from './components/NewPlanModal';
@@ -67,6 +68,16 @@ function ghostBackendMessage(suggestions) {
   return '';
 }
 
+/** Parse `?date=YYYY-MM-DD` (sidebar mini calendar) into a local Date; null if missing or invalid. */
+function parseDateParam(value) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value || ''));
+  if (!match) return null;
+  const [, y, m, d] = match.map(Number);
+  const date = new Date(y, m - 1, d);
+  if (date.getFullYear() !== y || date.getMonth() !== m - 1 || date.getDate() !== d) return null;
+  return date;
+}
+
 function getInitialViewMode() {
   const saved = getStorage(VIEW_MODE_STORAGE_KEY);
   return VIEW_MODES.includes(saved) ? saved : 'Daily';
@@ -91,10 +102,13 @@ export default function DailyPlanner() {
 
   const [isNewPlanModalOpen, setIsNewPlanModalOpen] = useState(false);
   const [isCreatingPlan, setIsCreatingPlan] = useState(false);
-  const today = new Date();
-  const [currentDate, setCurrentDate] = useState(today);
-  const [selectedDate, setSelectedDate] = useState(today);
-  const [viewMode, setViewMode] = useState(getInitialViewMode);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const dateParam = searchParams.get('date');
+  const [currentDate, setCurrentDate] = useState(() => parseDateParam(dateParam) || new Date());
+  const [selectedDate, setSelectedDate] = useState(() => parseDateParam(dateParam) || new Date());
+  const [viewMode, setViewMode] = useState(() =>
+    parseDateParam(dateParam) ? 'Daily' : getInitialViewMode()
+  );
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
@@ -122,6 +136,26 @@ export default function DailyPlanner() {
   useEffect(() => {
     setStorage(VIEW_MODE_STORAGE_KEY, viewMode);
   }, [viewMode]);
+
+  // Sidebar calendar links here with ?date=; apply it (also when Planner is already open), then drop the param
+  // so clicking the same day again still triggers a change.
+  useEffect(() => {
+    if (dateParam === null) return;
+    const parsed = parseDateParam(dateParam);
+    if (parsed) {
+      setCurrentDate(parsed);
+      setSelectedDate(parsed);
+      setViewMode('Daily');
+    }
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete('date');
+        return next;
+      },
+      { replace: true }
+    );
+  }, [dateParam, setSearchParams]);
 
   useEffect(() => {
     setPlans(storePlans || {});
