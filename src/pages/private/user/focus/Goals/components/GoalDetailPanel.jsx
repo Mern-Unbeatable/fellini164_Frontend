@@ -10,6 +10,8 @@ import {
   Pencil,
   Pause,
   Trash2,
+  ArrowDown,
+  ArrowUp,
 } from 'lucide-react';
 
 const PRIORITY_STYLES = {
@@ -85,13 +87,24 @@ function GoalDetailMenu({ onClose, onEdit, onImprove, onPause, onDelete, isPause
   );
 }
 
-function LinkedTaskCard({ task, compact = false }) {
+const SIDEBAR_LINKED_PREVIEW = 4;
+
+function ViewAllToggle({ expanded, total, noun, onToggle }) {
   return (
-    <div
-      className={`flex shrink-0 flex-col overflow-hidden rounded-xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800 ${
-        compact ? 'w-[270px]' : 'w-[310px]'
-      }`}
+    <button
+      type="button"
+      onClick={onToggle}
+      className="mx-auto flex items-center gap-1.5 pt-1 text-[13px] font-medium text-[#c2c2c2] hover:text-[#8022fe]"
     >
+      {expanded ? 'Show Less' : `View All ${total} ${noun}`}
+      {expanded ? <ArrowUp size={13} /> : <ArrowDown size={13} />}
+    </button>
+  );
+}
+
+function LinkedTaskCard({ task }) {
+  return (
+    <div className="flex w-full flex-col overflow-hidden rounded-xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800">
       <div className="p-2.5">
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center gap-2.5">
@@ -143,15 +156,11 @@ function LinkedTaskCard({ task, compact = false }) {
   );
 }
 
-function LinkedHabitCard({ habit, compact = false }) {
+function LinkedHabitCard({ habit }) {
   const progress = habit.todayProgress;
 
   return (
-    <div
-      className={`flex shrink-0 items-end overflow-hidden rounded-xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800 ${
-        compact ? 'w-[270px]' : 'w-[310px]'
-      }`}
-    >
+    <div className="flex w-full items-end overflow-hidden rounded-xl border border-[#f2f2f2] bg-[#fcfcfc] dark:border-zinc-700 dark:bg-zinc-800">
       <div className="flex min-w-0 flex-1 flex-col gap-1.5 px-2.5 pt-2 pb-2.5">
         <div className="flex flex-col gap-0.5">
           <p className="text-[14px] font-medium text-[#5d5d5d] dark:text-gray-300">{habit.title}</p>
@@ -266,6 +275,9 @@ export default function GoalDetailPanel({
   onAiLinkedHabits,
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  // Goal id whose full linked list is expanded; switching goals collapses back to the preview.
+  const [expandedTasksFor, setExpandedTasksFor] = useState(null);
+  const [expandedHabitsFor, setExpandedHabitsFor] = useState(null);
   const menuRef = useRef(null);
   const [width, setWidth] = useState(DRAWER_DEFAULT_WIDTH);
   const isResizing = useRef(false);
@@ -334,6 +346,8 @@ export default function GoalDetailPanel({
     ? linkedHabits.length
     : (goal.habits ?? linkedHabits.length);
   const hasDue = goal.dueDetail || goal.due;
+  const showAllTasks = expandedTasksFor === goal.id;
+  const showAllHabits = expandedHabitsFor === goal.id;
 
   return (
     <div className="fixed inset-0 z-50 max-lg:bg-black/10 lg:top-13 lg:z-30 lg:bg-transparent">
@@ -481,10 +495,18 @@ export default function GoalDetailPanel({
               {linkedTasks.length === 0 ? (
                 <EmptyLinkedState message="No linked tasks yet" />
               ) : (
-                <div className="scrollbar-hidden flex w-full gap-2 overflow-x-auto pb-1">
-                  {linkedTasks.map((task, index) => (
-                    <LinkedTaskCard key={task.id} task={task} compact={index > 0} />
+                <div className="flex w-full flex-col gap-2">
+                  {(showAllTasks ? linkedTasks : linkedTasks.slice(0, SIDEBAR_LINKED_PREVIEW)).map((task) => (
+                    <LinkedTaskCard key={task.id} task={task} />
                   ))}
+                  {linkedTasks.length > SIDEBAR_LINKED_PREVIEW && (
+                    <ViewAllToggle
+                      expanded={showAllTasks}
+                      total={linkedTasks.length}
+                      noun="tasks"
+                      onToggle={() => setExpandedTasksFor(showAllTasks ? null : goal.id)}
+                    />
+                  )}
                 </div>
               )}
             </div>
@@ -499,10 +521,18 @@ export default function GoalDetailPanel({
               {linkedHabits.length === 0 ? (
                 <EmptyLinkedState message="No linked habits yet" />
               ) : (
-                <div className="scrollbar-hidden flex w-full gap-2 overflow-x-auto pb-1">
-                  {linkedHabits.map((habit, index) => (
-                    <LinkedHabitCard key={habit.id} habit={habit} compact={index > 0} />
+                <div className="flex w-full flex-col gap-2">
+                  {(showAllHabits ? linkedHabits : linkedHabits.slice(0, SIDEBAR_LINKED_PREVIEW)).map((habit) => (
+                    <LinkedHabitCard key={habit.id} habit={habit} />
                   ))}
+                  {linkedHabits.length > SIDEBAR_LINKED_PREVIEW && (
+                    <ViewAllToggle
+                      expanded={showAllHabits}
+                      total={linkedHabits.length}
+                      noun="habits"
+                      onToggle={() => setExpandedHabitsFor(showAllHabits ? null : goal.id)}
+                    />
+                  )}
                 </div>
               )}
             </div>
