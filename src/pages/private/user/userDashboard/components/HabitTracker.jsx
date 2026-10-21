@@ -1,7 +1,7 @@
 import React from 'react';
 import { Check } from 'lucide-react';
 
-const HabitTracker = ({ habits, checkedHabits, toggleHabit, shownOf, todayPercent }) => {
+const HabitTracker = ({ habits, checkedHabits, toggleHabit, pendingHabitIds, shownOf, todayPercent }) => {
   const completedToday = Object.values(checkedHabits).filter(Boolean).length;
 
   return (
@@ -27,12 +27,15 @@ const HabitTracker = ({ habits, checkedHabits, toggleHabit, shownOf, todayPercen
         <div className="space-y-2.5">
           {habits.map((habit) => {
             const done = Boolean(checkedHabits[habit.id]);
+            const pending = Boolean(pendingHabitIds?.has(habit.id));
             return (
               <button
                 key={habit.id}
                 type="button"
                 onClick={() => toggleHabit(habit.id)}
-                className="flex w-full items-center gap-3 rounded-xl border border-[#f2f2f2] bg-[#fcfcfc] px-3 py-3 text-left transition hover:bg-white dark:border-zinc-700 dark:bg-zinc-900/40 dark:hover:bg-zinc-900/70"
+                disabled={pending}
+                aria-pressed={done}
+                className="flex w-full items-center gap-3 rounded-xl border border-[#f2f2f2] bg-[#fcfcfc] px-3 py-3 text-left transition hover:bg-white disabled:cursor-wait disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-900/40 dark:hover:bg-zinc-900/70"
               >
                 <span
                   className={`flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full border ${

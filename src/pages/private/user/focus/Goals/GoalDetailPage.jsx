@@ -28,6 +28,8 @@ import {
   clearCurrentGoal,
   deleteGoal,
   fetchGoalById,
+  linkHabitsToGoal,
+  linkTasksToGoal,
   selectCurrentGoal,
   selectCurrentGoalHabits,
   selectCurrentGoalTasks,
@@ -735,6 +737,7 @@ export default function GoalDetailPage() {
   const [taskModal, setTaskModal] = useState({ open: false, task: null });
   const [taskActionBusy, setTaskActionBusy] = useState(null);
   const [linkModal, setLinkModal] = useState({ open: false, type: 'tasks' });
+  const [linking, setLinking] = useState(false);
   const [sparkModal, setSparkModal] = useState({ open: false, type: 'tasks' });
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -1138,23 +1141,46 @@ export default function GoalDetailPage() {
       days: Array(7).fill('empty'),
     }));
 
-  const handleConfirmLink = (ids, selectedItems = []) => {
-    if (!ids?.length) return;
-    if (linkModal.type === 'tasks') {
-      const base = editedLists.goalId === goalId && editedLists.tasks ? editedLists.tasks : tasks;
-      const cards = optionsToTaskCards(selectedItems).filter(
-        (c) => !base.some((t) => t.id === c.id),
-      );
-      mergeEditedTasks([...base, ...cards]);
-    } else {
-      const base =
-        editedLists.goalId === goalId && editedLists.habits ? editedLists.habits : habits;
-      const cards = optionsToHabitCards(selectedItems).filter(
-        (c) => !base.some((h) => h.id === c.id),
-      );
-      mergeEditedHabits([...base, ...cards]);
+  // Shows the cards right away, persists via link-tasks / link-habits, then re-reads the goal.
+  // On failure the optimistic cards are rolled back (the thunk already shows the error toast).
+  const linkItemsToGoal = async (type, ids, selectedItems = []) => {
+    const isTasks = type === 'tasks';
+    const listKey = isTasks ? 'tasks' : 'habits';
+    const base = isTasks ? tasks : habits;
+    const previousOverride = editedLists.goalId === goalId ? editedLists[listKey] : null;
+    const cards = (isTasks ? optionsToTaskCards : optionsToHabitCards)(selectedItems).filter(
+      (c) => !base.some((item) => item.id === c.id),
+    );
+    if (cards.length) {
+      if (isTasks) mergeEditedTasks([...base, ...cards]);
+      else mergeEditedHabits([...base, ...cards]);
     }
-    setLinkModal({ open: false, type: 'tasks' });
+
+    const thunk = isTasks ? linkTasksToGoal : linkHabitsToGoal;
+    const result = await dispatch(
+      isTasks
+        ? linkTasksToGoal({ goalId: goal.id, taskIds: ids })
+        : linkHabitsToGoal({ goalId: goal.id, habitIds: ids }),
+    );
+
+    if (!thunk.fulfilled.match(result)) {
+      setEditedLists((prev) =>
+        prev.goalId === goalId ? { ...prev, [listKey]: previousOverride } : prev,
+      );
+      return false;
+    }
+
+    await dispatch(fetchGoalById(goal.id));
+    setEditedLists((prev) => (prev.goalId === goalId ? { ...prev, [listKey]: null } : prev));
+    return true;
+  };
+
+  const handleConfirmLink = async (ids, selectedItems = []) => {
+    if (!ids?.length || linking) return;
+    setLinking(true);
+    const ok = await linkItemsToGoal(linkModal.type, ids, selectedItems);
+    setLinking(false);
+    if (ok) setLinkModal({ open: false, type: 'tasks' });
   };
 
   const handleSparkGenerate = (generated) => {
@@ -1186,20 +1212,7 @@ export default function GoalDetailPage() {
 
   const handleSparkAttach = (ids, selectedItems = []) => {
     if (!ids?.length) return;
-    if (sparkModal.type === 'tasks') {
-      const base = editedLists.goalId === goalId && editedLists.tasks ? editedLists.tasks : tasks;
-      const cards = optionsToTaskCards(selectedItems).filter(
-        (c) => !base.some((t) => t.id === c.id),
-      );
-      mergeEditedTasks([...base, ...cards]);
-    } else {
-      const base =
-        editedLists.goalId === goalId && editedLists.habits ? editedLists.habits : habits;
-      const cards = optionsToHabitCards(selectedItems).filter(
-        (c) => !base.some((h) => h.id === c.id),
-      );
-      mergeEditedHabits([...base, ...cards]);
-    }
+    linkItemsToGoal(sparkModal.type, ids, selectedItems);
   };
 
   return (
@@ -1483,6 +1496,7 @@ export default function GoalDetailPage() {
         }
         onClose={() => setLinkModal({ open: false, type: 'tasks' })}
         onConfirm={handleConfirmLink}
+        confirming={linking}
       />
       <GoalSparkLinkModal
         key={`${sparkModal.open}-${sparkModal.type}-${goal?.id ?? 'none'}`}

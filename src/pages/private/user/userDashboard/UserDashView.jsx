@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
 import WelcomeHeader from './components/WelcomeHeader';
 import DashboardStats from './components/DashboardStats';
 import TodayFocusTasks from './components/TodayFocusTasks';
@@ -24,6 +25,10 @@ import {
   selectDashboardStats,
   selectDashboardWeeklyFocus,
 } from '../../../../features/dashboard/dashboardSlice';
+import {
+  completeHabitTodayApi,
+  undoHabitCompletionApi,
+} from '../../../../features/habits/habitsAPI';
 
 const UserDashView = () => {
   const dispatch = useDispatch();
@@ -43,6 +48,10 @@ const UserDashView = () => {
 
   const [checkedTasks, setCheckedTasks] = useState({});
   const [checkedHabits, setCheckedHabits] = useState({});
+  // Habits with a complete/undo request in flight: their button is disabled and a dashboard
+  // refetch must not overwrite their optimistic tick.
+  const [pendingHabitIds, setPendingHabitIds] = useState(() => new Set());
+  const pendingHabitIdsRef = useRef(new Set());
 
   useEffect(() => {
     dispatch(fetchDashboard());
@@ -65,19 +74,42 @@ const UserDashView = () => {
       setCheckedHabits({});
       return;
     }
-    const next = {};
-    habits.forEach((habit) => {
-      next[habit.id] = Boolean(habit.completedToday);
+    setCheckedHabits((prev) => {
+      const next = {};
+      habits.forEach((habit) => {
+        next[habit.id] = pendingHabitIdsRef.current.has(habit.id)
+          ? Boolean(prev[habit.id])
+          : Boolean(habit.completedToday);
+      });
+      return next;
     });
-    setCheckedHabits(next);
   }, [habits]);
 
   const toggleTask = (id) => {
     setCheckedTasks((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const toggleHabit = (id) => {
-    setCheckedHabits((prev) => ({ ...prev, [id]: !prev[id] }));
+  const setHabitPending = (id, isPending) => {
+    if (isPending) pendingHabitIdsRef.current.add(id);
+    else pendingHabitIdsRef.current.delete(id);
+    setPendingHabitIds(new Set(pendingHabitIdsRef.current));
+  };
+
+  const toggleHabit = async (id) => {
+    if (pendingHabitIdsRef.current.has(id)) return;
+    const wasDone = Boolean(checkedHabits[id]);
+    setHabitPending(id, true);
+    setCheckedHabits((prev) => ({ ...prev, [id]: !wasDone }));
+    try {
+      if (wasDone) await undoHabitCompletionApi(id);
+      else await completeHabitTodayApi(id);
+      setHabitPending(id, false);
+      dispatch(fetchDashboard());
+    } catch (error) {
+      setHabitPending(id, false);
+      setCheckedHabits((prev) => ({ ...prev, [id]: wasDone }));
+      toast.error(error?.response?.data?.message || 'Failed to update habit');
+    }
   };
 
   const doneCount = useMemo(
@@ -121,6 +153,7 @@ const UserDashView = () => {
             habits={habits}
             checkedHabits={checkedHabits}
             toggleHabit={toggleHabit}
+            pendingHabitIds={pendingHabitIds}
             shownOf={habitsMeta.shownOf}
             todayPercent={habitsMeta.todayPercent}
           />
