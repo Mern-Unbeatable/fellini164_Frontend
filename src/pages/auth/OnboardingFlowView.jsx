@@ -7,6 +7,7 @@ import { BACK_LABELS, ROUTINE_TIMES, STEP_META } from '../../constants';
 import { POST } from '../../services/httpMethods';
 import { API_ENDPOINTS } from '../../services/httpEndpoint';
 import { updateAuthUser } from '../../features/auth/authSlice';
+import { CHECKOUT_RESUME_PATH, hasPendingCheckout } from '../../features/users/pendingCheckout';
 import Step1 from './steps/Step1';
 import Step2 from './steps/Step2';
 import Step3 from './steps/Step3';
@@ -228,7 +229,8 @@ const OnboardingFlowView = () => {
 
   useEffect(() => {
     if (progress < 100 || !isGenerating) return;
-    const t = setTimeout(() => navigate('/dashboard', { replace: true }), 650);
+    const nextPath = hasPendingCheckout() ? CHECKOUT_RESUME_PATH : '/dashboard';
+    const t = setTimeout(() => navigate(nextPath, { replace: true }), 650);
     return () => clearTimeout(t);
   }, [progress, isGenerating, navigate]);
 

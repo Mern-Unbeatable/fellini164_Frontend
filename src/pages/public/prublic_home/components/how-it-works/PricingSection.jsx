@@ -6,6 +6,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { createCheckout, selectPaymentLoading } from '../../../../../features/users/paymentSlice';
 import { selectIsAuthenticated } from '../../../../../features/auth/authSlice';
+import { savePendingCheckout } from '../../../../../features/users/pendingCheckout';
 import { MONTHLY_PLANS, PRICING_COMMITMENTS, YEARLY_PLANS } from '../../../../../components/pricing/pricingPlans';
 import PricingToggle from '../../../../../components/pricing/PricingToggle';
 import PricingCard from '../../../../../components/pricing/PricingPlanCard';
@@ -53,6 +54,7 @@ const PricingHIW = () => {
     }
 
     if (!isAuthenticated) {
+      savePendingCheckout({ plan: plan.name.toUpperCase(), billingPeriod: billing });
       toast.info('Please log in to continue checkout');
       navigate('/login');
       return;
