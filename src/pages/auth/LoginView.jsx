@@ -239,9 +239,23 @@ const LoginView = () => {
                 </div>
                 <p className="text-center font-['Inter',sans-serif] text-[10px] leading-normal font-medium text-[#c2c2c2] md:text-[12px]">
                   By signing in, you agree to our{' '}
-                  <span className="cursor-pointer underline">Terms</span>
+                  <Link
+                    to="/terms"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline transition-colors hover:text-[#8022fe]"
+                  >
+                    Terms
+                  </Link>
                   {' and '}
-                  <span className="cursor-pointer underline">Privacy Policy</span>
+                  <Link
+                    to="/privacy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline transition-colors hover:text-[#8022fe]"
+                  >
+                    Privacy Policy
+                  </Link>
                 </p>
               </div>
             </form>
