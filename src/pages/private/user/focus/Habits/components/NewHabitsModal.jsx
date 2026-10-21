@@ -10,6 +10,15 @@ import {
   targetDaysFromApi,
 } from '../../../../../../features/habits/habitsMappers';
 import { fetchGoalsApi } from '../../../../../../features/goals/goalsAPI';
+import { deleteHabitApi } from '../../../../../../features/habits/habitsAPI';
+
+// AI generate persists the habit server-side; drop it when the user moves past it without adding.
+function discardGeneratedHabit(habitId) {
+  if (!habitId) return;
+  deleteHabitApi(habitId).catch((error) => {
+    console.warn('Failed to discard AI-generated habit', habitId, error?.response?.status);
+  });
+}
 
 const CATEGORIES = [
   'Career',
@@ -338,6 +347,20 @@ export default function NewHabitsModal({
     isEdit && initialHabit ? formFromHabit(initialHabit) : EMPTY_FORM,
   );
   const [addingToBoard, setAddingToBoard] = useState(false);
+  const [submittingManual, setSubmittingManual] = useState(false);
+  // State updates are async, so two rapid clicks can both see `false`; the ref blocks the second one synchronously.
+  const submittingManualRef = useRef(false);
+  const unsavedGeneratedIdRef = useRef(null);
+  const sessionRef = useRef(0);
+
+  useEffect(
+    () => () => {
+      sessionRef.current += 1;
+      discardGeneratedHabit(unsavedGeneratedIdRef.current);
+      unsavedGeneratedIdRef.current = null;
+    },
+    []
+  );
 
   useEffect(() => {
     if (!open) return undefined;
@@ -373,6 +396,7 @@ export default function NewHabitsModal({
   const runAiGeneration = async (prompt) => {
     setAiPhase('generating');
     setChangeRequest('');
+    const session = sessionRef.current;
     const revealPromise = startReveal();
     const result = await dispatch(
       generateHabit({
@@ -384,13 +408,21 @@ export default function NewHabitsModal({
     await revealPromise;
     if (generateHabit.fulfilled.match(result)) {
       const habit = result.payload;
+      if (session !== sessionRef.current) {
+        discardGeneratedHabit(habit.id);
+        return;
+      }
+      const previousId = unsavedGeneratedIdRef.current;
+      unsavedGeneratedIdRef.current = habit.id;
+      if (previousId && previousId !== habit.id) discardGeneratedHabit(previousId);
       setGeneratedHabit(habit);
       const fromApi = targetDaysFromApi(habit.targetDays);
       setPreviewTargetDays(fromApi.length ? fromApi : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']);
       setAiPhase('preview');
       return;
     }
-    setAiPhase('input');
+    if (session !== sessionRef.current) return;
+    setAiPhase(generatedHabit ? 'preview' : 'input');
   };
 
   const togglePreviewDay = (day) => {
@@ -427,6 +459,9 @@ export default function NewHabitsModal({
   };
 
   const handleManualSubmit = async () => {
+    if (submittingManualRef.current || !form.title.trim()) return;
+    submittingManualRef.current = true;
+    setSubmittingManual(true);
     try {
       await Promise.resolve(
         onSave({
@@ -446,6 +481,9 @@ export default function NewHabitsModal({
       handleClose();
     } catch {
       // Parent handles error UI; keep modal open
+    } finally {
+      submittingManualRef.current = false;
+      setSubmittingManual(false);
     }
   };
 
@@ -470,6 +508,7 @@ export default function NewHabitsModal({
         if (!updateHabit.fulfilled.match(result)) return;
       }
 
+      unsavedGeneratedIdRef.current = null;
       await Promise.resolve(
         onSave({ ...generatedHabit, alreadyPersisted: true, source: 'ai' })
       );
@@ -480,12 +519,17 @@ export default function NewHabitsModal({
   };
 
   const handleTabChange = (tab) => {
-    if (isRevealing) return;
+    if (isRevealing || submittingManual) return;
     setActiveTab(tab);
     if (tab === 'ai') setAiPhase(generatedHabit ? 'preview' : 'input');
   };
 
-  const canSubmitManual = form.title.trim().length > 0;
+  const canSubmitManual = form.title.trim().length > 0 && !submittingManual;
+  const manualSubmitClass = submittingManual
+    ? 'cursor-not-allowed bg-[#8022fe] text-white opacity-60'
+    : canSubmitManual
+      ? 'bg-[#8022fe] text-white'
+      : 'cursor-not-allowed bg-[#f1f1f1] text-[#dedede]';
   const canGenerate = aiPrompt.trim().length > 0 && !isRevealing;
   const showAiPreview = !isEdit && activeTab === 'ai' && aiPhase === 'preview';
   const showAiGenerating = !isEdit && activeTab === 'ai' && aiPhase === 'generating';
@@ -518,7 +562,12 @@ export default function NewHabitsModal({
           <p className="text-[12px] font-medium text-[#5d5d5d] dark:text-gray-300">
             {isEdit ? 'Edit Habit' : 'New Habit'}
           </p>
-          <button type="button" onClick={handleClose} className="text-[#5d5d5d] dark:text-gray-300">
+          <button
+            type="button"
+            onClick={handleClose}
+            disabled={submittingManual}
+            className="text-[#5d5d5d] disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-300"
+          >
             <X size={14} />
           </button>
         </div>
@@ -526,7 +575,11 @@ export default function NewHabitsModal({
         <div className="flex flex-col gap-6 overflow-y-auto p-3">
           {!isEdit && (
             <div className="mx-auto w-full max-w-[430px]">
-              <TabToggle activeTab={activeTab} onChange={handleTabChange} disabled={isRevealing} />
+              <TabToggle
+                activeTab={activeTab}
+                onChange={handleTabChange}
+                disabled={isRevealing || submittingManual}
+              />
             </div>
           )}
 
@@ -680,7 +733,8 @@ export default function NewHabitsModal({
                 <button
                   type="button"
                   onClick={handleClose}
-                  className="flex flex-1 items-center justify-center rounded-lg bg-[#f2f2f2] px-3 py-2 text-[12px] font-medium text-[#5d5d5d] dark:bg-zinc-700 dark:text-gray-300"
+                  disabled={submittingManual}
+                  className="flex flex-1 items-center justify-center rounded-lg bg-[#f2f2f2] px-3 py-2 text-[12px] font-medium text-[#5d5d5d] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-zinc-700 dark:text-gray-300"
                 >
                   Cancel
                 </button>
@@ -689,13 +743,9 @@ export default function NewHabitsModal({
                     type="button"
                     disabled={!canSubmitManual}
                     onClick={handleManualSubmit}
-                    className={`flex flex-1 items-center justify-center rounded-lg px-3 py-2 text-[12px] font-semibold ${
-                      canSubmitManual
-                        ? 'bg-[#8022fe] text-white'
-                        : 'cursor-not-allowed bg-[#f1f1f1] text-[#dedede]'
-                    }`}
+                    className={`flex flex-1 items-center justify-center rounded-lg px-3 py-2 text-[12px] font-semibold ${manualSubmitClass}`}
                   >
-                    Update
+                    {submittingManual ? 'Updating...' : 'Update'}
                   </button>
                 ) : activeTab === 'ai' ? (
                   <button
@@ -715,13 +765,9 @@ export default function NewHabitsModal({
                     type="button"
                     disabled={!canSubmitManual}
                     onClick={handleManualSubmit}
-                    className={`flex flex-1 items-center justify-center rounded-lg px-3 py-2 text-[12px] font-semibold ${
-                      canSubmitManual
-                        ? 'bg-[#8022fe] text-white'
-                        : 'cursor-not-allowed bg-[#f1f1f1] text-[#dedede]'
-                    }`}
+                    className={`flex flex-1 items-center justify-center rounded-lg px-3 py-2 text-[12px] font-semibold ${manualSubmitClass}`}
                   >
-                    Create
+                    {submittingManual ? 'Creating...' : 'Create'}
                   </button>
                 )}
               </>
