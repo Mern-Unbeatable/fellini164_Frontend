@@ -450,6 +450,9 @@ export default function TaskFormModal({ mode = 'create', initialTask, onClose, o
   const [pendingTask, setPendingTask] = useState(null);
   const [goalOptions, setGoalOptions] = useState([]);
   const [addingToBoard, setAddingToBoard] = useState(false);
+  const [submittingManual, setSubmittingManual] = useState(false);
+  // State updates are async, so two rapid clicks can both see `false`; the ref blocks the second one synchronously.
+  const submittingManualRef = useRef(false);
   const { revealStep, isRevealing, startReveal } = useAiGenerationReveal();
   const unsavedGeneratedIdRef = useRef(null);
   const sessionRef = useRef(0);
@@ -544,6 +547,9 @@ export default function TaskFormModal({ mode = 'create', initialTask, onClose, o
   };
 
   const handleManualSubmit = async () => {
+    if (submittingManualRef.current || !form.title.trim()) return;
+    submittingManualRef.current = true;
+    setSubmittingManual(true);
     try {
       await Promise.resolve(
         onSubmit({
@@ -555,6 +561,9 @@ export default function TaskFormModal({ mode = 'create', initialTask, onClose, o
       onClose();
     } catch {
       // Parent handles error UI; keep modal open
+    } finally {
+      submittingManualRef.current = false;
+      setSubmittingManual(false);
     }
   };
 
@@ -587,11 +596,11 @@ export default function TaskFormModal({ mode = 'create', initialTask, onClose, o
     }
   };
 
-  const canSubmitManual = form.title.trim().length > 0;
+  const canSubmitManual = form.title.trim().length > 0 && !submittingManual;
   const canGenerate = aiPrompt.trim().length > 0 && !isRevealing;
   const showAiPreview = !isEdit && activeTab === 'ai' && aiPhase === 'preview';
   const showAiGenerating = !isEdit && activeTab === 'ai' && aiPhase === 'generating';
-  const aiBusy = isRevealing || addingToBoard;
+  const aiBusy = isRevealing || addingToBoard || submittingManual;
 
   const handleTabChange = (tab) => {
     if (aiBusy) return;
@@ -613,7 +622,12 @@ export default function TaskFormModal({ mode = 'create', initialTask, onClose, o
           <p className="text-[12px] font-medium text-[#5d5d5d] dark:text-gray-300">
             {isEdit ? 'Edit Task' : 'New Task'}
           </p>
-          <button type="button" onClick={onClose} className="text-[#5d5d5d] dark:text-gray-300">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={submittingManual}
+            className="text-[#5d5d5d] disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-300"
+          >
             <X size={14} />
           </button>
         </div>
@@ -721,7 +735,8 @@ export default function TaskFormModal({ mode = 'create', initialTask, onClose, o
                 <button
                   type="button"
                   onClick={onClose}
-                  className="flex flex-1 items-center justify-center rounded-lg bg-[#f2f2f2] px-3 py-2 text-[12px] font-medium text-[#5d5d5d] dark:bg-zinc-700 dark:text-gray-300"
+                  disabled={submittingManual}
+                  className="flex flex-1 items-center justify-center rounded-lg bg-[#f2f2f2] px-3 py-2 text-[12px] font-medium text-[#5d5d5d] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-zinc-700 dark:text-gray-300"
                 >
                   Cancel
                 </button>
@@ -730,9 +745,10 @@ export default function TaskFormModal({ mode = 'create', initialTask, onClose, o
                   <button
                     type="button"
                     onClick={handleManualSubmit}
-                    className="flex flex-1 items-center justify-center rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] font-semibold text-white"
+                    disabled={!canSubmitManual}
+                    className="flex flex-1 items-center justify-center rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    Update
+                    {submittingManual ? 'Updating...' : 'Update'}
                   </button>
                 ) : activeTab === 'ai' ? (
                   <button
@@ -753,12 +769,14 @@ export default function TaskFormModal({ mode = 'create', initialTask, onClose, o
                     disabled={!canSubmitManual}
                     onClick={handleManualSubmit}
                     className={`flex flex-1 items-center justify-center rounded-lg px-3 py-2 text-[12px] font-semibold ${
-                      canSubmitManual
-                        ? 'bg-[#8022fe] text-white'
-                        : 'cursor-not-allowed bg-[#f1f1f1] text-[#dedede]'
+                      submittingManual
+                        ? 'cursor-not-allowed bg-[#8022fe] text-white opacity-60'
+                        : canSubmitManual
+                          ? 'bg-[#8022fe] text-white'
+                          : 'cursor-not-allowed bg-[#f1f1f1] text-[#dedede]'
                     }`}
                   >
-                    Create
+                    {submittingManual ? 'Creating...' : 'Create'}
                   </button>
                 )}
               </>
