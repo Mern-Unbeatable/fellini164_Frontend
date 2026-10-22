@@ -142,7 +142,7 @@ export default function ProfilePage() {
             subscriptionStatus={subscriptionStatus}
           />
 
-          <NotificationPreferencesSection id="notifications" userId={user?.id ?? user?._id} />
+          <NotificationPreferencesSection id="notifications" />
         </div>
       </div>
     </div>

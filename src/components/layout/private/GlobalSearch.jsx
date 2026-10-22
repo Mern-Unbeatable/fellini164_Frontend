@@ -6,7 +6,6 @@ import { fetchHabitsApi } from '../../../features/habits/habitsAPI';
 import { fetchGoalsApi } from '../../../features/goals/goalsAPI';
 
 const RESULTS_PER_GROUP = 5;
-const FETCH_LIMIT = 20;
 const DEBOUNCE_MS = 300;
 
 const GROUPS = [
@@ -14,33 +13,33 @@ const GROUPS = [
     key: 'tasks',
     label: 'Tasks',
     icon: ListTodo,
-    fetch: (search) => fetchTasksApi({ search, limit: FETCH_LIMIT }).then((env) => env?.tasks ?? []),
+    fetch: (search) => fetchTasksApi({ search, limit: RESULTS_PER_GROUP }).then((env) => env?.tasks ?? []),
     getPath: (id) => `/user/tasks/${id}`,
   },
   {
     key: 'habits',
     label: 'Habits',
     icon: RotateCcw,
-    fetch: (search) => fetchHabitsApi({ search, limit: FETCH_LIMIT }).then((env) => env?.habits ?? []),
+    fetch: (search) => fetchHabitsApi({ search, limit: RESULTS_PER_GROUP }).then((env) => env?.habits ?? []),
     getPath: () => '/user/habits',
   },
   {
     key: 'goals',
     label: 'Goals',
     icon: Target,
-    fetch: (search) => fetchGoalsApi({ search, limit: FETCH_LIMIT }).then((env) => env?.data ?? []),
+    fetch: (search) => fetchGoalsApi({ search, limit: RESULTS_PER_GROUP }).then((env) => env?.data ?? []),
     getPath: (id) => `/user/goals/${id}`,
   },
 ];
 
-function toResults(items, group, query) {
-  const needle = query.toLowerCase();
+// Matching is done by the backend (`?search=`); results are only shaped for display here.
+function toResults(items, group) {
   return items
     .map((item) => ({
       id: item?.id ?? item?._id,
       title: item?.title ?? item?.name ?? '',
     }))
-    .filter((r) => r.id && r.title && r.title.toLowerCase().includes(needle))
+    .filter((r) => r.id && r.title)
     .slice(0, RESULTS_PER_GROUP)
     .map((r) => ({ ...r, groupKey: group.key, path: group.getPath(r.id) }));
 }
@@ -72,7 +71,7 @@ export default function GlobalSearch({ onClose }) {
       if (requestId !== requestIdRef.current) return;
       const next = {};
       GROUPS.forEach((g, i) => {
-        next[g.key] = settled[i].status === 'fulfilled' ? toResults(settled[i].value, g, trimmed) : [];
+        next[g.key] = settled[i].status === 'fulfilled' ? toResults(settled[i].value, g) : [];
       });
       setResults(next);
       setActiveIndex(0);
