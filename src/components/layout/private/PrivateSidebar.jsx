@@ -294,6 +294,7 @@ export default function PrivateSidebar({
   onCloseMobile,
   onBackToTasksBoard,
   hasTaskDetail = false,
+  suppressHighlight = false,
 }) {
   const [collapsed, setCollapsed] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -311,7 +312,8 @@ export default function PrivateSidebar({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const isItemActive = (item) => item.match.some((p) => pathname.startsWith(p));
+  const isItemActive = (item) =>
+    !suppressHighlight && item.match.some((p) => pathname.startsWith(p));
 
   const handleNavigate = (item) => {
     if (

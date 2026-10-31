@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import {
   Sparkles,
@@ -886,6 +887,7 @@ function TaskDetailDrawerInner({
   autoAiAction = null,
   onAutoAiActionConsumed,
 }) {
+  const { setSuppressSidebarHighlight } = useOutletContext() || {};
   const [localTask, , applyTaskUpdate] = useLocalTask(taskProp);
   const [width, setWidth] = useState(DRAWER_DEFAULT_WIDTH);
   const isResizing = useRef(false);
@@ -912,6 +914,11 @@ function TaskDetailDrawerInner({
   useEffect(() => {
     if (autoAiAction) setIsAssistantOpen(true);
   }, [autoAiAction]);
+
+  useEffect(() => {
+    setSuppressSidebarHighlight?.(Boolean(isAssistantExpanded));
+    return () => setSuppressSidebarHighlight?.(false);
+  }, [isAssistantExpanded, setSuppressSidebarHighlight]);
 
   useEffect(() => {
     const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
@@ -962,8 +969,14 @@ function TaskDetailDrawerInner({
 
   if (!task) return null;
 
+  // When AI is expanded, lift above PrivateSidebar (z-50) so the modal backdrop
+  // covers the nav — otherwise the Tasks highlight stays visible beside the dialog.
+  const drawerShellClass = isAssistantExpanded
+    ? 'fixed inset-0 z-[70] bg-transparent lg:top-13'
+    : 'fixed inset-0 z-40 max-lg:bg-black/10 lg:top-13 lg:z-30 lg:bg-transparent';
+
   return (
-    <div className="fixed inset-0 z-40 max-lg:bg-black/10 lg:top-13 lg:z-30 lg:bg-transparent">
+    <div className={drawerShellClass}>
       <button
         type="button"
         aria-label="Close task detail"
@@ -1057,7 +1070,13 @@ function TaskDetailDrawerInner({
                   taskId={task.id}
                   hasSubtasks={Array.isArray(task.subtasks) && task.subtasks.length > 0}
                   onClose={closeAssistant}
-                  onToggleExpand={() => setIsAssistantExpanded((e) => !e)}
+                  onToggleExpand={() => {
+                    setIsAssistantExpanded((expanded) => {
+                      const next = !expanded;
+                      setSuppressSidebarHighlight?.(next);
+                      return next;
+                    });
+                  }}
                   isExpanded={isAssistantExpanded}
                   onRefreshTask={handleRefreshTask}
                   onTaskUpdated={applyTaskUpdate}
@@ -1088,6 +1107,7 @@ export default function TaskDetailPanel({
   autoAiAction = null,
   onAutoAiActionConsumed,
 }) {
+  const { setSuppressSidebarHighlight } = useOutletContext() || {};
   const [localTask, , applyTaskUpdate] = useLocalTask(taskProp);
   const [aiApplyingTarget, setAiApplyingTarget] = useState(null);
   const [isAssistantOpen, setIsAssistantOpen] = useState(true);
@@ -1100,6 +1120,11 @@ export default function TaskDetailPanel({
     if (updated) applyTaskUpdate(updated);
     return updated;
   }, [onRefreshTask, applyTaskUpdate]);
+
+  useEffect(() => {
+    setSuppressSidebarHighlight?.(isAssistantExpanded);
+    return () => setSuppressSidebarHighlight?.(false);
+  }, [isAssistantExpanded, setSuppressSidebarHighlight]);
 
   if (!task) return null;
 

@@ -13,6 +13,7 @@ export default function PrivateLayout() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [taskDetail, setTaskDetail] = useState(null);
   const [goalDetail, setGoalDetail] = useState(null);
+  const [suppressSidebarHighlight, setSuppressSidebarHighlight] = useState(false);
   const backToTasksBoardRef = useRef(null);
   const backToGoalsBoardRef = useRef(null);
 
@@ -60,6 +61,7 @@ export default function PrivateLayout() {
         onCloseMobile={() => setIsMobileSidebarOpen(false)}
         onBackToTasksBoard={handleBackToTasksBoard}
         hasTaskDetail={hasTaskDetail}
+        suppressHighlight={suppressSidebarHighlight}
       />
 
       <div className="flex flex-1 flex-col overflow-hidden">
@@ -80,6 +82,7 @@ export default function PrivateLayout() {
               setBackToTasksBoard,
               setGoalDetail,
               setBackToGoalsBoard,
+              setSuppressSidebarHighlight,
             }}
           />
         </main>

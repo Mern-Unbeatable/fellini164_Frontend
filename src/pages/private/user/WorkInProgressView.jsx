@@ -17,6 +17,7 @@ const WorkInProgressView = () => {
 
   // Fetch referral stats on component mount
   useEffect(() => {
+    
     dispatch(getReferralStats());
   }, [dispatch]);
 

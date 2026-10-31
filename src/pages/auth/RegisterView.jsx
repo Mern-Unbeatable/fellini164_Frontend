@@ -95,16 +95,16 @@ const RegisterView = () => {
   return (
     <div ref={pageRef} className="flex min-h-screen flex-col bg-white md:h-screen md:flex-row md:gap-5 md:overflow-hidden md:p-5">
       {/* ── Left Visual Panel — bottom on mobile, left on desktop ── */}
-      <div ref={visualRef} className="order-2 p-2 md:order-1 md:flex-1 md:p-0">
+      <div ref={visualRef} className="order-2 p-2 md:order-1 md:min-h-0 md:flex-1 md:p-0">
         <img
           src="/images/SignUp.png"
           alt="Auth Visual"
-          className="h-auto w-full rounded-[20px] md:h-full md:rounded-[30px]"
+          className="h-auto w-full rounded-[20px] md:h-full md:rounded-[30px] md:object-cover"
         />
       </div>
 
       {/* ── Form Panel — top on mobile, right on desktop ── */}
-      <div className="order-1 flex flex-col gap-12.5 px-5 py-10 md:order-2 md:flex-1 md:justify-center md:gap-8 md:overflow-hidden md:px-0 md:py-7.5">
+      <div className="order-1 flex min-h-0 flex-col gap-12.5 overflow-y-auto px-5 py-10 md:order-2 md:flex-1 md:justify-center md:gap-8 md:px-0 md:py-7.5">
         {/* Back link */}
         <Link
           to="/"
