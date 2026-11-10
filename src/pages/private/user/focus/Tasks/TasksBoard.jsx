@@ -639,13 +639,15 @@ export default function TasksBoard() {
                   ? (
                     <EmptyColumnPlaceholder text="No matching tasks" />
                   )
-                : cards.length === 0 && !isTodo
+                : cards.length === 0
                   ? (
                     <EmptyColumnPlaceholder
                       text={
-                        key === 'inProgress'
-                          ? 'No tasks in progress'
-                          : 'Completed tasks will appear here'
+                        key === 'todo'
+                          ? 'No tasks to do'
+                          : key === 'inProgress'
+                            ? 'No tasks in progress'
+                            : 'Completed tasks will appear here'
                       }
                     />
                   )

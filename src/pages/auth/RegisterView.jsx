@@ -93,29 +93,34 @@ const RegisterView = () => {
   const isFormValid = Boolean(fullName.trim()) && Boolean(email.trim()) && password.length >= 8;
 
   return (
-    <div ref={pageRef} className="flex min-h-screen flex-col bg-white md:h-screen md:flex-row md:gap-5 md:overflow-hidden md:p-5">
-      {/* ── Left Visual Panel — bottom on mobile, left on desktop ── */}
-      <div ref={visualRef} className="order-2 p-2 md:order-1 md:min-h-0 md:flex-1 md:p-0">
+    <div ref={pageRef} className="flex min-h-screen flex-col bg-white lg:h-screen lg:flex-row lg:gap-5 lg:overflow-hidden lg:p-5">
+      {/* ── Left Visual Panel — bottom on mobile/tablet, left on desktop ── */}
+      <div
+        ref={visualRef}
+        className="order-2 min-w-0 overflow-hidden p-2 lg:order-1 lg:min-h-0 lg:flex-1 lg:rounded-[30px] lg:p-0"
+      >
         <img
           src="/images/SignUp.png"
           alt="Auth Visual"
-          className="h-auto w-full rounded-[20px] md:h-full md:rounded-[30px] md:object-cover"
+          className="h-auto w-full rounded-[20px] lg:h-full lg:w-full lg:rounded-[30px] lg:object-cover lg:object-[left_top]"
         />
       </div>
 
-      {/* ── Form Panel — top on mobile, right on desktop ── */}
-      <div className="order-1 flex min-h-0 flex-col gap-12.5 overflow-y-auto px-5 py-10 md:order-2 md:flex-1 md:justify-center md:gap-8 md:px-0 md:py-7.5">
-        {/* Back link */}
-        <Link
-          to="/"
-          className="inline-flex items-center justify-center gap-2.5 font-['Inter',sans-serif] text-[12px] text-[#a3a3a3] no-underline transition-colors hover:text-[#7a7a7a] md:text-[14px]"
-        >
-          <ArrowLeft className="h-3.5 w-3.5 md:h-4 md:w-4" />
-          Back to Home
-        </Link>
+      {/* ── Form Panel — top on mobile/tablet, right on desktop ── */}
+      {/* my-auto (not justify-center): centers when short, but keeps top reachable when scrolling */}
+      <div className="order-1 flex min-h-0 min-w-0 flex-col overflow-y-auto px-5 py-10 lg:order-2 lg:flex-1 lg:px-0 lg:py-7.5">
+        <div className="my-auto flex w-full flex-col gap-12.5 md:mx-auto md:max-w-132.5 md:gap-8">
+          {/* Back link */}
+          <Link
+            to="/"
+            className="inline-flex items-center justify-center gap-2.5 font-['Inter',sans-serif] text-[12px] text-[#a3a3a3] no-underline transition-colors hover:text-[#7a7a7a] md:text-[14px]"
+          >
+            <ArrowLeft className="h-3.5 w-3.5 md:h-4 md:w-4" />
+            Back to Home
+          </Link>
 
-        {/* Form content — max 530px, centered on desktop */}
-        <div className="flex w-full flex-col gap-7.5 md:mx-auto md:max-w-132.5 md:gap-7.5">
+          {/* Form content */}
+          <div className="flex w-full flex-col gap-7.5 md:gap-7.5">
           {/* Heading */}
           <div ref={headRef} className="flex flex-col items-center gap-3.5 text-center md:gap-3.5">
             <p className="font-['Inter',sans-serif] text-[22px] leading-[1.3] font-bold text-[#181818] md:text-[34px]">
@@ -229,15 +234,16 @@ const RegisterView = () => {
                     Password
                   </label>
                   <div
-                    className={`flex items-center justify-between rounded-[10px] border bg-white px-4 py-3 ${
-                      hasPasswordError ? 'border-[#ef4444]' : 'border-[#8022fe]'
+                    className={`flex items-center justify-between rounded-[10px] border bg-white px-4 py-3 focus-within:border-[#8022fe] ${
+                      hasPasswordError ? 'border-[#ef4444]' : 'border-[#f2f2f2]'
                     }`}
                   >
                     <input
                       type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="min-w-0 flex-1 bg-transparent font-['Inter',sans-serif] text-[14px] leading-normal font-medium text-[#181818] outline-none md:text-[16px]"
+                      placeholder="At least 8 characters"
+                      className="min-w-0 flex-1 bg-transparent font-['Inter',sans-serif] text-[14px] leading-normal font-medium text-[#181818] outline-none placeholder:text-[#c2c2c2] md:text-[16px]"
                     />
                     <button
                       type="button"
@@ -252,18 +258,13 @@ const RegisterView = () => {
                       )}
                     </button>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <p className="font-['Inter',sans-serif] text-[12px] text-[#c2c2c2] md:text-[14px]">
-                      At least 8 characters
+                  {passwordStrength && (
+                    <p
+                      className={`text-right font-['Inter',sans-serif] text-[12px] md:text-[14px] ${passwordStrength.color}`}
+                    >
+                      {passwordStrength.label}
                     </p>
-                    {passwordStrength && (
-                      <p
-                        className={`font-['Inter',sans-serif] text-[12px] md:text-[14px] ${passwordStrength.color}`}
-                      >
-                        {passwordStrength.label}
-                      </p>
-                    )}
-                  </div>
+                  )}
                 </div>
               </div>
 
@@ -323,6 +324,7 @@ const RegisterView = () => {
                 </p>
               </div>
             </form>
+          </div>
           </div>
         </div>
       </div>

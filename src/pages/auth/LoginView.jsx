@@ -172,7 +172,7 @@ const LoginView = () => {
                   <label className="font-['Inter',sans-serif] text-[12px] leading-normal font-medium text-[#181818] md:text-[14px]">
                     Password
                   </label>
-                  <div className="flex items-center justify-between rounded-[10px] border border-[#8022fe] bg-white px-4 py-3">
+                  <div className="flex items-center justify-between rounded-[10px] border border-[#f2f2f2] bg-white px-4 py-3 focus-within:border-[#8022fe]">
                     <input
                       type={showPassword ? 'text' : 'password'}
                       value={password}
