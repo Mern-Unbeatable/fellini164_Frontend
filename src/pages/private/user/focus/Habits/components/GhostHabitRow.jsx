@@ -56,7 +56,7 @@ export default function GhostHabitRow({ habit, busy, onAccept, onDismiss, onRege
       }`}
     >
       <div
-        className={`flex w-56 shrink-0 flex-col gap-2.5 transition-opacity duration-200 max-lg:w-full 2xl:w-97 ${
+        className={`flex w-72 shrink-0 flex-col gap-2.5 transition-opacity duration-200 max-lg:w-full 2xl:w-97 ${
           isActive ? 'opacity-100' : 'opacity-40'
         }`}
       >

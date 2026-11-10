@@ -449,7 +449,7 @@ export default function Habits() {
       <div className="relative flex min-h-0 w-full flex-1 flex-col gap-2.5 overflow-hidden rounded-2xl border border-[#f2f2f2] bg-white p-3 max-lg:h-auto max-lg:flex-none dark:border-zinc-700 dark:bg-zinc-800">
         <div className="flex items-center max-lg:flex-wrap max-lg:gap-2 lg:px-3.25">
           {boardIsEmpty ? (
-            <div className="flex w-56 shrink-0 items-center gap-2 max-lg:w-auto 2xl:w-97">
+            <div className="flex w-72 shrink-0 items-center gap-2 whitespace-nowrap max-lg:w-auto 2xl:w-97">
               <RotateCw size={16} className="shrink-0 text-[#c2c2c2]" />
               <span className="flex shrink-0 items-center gap-1 rounded-[6px] bg-[#f9f4ff] px-[6px] py-[2px] text-xs font-medium text-[#8022fe]">
                 <Sparkles size={10} />
@@ -457,15 +457,14 @@ export default function Habits() {
               </span>
             </div>
           ) : (
-            <div className="flex w-56 shrink-0 items-center gap-2 max-lg:w-auto 2xl:w-97">
+            <div className="flex w-72 shrink-0 items-center gap-2 whitespace-nowrap max-lg:w-auto 2xl:w-97">
               <RotateCw size={16} className="shrink-0 text-[#c2c2c2]" />
-              <p className="text-sm font-medium text-[#5d5d5d] dark:text-gray-300">{activeCount} active</p>
+              <p className="text-sm font-medium text-[#5d5d5d] dark:text-gray-300">
+                {activeCount} active
+              </p>
               <span className="rounded-[6px] bg-[#f2f2f2] px-[6px] py-[2px] text-xs font-medium text-[#5d5d5d] dark:bg-zinc-700 dark:text-gray-300">
-                {pausedCount} paused
-                <span className="max-xl:hidden">
-                  {' '}
-                  <span className="text-[#c2c2c2]">•</span> {completedCount} completed
-                </span>
+                {pausedCount} paused{' '}
+                <span className="text-[#c2c2c2]">•</span> {completedCount} completed
               </span>
             </div>
           )}

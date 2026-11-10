@@ -467,8 +467,16 @@ export default function TaskFormModal({ mode = 'create', initialTask, onClose, o
   );
 
   const [form, setForm] = useState(() => (isEdit && initialTask ? formFromTask(initialTask) : EMPTY_FORM));
+  const [initialForm] = useState(() => (isEdit && initialTask ? formFromTask(initialTask) : null));
 
   const update = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
+
+  const isFormDirty =
+    !isEdit ||
+    !initialForm ||
+    Object.keys(EMPTY_FORM).some(
+      (key) => String(form[key] ?? '') !== String(initialForm[key] ?? '')
+    );
 
   useEffect(() => {
     let cancelled = false;
@@ -548,6 +556,7 @@ export default function TaskFormModal({ mode = 'create', initialTask, onClose, o
 
   const handleManualSubmit = async () => {
     if (submittingManualRef.current || !form.title.trim()) return;
+    if (isEdit && !isFormDirty) return;
     submittingManualRef.current = true;
     setSubmittingManual(true);
     try {
@@ -596,7 +605,8 @@ export default function TaskFormModal({ mode = 'create', initialTask, onClose, o
     }
   };
 
-  const canSubmitManual = form.title.trim().length > 0 && !submittingManual;
+  const canSubmitManual =
+    form.title.trim().length > 0 && !submittingManual && (!isEdit || isFormDirty);
   const canGenerate = aiPrompt.trim().length > 0 && !isRevealing;
   const showAiPreview = !isEdit && activeTab === 'ai' && aiPhase === 'preview';
   const showAiGenerating = !isEdit && activeTab === 'ai' && aiPhase === 'generating';
@@ -746,7 +756,13 @@ export default function TaskFormModal({ mode = 'create', initialTask, onClose, o
                     type="button"
                     onClick={handleManualSubmit}
                     disabled={!canSubmitManual}
-                    className="flex flex-1 items-center justify-center rounded-lg bg-[#8022fe] px-3 py-2 text-[12px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+                    className={`flex flex-1 items-center justify-center rounded-lg px-3 py-2 text-[12px] font-semibold ${
+                      submittingManual
+                        ? 'cursor-not-allowed bg-[#8022fe] text-white opacity-60'
+                        : canSubmitManual
+                          ? 'bg-[#8022fe] text-white'
+                          : 'cursor-not-allowed bg-[#f1f1f1] text-[#dedede]'
+                    }`}
                   >
                     {submittingManual ? 'Updating...' : 'Update'}
                   </button>
