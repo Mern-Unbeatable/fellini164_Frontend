@@ -960,6 +960,7 @@ export default function ActiveGoals() {
     // AI Generate already created the goal on the server — refresh list only.
     if (data.alreadyPersisted) {
       clearForceEmptyQuery();
+      toast.success('Goal created');
       await loadGoals();
       return;
     }

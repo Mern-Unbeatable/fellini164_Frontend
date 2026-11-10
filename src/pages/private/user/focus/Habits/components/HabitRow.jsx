@@ -223,7 +223,7 @@ export default function HabitRow({
       onMouseLeave={() => setIsHovered(false)}
       className="relative flex w-full shrink-0 items-start rounded-2xl border border-solid border-[#f2f2f2] bg-[#fcfcfc] p-3 max-lg:flex-col max-lg:gap-3 dark:border-zinc-700 dark:bg-zinc-800"
     >
-      <div className={`flex shrink-0 flex-col gap-2.5 max-lg:w-full ${compact ? 'w-97' : 'w-56 2xl:w-97'} ${ash}`}>
+      <div className={`flex shrink-0 flex-col gap-2.5 max-lg:w-full ${compact ? 'w-97' : 'w-72 2xl:w-97'} ${ash}`}>
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
             <p

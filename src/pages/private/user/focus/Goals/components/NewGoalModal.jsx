@@ -72,6 +72,20 @@ const EMPTY_FORM = {
   linkedHabits: [],
 };
 
+function goalFormsEqual(a, b) {
+  if (!a || !b) return false;
+  return Object.keys(EMPTY_FORM).every((key) => {
+    const av = a[key];
+    const bv = b[key];
+    if (Array.isArray(av) || Array.isArray(bv)) {
+      const as = [...(av ?? [])].map(String).sort().join(',');
+      const bs = [...(bv ?? [])].map(String).sort().join(',');
+      return as === bs;
+    }
+    return String(av ?? '') === String(bv ?? '');
+  });
+}
+
 function formatDueDate(value) {
   if (!value) return '';
   const date = new Date(`${value}T00:00:00`);
@@ -653,6 +667,7 @@ export default function NewGoalModal({ open, onClose, onSave, mode = 'create', i
   const [generatedGoal, setGeneratedGoal] = useState(null);
   const [pendingGoal, setPendingGoal] = useState(null);
   const [form, setForm] = useState(buildInitialForm);
+  const [initialForm, setInitialForm] = useState(() => (isEdit ? buildInitialForm() : null));
   const [tasksOpen, setTasksOpen] = useState(false);
   const [habitsOpen, setHabitsOpen] = useState(false);
   const [taskOptions, setTaskOptions] = useState([]);
@@ -677,7 +692,9 @@ export default function NewGoalModal({ open, onClose, onSave, mode = 'create', i
     if (!open) return undefined;
     discardGeneratedGoal(unsavedGeneratedIdRef.current);
     unsavedGeneratedIdRef.current = null;
-    setForm(buildInitialForm());
+    const nextForm = buildInitialForm();
+    setForm(nextForm);
+    setInitialForm(isEdit ? nextForm : null);
     setActiveTab(isEdit ? 'manual' : 'ai');
     setAiPhase('input');
     setAiPrompt('');
@@ -817,6 +834,7 @@ export default function NewGoalModal({ open, onClose, onSave, mode = 'create', i
 
   const handleManualSubmit = () => {
     if (!form.title.trim() || !form.description.trim() || dueDateError) return;
+    if (isEdit && initialForm && goalFormsEqual(form, initialForm)) return;
     onSave({
       title: form.title,
       description: form.description,
@@ -839,8 +857,12 @@ export default function NewGoalModal({ open, onClose, onSave, mode = 'create', i
     if (tab === 'ai') setAiPhase(generatedGoal ? 'preview' : 'input');
   };
 
+  const isFormDirty = !isEdit || !initialForm || !goalFormsEqual(form, initialForm);
   const canSubmitManual =
-    form.title.trim().length > 0 && form.description.trim().length > 0 && !dueDateError;
+    form.title.trim().length > 0 &&
+    form.description.trim().length > 0 &&
+    !dueDateError &&
+    (!isEdit || isFormDirty);
   const canGenerate = aiPrompt.trim().length > 0 && !isRevealing;
   const showAiPreview = activeTab === 'ai' && aiPhase === 'preview';
   const showAiGenerating = activeTab === 'ai' && aiPhase === 'generating';

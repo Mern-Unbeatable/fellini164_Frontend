@@ -108,6 +108,7 @@ export const createGoal = createAsyncThunk(
     try {
       const payload = mapCreatePayload(formData);
       const created = await createGoalApi(payload);
+      toast.success('Goal created');
       return mapGoalFromApi(created, formData.source || 'manual');
     } catch (error) {
       const data = error?.response?.data;

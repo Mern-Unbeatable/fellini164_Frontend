@@ -113,6 +113,20 @@ function formFromHabit(habit) {
   };
 }
 
+function formsEqual(a, b) {
+  if (!a || !b) return false;
+  return Object.keys(EMPTY_FORM).every((key) => {
+    const av = a[key];
+    const bv = b[key];
+    if (Array.isArray(av) || Array.isArray(bv)) {
+      const as = [...(av ?? [])].map(String).sort().join(',');
+      const bs = [...(bv ?? [])].map(String).sort().join(',');
+      return as === bs;
+    }
+    return String(av ?? '') === String(bv ?? '');
+  });
+}
+
 function Field({ label, children }) {
   return (
     <div className="flex flex-col gap-1.5">
@@ -346,6 +360,9 @@ export default function NewHabitsModal({
   const [form, setForm] = useState(() =>
     isEdit && initialHabit ? formFromHabit(initialHabit) : EMPTY_FORM,
   );
+  const [initialForm] = useState(() =>
+    isEdit && initialHabit ? formFromHabit(initialHabit) : null,
+  );
   const [addingToBoard, setAddingToBoard] = useState(false);
   const [submittingManual, setSubmittingManual] = useState(false);
   // State updates are async, so two rapid clicks can both see `false`; the ref blocks the second one synchronously.
@@ -460,6 +477,7 @@ export default function NewHabitsModal({
 
   const handleManualSubmit = async () => {
     if (submittingManualRef.current || !form.title.trim()) return;
+    if (isEdit && initialForm && formsEqual(form, initialForm)) return;
     submittingManualRef.current = true;
     setSubmittingManual(true);
     try {
@@ -524,7 +542,9 @@ export default function NewHabitsModal({
     if (tab === 'ai') setAiPhase(generatedHabit ? 'preview' : 'input');
   };
 
-  const canSubmitManual = form.title.trim().length > 0 && !submittingManual;
+  const isFormDirty = !isEdit || !initialForm || !formsEqual(form, initialForm);
+  const canSubmitManual =
+    form.title.trim().length > 0 && !submittingManual && (!isEdit || isFormDirty);
   const manualSubmitClass = submittingManual
     ? 'cursor-not-allowed bg-[#8022fe] text-white opacity-60'
     : canSubmitManual
